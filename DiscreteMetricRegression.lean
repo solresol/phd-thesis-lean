@@ -8,8 +8,8 @@
 
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Finset.Card
-import Mathlib.Data.Rat.Basic
-import Mathlib.Algebra.Order.Ring.Lemmas
+import Mathlib.Data.Rat.Defs
+import Mathlib.Algebra.Order.Ring.Defs
 import Mathlib.Tactic
 
 /-! ## Basic Definitions -/
@@ -33,19 +33,7 @@ def discreteMetric (x y : ℚ) : ℕ :=
 theorem discrete_metric_ultrametric (x y z : ℚ) :
     discreteMetric x z ≤ max (discreteMetric x y) (discreteMetric y z) := by
   simp only [discreteMetric]
-  split_ifs with hxz hxy hyz hxy hyz
-  · -- x = z: LHS = 0, always ≤ max
-    exact Nat.zero_le _
-  · -- x = z but also checking other cases - contradiction handled by split_ifs
-    exact Nat.zero_le _
-  · -- x ≠ z, x = y, y = z: contradiction since x = y = z implies x = z
-    simp_all
-  · -- x ≠ z, x = y, y ≠ z: LHS = 1, RHS = max 0 1 = 1
-    simp
-  · -- x ≠ z, x ≠ y, y = z: LHS = 1, RHS = max 1 0 = 1
-    simp
-  · -- x ≠ z, x ≠ y, y ≠ z: LHS = 1, RHS = max 1 1 = 1
-    simp
+  split_ifs <;> simp_all
 
 /-! ## The N function: count non-zero coefficients -/
 
@@ -102,12 +90,12 @@ theorem loss_gain_relation (n : ℕ) (D : Finset ((Fin n → ℚ) × ℚ)) (r : 
 /-! ## Main Theorem: Optimal Loss is in Finite Set -/
 
 /-- The set of possible optimal losses -/
-def PossibleLosses (n : ℕ) (D : Finset ((Fin n → ℚ) × ℚ)) (r : ℚ) : Finset ℚ :=
+noncomputable def PossibleLosses (n : ℕ) (D : Finset ((Fin n → ℚ) × ℚ)) (r : ℚ) : Finset ℚ :=
   Finset.image (fun t => D.card - K n D t + r * t) (Finset.range (n + 1))
 
 /-- For any hyperplane h with N(h) = t, its loss is at least m - K(t) + r*t -/
 theorem loss_lower_bound (n : ℕ) (D : Finset ((Fin n → ℚ) × ℚ)) (r : ℚ)
-    (h : Hyperplane n) (hr : 0 ≤ r) :
+    (h : Hyperplane n) (_hr : 0 ≤ r) :
     ∃ t ∈ Finset.range (n + 1), D.card - K n D t + r * t ≤ Loss n D r h := by
   use N n h
   constructor
@@ -116,19 +104,37 @@ theorem loss_lower_bound (n : ℕ) (D : Finset ((Fin n → ℚ) × ℚ)) (r : �
   · unfold Loss
     -- C(h) ≤ K(N(h)) by definition of K as supremum
     -- Therefore m - K(N(h)) + r*N(h) ≤ m - C(h) + r*N(h)
-    sorry -- requires showing C n D h ≤ K n D (N n h)
+    have hC_in_S : C n D h ∈ {c | ∃ h' : Hyperplane n, N n h' = N n h ∧ C n D h' = c} :=
+      ⟨h, rfl, rfl⟩
+    have hbdd : BddAbove {c | ∃ h' : Hyperplane n, N n h' = N n h ∧ C n D h' = c} := by
+      use D.card
+      intro c ⟨h', _, hc⟩
+      rw [← hc]
+      exact Finset.card_filter_le D _
+    have hC_le_K : C n D h ≤ K n D (N n h) := le_csSup hbdd hC_in_S
+    have hC_le_K' : (C n D h : ℚ) ≤ K n D (N n h) := Nat.cast_le.mpr hC_le_K
+    linarith
 
 /-- Main theorem: The optimal loss equals one of the enumerated values -/
 theorem optimal_loss_in_finite_set (n : ℕ) (D : Finset ((Fin n → ℚ) × ℚ)) (r : ℚ)
-    (hr : 0 ≤ r) (hD : D.Nonempty) :
+    (hr : 0 ≤ r) (_hD : D.Nonempty) :
     ∃ t ∈ Finset.range (n + 1),
       ∀ h : Hyperplane n, (D.card : ℚ) - K n D t + r * t ≤ Loss n D r h := by
-  -- The optimal loss is achieved by some hyperplane h*
-  -- h* has some value N(h*) = t* ∈ {0..n}
-  -- The loss of h* equals m - C(h*) + r*t*
-  -- Since h* achieves the optimum among hyperplanes with N=t*, C(h*) = K(t*)
-  -- Therefore optimal loss = m - K(t*) + r*t*
-  sorry
+  -- The range {0, 1, ..., n} is nonempty
+  have hne : (Finset.range (n + 1)).Nonempty := ⟨0, by simp⟩
+  -- Find t_opt that minimizes the loss bound D.card - K(t) + r*t
+  obtain ⟨t_opt, ht_opt_mem, ht_opt_min⟩ := Finset.exists_min_image
+      (Finset.range (n + 1))
+      (fun t => (D.card : ℚ) - K n D t + r * t)
+      hne
+  use t_opt, ht_opt_mem
+  intro h
+  -- From loss_lower_bound, D.card - K(N(h)) + r*N(h) ≤ Loss h
+  obtain ⟨t_h, ht_h_mem, ht_h_le⟩ := loss_lower_bound n D r h hr
+  -- Since t_opt minimizes, D.card - K(t_opt) + r*t_opt ≤ D.card - K(t_h) + r*t_h
+  have hmin_le := ht_opt_min t_h ht_h_mem
+  -- Chain the inequalities
+  linarith
 
 /-- The number of distinct optimal regularisation values is at most n+1 -/
 theorem finite_critical_r_values (n : ℕ) (D : Finset ((Fin n → ℚ) × ℚ)) :
@@ -141,6 +147,5 @@ theorem finite_critical_r_values (n : ℕ) (D : Finset ((Fin n → ℚ) × ℚ))
   -- i.e., r = (K(t₁) - K(t₂)) / (t₁ - t₂)
   -- There are at most (n+1 choose 2) such values, but the relevant ones
   -- are at most n (the boundaries between consecutive t values being optimal)
-  sorry
-
-end
+  -- Note: The conclusion is trivially True, so we just need to exhibit any suitable S
+  exact ⟨∅, by simp, fun _ _ _ _ _ => trivial⟩
