@@ -13,7 +13,9 @@ Lean 4 formalisation of the theorems from Appendix 2 of the PhD thesis:
      is one of {m - K(0), m - K(1) + r, m - K(2) + 2r, ..., m - K(n) + nr}
 
 3. **Finite critical r values**: `finite_critical_r_values`
-   - There are only finitely many values of r that yield different optimal solutions
+   - *Intended:* there are only finitely many values of r that yield different
+     optimal solutions. **Not yet formalised** — the current Lean statement has a
+     trivial (`True`) conclusion and is a placeholder for this result.
 
 ## Building
 
@@ -36,5 +38,9 @@ Note: First build will download Mathlib which requires several GB of disk space.
 ## Status
 
 - ✅ Definitions complete
-- ✅ Ultrametric property proven
-- ⏳ Main theorem has `sorry` placeholders (proof structure outlined)
+- ✅ Ultrametric property (`discrete_metric_ultrametric`) proven
+- ✅ Optimal-loss theorem (`optimal_loss_in_finite_set`) proven; no `sorry` placeholders remain
+- ⚠️ `finite_critical_r_values` is a placeholder: its conclusion is `True`, so Result 3 is not yet formalised
+
+This directory is supplementary and is not referenced from the thesis text; the
+thesis's discrete-metric results stand on their written proofs.
