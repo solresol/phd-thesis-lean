@@ -36,6 +36,14 @@ for non-degenerate data:
 - the family of all such independent interpolants is finite; and
 - a global minimiser exists and is attained within that finite family.
 
+The additive generalisation is formalised in
+[`PhdThesisLean/AdditiveContact.lean`](PhdThesisLean/AdditiveContact.lean).
+For every monotone transform on nonnegative residual magnitudes that strictly
+distinguishes zero from every positive magnitude, it proves that each global
+minimiser has `n + 1` contacts or the predictors are degenerate. The wrapper
+`PhdThesisLean.AdditiveContact.additive_contact_theorem` corresponds to thesis
+Theorem `thm:additive-contact`.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -91,7 +99,9 @@ The copied statements are grouped by mathematical contribution:
   polynomial-time max loss, the equidistributed refinement result, and the
   nested easy--hard--easy family.
 - [`regularisation.tex`](thesis-statements/regularisation.tex): discrete
-  regularisation and the additive, lexicographic, and max-loss contact results.
+  regularisation and the additive, lexicographic, and max-loss contact results;
+  `thm:additive-contact` is formalised as
+  `PhdThesisLean.AdditiveContact.additive_contact_theorem`.
 - [`finite-domain-compilers.tex`](thesis-statements/finite-domain-compilers.tex):
   clause, finite-domain, all-different, hardness, and Sudoku results.
 
@@ -145,7 +155,7 @@ later complexity-theoretic development.
 A practical order is:
 
 1. discrete regularisation, after repairing the prototype;
-2. the additive-loss generalisation of the completed contact theorem;
+2. the count-loss and additive-`q` special cases;
 3. sparse medoid representation and robustness;
 4. thresholded-loss coreset obstruction;
 5. max-loss and valuation-histogram results;

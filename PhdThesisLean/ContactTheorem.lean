@@ -363,22 +363,23 @@ theorem exists_global_minimizer_on_independent_contacts
   obtain ⟨γ, hγH, hγle⟩ := hdominates β
   exact (hβ'min γ hγH).trans hγle
 
-/-- A global minimiser of summed `p`-adic residual loss either has at least
-`n + 1` exact contacts or the predictor data are degenerate. This stronger
-form does not need the thesis's size or well-posedness hypotheses. -/
-theorem contact_or_degenerate_of_minimizes
+/-- If a model has fewer than `n + 1` contacts on non-degenerate data, there is
+another model for which every residual norm is no larger and at least one is
+strictly smaller. This is the reusable perturbation core of the contact
+theorems. -/
+theorem exists_pointwise_norm_improvement
     (p : ℕ) [Fact p.Prime] {n k : ℕ}
     (X : Fin k → Point n) (y : Fin k → ℚ) (β : Model n)
-    (hmin : ∀ γ : Model n, loss p X y β ≤ loss p X y γ) :
-    n + 1 ≤ contactCount X y β ∨ Degenerate X := by
-  by_contra hconclusion
-  push_neg at hconclusion
+    (hfew : contactCount X y β < n + 1) (hdeg : ¬Degenerate X) :
+    ∃ β' : Model n,
+      (∀ i, padicNorm p (residual X y β' i) ≤ padicNorm p (residual X y β i)) ∧
+      ∃ j, residual X y β' j = 0 ∧ residual X y β j ≠ 0 := by
   obtain ⟨φ, hφne, hφcontacts⟩ :=
-    exists_direction_vanishing_on X (contacts X y β) hconclusion.1
+    exists_direction_vanishing_on X (contacts X y β) hfew
   have hactive_exists : ∃ i, affineEval φ (X i) ≠ 0 := by
     by_contra h
     push_neg at h
-    exact hconclusion.2 ⟨φ, hφne, h⟩
+    exact hdeg ⟨φ, hφne, h⟩
   let active : Finset (Fin k) :=
     Finset.univ.filter fun i ↦ affineEval φ (X i) ≠ 0
   have hactive : active.Nonempty := by
@@ -411,10 +412,27 @@ theorem contact_or_degenerate_of_minimizes
     dsimp [a]
     field_simp
     ring
+  exact ⟨β', hnorm_le, j, hjnew, hjresidual_ne⟩
+
+/-- A global minimiser of summed `p`-adic residual loss either has at least
+`n + 1` exact contacts or the predictor data are degenerate. This stronger
+form does not need the thesis's size or well-posedness hypotheses. -/
+theorem contact_or_degenerate_of_minimizes
+    (p : ℕ) [Fact p.Prime] {n k : ℕ}
+    (X : Fin k → Point n) (y : Fin k → ℚ) (β : Model n)
+    (hmin : ∀ γ : Model n, loss p X y β ≤ loss p X y γ) :
+    n + 1 ≤ contactCount X y β ∨ Degenerate X := by
+  by_cases hcontacts : n + 1 ≤ contactCount X y β
+  · exact Or.inl hcontacts
+  by_cases hdeg : Degenerate X
+  · exact Or.inr hdeg
+  exfalso
+  obtain ⟨β', hnorm_le, j, hjnew, hjold⟩ :=
+    exists_pointwise_norm_improvement p X y β (Nat.lt_of_not_ge hcontacts) hdeg
   have hjstrict : padicNorm p (residual X y β' j) <
       padicNorm p (residual X y β j) := by
     rw [hjnew, padicNorm.zero]
-    exact lt_of_le_of_ne (padicNorm.nonneg _) (Ne.symm (padicNorm.nonzero hjresidual_ne))
+    exact lt_of_le_of_ne (padicNorm.nonneg _) (Ne.symm (padicNorm.nonzero hjold))
   have hloss_strict : loss p X y β' < loss p X y β := by
     apply Finset.sum_lt_sum
     · intro i _
