@@ -13,8 +13,40 @@ touch any copied theorem statement.
 
 ## Current status
 
-`DiscreteMetricRegression.lean` is the inherited prototype. It currently
-contains:
+The central contact theorem now has a statement-faithful proof in
+[`PhdThesisLean/ContactTheorem.lean`](PhdThesisLean/ContactTheorem.lean). The
+formalisation:
+
+- represents the dataset by functions on `Fin k`, so repeated observations are
+  retained and contacts count distinct observation indices;
+- represents an affine model by `Fin (n + 1) → ℚ`, with the intercept in
+  coordinate zero;
+- uses mathlib's rational `p`-adic norm under an explicit primality assumption;
+- proves the nonzero direction lemma by finite-dimensional rank-nullity;
+- proves the pointwise ultrametric perturbation bound; and
+- proves that every global minimiser has at least `n + 1` contacts or the data
+  admit a nonzero affine function vanishing on every predictor.
+
+The algorithmic supplement is formalised in the same module. It proves that,
+for non-degenerate data:
+
+- any affine model can be lifted to one through `n + 1` affinely independent
+  observations without increasing its loss;
+- those interpolation conditions determine a unique affine model;
+- the family of all such independent interpolants is finite; and
+- a global minimiser exists and is attained within that finite family.
+
+The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
+thesis's positivity, dataset-size, and response-consistency hypotheses for exact
+correspondence with `core-theorem` at thesis commit
+`2c6418bcf9643fc6e039237f0f59ace14b2557fc`. The underlying Lean theorem is
+slightly stronger: the perturbation proof does not need those three hypotheses
+to establish the dichotomy. The completed declaration contains no placeholders,
+builds with the default project target, and its axiom audit reports only
+`propext`, `Classical.choice`, and `Quot.sound`.
+
+`DiscreteMetricRegression.lean` remains the inherited regularisation prototype.
+It currently contains:
 
 - definitions for finite rational datasets, affine hyperplanes, contact counts,
   coefficient-support counts, gain, and regularised discrete-metric loss;
@@ -39,15 +71,18 @@ No theorem should be marked complete merely because Lean accepts a weaker or
 vacuous formulation.
 
 The proof library builds locally with `lake build`, and the repository has a
-GitHub Actions build check. The inherited trivial executable has been removed
-so verification does not require native compilation of all mathlib imports.
+GitHub Actions build check. `PhdThesisLean` is an explicit default target, so a
+bare build checks both the contact theorem and the imported inherited module.
+The inherited trivial executable has been removed so verification does not
+require native compilation of all mathlib imports.
 
 ## Source theorem catalogue
 
 The copied statements are grouped by mathematical contribution:
 
 - [`contact-theorem.tex`](thesis-statements/contact-theorem.tex): the central
-  hyperplane-contact theorem.
+  hyperplane-contact theorem, formalised as
+  `PhdThesisLean.ContactTheorem.contact_theorem`.
 - [`complexity.tex`](thesis-statements/complexity.tex): fixed-prime homogeneous
   hardness and affine-model hardness.
 - [`medoids-and-coresets.tex`](thesis-statements/medoids-and-coresets.tex): the
@@ -91,24 +126,26 @@ only as their target theorem is formalised.
   thesis's open regularisation-path question.
 - Remove unused prototype definitions and add focused tests or examples.
 
-### 3. Formalise the central contact theorem
+### 3. Central contact development
 
-- Formalise affine maps over the rationals with the p-adic norm.
-- State the dataset non-degeneracy alternative precisely.
-- Prove existence of the perturbation direction and the ultrametric
-  loss-improvement step.
-- Derive the exact fixed-dimensional contact-enumeration result separately from
-  the mathematical contact theorem.
+- `contact_theorem` proves the mathematical contact-or-degeneracy dichotomy.
+- `independent_contact_refinement` supplies `n + 1` independent contacts without
+  increasing loss.
+- `unique_interpolant` proves uniqueness for a full independent contact set.
+- `finite_candidateModels` proves that the candidate family is finite.
+- `exists_global_minimizer_on_independent_contacts` proves that exact global
+  minimisation reduces to that finite family.
 
-This should be the first major milestone because several later contact results
-depend on it.
+The mathematical theorem and its exact finite-search refinement are complete.
+Formal complexity bounds for implementing the enumeration belong with the
+later complexity-theoretic development.
 
 ### 4. Formalise the remaining mathematical results
 
 A practical order is:
 
 1. discrete regularisation, after repairing the prototype;
-2. the contact theorem and its additive-loss generalisation;
+2. the additive-loss generalisation of the completed contact theorem;
 3. sparse medoid representation and robustness;
 4. thresholded-loss coreset obstruction;
 5. max-loss and valuation-histogram results;

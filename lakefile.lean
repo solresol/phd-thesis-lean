@@ -8,5 +8,8 @@ require mathlib from git
   "https://github.com/leanprover-community/mathlib4.git"
 
 lean_lib «DiscreteMetricRegression» where
-  -- The formalisation is a library. Keeping the library as the default target
-  -- avoids natively recompiling all of mathlib for a trivial executable.
+  -- Preserve the inherited prototype as a named library target.
+
+@[default_target]
+lean_lib «PhdThesisLean» where
+  -- New statement-faithful developments live under the PhdThesisLean namespace.
