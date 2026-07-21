@@ -1,0 +1,99 @@
+% Sources: pac-learning-open-questions/body.tex and coreset-obstruction/coreset.tex
+% Thesis commit: 2c6418bcf9643fc6e039237f0f59ace14b2557fc
+
+\begin{thm}[Finite-precision sparse medoid representation]
+\label{thm:sparse-medoid-representation}
+Let \(F:R_K^d\to R_K\) be locally \(s\)-sparse non-expansive. For every
+\(r\in R_K^d\), choose a subset \(S(r)\) satisfying
+\eqref{eq:locally-sparse-nonexpansive}. For every slope vector
+\[
+a=(a_j)_{j\in S(r)}\in R_K^{S(r)},
+\]
+define the affine regressor
+\[
+L_{r,a}(x)
+=
+F(r)+\sum_{j\in S(r)}a_j(x_j-r_j).
+\]
+Then, for every \(x\in R_K^d\), the unique medoid of the multiset
+\[
+\{L_{r,a}(x): r\in R_K^d,\ a\in R_K^{S(r)}\}
+\]
+is \(F(x)\). Thus \(F\) is represented exactly at precision \(K\) by a finite
+ensemble of affine regressors, each using at most \(s\) features.
+\end{thm}
+
+\begin{proposition}[Good regressors force an accurate medoid]
+\label{prop:medoid-robustness}
+Let \(z_1,\ldots,z_m\in\mathbb{Q}_p\) be candidate outputs and let
+\[
+B=y+p^N\mathbb{Z}_p
+\]
+be the ball of outputs correct to precision \(N\). Suppose \(g\) candidates lie
+in \(B\), while \(b=m-g\) candidates lie outside \(B\). If
+\[
+g(p-1)>pb,
+\]
+then every \(p\)-adic medoid of the candidates lies in \(B\).
+\end{proposition}
+
+\begin{thm}[No small high-accuracy coresets for thresholded residual loss]
+\label{thm:threshold-coreset}
+Fix a prime $p$, a dimension $d\ge 2$, and a threshold $\tau\ge 0$. Define the
+thresholded residual loss by
+\[
+\ell_\tau((x,y),\beta)=
+\begin{cases}
+0, & \text{if } |y-\langle \beta,x\rangle|_p \le \tau,\\
+1, & \text{if } |y-\langle \beta,x\rangle|_p > \tau.
+\end{cases}
+\]
+For every $k\ge 1$, there exists a dataset
+$D\subset \mathbb{Q}_p^{\,d-1}\times \mathbb{Q}_p$ with $|D|=k$ such that no
+weighted subset supported on fewer than $k$ points is an $\varepsilon$-coreset
+for the loss
+\[
+L_D(\beta)=\sum_{z\in D}\ell_\tau(z,\beta)
+\]
+whenever
+\[
+\varepsilon<\frac{1}{2k-1}.
+\]
+In particular, the case $\tau=0$ gives the exact-fit loss.
+\end{thm}
+
+\begin{thm}[Bounded-information subset summaries]
+\label{prop:subset-summary-lower-bound}
+Fix an accuracy $\Delta>0$ and a coefficient dimension $m\ge 1$. Let
+$A\subset \mathbb{Q}_p$ be finite and satisfy
+\[
+|a-b|_p>2\Delta \qquad\text{for all distinct } a,b\in A.
+\]
+For each $u=(u_1,\dots,u_m)\in A^m$, define
+\[
+D_u=\{(e_i,u_i):1\le i\le m\}\subset \mathbb{Q}_p^m\times \mathbb{Q}_p,
+\]
+where $e_i$ denotes the $i$th standard basis vector. Under the standard
+$p$-adic absolute loss,
+\[
+L_{D_u}(\beta)=\sum_{i=1}^m |u_i-\beta_i|_p,
+\]
+the unique minimiser is $\beta^\ast(D_u)=u$.
+
+Let $s<m$. Suppose $C$ maps each $D_u$ to an unweighted subset summary
+$C(D_u)\subseteq D_u$ of support at most $s$, and let $g$ be any decoder from
+such summaries to parameters in $\mathbb{Q}_p^m$. If
+\[
+|A|^m>\sum_{j=0}^{s}\binom{m}{j}|A|^j,
+\]
+then there exists $u\in A^m$ such that
+\[
+\|g(C(D_u))-\beta^\ast(D_u)\|_{\infty,p}>\Delta.
+\]
+
+The same conclusion holds for weighted subset summaries with support at most $s$
+and weights drawn from a finite alphabet $W$, provided
+\[
+|A|^m>\sum_{j=0}^{s}\binom{m}{j}(|A||W|)^j.
+\]
+\end{thm}

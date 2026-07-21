@@ -1,0 +1,13 @@
+% Source: multivariate-padic-linear-regression/coretheorem.tex
+% Thesis commit: 2c6418bcf9643fc6e039237f0f59ace14b2557fc
+
+\begin{thm}
+  \label{core-theorem}
+  Let $n, k \in \mathbb{Z}^+$ where $k \ge n+1$.
+  Let $X_1, X_2, \ldots X_k \in \mathbb{Q}^n$ and
+  $y_1, y_2, \ldots y_k \in \mathbb{Q}$, where
+$y_i \ne y_j \implies X_i \ne X_j$.
+  Let $F(X) = V \cdot (X,1)$ be an affine function from $\mathbb{Q}^n \rightarrow \mathbb{Q}$ which minimises $\sum_{i=1}^{k} \left|F(X_i) - y_i\right|_p$.
+Then $F(X_i) - y_i = 0$ for at least
+$n+1$ distinct values of $i$, or else the data is degenerate and there is a nonzero affine function $\phi : \mathbb{Q}^n \rightarrow \mathbb{Q}$ for which $\phi(X_i) = 0$ for all $i$.
+\end{thm}

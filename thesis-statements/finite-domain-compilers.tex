@@ -1,0 +1,93 @@
+% Sources: appendices/complexity-3sat-clausewise.tex and
+%          sudoku-via-padic-regression/body.tex
+% Thesis commit: 2c6418bcf9643fc6e039237f0f59ace14b2557fc
+
+\begin{thm}\label{thm:3sat-clausewise}
+Let $p>3$ be prime, and let $\Phi$ be a $3$-CNF formula. For the signed
+regression objective \eqref{eq:3sat-clausewise-loss}, every global minimiser
+lies in $\{0,1\}^n$. Moreover, if $x\in\{0,1\}^n$, then
+\[
+L_\Phi(x)=\alpha n-\operatorname{sat}_\Phi(x),
+\]
+where $\operatorname{sat}_\Phi(x)$ is the number of clauses of $\Phi$
+satisfied by the assignment encoded by $x$. Consequently, the global
+minimisers of $L_\Phi$ are exactly the assignments that maximise the number of
+satisfied clauses. In particular,
+\[
+\Phi\text{ is satisfiable}
+\iff
+\min_{x\in\mathbb Z_p^n}L_\Phi(x)=\alpha n-m.
+\]
+\end{thm}
+
+\begin{thm}[Finite-domain signed affine compiler template]
+\label{thm:compiler-template}
+Fix a prime \(p\). Let \(D_i\subseteq\mathbb Z\) be finite nonempty sets whose elements are pairwise incongruent modulo \(p\), and put
+\[
+D:=\prod_{i=1}^n D_i\subseteq\mathbb Z_p^n.
+\]
+For each coordinate \(i\), choose a pinning weight \(\lambda_i>0\). Let \(\mathcal T\) be a finite family of signed affine observations
+\[
+(\sigma_\ell,u_\ell,b_\ell,\gamma_\ell),
+\qquad
+\sigma_\ell\in\{\pm1\},\quad u_\ell\in\mathbb Z^n,\quad b_\ell\in\mathbb Z,\quad \gamma_\ell>0,
+\]
+and define
+\[
+L(x):=
+\sum_{i=1}^n\lambda_i\sum_{a\in D_i}|x_i-a|_p
+\;+\;
+\sum_{\ell\in\mathcal T}\sigma_\ell\gamma_\ell |u_\ell^\top x-b_\ell|_p.
+\]
+Assume that, for every coordinate \(i\),
+\[
+\lambda_i>\sum_{\ell:\,(u_\ell)_i\neq 0}\gamma_\ell,
+\]
+and that, for every \(x\in D\) and every \(\ell\in\mathcal T\), the residual \(u_\ell^\top x-b_\ell\) is either \(0\) or a \(p\)-adic unit. Then \(L\) attains its global minimum on \(D\), and every global minimiser lies in \(D\). On \(D\), \(L\) is a constant plus a finite signed objective whose interaction terms have values \(0\) and \(\sigma_\ell\gamma_\ell\).
+\end{thm}
+
+\begin{corollary}[Extension to \(\mathbb Q_p^n\)]
+\label{cor:qp-extension}
+Under the assumptions of Theorem~\ref{thm:compiler-template}, view the same formula for \(L\) as an objective on \(\mathbb Q_p^n\). It remains bounded below, attains its global minimum on \(D\), and has no global minimiser outside \(D\).
+\end{corollary}
+
+\begin{thm}[Correctness of the synthetic reduction]
+\label{thm:all-different}
+For the dataset \(\mathcal S=\mathcal S^+\sqcup\mathcal S^-\) from Definition~\ref{def:list-dataset} and the loss from Definition~\ref{def:list-loss}, every global minimiser of \(L_{\mathcal S}\) lies in \(\prod_{i=1}^n D_i\). On \(\prod_{i=1}^n D_i\),
+\[
+L_{\mathcal S}(x)
+=
+\lambda\sum_{i=1}^n (|D_i|-1)
+-|E|
++\sum_{1\le i<j\le n} w_{ij}\mathbf 1_{x_i=x_j}.
+\]
+Consequently, the global minimisers are exactly the domain-respecting assignments that minimise the conflict sum \(\sum_{1\le i<j\le n} w_{ij}\mathbf 1_{x_i=x_j}\), or equivalently maximise the number of unequal edges. In particular, if the list-colouring instance \((G,(D_i)_{i=1}^n)\) is satisfiable, then this minimum conflict sum is \(0\), and the global minimisers are exactly its proper list-colourings.
+\end{thm}
+
+\begin{corollary}
+\label{cor:all-different-csp}
+Any finite-domain all-different constraint system can be encoded, in polynomial time, as a signed weighted synthetic $p$-adic residual objective whose global minimisers are exactly the domain-respecting assignments with minimum conflict count. If the constraint system is satisfiable, these minimisers are exactly its satisfying assignments.
+\end{corollary}
+
+\begin{corollary}[NP-hardness at a fixed prime]
+\label{cor:signed-nphard}
+Globally minimising signed affine \(p\)-adic residual objectives is NP-hard already for the fixed prime \(p=5\).
+\end{corollary}
+
+\begin{corollary}[No dyadic tractability transfer]
+\label{cor:sudoku-polynomial-dyadic-hardness}
+Global minimisation of positive polynomial-residual objectives over \(\mathbb Z_2^n\) is NP-hard, already when every non-unary residual is multilinear of degree at most three.
+\end{corollary}
+
+\begin{corollary}[Sudoku completion as a special case]
+\label{cor:sudoku-special-case}
+Let \(G_{\mathrm{Sud}}\) be the graph on the \(81\) cells of a Sudoku puzzle, with an edge between two cells exactly when they share a row, column, or \(3\times 3\) box. For a puzzle with clue set \(\mathcal{C}\) and clue digits \(g_i\), define
+\[
+D_i :=
+\begin{cases}
+\{g_i\}, & i\in \mathcal{C},\\
+\{1,\dots,9\}, & i\notin \mathcal{C}.
+\end{cases}
+\]
+Assume \(\alpha>20\). Then every global minimiser of the minimal objective \eqref{eq:objective-minimal} is a clue-respecting digit assignment that minimises the peer-conflict count. In particular, if the Sudoku instance is satisfiable, the global minimisers are exactly the valid completions of the puzzle.
+\end{corollary}

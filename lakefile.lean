@@ -8,8 +8,5 @@ require mathlib from git
   "https://github.com/leanprover-community/mathlib4.git"
 
 lean_lib «DiscreteMetricRegression» where
-  -- add library configuration options here
-
-@[default_target]
-lean_exe «discrete_metric_regression» where
-  root := `Main
+  -- The formalisation is a library. Keeping the library as the default target
+  -- avoids natively recompiling all of mathlib for a trivial executable.

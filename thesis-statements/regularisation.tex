@@ -1,0 +1,89 @@
+% Sources: ultrametric-regularisation-and-loss/body.tex and unification.tex
+% Thesis commit: 2c6418bcf9643fc6e039237f0f59ace14b2557fc
+
+\begin{thm}[Discrete Metric Regularised Regression]
+\label{thm:discrete-regularised}
+For regularised linear regression with the discrete metric and regularisation strength $\lambda \geq 0$, an optimal hyperplane $(a_1, \ldots, a_n, b)$ has exactly $t^*$ non-zero coefficients among $a_1, \ldots, a_n$, where
+\begin{equation}
+    t^* \in \argmax_{t \in \{0, \ldots, n\}} \left( K(t) - \lambda t \right)
+\end{equation}
+and the corresponding minimum loss is $m - K(t^*) + \lambda t^*$.
+\end{thm}
+
+\begin{corollary}[Reduction of regularised to unregularised search]
+\label{cor:discrete-algorithm}
+Given the values $K(0), K(1), \ldots, K(n)$, together with a witness
+hyperplane from $B(t)$ for each $t$, an optimal hyperplane for regularisation
+strength $\lambda$ can be found by:
+\begin{enumerate}
+    \item Computing the $n+1$ candidate gains: $\{K(0), K(1)-\lambda, K(2)-2\lambda, \ldots, K(n)-n\lambda\}$
+    \item Selecting any $t^*$ that maximises $K(t^*) - \lambda t^*$
+    \item Returning the witness hyperplane for $B(t^*)$
+\end{enumerate}
+\end{corollary}
+
+\begin{thm}[Additive contact theorem]
+\label{thm:additive-contact}
+Let \(\{(X_i,y_i)\}_{i=1}^{m}\subseteq \mathbb{Q}^n\times \mathbb{Q}\) satisfy
+the hypotheses of Theorem~\ref{core-theorem}, and write
+\[
+r_i(\beta)=\beta\cdot (X_i,1)-y_i.
+\]
+Let \(\phi:[0,\infty)\to\mathbb{R}\) be nondecreasing and satisfy
+\(\phi(0)<\phi(t)\) for every \(t>0\). Define
+\[
+L_{\phi}(\beta)=\sum_{i=1}^{m}\phi\bigl(|r_i(\beta)|_p\bigr).
+\]
+Then any minimiser of \(L_{\phi}\) passes through at least \(n+1\) data points,
+unless the data are degenerate in the sense of Theorem~\ref{core-theorem}.
+\end{thm}
+
+\begin{corollary}[Count loss and the additive \(q\)-family]
+\label{cor:additive-contact-special-cases}
+Under the same hypotheses, every minimiser of
+\[
+L_{\mathrm{count}}(\beta)=\sum_{i=1}^{m}\mathbf{1}_{\{r_i(\beta)\neq 0\}}
+\]
+and every minimiser of
+\[
+\mathcal{L}_q(\beta)=\sum_{i=1}^{m} q^{-v_p(r_i(\beta))} \qquad (q>1)
+\]
+passes through at least \(n+1\) data points, unless the data are degenerate.
+\end{corollary}
+
+\begin{thm}[When \(q>m\), additive loss is lexicographic]
+\label{thm:q-lexicographic}
+Fix a regression instance with \(m\) residuals, and let
+\[
+h_t(\beta):=\#\{\,i : v_p(r_i(\beta))=t\,\}
+\qquad (t\in\mathbb{Z}).
+\]
+Let \(q>m\). Suppose \(\beta\) and \(\beta'\) have different valuation
+histograms, and let \(t_0\) be the smallest integer for which
+\[
+h_{t_0}(\beta)\neq h_{t_0}(\beta').
+\]
+If
+\[
+h_{t_0}(\beta)<h_{t_0}(\beta'),
+\]
+then
+\[
+\mathcal{L}_q(\beta)<\mathcal{L}_q(\beta').
+\]
+Equivalently, for \(q>m\), minimising \(\mathcal{L}_q\) is the same as
+lexicographically minimising the residual-valuation histogram from the worst
+valuation upward.
+\end{thm}
+
+\begin{thm}[Max-loss contact existence]
+\label{thm:max-contact-existence}
+Consider the sup-norm objective
+\[
+\mathcal{L}_{\max}(\beta)=\max_{i}|r_i(\beta)|_p.
+\]
+Assume the data satisfy the hypotheses of Theorem~\ref{core-theorem} and are
+non-degenerate. Then \(\mathcal{L}_{\max}\) attains its minimum, and at least one
+minimiser passes through at least \(n+1\) data points. (Unlike the additive
+case, not every minimiser need have \(n+1\) contacts.)
+\end{thm}

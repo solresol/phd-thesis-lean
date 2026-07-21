@@ -1,0 +1,25 @@
+% Source: padic-regression-complexity/body.tex
+% Thesis commit: 2c6418bcf9643fc6e039237f0f59ace14b2557fc
+
+\begin{thm}[Fixed-prime hardness with local forcing]
+\label{thm:fixed-prime-hardness}
+For every fixed prime \(p\), \emph{homogeneous} summed \(p\)-adic linear
+regression with integral data (the model \(x\mapsto x^\top\beta\) of the
+problem definition above) is NP-hard. More concretely, given a graph \(G=(V,E)\) with
+vertex degrees \(d_j\), one may set \(M_j:=d_j+1\) and reduce \textsc{Max-Cut}
+to the optimisation of
+\[
+L_p(\beta)
+=
+\sum_{j=1}^{n} M_j\bigl(|\beta_j|_p+|\beta_j-1|_p\bigr)
++
+\sum_{(u,v)\in E} |\beta_u+\beta_v-1|_p.
+\]
+\end{thm}
+
+\begin{corollary}[Fixed-prime hardness for the affine model]
+\label{cor:affine-hardness}
+For every fixed prime \(p\), summed \(p\)-adic linear regression in the affine
+(intercept) model with integral data --- the ordinary summed regression of
+Chapter~\ref{chap:1} --- is NP-hard.
+\end{corollary}

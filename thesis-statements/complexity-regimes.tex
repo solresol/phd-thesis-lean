@@ -1,0 +1,54 @@
+% Source: complexity-regimes/body.tex
+% Thesis commit: 2c6418bcf9643fc6e039237f0f59ace14b2557fc
+
+\begin{thm}\label{thm:max-polytime}
+Let
+\[
+\rho_{\max}(X,y)
+=
+\min_{\beta\in\mathbb{Q}_p^n}
+\max_{1\le i\le m}|y_i-x_i^\top\beta|_p,
+\]
+where $X\in\mathbb{Q}^{m\times n}$, $y\in\mathbb{Q}^m$, and $p$ is a prime,
+either fixed in advance or given in the input. Then $\rho_{\max}(X,y)$ and an
+optimal coefficient vector $\beta$ can be computed in polynomial time.
+Moreover, an optimal $\beta$ may be chosen in $\mathbb{Q}^n$.
+\end{thm}
+
+\begin{thm}\label{thm:equidistributed-sum-refines-max}
+Let $(x_i,y_i)_{i=1}^N$ be an affine $p$-adic regression instance with
+$x_i\in\mathbb{Z}_p^d$ and $y_i\in\mathbb{Q}_p$. Assume that the reductions
+$\bar{x}_i\in\mathbb{F}_p^d$ are exactly equidistributed modulo $p$, meaning
+that each element of $\mathbb{F}_p^d$ occurs equally often among
+$\bar{x}_1,\ldots,\bar{x}_N$. Assume also that the model includes an intercept
+term, and that no exact affine fit exists.
+
+Let
+\[
+T^*=\max_{a,b} T(a,b).
+\]
+Then every minimiser of $L_1$ is also a minimiser of $L_\infty$.
+\end{thm}
+
+\begin{thm}[A nested easy--hard--easy family]
+\label{thm:nested-easy-hard-easy}
+Fix the prime \(p=5\). For every finite graph \(G=(V,E)\) with
+\(V=\{1,\dots,n\}\), there is an explicit nested family of regression datasets
+\[
+A_G \subseteq A'_G \subseteq A''_G
+\]
+with the following properties.
+
+\begin{enumerate}
+\item Ordinary summed \(5\)-adic linear regression on \(A_G\) is trivial: the
+  unique optimum is \(\beta=0\), with loss \(0\).
+
+\item The map \(G \mapsto A'_G\) is a polynomial-time reduction from an NP-hard
+  problem, so ordinary summed \(5\)-adic linear regression over the family
+  \(\{A'_G\}_G\) is NP-hard.
+
+\item Ordinary summed \(5\)-adic linear regression on \(A''_G\) is again
+  polynomial-time solvable; indeed, an optimal coefficient vector is available
+  in closed form.
+\end{enumerate}
+\end{thm}
