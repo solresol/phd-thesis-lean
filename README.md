@@ -44,6 +44,12 @@ minimiser has `n + 1` contacts or the predictors are degenerate. The wrapper
 `PhdThesisLean.AdditiveContact.additive_contact_theorem` corresponds to thesis
 Theorem `thm:additive-contact`.
 
+The same module also formalises Corollary
+`cor:additive-contact-special-cases`: count loss is realised by the step
+transform on nonnegative magnitudes, while `qLoss` implements
+`q ^ (-v_p(r))` with the thesis convention that exact residuals contribute
+zero.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -100,8 +106,8 @@ The copied statements are grouped by mathematical contribution:
   nested easy--hard--easy family.
 - [`regularisation.tex`](thesis-statements/regularisation.tex): discrete
   regularisation and the additive, lexicographic, and max-loss contact results;
-  `thm:additive-contact` is formalised as
-  `PhdThesisLean.AdditiveContact.additive_contact_theorem`.
+  `thm:additive-contact` and `cor:additive-contact-special-cases` are formalised
+  in `PhdThesisLean.AdditiveContact`.
 - [`finite-domain-compilers.tex`](thesis-statements/finite-domain-compilers.tex):
   clause, finite-domain, all-different, hardness, and Sudoku results.
 
@@ -155,7 +161,7 @@ later complexity-theoretic development.
 A practical order is:
 
 1. discrete regularisation, after repairing the prototype;
-2. the count-loss and additive-`q` special cases;
+2. the `q > m` lexicographic valuation-histogram theorem;
 3. sparse medoid representation and robustness;
 4. thresholded-loss coreset obstruction;
 5. max-loss and valuation-histogram results;
