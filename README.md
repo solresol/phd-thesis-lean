@@ -71,30 +71,22 @@ to establish the dichotomy. The completed declaration contains no placeholders,
 builds with the default project target, and its axiom audit reports only
 `propext`, `Classical.choice`, and `Quot.sound`.
 
-`DiscreteMetricRegression.lean` remains the inherited regularisation prototype.
-It currently contains:
+Discrete-metric regularisation is formalised in
+[`PhdThesisLean/DiscreteRegularization.lean`](PhdThesisLean/DiscreteRegularization.lean).
+It defines `K(t)` as the maximum of the finite set of contact counts actually
+attained by models with exactly `t` nonzero slopes, proves every support class
+`0 ≤ t ≤ n` is nonempty, and proves that `K(t)` is attained. The theorem
+`discrete_regularized_regression` then supplies an actual global minimiser at a
+support size maximising `K(t) - rt`, together with the displayed minimum-loss
+identity from `thm:discrete-regularised`. The theorem `discrete_algorithm`
+formalises `cor:discrete-algorithm`: given one attaining witness per support
+size, finite candidate-gain selection returns a global minimiser.
 
-- definitions for finite rational datasets, affine hyperplanes, contact counts,
-  coefficient-support counts, gain, and regularised discrete-metric loss;
-- a proof that the discrete metric satisfies the ultrametric inequality;
-- a lower-bound theorem for the regularised loss; and
-- two declarations whose names or comments are stronger than their formal
-  conclusions.
-
-The inherited code therefore needs a statement-correspondence audit before it
-can be described as a formal proof of the thesis results:
-
-- `optimal_loss_in_finite_set` proves that one candidate expression is a lower
-  bound for every hyperplane. It does not currently state that the value is
-  attained or equals the optimal loss claimed by
-  `thm:discrete-regularised`.
-- `finite_critical_r_values` has a conclusion ending in `True` and is only a
-  placeholder. It should not be counted as a formalised theorem. The current
-  thesis also lists the number of distinct regularisation-path solutions as an
-  open question, so the intended replacement statement must first be settled.
-
-No theorem should be marked complete merely because Lean accepts a weaker or
-vacuous formulation.
+The old top-level `DiscreteMetricRegression.lean` is now only a compatibility
+import for the statement-faithful module. Its unattained supremum and vacuous
+regularisation-path placeholder have been removed. The number of distinct
+regularisation-path solutions remains an open thesis question and is not
+misrepresented as a completed theorem.
 
 The proof library builds locally with `lake build`, and the repository has a
 GitHub Actions build check. `PhdThesisLean` is an explicit default target, so a
@@ -118,7 +110,9 @@ The copied statements are grouped by mathematical contribution:
   nested easy--hard--easy family.
 - [`regularisation.tex`](thesis-statements/regularisation.tex): discrete
   regularisation and the additive, lexicographic, and max-loss contact results;
-  `thm:additive-contact`, `cor:additive-contact-special-cases`, and
+  `thm:discrete-regularised` and `cor:discrete-algorithm` are formalised in
+  `PhdThesisLean.DiscreteRegularization`; `thm:additive-contact`,
+  `cor:additive-contact-special-cases`, and
   `thm:q-lexicographic` are formalised in `PhdThesisLean.AdditiveContact`, and
   `thm:max-contact-existence` is formalised in `PhdThesisLean.MaxContact`.
 - [`finite-domain-compilers.tex`](thesis-statements/finite-domain-compilers.tex):
@@ -144,16 +138,19 @@ only as their target theorem is formalised.
 - Record all finiteness, non-degeneracy, existence, and attainment assumptions
   explicitly.
 
-### 2. Repair the inherited discrete-metric development
+### 2. Discrete-metric development
 
-- State and prove the exact correspondence with
-  `thm:discrete-regularised`, including existence of a witness hyperplane,
-  attainment of `K(t)`, and equality with the minimum loss.
-- Define `K(t)` so impossible support sizes and empty suprema cannot make a
-  theorem true for the wrong reason.
-- Remove or replace `finite_critical_r_values` after reconciling it with the
-  thesis's open regularisation-path question.
-- Remove unused prototype definitions and add focused tests or examples.
+- `exists_model_with_slopeSupportCount` proves every support size through `n`
+  is feasible.
+- `exists_model_attaining_K` proves the finite maximum defining `K(t)` has a
+  witness.
+- `discrete_regularized_regression` proves the exact optimisation and
+  minimum-loss statement.
+- `discrete_algorithm` proves correctness of finite candidate-gain selection
+  from supplied attaining witnesses.
+
+The two discrete regularisation statements in the thesis snapshot are
+complete. The separate regularisation-path counting question remains open.
 
 ### 3. Central contact development
 
@@ -174,13 +171,12 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. discrete regularisation, after repairing the prototype;
-2. sparse medoid representation and robustness;
-3. thresholded-loss coreset obstruction;
-4. the remaining valuation-histogram results;
-5. finite-domain pinning, clause indicators, and all-different correctness;
-6. the mathematical parts of the hardness reductions; and
-7. the complexity-theoretic encodings and polynomial-time claims.
+1. sparse medoid representation and robustness;
+2. thresholded-loss coreset obstruction;
+3. the remaining valuation-histogram results;
+4. finite-domain pinning, clause indicators, and all-different correctness;
+5. the mathematical parts of the hardness reductions; and
+6. the complexity-theoretic encodings and polynomial-time claims.
 
 The NP-hardness results require more than proving the displayed objective
 identity. A complete formalisation must define the source and target decision
