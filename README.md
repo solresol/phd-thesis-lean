@@ -62,12 +62,17 @@ family proves that the max loss attains its global minimum and that at least one
 minimiser has `n + 1` contacts, as required by
 `thm:max-contact-existence`.
 
-Medoid robustness is formalised in
-[`PhdThesisLean/Medoid.lean`](PhdThesisLean/Medoid.lean). It works directly in
-mathlib's completed field `ℚ_[p]`, proves the factor-`p` separation between a
-precision ball and an outside candidate, and establishes
-`prop:medoid-robustness` for indexed candidate multisets. The finite-precision
-sparse representation theorem is the next result in this module.
+The medoid results are formalised in
+[`PhdThesisLean/Medoid.lean`](PhdThesisLean/Medoid.lean) and
+[`PhdThesisLean/SparseMedoid.lean`](PhdThesisLean/SparseMedoid.lean).
+The robustness proof works directly in mathlib's completed field `ℚ_[p]`,
+proves the factor-`p` separation between a precision ball and an outside
+candidate, and establishes `prop:medoid-robustness` for indexed candidate
+multisets. The finite-precision development uses `ZMod (p ^ K)`, constructs
+the full centre-and-slope ensemble, and proves `thm:sparse-medoid-representation`:
+`F x` is an ensemble output, is a medoid value, and is the output value of
+every medoid index. Thus duplicate indices are retained while the medoid value
+is unique, exactly as required for the thesis multiset.
 
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
@@ -112,7 +117,8 @@ The copied statements are grouped by mathematical contribution:
   hardness and affine-model hardness.
 - [`medoids-and-coresets.tex`](thesis-statements/medoids-and-coresets.tex): the
   sparse medoid representation, medoid robustness, and the coreset obstruction;
-  `prop:medoid-robustness` is formalised in `PhdThesisLean.Medoid`.
+  `prop:medoid-robustness` and `thm:sparse-medoid-representation` are formalised
+  in namespace `PhdThesisLean.Medoid`.
 - [`complexity-regimes.tex`](thesis-statements/complexity-regimes.tex):
   polynomial-time max loss, the equidistributed refinement result, and the
   nested easy--hard--easy family.
@@ -179,12 +185,11 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. sparse medoid representation;
-2. thresholded-loss coreset obstruction;
-3. the remaining valuation-histogram results;
-4. finite-domain pinning, clause indicators, and all-different correctness;
-5. the mathematical parts of the hardness reductions; and
-6. the complexity-theoretic encodings and polynomial-time claims.
+1. thresholded-loss coreset obstruction;
+2. the remaining valuation-histogram results;
+3. finite-domain pinning, clause indicators, and all-different correctness;
+4. the mathematical parts of the hardness reductions; and
+5. the complexity-theoretic encodings and polynomial-time claims.
 
 The NP-hardness results require more than proving the displayed objective
 identity. A complete formalisation must define the source and target decision
