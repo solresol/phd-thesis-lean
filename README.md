@@ -48,7 +48,11 @@ The same module also formalises Corollary
 `cor:additive-contact-special-cases`: count loss is realised by the step
 transform on nonnegative magnitudes, while `qLoss` implements
 `q ^ (-v_p(r))` with the thesis convention that exact residuals contribute
-zero.
+zero. It also proves Theorem `thm:q-lexicographic`: when `q` exceeds the data
+count, the first differing finite valuation bin determines the strict ordering
+of two additive `q`-losses. Exact residuals are explicitly omitted from the
+integer-valued histogram rather than being assigned a spurious finite
+valuation.
 
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
@@ -106,8 +110,8 @@ The copied statements are grouped by mathematical contribution:
   nested easy--hard--easy family.
 - [`regularisation.tex`](thesis-statements/regularisation.tex): discrete
   regularisation and the additive, lexicographic, and max-loss contact results;
-  `thm:additive-contact` and `cor:additive-contact-special-cases` are formalised
-  in `PhdThesisLean.AdditiveContact`.
+  `thm:additive-contact`, `cor:additive-contact-special-cases`, and
+  `thm:q-lexicographic` are formalised in `PhdThesisLean.AdditiveContact`.
 - [`finite-domain-compilers.tex`](thesis-statements/finite-domain-compilers.tex):
   clause, finite-domain, all-different, hardness, and Sudoku results.
 
@@ -160,11 +164,11 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. discrete regularisation, after repairing the prototype;
-2. the `q > m` lexicographic valuation-histogram theorem;
+1. max-loss contact existence;
+2. discrete regularisation, after repairing the prototype;
 3. sparse medoid representation and robustness;
 4. thresholded-loss coreset obstruction;
-5. max-loss and valuation-histogram results;
+5. the remaining valuation-histogram results;
 6. finite-domain pinning, clause indicators, and all-different correctness;
 7. the mathematical parts of the hardness reductions; and
 8. the complexity-theoretic encodings and polynomial-time claims.
