@@ -62,6 +62,13 @@ family proves that the max loss attains its global minimum and that at least one
 minimiser has `n + 1` contacts, as required by
 `thm:max-contact-existence`.
 
+Medoid robustness is formalised in
+[`PhdThesisLean/Medoid.lean`](PhdThesisLean/Medoid.lean). It works directly in
+mathlib's completed field `ℚ_[p]`, proves the factor-`p` separation between a
+precision ball and an outside candidate, and establishes
+`prop:medoid-robustness` for indexed candidate multisets. The finite-precision
+sparse representation theorem is the next result in this module.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -104,7 +111,8 @@ The copied statements are grouped by mathematical contribution:
 - [`complexity.tex`](thesis-statements/complexity.tex): fixed-prime homogeneous
   hardness and affine-model hardness.
 - [`medoids-and-coresets.tex`](thesis-statements/medoids-and-coresets.tex): the
-  sparse medoid representation and the coreset obstruction.
+  sparse medoid representation, medoid robustness, and the coreset obstruction;
+  `prop:medoid-robustness` is formalised in `PhdThesisLean.Medoid`.
 - [`complexity-regimes.tex`](thesis-statements/complexity-regimes.tex):
   polynomial-time max loss, the equidistributed refinement result, and the
   nested easy--hard--easy family.
@@ -171,7 +179,7 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. sparse medoid representation and robustness;
+1. sparse medoid representation;
 2. thresholded-loss coreset obstruction;
 3. the remaining valuation-histogram results;
 4. finite-domain pinning, clause indicators, and all-different correctness;
