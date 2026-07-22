@@ -149,6 +149,7 @@ theorem lift_independent_contacts
     (hAfits : FitsOn X y A β) :
     ∃ j : Fin k, ∃ β' : Model n,
       j ∉ A ∧ Independent X (insert j A) ∧ FitsOn X y (insert j A) β' ∧
+        (∀ i, padicNorm p (residual X y β' i) ≤ padicNorm p (residual X y β i)) ∧
         loss p X y β' ≤ loss p X y β := by
   obtain ⟨φ, hφne, hφA⟩ := exists_direction_vanishing_on X A hAcard
   have hactive_exists : ∃ i, affineEval φ (X i) ≠ 0 := by
@@ -210,7 +211,7 @@ theorem lift_independent_contacts
     · change residual X y (β + a • φ) i = 0
       rw [residual_add_smul, hφA i hiA, hAfits i hiA]
       ring
-  refine ⟨j, β', hjnotmem, hinsert_ind, hinsert_fits, ?_⟩
+  refine ⟨j, β', hjnotmem, hinsert_ind, hinsert_fits, hnorm_le, ?_⟩
   unfold loss
   exact Finset.sum_le_sum fun i _ ↦ hnorm_le i
 
@@ -223,21 +224,23 @@ theorem extend_independent_contacts_aux
     (hAind : Independent X A) (hAfits : FitsOn X y A β) :
     ∃ B : Finset (Fin k), ∃ β' : Model n,
       A ⊆ B ∧ B.card = n + 1 ∧ Independent X B ∧ FitsOn X y B β' ∧
+        (∀ i, padicNorm p (residual X y β' i) ≤ padicNorm p (residual X y β i)) ∧
         loss p X y β' ≤ loss p X y β := by
   induction remaining generalizing A β with
   | zero =>
-      refine ⟨A, β, Finset.Subset.rfl, ?_, hAind, hAfits, le_rfl⟩
+      refine ⟨A, β, Finset.Subset.rfl, ?_, hAind, hAfits, fun _ ↦ le_rfl, le_rfl⟩
       omega
   | succ remaining ih =>
       have hAcard : A.card < n + 1 := by omega
-      obtain ⟨j, β₁, hjnotmem, hinsert_ind, hinsert_fits, hlift⟩ :=
+      obtain ⟨j, β₁, hjnotmem, hinsert_ind, hinsert_fits, hnorm_lift, hlift⟩ :=
         lift_independent_contacts p X y β A hdeg hAcard hAind hAfits
       have hcard_insert : (insert j A).card + remaining = n + 1 := by
         rw [Finset.card_insert_of_notMem hjnotmem]
         omega
-      obtain ⟨B, β', hsubset, hBcard, hBind, hBfits, hfinal⟩ :=
+      obtain ⟨B, β', hsubset, hBcard, hBind, hBfits, hnorm_final, hfinal⟩ :=
         ih (insert j A) β₁ hcard_insert hinsert_ind hinsert_fits
-      refine ⟨B, β', ?_, hBcard, hBind, hBfits, hfinal.trans hlift⟩
+      refine ⟨B, β', ?_, hBcard, hBind, hBfits,
+        (fun i ↦ (hnorm_final i).trans (hnorm_lift i)), hfinal.trans hlift⟩
       exact (Finset.subset_insert j A).trans hsubset
 
 /-- Independent-contact refinement from the thesis algorithm supplement. Every
@@ -249,11 +252,12 @@ theorem independent_contact_refinement
     (hdeg : ¬Degenerate X) :
     ∃ A : Finset (Fin k), ∃ β' : Model n,
       A.card = n + 1 ∧ Independent X A ∧ FitsOn X y A β' ∧
+        (∀ i, padicNorm p (residual X y β' i) ≤ padicNorm p (residual X y β i)) ∧
         loss p X y β' ≤ loss p X y β := by
-  obtain ⟨A, β', _, hAcard, hAind, hAfits, hloss⟩ :=
+  obtain ⟨A, β', _, hAcard, hAind, hAfits, hnorm, hloss⟩ :=
     extend_independent_contacts_aux p X y hdeg (n + 1) ∅ β
       (by simp) (by simp [Independent]) (by simp [FitsOn])
-  exact ⟨A, β', hAcard, hAind, hAfits, hloss⟩
+  exact ⟨A, β', hAcard, hAind, hAfits, hnorm, hloss⟩
 
 /-- `n + 1` affinely independent interpolation conditions determine a unique
 affine model. -/
@@ -334,7 +338,7 @@ theorem exists_candidate_with_loss_le
     (X : Fin k → Point n) (y : Fin k → ℚ) (β : Model n)
     (hdeg : ¬Degenerate X) :
     ∃ β' ∈ CandidateModels X y, loss p X y β' ≤ loss p X y β := by
-  obtain ⟨A, β', hAcard, hAind, hAfits, hloss⟩ :=
+  obtain ⟨A, β', hAcard, hAind, hAfits, _, hloss⟩ :=
     independent_contact_refinement p X y β hdeg
   exact ⟨β', ⟨A, hAcard, hAind, hAfits⟩, hloss⟩
 

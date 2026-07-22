@@ -54,6 +54,14 @@ of two additive `q`-losses. Exact residuals are explicitly omitted from the
 integer-valued histogram rather than being assigned a spurious finite
 valuation.
 
+Max-loss attainment is formalised in
+[`PhdThesisLean/MaxContact.lean`](PhdThesisLean/MaxContact.lean). The pointwise
+form of the independent-contact refinement shows that every model is dominated
+by a member of the finite independent-interpolant family. Minimising over that
+family proves that the max loss attains its global minimum and that at least one
+minimiser has `n + 1` contacts, as required by
+`thm:max-contact-existence`.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -111,7 +119,8 @@ The copied statements are grouped by mathematical contribution:
 - [`regularisation.tex`](thesis-statements/regularisation.tex): discrete
   regularisation and the additive, lexicographic, and max-loss contact results;
   `thm:additive-contact`, `cor:additive-contact-special-cases`, and
-  `thm:q-lexicographic` are formalised in `PhdThesisLean.AdditiveContact`.
+  `thm:q-lexicographic` are formalised in `PhdThesisLean.AdditiveContact`, and
+  `thm:max-contact-existence` is formalised in `PhdThesisLean.MaxContact`.
 - [`finite-domain-compilers.tex`](thesis-statements/finite-domain-compilers.tex):
   clause, finite-domain, all-different, hardness, and Sudoku results.
 
@@ -150,7 +159,8 @@ only as their target theorem is formalised.
 
 - `contact_theorem` proves the mathematical contact-or-degeneracy dichotomy.
 - `independent_contact_refinement` supplies `n + 1` independent contacts without
-  increasing loss.
+  increasing any residual norm, and hence without increasing summed or max
+  loss.
 - `unique_interpolant` proves uniqueness for a full independent contact set.
 - `finite_candidateModels` proves that the candidate family is finite.
 - `exists_global_minimizer_on_independent_contacts` proves that exact global
@@ -164,14 +174,13 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. max-loss contact existence;
-2. discrete regularisation, after repairing the prototype;
-3. sparse medoid representation and robustness;
-4. thresholded-loss coreset obstruction;
-5. the remaining valuation-histogram results;
-6. finite-domain pinning, clause indicators, and all-different correctness;
-7. the mathematical parts of the hardness reductions; and
-8. the complexity-theoretic encodings and polynomial-time claims.
+1. discrete regularisation, after repairing the prototype;
+2. sparse medoid representation and robustness;
+3. thresholded-loss coreset obstruction;
+4. the remaining valuation-histogram results;
+5. finite-domain pinning, clause indicators, and all-different correctness;
+6. the mathematical parts of the hardness reductions; and
+7. the complexity-theoretic encodings and polynomial-time claims.
 
 The NP-hardness results require more than proving the displayed objective
 identity. A complete formalisation must define the source and target decision
