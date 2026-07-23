@@ -109,6 +109,15 @@ exists with positive edge weights—equivalence between global minimisers and
 proper list-colourings. Edges are indexed, so parallel or repeated constraints
 retain their multiplicity.
 
+The direct clause-wise 3-SAT compiler is formalised in
+[`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
+defines literals and distinct-variable three-literal clauses, proves the
+`p > 3` clause-row indicator, proves that the compiled objective equals
+`α n - sat` on Boolean assignments, and characterises global minimisers as
+maximum-satisfaction assignments. It also proves the thesis equivalence
+between formula satisfiability and attainment of the value
+`α n - numberOfClauses`.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -170,7 +179,8 @@ The copied statements are grouped by mathematical contribution:
   clause, finite-domain, all-different, hardness, and Sudoku results;
   `thm:compiler-template` and `cor:qp-extension` are formalised in
   `PhdThesisLean.FiniteDomainCompiler`, and `thm:all-different` is formalised in
-  `PhdThesisLean.AllDifferent`.
+  `PhdThesisLean.AllDifferent`; `thm:3sat-clausewise` is formalised in
+  `PhdThesisLean.ClauseCompiler`.
 
 These files are provenance snapshots, not standalone LaTeX documents and not
 Lean source. Supporting definitions and lemmas should be copied or restated
@@ -225,9 +235,8 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. clause indicators;
-2. the mathematical parts of the hardness reductions; and
-3. the complexity-theoretic encodings and polynomial-time claims.
+1. the mathematical parts of the hardness reductions; and
+2. the complexity-theoretic encodings and polynomial-time claims.
 
 The NP-hardness results require more than proving the displayed objective
 identity. A complete formalisation must define the source and target decision
