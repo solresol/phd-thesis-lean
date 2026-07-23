@@ -91,6 +91,15 @@ unweighted and finite-weight-alphabet summary spaces by support size, and
 proves that any decoder fails by more than `Δ` on at least one separated
 parameter vector under the thesis cardinality bounds.
 
+The finite-domain signed affine compiler is formalised in
+[`PhdThesisLean/FiniteDomainCompiler.lean`](PhdThesisLean/FiniteDomainCompiler.lean).
+It proves the coordinate-snapping inequality over all of `ℚ_[p]`, existence of
+a global minimiser in the finite product domain, exclusion of every
+off-domain point from the global minimisers, and the constant-plus-finite
+signed-objective formula on the domain. This proves both
+`thm:compiler-template` and its stronger `cor:qp-extension`; the Lean theorem
+also permits arbitrary coefficient values of p-adic norm at most one.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -149,7 +158,9 @@ The copied statements are grouped by mathematical contribution:
   `thm:q-lexicographic` are formalised in `PhdThesisLean.AdditiveContact`, and
   `thm:max-contact-existence` is formalised in `PhdThesisLean.MaxContact`.
 - [`finite-domain-compilers.tex`](thesis-statements/finite-domain-compilers.tex):
-  clause, finite-domain, all-different, hardness, and Sudoku results.
+  clause, finite-domain, all-different, hardness, and Sudoku results;
+  `thm:compiler-template` and `cor:qp-extension` are formalised in
+  `PhdThesisLean.FiniteDomainCompiler`.
 
 These files are provenance snapshots, not standalone LaTeX documents and not
 Lean source. Supporting definitions and lemmas should be copied or restated
@@ -204,7 +215,7 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. finite-domain pinning, clause indicators, and all-different correctness;
+1. clause indicators and all-different correctness;
 2. the mathematical parts of the hardness reductions; and
 3. the complexity-theoretic encodings and polynomial-time claims.
 
