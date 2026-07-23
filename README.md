@@ -74,6 +74,15 @@ the full centre-and-slope ensemble, and proves `thm:sparse-medoid-representation
 every medoid index. Thus duplicate indices are retained while the medoid value
 is unique, exactly as required for the thesis multiset.
 
+The thresholded-loss coreset obstruction is formalised in
+[`PhdThesisLean/Coreset.lean`](PhdThesisLean/Coreset.lean). It proves the
+uniform-cost witness-point argument, constructs an injectively indexed
+`k`-point dataset in `ℚ_[p]^(d-1) × ℚ_[p]` for every `d ≥ 2`, and establishes
+`thm:threshold-coreset` for positive-weight subset objectives with support
+smaller than `k` whenever `0 < ε < 1/(2k-1)`. The dataset range is proved to
+have cardinality exactly `k`, and `exactFit_coreset` records the `τ = 0`
+special case.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -118,7 +127,8 @@ The copied statements are grouped by mathematical contribution:
 - [`medoids-and-coresets.tex`](thesis-statements/medoids-and-coresets.tex): the
   sparse medoid representation, medoid robustness, and the coreset obstruction;
   `prop:medoid-robustness` and `thm:sparse-medoid-representation` are formalised
-  in namespace `PhdThesisLean.Medoid`.
+  in namespace `PhdThesisLean.Medoid`, while `thm:threshold-coreset` is
+  formalised in `PhdThesisLean.Coreset`.
 - [`complexity-regimes.tex`](thesis-statements/complexity-regimes.tex):
   polynomial-time max loss, the equidistributed refinement result, and the
   nested easy--hard--easy family.
@@ -185,11 +195,10 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. thresholded-loss coreset obstruction;
-2. the remaining valuation-histogram results;
-3. finite-domain pinning, clause indicators, and all-different correctness;
-4. the mathematical parts of the hardness reductions; and
-5. the complexity-theoretic encodings and polynomial-time claims.
+1. the remaining valuation-histogram results;
+2. finite-domain pinning, clause indicators, and all-different correctness;
+3. the mathematical parts of the hardness reductions; and
+4. the complexity-theoretic encodings and polynomial-time claims.
 
 The NP-hardness results require more than proving the displayed objective
 identity. A complete formalisation must define the source and target decision
