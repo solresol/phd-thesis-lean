@@ -1,4 +1,5 @@
 import PhdThesisLean.AdditiveContact
+import PhdThesisLean.AllDifferent
 import PhdThesisLean.ContactTheorem
 import PhdThesisLean.Coreset
 import PhdThesisLean.DiscreteRegularization

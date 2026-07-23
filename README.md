@@ -100,6 +100,15 @@ signed-objective formula on the domain. This proves both
 `thm:compiler-template` and its stronger `cor:qp-extension`; the Lean theorem
 also permits arbitrary coefficient values of p-adic norm at most one.
 
+The all-different/list-colouring instantiation is formalised in
+[`PhdThesisLean/AllDifferent.lean`](PhdThesisLean/AllDifferent.lean). It proves
+the exact constant-minus-total-edge-weight plus weighted-conflict identity,
+existence of global minimisers, equivalence between global minimisation and
+minimum conflict on the finite product domain, and—when a proper assignment
+exists with positive edge weights—equivalence between global minimisers and
+proper list-colourings. Edges are indexed, so parallel or repeated constraints
+retain their multiplicity.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -160,7 +169,8 @@ The copied statements are grouped by mathematical contribution:
 - [`finite-domain-compilers.tex`](thesis-statements/finite-domain-compilers.tex):
   clause, finite-domain, all-different, hardness, and Sudoku results;
   `thm:compiler-template` and `cor:qp-extension` are formalised in
-  `PhdThesisLean.FiniteDomainCompiler`.
+  `PhdThesisLean.FiniteDomainCompiler`, and `thm:all-different` is formalised in
+  `PhdThesisLean.AllDifferent`.
 
 These files are provenance snapshots, not standalone LaTeX documents and not
 Lean source. Supporting definitions and lemmas should be copied or restated
@@ -215,7 +225,7 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. clause indicators and all-different correctness;
+1. clause indicators;
 2. the mathematical parts of the hardness reductions; and
 3. the complexity-theoretic encodings and polynomial-time claims.
 
