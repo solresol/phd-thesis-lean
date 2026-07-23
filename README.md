@@ -83,6 +83,14 @@ smaller than `k` whenever `0 < ε < 1/(2k-1)`. The dataset range is proved to
 have cardinality exactly `k`, and `exactFit_coreset` records the `τ = 0`
 special case.
 
+The complementary decoder-based lower bound is formalised in
+[`PhdThesisLean/SubsetSummary.lean`](PhdThesisLean/SubsetSummary.lean).
+It constructs the standard-basis datasets from
+`prop:subset-summary-lower-bound`, proves their unique minimisers, counts the
+unweighted and finite-weight-alphabet summary spaces by support size, and
+proves that any decoder fails by more than `Δ` on at least one separated
+parameter vector under the thesis cardinality bounds.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -128,7 +136,8 @@ The copied statements are grouped by mathematical contribution:
   sparse medoid representation, medoid robustness, and the coreset obstruction;
   `prop:medoid-robustness` and `thm:sparse-medoid-representation` are formalised
   in namespace `PhdThesisLean.Medoid`, while `thm:threshold-coreset` is
-  formalised in `PhdThesisLean.Coreset`.
+  formalised in `PhdThesisLean.Coreset` and
+  `prop:subset-summary-lower-bound` in `PhdThesisLean.SubsetSummary`.
 - [`complexity-regimes.tex`](thesis-statements/complexity-regimes.tex):
   polynomial-time max loss, the equidistributed refinement result, and the
   nested easy--hard--easy family.
@@ -195,10 +204,9 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. the remaining valuation-histogram results;
-2. finite-domain pinning, clause indicators, and all-different correctness;
-3. the mathematical parts of the hardness reductions; and
-4. the complexity-theoretic encodings and polynomial-time claims.
+1. finite-domain pinning, clause indicators, and all-different correctness;
+2. the mathematical parts of the hardness reductions; and
+3. the complexity-theoretic encodings and polynomial-time claims.
 
 The NP-hardness results require more than proving the displayed objective
 identity. A complete formalisation must define the source and target decision

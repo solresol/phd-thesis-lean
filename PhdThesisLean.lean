@@ -5,3 +5,4 @@ import PhdThesisLean.DiscreteRegularization
 import PhdThesisLean.MaxContact
 import PhdThesisLean.Medoid
 import PhdThesisLean.SparseMedoid
+import PhdThesisLean.SubsetSummary
