@@ -5,6 +5,7 @@ import PhdThesisLean.ContactTheorem
 import PhdThesisLean.Coreset
 import PhdThesisLean.DiscreteRegularization
 import PhdThesisLean.FiniteDomainCompiler
+import PhdThesisLean.FixedPrimeHardness
 import PhdThesisLean.MaxContact
 import PhdThesisLean.Medoid
 import PhdThesisLean.SparseMedoid

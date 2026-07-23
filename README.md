@@ -118,6 +118,24 @@ maximum-satisfaction assignments. It also proves the thesis equivalence
 between formula satisfiability and attainment of the value
 `α n - numberOfClauses`.
 
+The fixed-prime reduction is formalised in
+[`PhdThesisLean/FixedPrimeHardness.lean`](PhdThesisLean/FixedPrimeHardness.lean).
+It defines finite 3-CNF syntax and explicit signed affine decision instances
+at `p = 5`, chooses `α = 1 + Δ`, and proves that a formula is satisfiable
+exactly when the compiled objective attains the threshold `α n - m`. It also
+proves that any exact global optimiser decides the source formula. The dense
+expansion has exactly `2n + m` observations, and both its output size and
+straightforward construction cost are proved quadratic in the documented
+unit-cell syntax model.
+
+This completes the concrete reduction premise of `cor:signed-nphard`.
+Mathlib at the pinned revision has no P/NP, Cook--Levin, or polynomial-time
+Turing-machine framework, so the final transfer from the proved 3-SAT
+reduction to a library-native `NP-hard` predicate is not represented as
+complete. `PolynomialCellReduction` states the precise complexity model
+currently proved; a future bit-level complexity foundation can consume the
+semantic and size theorems without changing the p-adic argument.
+
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
 correspondence with `core-theorem` at thesis commit
@@ -180,7 +198,8 @@ The copied statements are grouped by mathematical contribution:
   `thm:compiler-template` and `cor:qp-extension` are formalised in
   `PhdThesisLean.FiniteDomainCompiler`, and `thm:all-different` is formalised in
   `PhdThesisLean.AllDifferent`; `thm:3sat-clausewise` is formalised in
-  `PhdThesisLean.ClauseCompiler`.
+  `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction premise of
+  `cor:signed-nphard` is formalised in `PhdThesisLean.FixedPrimeHardness`.
 
 These files are provenance snapshots, not standalone LaTeX documents and not
 Lean source. Supporting definitions and lemmas should be copied or restated
@@ -235,8 +254,9 @@ later complexity-theoretic development.
 
 A practical order is:
 
-1. the mathematical parts of the hardness reductions; and
-2. the complexity-theoretic encodings and polynomial-time claims.
+1. a bit-level P/NP and polynomial-time reduction foundation;
+2. the remaining positive-polynomial and Sudoku hardness reductions; and
+3. complexity-theoretic encodings for those reductions.
 
 The NP-hardness results require more than proving the displayed objective
 identity. A complete formalisation must define the source and target decision
