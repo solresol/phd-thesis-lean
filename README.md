@@ -129,12 +129,16 @@ straightforward construction cost are proved quadratic in the documented
 unit-cell syntax model.
 
 This completes the concrete reduction premise of `cor:signed-nphard`.
-Mathlib at the pinned revision has no P/NP, Cook--Levin, or polynomial-time
-Turing-machine framework, so the final transfer from the proved 3-SAT
-reduction to a library-native `NP-hard` predicate is not represented as
-complete. `PolynomialCellReduction` states the precise complexity model
+Mathlib at the pinned revision has finite encodings and structures for
+polynomial-time two-stack Turing-machine computation, but it has no P/NP or
+Cook--Levin development, and composition of those polynomial-time machines is
+still marked `proof_wanted`. The final transfer from the proved 3-SAT
+reduction to a library-native `NP-hard` predicate is therefore not represented
+as complete. `PolynomialCellReduction` states the precise complexity model
 currently proved; a future bit-level complexity foundation can consume the
-semantic and size theorems without changing the p-adic argument.
+semantic and size theorems without changing the p-adic argument. See
+[`docs/FORMAL_NP_HARDNESS.md`](docs/FORMAL_NP_HARDNESS.md) for the research
+survey and recommended route.
 
 The wrapper theorem `PhdThesisLean.ContactTheorem.contact_theorem` retains the
 thesis's positivity, dataset-size, and response-consistency hypotheses for exact
@@ -169,6 +173,9 @@ The inherited trivial executable has been removed so verification does not
 require native compilation of all mathlib imports.
 
 ## Source theorem catalogue
+
+The current statement-by-statement audit, including pending and partial
+results, is in [`THEOREM_STATUS.md`](THEOREM_STATUS.md).
 
 The copied statements are grouped by mathematical contribution:
 
