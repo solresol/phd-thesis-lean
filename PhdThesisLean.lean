@@ -1,5 +1,6 @@
 import PhdThesisLean.AdditiveContact
 import PhdThesisLean.AllDifferent
+import PhdThesisLean.AllDifferentCSP
 import PhdThesisLean.ClauseCompiler
 import PhdThesisLean.ContactTheorem
 import PhdThesisLean.Coreset
