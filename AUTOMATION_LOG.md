@@ -45,3 +45,58 @@
 - Best next step: define canonical rank relabelling of `domainValues` and prove
   that membership and equality across every variable domain are preserved,
   including the zero- and one-symbol cases needed before prime selection.
+
+## 2026-07-27 05:26 AEST
+
+- Starting repository commit:
+  `b5ea80c90a8674553cd98a37c74c195ce2d529d1` on `main`. The working tree was
+  clean; after fetching, local `HEAD` and `origin/main` had no divergence.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` (thesis checkout
+  `480b4fe5389777cfb70c8c360afac35fc8ee1f42`). The chosen increment is the
+  proof's canonical relabelling of the shared domain-value union onto
+  `{1, ..., q}`.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` at
+  `0869697c5e61a9198fd8978b38d90281826ba2a2`. Its new work embeds a finite
+  machine into combined stacks, but it still has no reusable CSP encoder,
+  finite-set rank compiler, or prime-search implementation.
+- `PhdThesisLean/AllDifferentCSP.lean` now defines the executable
+  `symbolCount`, `relabelValue`, `relabeledValues`, `relabeledDomain`,
+  `relabeled`, and `relabelAssignment`. `symbolCount_le_sum_domain_card` proves
+  the thesis bound \(q\leq\sum_i |D_i|\), and
+  `relabeledValues_eq_Icc` proves that the rank image is exactly
+  `{1, ..., q}`.
+- The relabelling preserves shared-symbol equality across different variable
+  domains. `domainValues_relabeled_eq_Icc`,
+  `relabeled_satisfies_relabelAssignment_iff`,
+  `conflictCount_relabelAssignment`,
+  `relabeled_minimizesConflicts_relabelAssignment_iff`, and
+  `relabeled_satisfiable_iff` give the checked semantic correspondence.
+  `exists_inDomain_relabelAssignment_eq` supplies every relabelled
+  domain-respecting assignment with an original preimage.
+- Empty and singleton symbol unions are explicit:
+  `relabeledValues_eq_empty_of_symbolCount_eq_zero` and
+  `relabeledValues_eq_singleton_of_symbolCount_eq_one`. The general image
+  theorem also covers the zero-variable system.
+- Verification succeeded:
+  `lake env lean PhdThesisLean/AllDifferentCSP.lean`, `lake build` (3081
+  jobs), and `git diff --check`. A project-source scan found no `sorry`,
+  `admit`, project `axiom`, `unsafe`, or `proof_wanted`; the new headline
+  `#print axioms` audits report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- Resolved proof/API issues: `omega` did not unfold the wrapped rank/cardinality
+  definitions in the first upper-bound proof, so the proof now uses a strict
+  `Finset` subset and `card_lt_card`; the natural interval cardinality lemma is
+  `Nat.card_Icc`, not `Finset.card_Icc`.
+- `README.md` and `THEOREM_STATUS.md` now record canonical relabelling as
+  checked. `cor:all-different-csp` remains **Partial**: p-adic dataset emission,
+  compiler-selected prime construction, finite encodings, bit-size bounds, and
+  genuine polynomial runtime still remain.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes present.
+- Best next step: define the concrete supplied-prime p-adic domains and
+  deduplicated-edge dataset, prove global unit separation from
+  `p > symbolCount`, and instantiate `all_different_correctness`. Mark that
+  theorem explicitly intermediate until a checked polynomial-time
+  compiler-selected prime is composed with it.

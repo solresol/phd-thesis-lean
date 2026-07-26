@@ -115,11 +115,14 @@ Its syntax uses range-checked variables and finite-set domains/scopes, construct
 the canonically oriented deduplicated primal graph, and proves that scope
 satisfaction is equivalent to proper colouring and to zero deduplicated
 edge-conflict count. In the satisfiable case it also identifies the
-minimum-conflict assignments with the satisfying assignments. This is a
-checked semantic front end for `cor:all-different-csp`, not yet the full
-corollary: canonical value relabelling, prime selection, dataset emission,
-finite encodings, bit-size bounds, and a genuine polynomial-time compiler
-theorem remain.
+minimum-conflict assignments with the satisfying assignments. Its executable
+canonical rank relabelling maps the distinct shared domain symbols exactly onto
+`{1, ..., q}`, proves `q ≤ ∑ i, |D i|`, and preserves equality, satisfiability,
+and minimum deduplicated conflict count, including the zero- and one-symbol
+edge cases. This is a checked semantic front end for
+`cor:all-different-csp`, not yet the full corollary: prime selection, dataset
+emission, finite encodings, bit-size bounds, and a genuine polynomial-time
+compiler theorem remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -217,9 +220,11 @@ The copied statements are grouped by mathematical contribution:
   `thm:compiler-template` and `cor:qp-extension` are formalised in
   `PhdThesisLean.FiniteDomainCompiler`, and `thm:all-different` is formalised in
   `PhdThesisLean.AllDifferent`; the explicit syntax, deduplicated primal graph,
-  and discrete semantic front end for `cor:all-different-csp` are formalised in
-  `PhdThesisLean.AllDifferentCSP`, while its encoding and polynomial-time
-  claims remain open; `thm:3sat-clausewise` is formalised in
+  canonical value relabelling, and discrete semantic front end for
+  `cor:all-different-csp` are formalised in
+  `PhdThesisLean.AllDifferentCSP`, while its p-adic dataset encoding, prime
+  selection, and polynomial-time claims remain open; `thm:3sat-clausewise` is
+  formalised in
   `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction premise of
   `cor:signed-nphard` is formalised in `PhdThesisLean.FixedPrimeHardness`.
 
