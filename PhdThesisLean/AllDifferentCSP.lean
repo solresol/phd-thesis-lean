@@ -21,8 +21,9 @@ once.  The main semantic theorem `satisfies_iff_isProper` proves that satisfying
 the original all-different scopes is exactly proper list-colouring of this
 deduplicated graph.  The executable rank relabelling maps the union of domain
 symbols onto `{1, ..., q}` and preserves equality, satisfaction, and minimum
-conflict. The remaining compiler work is to choose a prime, emit the p-adic
-dataset, and prove its encoded polynomial runtime.
+conflict. After the supplied-prime semantic stage, the remaining compiler work
+is to select the prime, emit a finite encoded objective with bit-size bounds,
+and prove its genuine polynomial runtime.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -472,11 +473,249 @@ theorem minimizesConflicts_iff_satisfies_of_satisfiable
     rw [hx'.2]
     exact Nat.zero_le _
 
+/-- The canonically relabelled domain embedded in the supplied p-adic field.
+
+This is an intermediate compiler stage: `p` is supplied together with its
+primality proof, rather than selected by the compiler. -/
+noncomputable def padicDomain
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (i : Fin n) : Finset ℚ_[p] := by
+  classical
+  exact (C.relabeledDomain i).image fun a : ℕ => (a : ℚ_[p])
+
+/-- An original assignment, canonically relabelled and embedded in `ℚ_[p]`. -/
+def padicAssignment
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (x : Fin n → ℕ) :
+    PhdThesisLean.FiniteDomainCompiler.Parameter p n :=
+  fun i => (C.relabelAssignment x i : ℚ_[p])
+
+/-- One plus the number of deduplicated primal edges. This simple uniform
+pinning weight dominates every vertex's unit incident-edge weight. -/
+def pinningWeight {n : ℕ} (C : ExplicitSystem n) : ℕ :=
+  C.primalEdges.card + 1
+
+/-- The supplied-prime signed weighted synthetic p-adic residual objective.
+
+Each primal edge has one negative unit-weight residual, and every allowed
+coordinate value has one positive residual with uniform weight
+`pinningWeight`. -/
+noncomputable def suppliedPrimeLoss
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) : ℝ :=
+  PhdThesisLean.AllDifferent.allDifferentLoss
+    (C.padicDomain (p := p)) (C.pinningWeight : ℝ)
+    edgeLeft edgeRight (fun _ : C.PrimalEdge => 1) z
+
+theorem padicDomain_nonempty
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (hC : C.WellFormed) (i : Fin n) :
+    (C.padicDomain (p := p) i).Nonempty := by
+  classical
+  obtain ⟨a, ha⟩ := C.relabeled_wellFormed hC i
+  exact ⟨(a : ℚ_[p]), Finset.mem_image.mpr ⟨a, ha, rfl⟩⟩
+
+/-- Ranks in `{1, ..., q}` are globally unit-separated whenever the supplied
+prime is larger than `q`. -/
+theorem padicDomain_globallyUnitSeparated
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (hp : C.symbolCount < p) :
+    PhdThesisLean.AllDifferent.GloballyUnitSeparated
+      (C.padicDomain (p := p)) := by
+  classical
+  intro i a ha j b hb hab
+  obtain ⟨r, hr, rfl⟩ := Finset.mem_image.mp ha
+  obtain ⟨s, hs, rfl⟩ := Finset.mem_image.mp hb
+  have hrValues : r ∈ C.relabeled.domainValues := by
+    exact (C.relabeled.mem_domainValues_iff r).2 ⟨i, hr⟩
+  have hsValues : s ∈ C.relabeled.domainValues := by
+    exact (C.relabeled.mem_domainValues_iff s).2 ⟨j, hs⟩
+  rw [C.domainValues_relabeled_eq_Icc] at hrValues hsValues
+  have hrBounds := Finset.mem_Icc.mp hrValues
+  have hsBounds := Finset.mem_Icc.mp hsValues
+  have hrs : r ≠ s := by
+    intro h
+    apply hab
+    rw [h]
+  rcases lt_or_gt_of_ne hrs with hrs | hsr
+  · have hdiff_ne : s - r ≠ 0 := by omega
+    have hdiff_lt : s - r < p :=
+      (Nat.sub_le s r).trans_lt (hsBounds.2.trans_lt hp)
+    have hcoprime : p.Coprime (s - r) :=
+      Nat.coprime_of_lt_prime hdiff_ne hdiff_lt Fact.out
+    rw [← norm_neg, neg_sub, ← Nat.cast_sub hrs.le,
+      Padic.norm_natCast_eq_one_iff]
+    exact hcoprime
+  · have hdiff_ne : r - s ≠ 0 := by omega
+    have hdiff_lt : r - s < p :=
+      (Nat.sub_le r s).trans_lt (hrBounds.2.trans_lt hp)
+    have hcoprime : p.Coprime (r - s) :=
+      Nat.coprime_of_lt_prime hdiff_ne hdiff_lt Fact.out
+    rw [← Nat.cast_sub hsr.le, Padic.norm_natCast_eq_one_iff]
+    exact hcoprime
+
+theorem padicAssignment_inDomain
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    {x : Fin n → ℕ} (hx : C.InDomain x) :
+    PhdThesisLean.FiniteDomainCompiler.InDomain
+      (C.padicDomain (p := p)) (C.padicAssignment (p := p) x) := by
+  classical
+  intro i
+  exact Finset.mem_image.mpr
+    ⟨C.relabelValue (x i),
+      Finset.mem_image.mpr ⟨x i, hx i, rfl⟩, rfl⟩
+
+/-- Every point in the embedded product domain is the embedded canonical
+relabeling of an original domain-respecting assignment. -/
+theorem exists_inDomain_padicAssignment_eq
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    {z : PhdThesisLean.FiniteDomainCompiler.Parameter p n}
+    (hz : PhdThesisLean.FiniteDomainCompiler.InDomain
+      (C.padicDomain (p := p)) z) :
+    ∃ x, C.InDomain x ∧ C.padicAssignment (p := p) x = z := by
+  classical
+  have hchoice :
+      ∀ i, ∃ a, a ∈ C.relabeledDomain i ∧ (a : ℚ_[p]) = z i := by
+    intro i
+    simpa only [padicDomain, Finset.mem_image] using hz i
+  choose y hy using hchoice
+  have hyDomain : C.relabeled.InDomain y := by
+    intro i
+    exact (hy i).1
+  obtain ⟨x, hx, hxy⟩ :=
+    C.exists_inDomain_relabelAssignment_eq hyDomain
+  refine ⟨x, hx, ?_⟩
+  funext i
+  change (C.relabelAssignment x i : ℚ_[p]) = z i
+  rw [hxy]
+  exact (hy i).2
+
+theorem conflictWeight_padicAssignment
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    {x : Fin n → ℕ} (hx : C.InDomain x) :
+    PhdThesisLean.AllDifferent.conflictWeight
+        (p := p) edgeLeft edgeRight (fun _ : C.PrimalEdge => 1)
+        (C.padicAssignment (p := p) x) =
+      (C.conflictCount x : ℝ) := by
+  classical
+  rw [PhdThesisLean.AllDifferent.conflictWeight]
+  simp only [padicAssignment, edgeLeft, edgeRight, Nat.cast_inj]
+  rw [Finset.univ_eq_attach C.primalEdges]
+  rw [Finset.sum_attach C.primalEdges
+    (fun e => if C.relabelAssignment x e.1 =
+      C.relabelAssignment x e.2 then (1 : ℝ) else 0)]
+  rw [Finset.sum_boole]
+  rw [show C.primalEdges.filter
+      (fun e => C.relabelAssignment x e.1 =
+        C.relabelAssignment x e.2) =
+      C.relabeled.conflictEdges (C.relabelAssignment x) by
+        rfl]
+  change (C.relabeled.conflictCount (C.relabelAssignment x) : ℝ) =
+    (C.conflictCount x : ℝ)
+  exact_mod_cast C.conflictCount_relabelAssignment hx
+
+theorem incidentEdgeWeight_lt_pinningWeight
+    {n : ℕ} (C : ExplicitSystem n) (i : Fin n) :
+    PhdThesisLean.AllDifferent.incidentEdgeWeight
+        edgeLeft edgeRight (fun _ : C.PrimalEdge => 1) i <
+      (C.pinningWeight : ℝ) := by
+  classical
+  have hle :
+      PhdThesisLean.AllDifferent.incidentEdgeWeight
+          edgeLeft edgeRight (fun _ : C.PrimalEdge => 1) i ≤
+        (C.primalEdges.card : ℝ) := by
+    rw [PhdThesisLean.AllDifferent.incidentEdgeWeight]
+    calc
+      (∑ e : C.PrimalEdge,
+          if i = edgeLeft e ∨ i = edgeRight e then (1 : ℝ) else 0) ≤
+          ∑ _e : C.PrimalEdge, (1 : ℝ) := by
+            apply Finset.sum_le_sum
+            intro e _
+            split <;> norm_num
+      _ = (Fintype.card C.PrimalEdge : ℝ) := by simp
+      _ = (C.primalEdges.card : ℝ) := by
+        rw [Fintype.card_coe]
+  exact hle.trans_lt (by
+    exact_mod_cast Nat.lt_succ_self C.primalEdges.card)
+
+/-- Exact semantics of the supplied-prime compiler stage.
+
+Every global minimizer of the emitted p-adic objective is the canonical
+embedding of an original domain-respecting minimum-conflict assignment, and
+every such embedded assignment is a global minimizer. The theorem deliberately
+does not claim that the compiler has selected `p` or established bit-level
+polynomial runtime. -/
+theorem suppliedPrime_allDifferent_correctness
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (hC : C.WellFormed) (hp : C.symbolCount < p) :
+    (∃ z, PhdThesisLean.AllDifferent.IsGlobalMin
+      (C.suppliedPrimeLoss (p := p)) z) ∧
+    ∀ z, PhdThesisLean.AllDifferent.IsGlobalMin
+        (C.suppliedPrimeLoss (p := p)) z ↔
+      ∃ x, C.MinimizesConflicts x ∧
+        C.padicAssignment (p := p) x = z := by
+  have hcorrect :=
+    PhdThesisLean.AllDifferent.all_different_correctness
+      (C.padicDomain (p := p)) (C.pinningWeight : ℝ)
+      edgeLeft edgeRight (fun _ : C.PrimalEdge => 1)
+      (C.padicDomain_nonempty hC) edgeLeft_ne_edgeRight
+      (C.padicDomain_globallyUnitSeparated hp)
+      (fun _ => by norm_num) C.incidentEdgeWeight_lt_pinningWeight
+  refine ⟨by simpa only [suppliedPrimeLoss] using hcorrect.1, ?_⟩
+  intro z
+  rw [show PhdThesisLean.AllDifferent.IsGlobalMin
+      (C.suppliedPrimeLoss (p := p)) z ↔
+      PhdThesisLean.AllDifferent.MinimizesConflicts
+        (C.padicDomain (p := p)) edgeLeft edgeRight
+        (fun _ : C.PrimalEdge => 1) z by
+      simpa only [suppliedPrimeLoss] using hcorrect.2 z]
+  constructor
+  · rintro ⟨hzDomain, hzMin⟩
+    obtain ⟨x, hxDomain, rfl⟩ :=
+      C.exists_inDomain_padicAssignment_eq hzDomain
+    refine ⟨x, ⟨hxDomain, ?_⟩, rfl⟩
+    intro y hyDomain
+    have hxy := hzMin (C.padicAssignment (p := p) y)
+      (C.padicAssignment_inDomain hyDomain)
+    rw [C.conflictWeight_padicAssignment hxDomain,
+      C.conflictWeight_padicAssignment hyDomain] at hxy
+    exact_mod_cast hxy
+  · rintro ⟨x, ⟨hxDomain, hxMin⟩, rfl⟩
+    refine ⟨C.padicAssignment_inDomain hxDomain, ?_⟩
+    intro z hzDomain
+    obtain ⟨y, hyDomain, rfl⟩ :=
+      C.exists_inDomain_padicAssignment_eq hzDomain
+    have hxy := hxMin y hyDomain
+    rw [C.conflictWeight_padicAssignment hxDomain,
+      C.conflictWeight_padicAssignment hyDomain]
+    exact_mod_cast hxy
+
+/-- In the satisfiable case, the supplied-prime objective's global minimizers
+are exactly the embedded satisfying assignments. -/
+theorem suppliedPrime_globalMin_iff_satisfies_of_satisfiable
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (hC : C.WellFormed) (hp : C.symbolCount < p)
+    (hsat : ∃ x, C.Satisfies x)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    PhdThesisLean.AllDifferent.IsGlobalMin
+        (C.suppliedPrimeLoss (p := p)) z ↔
+      ∃ x, C.Satisfies x ∧ C.padicAssignment (p := p) x = z := by
+  rw [(C.suppliedPrime_allDifferent_correctness hC hp).2 z]
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    exact ⟨x, (C.minimizesConflicts_iff_satisfies_of_satisfiable
+      hsat x).mp hx, rfl⟩
+  · rintro ⟨x, hx, rfl⟩
+    exact ⟨x, (C.minimizesConflicts_iff_satisfies_of_satisfiable
+      hsat x).mpr hx, rfl⟩
+
 end ExplicitSystem
 
 #print axioms ExplicitSystem.satisfies_iff_isProper
 #print axioms ExplicitSystem.minimizesConflicts_iff_satisfies_of_satisfiable
 #print axioms ExplicitSystem.relabeledValues_eq_Icc
 #print axioms ExplicitSystem.relabeled_minimizesConflicts_relabelAssignment_iff
+#print axioms ExplicitSystem.suppliedPrime_allDifferent_correctness
+#print axioms ExplicitSystem.suppliedPrime_globalMin_iff_satisfies_of_satisfiable
 
 end PhdThesisLean.AllDifferentCSP

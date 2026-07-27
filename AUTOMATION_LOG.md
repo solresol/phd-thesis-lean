@@ -100,3 +100,59 @@
   `p > symbolCount`, and instantiate `all_different_correctness`. Mark that
   theorem explicitly intermediate until a checked polynomial-time
   compiler-selected prime is composed with it.
+
+## 2026-07-28 05:27 AEST
+
+- Starting repository commit:
+  `18459a3df91cf6f6d1cf0f10954ecb75bb696532` on `main`. The working tree was
+  clean; after fetching, local `HEAD`, `origin/main`, and the live remote
+  `refs/heads/main` agreed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` (thesis checkout
+  `3829f8caf4b81a07ee5b40901e774e96f44cc3cb`). The chosen increment is the
+  supplied-prime p-adic objective and its exact semantic composition with
+  canonical relabelling and `AllDifferent.all_different_correctness`.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` at
+  `bf3487b76ecac4875a2b2721e4400fe6495fe8f5`. Its combined-stack simulation
+  work advances generic finite-machine composition, but it still has no
+  reusable CSP encoder, domain-rank compiler, prime-search implementation, or
+  concrete all-different runtime theorem.
+- `PhdThesisLean/AllDifferentCSP.lean` now defines `padicDomain`,
+  `padicAssignment`, `pinningWeight`, and `suppliedPrimeLoss`. For a supplied
+  prime `p > symbolCount`, `padicDomain_globallyUnitSeparated` proves that the
+  canonical ranks are unit-separated in `ℚ_[p]`; the proof uses
+  `Padic.norm_natCast_eq_one_iff` and `Nat.coprime_of_lt_prime`.
+- The emitted objective has one negative unit-weight residual per
+  deduplicated primal edge and uniform positive pinning weight `|E| + 1`.
+  `incidentEdgeWeight_lt_pinningWeight` proves the required strict domination,
+  while `conflictWeight_padicAssignment` identifies its weighted conflict term
+  exactly with the original natural-number deduplicated `conflictCount`.
+- `suppliedPrime_allDifferent_correctness` proves existence of a global
+  minimiser and characterises every global minimiser exactly as the embedded
+  image of an original domain-respecting minimum-conflict assignment.
+  `suppliedPrime_globalMin_iff_satisfies_of_satisfiable` proves the corresponding
+  exact satisfying-assignment characterisation when the input is satisfiable.
+  The converse direction extracts an original assignment from every p-adic
+  product-domain point, so the theorem is not only a forward soundness result.
+- Resolved proof/API issues: `Finset ℚ_[p]` construction and membership require
+  local classical decidability; rewriting membership in `Finset.Icc` exposed a
+  list-level representation, so bounds are recovered explicitly with
+  `Finset.mem_Icc.mp`; the conflict-count bridge uses
+  `Finset.univ_eq_attach`, `Finset.sum_attach`, and `Finset.sum_boole` rather
+  than a failed cast/rewrite through the filtered-card expression.
+- Verification succeeded:
+  `lake env lean PhdThesisLean/AllDifferentCSP.lean`, `lake build` (3081 jobs),
+  `git diff --check`, and the project Lean-source forbidden-construct scan.
+  The new headline `#print axioms` audits report only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- `README.md` and `THEOREM_STATUS.md` now record the supplied-prime p-adic
+  semantics while keeping `cor:all-different-csp` **Partial**. The compiler
+  still does not select a prime or provide a finite output encoding, bit-size
+  bound, or `TM2ComputableInPolyTime` construction theorem.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes present.
+- Best next step: define an executable compiler-selected prime covering
+  `q = 0`, `q = 1`, and `q > 1`, prove its primality and `q < p` (using
+  Bertrand for the nontrivial branch), then keep prime-search runtime separate
+  from the later finite-encoding and full compiler-runtime proof.

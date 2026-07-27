@@ -119,10 +119,14 @@ minimum-conflict assignments with the satisfying assignments. Its executable
 canonical rank relabelling maps the distinct shared domain symbols exactly onto
 `{1, ..., q}`, proves `q ≤ ∑ i, |D i|`, and preserves equality, satisfiability,
 and minimum deduplicated conflict count, including the zero- and one-symbol
-edge cases. This is a checked semantic front end for
-`cor:all-different-csp`, not yet the full corollary: prime selection, dataset
-emission, finite encodings, bit-size bounds, and a genuine polynomial-time
-compiler theorem remain.
+edge cases. Given a supplied prime `p > q`, the checked intermediate compiler
+embeds these ranks into `ℚ_[p]`, emits one negative unit residual per
+deduplicated edge with pinning weight `|E| + 1`, and proves that every global
+minimiser is exactly the embedded image of an original minimum-conflict
+assignment; in the satisfiable case these are exactly the embedded satisfying
+assignments. This is not yet the full `cor:all-different-csp`: compiler-selected
+prime construction, a finite encoded output syntax with bit-size bounds, and a
+genuine polynomial-time compiler theorem remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -222,9 +226,10 @@ The copied statements are grouped by mathematical contribution:
   `PhdThesisLean.AllDifferent`; the explicit syntax, deduplicated primal graph,
   canonical value relabelling, and discrete semantic front end for
   `cor:all-different-csp` are formalised in
-  `PhdThesisLean.AllDifferentCSP`, while its p-adic dataset encoding, prime
-  selection, and polynomial-time claims remain open; `thm:3sat-clausewise` is
-  formalised in
+  `PhdThesisLean.AllDifferentCSP`, together with its supplied-prime p-adic
+  objective and exact minimum-conflict semantics, while compiler-selected prime
+  construction, finite output encodings, bit-size bounds, and polynomial-time
+  claims remain open; `thm:3sat-clausewise` is formalised in
   `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction premise of
   `cor:signed-nphard` is formalised in `PhdThesisLean.FixedPrimeHardness`.
 
