@@ -124,9 +124,13 @@ embeds these ranks into `ℚ_[p]`, emits one negative unit residual per
 deduplicated edge with pinning weight `|E| + 1`, and proves that every global
 minimiser is exactly the embedded image of an original minimum-conflict
 assignment; in the satisfiable case these are exactly the embedded satisfying
-assignments. This is not yet the full `cor:all-different-csp`: compiler-selected
-prime construction, a finite encoded output syntax with bit-size bounds, and a
-genuine polynomial-time compiler theorem remain.
+assignments. The executable `selectPrimeAbove` scans the finite Bertrand
+interval, handles `q = 0` and `q = 1` explicitly, and for `q > 1` proves
+`q < p < 2q`; `compilerPrime_allDifferent_correctness` composes this selected
+prime with the exact minimum-conflict semantics. This is not yet the full
+`cor:all-different-csp`: a finite encoded output syntax with bit-size bounds
+and a genuine polynomial-time theorem for the whole compiler, including the
+prime scan, remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -227,10 +231,11 @@ The copied statements are grouped by mathematical contribution:
   canonical value relabelling, and discrete semantic front end for
   `cor:all-different-csp` are formalised in
   `PhdThesisLean.AllDifferentCSP`, together with its supplied-prime p-adic
-  objective and exact minimum-conflict semantics, while compiler-selected prime
-  construction, finite output encodings, bit-size bounds, and polynomial-time
-  claims remain open; `thm:3sat-clausewise` is formalised in
-  `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction premise of
+  objective, executable compiler-selected prime, and exact minimum-conflict
+  semantics, while finite output encodings, bit-size bounds, and the genuine
+  polynomial-time compiler claim remain open; `thm:3sat-clausewise` is
+  formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
+  premise of
   `cor:signed-nphard` is formalised in `PhdThesisLean.FixedPrimeHardness`.
 
 These files are provenance snapshots, not standalone LaTeX documents and not

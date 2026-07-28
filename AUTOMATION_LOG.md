@@ -156,3 +156,52 @@
   `q = 0`, `q = 1`, and `q > 1`, prove its primality and `q < p` (using
   Bertrand for the nontrivial branch), then keep prime-search runtime separate
   from the later finite-encoding and full compiler-runtime proof.
+
+## 2026-07-29 05:21 AEST
+
+- Starting repository commit:
+  `fa057f0c31c9368437cac605db527d1319bdd3e4` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` (thesis checkout
+  `3829f8caf4b81a07ee5b40901e774e96f44cc3cb`, with its pre-existing working
+  tree edit left untouched). The chosen increment is its executable
+  compiler-selected prime and composition with the supplied-prime semantics.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` at
+  `7169f0588d58c42f73f5a01a39e2d76add95cc78`. Its new finite-control work
+  advances generic machine composition but still supplies no reusable CSP
+  encoder, prime search, concrete all-different compiler, or corresponding
+  runtime theorem.
+- `PhdThesisLean/AllDifferentCSP.lean` now defines the executable finite scan
+  `primeCandidates`, `selectPrimeAbove`, and the system-level `compilerPrime`.
+  Bertrand's postulate proves the positive-input scan nonempty.
+  `selectPrimeAbove_prime` and `lt_selectPrimeAbove` prove primality and
+  `q < p`; `selectPrimeAbove_lt_two_mul` proves the strict `p < 2q` bound for
+  `q > 1`, while `selectPrimeAbove_zero` and `selectPrimeAbove_one` handle the
+  two small edge cases explicitly.
+- `compilerPrime_allDifferent_correctness` composes the selected prime with
+  `suppliedPrime_allDifferent_correctness`, characterising the global
+  minimisers exactly as embedded original minimum-conflict assignments.
+  `compilerPrime_globalMin_iff_satisfies_of_satisfiable` gives the exact
+  satisfying-assignment characterization in the satisfiable case.
+- One proof-shape issue was resolved: the first
+  `mem_primeCandidates_iff` simplification left only a conjunction-order goal;
+  adding the checked `and_comm` normalization discharged it. No unresolved
+  Lean blocker remains in this increment.
+- Verification succeeded:
+  `lake env lean PhdThesisLean/AllDifferentCSP.lean`, `lake build` (3089 jobs),
+  and `git diff --check`. A project Lean-source scan found no `sorry`, `admit`,
+  project `axiom`, `unsafe`, or `proof_wanted`; the new `#print axioms` audits
+  report only `propext`, `Classical.choice`, and `Quot.sound`.
+- `README.md` and `THEOREM_STATUS.md` now record executable prime selection and
+  its semantic composition while keeping `cor:all-different-csp` **Partial**.
+  The finite output encoding, bit-size bounds, and genuine polynomial-time
+  theorem for the complete compiler, including the prime scan, remain open.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes in this repository.
+- Best next step: define a finite, computable syntax for the selected-prime
+  compiled domains and signed residual rows, prove that its interpretation is
+  the checked `compilerPrime` objective, and establish explicit encoded
+  output-size bounds before attempting the `TM2ComputableInPolyTime` machine.
