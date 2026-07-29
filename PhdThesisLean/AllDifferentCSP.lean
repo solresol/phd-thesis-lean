@@ -24,8 +24,10 @@ deduplicated graph.  The executable rank relabelling maps the union of domain
 symbols onto `{1, ..., q}` and preserves equality, satisfaction, and minimum
 conflict. After the supplied-prime semantic stage, the remaining compiler work
 uses an executable bounded scan to select a prime, then composes that choice
-with the p-adic correctness theorem. The remaining work is to emit a finite
-encoded objective with bit-size bounds and prove the full compiler's genuine
+with the p-adic correctness theorem. The compiler now emits a finite sparse
+row list and proves that interpreting it is exactly the checked objective.
+The remaining work is to give the input and output standard binary
+`FinEncoding`s with bit-size bounds and prove the full compiler's genuine
 polynomial runtime, including the prime scan.
 -/
 
@@ -270,6 +272,15 @@ theorem relabeledValues_eq_singleton_of_symbolCount_eq_one
 def relabeledDomain {n : ℕ} (C : ExplicitSystem n)
     (i : Fin n) : Finset ℕ :=
   (C.domains i).image C.relabelValue
+
+theorem card_relabeledDomain {n : ℕ} (C : ExplicitSystem n)
+    (i : Fin n) :
+    (C.relabeledDomain i).card = (C.domains i).card := by
+  rw [relabeledDomain, Finset.card_image_iff]
+  intro a ha b hb h
+  exact C.relabelValue_injective
+    ((C.mem_domainValues_iff a).2 ⟨i, ha⟩)
+    ((C.mem_domainValues_iff b).2 ⟨i, hb⟩) h
 
 /-- The whole constraint system after canonical value relabelling. Scopes, and
 hence the deduplicated primal graph, are unchanged. -/
@@ -582,6 +593,18 @@ noncomputable def padicDomain
   classical
   exact (C.relabeledDomain i).image fun a : ℕ => (a : ℚ_[p])
 
+theorem unaryCost_padicDomain
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (i : Fin n) (z : ℚ_[p]) :
+    PhdThesisLean.FiniteDomainCompiler.unaryCost
+        (C.padicDomain (p := p) i) z =
+      ∑ a ∈ C.relabeledDomain i, ‖z - (a : ℚ_[p])‖ := by
+  classical
+  rw [PhdThesisLean.FiniteDomainCompiler.unaryCost, padicDomain,
+    Finset.sum_image]
+  intro a _ b _ hab
+  exact Nat.cast_injective (R := ℚ_[p]) hab
+
 /-- An original assignment, canonically relabelled and embedded in `ℚ_[p]`. -/
 def padicAssignment
     {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
@@ -594,6 +617,273 @@ pinning weight dominates every vertex's unit incident-edge weight. -/
 def pinningWeight {n : ℕ} (C : ExplicitSystem n) : ℕ :=
   C.primalEdges.card + 1
 
+/-- Finite sparse row syntax emitted by the all-different compiler.
+
+`pin i a w` represents the positive weighted residual `w * ‖xᵢ - a‖`.
+`unequal i j` represents the negative unit-weight residual
+`-‖xᵢ - xⱼ‖`. The compiler emits only canonically oriented unequal rows,
+although the syntax remains total for arbitrary endpoints. -/
+inductive ResidualRow (n : ℕ) where
+  | pin (index : Fin n) (target weight : ℕ)
+  | unequal (left right : Fin n)
+  deriving DecidableEq, Repr
+
+namespace ResidualRow
+
+/-- Interpret a finite compiler row as a signed weighted affine observation. -/
+noncomputable def observation
+    {n p : ℕ} [Fact p.Prime] :
+    ResidualRow n →
+      PhdThesisLean.FiniteDomainCompiler.AffineObservation p n
+  | .pin i a w => {
+      sign := 1
+      weight := w
+      coeff := fun j => if j = i then 1 else 0
+      target := a
+    }
+  | .unequal i j =>
+      PhdThesisLean.AllDifferent.edgeObservation
+        (fun _ : Unit => i) (fun _ : Unit => j) (fun _ : Unit => 1) ()
+
+/-- The signed p-adic contribution of one interpreted compiler row. -/
+noncomputable def loss
+    {n p : ℕ} [Fact p.Prime] (row : ResidualRow n)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) : ℝ :=
+  let t := row.observation (p := p)
+  t.sign * t.weight *
+    ‖PhdThesisLean.FiniteDomainCompiler.affineResidual t z‖
+
+@[simp]
+theorem affineResidual_pin
+    {n p : ℕ} [Fact p.Prime] (i : Fin n) (a w : ℕ)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    PhdThesisLean.FiniteDomainCompiler.affineResidual
+        ((ResidualRow.pin i a w).observation (p := p)) z =
+      z i - (a : ℚ_[p]) := by
+  classical
+  simp [observation, PhdThesisLean.FiniteDomainCompiler.affineResidual]
+
+@[simp]
+theorem loss_pin
+    {n p : ℕ} [Fact p.Prime] (i : Fin n) (a w : ℕ)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    (ResidualRow.pin i a w).loss (p := p) z =
+      (w : ℝ) * ‖z i - (a : ℚ_[p])‖ := by
+  rw [loss, affineResidual_pin]
+  simp [observation]
+
+theorem affineResidual_unequal
+    {n p : ℕ} [Fact p.Prime] (i j : Fin n) (hij : i ≠ j)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    PhdThesisLean.FiniteDomainCompiler.affineResidual
+        ((ResidualRow.unequal i j).observation (p := p)) z =
+      z i - z j := by
+  exact PhdThesisLean.AllDifferent.edgeResidual
+    (fun _ : Unit => i) (fun _ : Unit => j) (fun _ : Unit => 1)
+    (fun _ => hij) () z
+
+theorem loss_unequal
+    {n p : ℕ} [Fact p.Prime] (i j : Fin n) (hij : i ≠ j)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    (ResidualRow.unequal i j).loss (p := p) z =
+      -‖z i - z j‖ := by
+  rw [loss, affineResidual_unequal i j hij]
+  simp [observation, PhdThesisLean.AllDifferent.edgeObservation]
+
+end ResidualRow
+
+/-- Finite selected-prime output of the all-different compiler. -/
+structure CompiledObjective (n : ℕ) where
+  prime : ℕ
+  rows : List (ResidualRow n)
+  deriving DecidableEq, Repr
+
+/-- Positive pinning rows, one for every relabelled domain entry. -/
+def pinningRows {n : ℕ} (C : ExplicitSystem n) :
+    List (ResidualRow n) :=
+  (Finset.univ : Finset (Fin n)).sort (· ≤ ·) |>.flatMap fun i =>
+    (C.relabeledDomain i).sort (· ≤ ·) |>.map fun a =>
+      .pin i a C.pinningWeight
+
+/-- Negative unit rows, one for every deduplicated primal edge. -/
+def unequalRows {n : ℕ} (C : ExplicitSystem n) :
+    List (ResidualRow n) :=
+  C.primalEdges.sort (Prod.Lex (· < ·) (· ≤ ·)) |>.map fun e =>
+    .unequal e.1 e.2
+
+/-- The executable selected-prime residual-objective compiler. -/
+def compileObjective {n : ℕ} (C : ExplicitSystem n) :
+    CompiledObjective n where
+  prime := C.compilerPrime
+  rows := C.pinningRows ++ C.unequalRows
+
+@[simp]
+theorem compileObjective_prime {n : ℕ} (C : ExplicitSystem n) :
+    C.compileObjective.prime = C.compilerPrime :=
+  rfl
+
+private theorem sum_map_finset_sort
+    {α M : Type*} [AddCommMonoid M] (s : Finset α)
+    (r : α → α → Prop) [DecidableRel r] [IsTrans α r]
+    [IsAntisymm α r] [IsTotal α r] (f : α → M) :
+    ((s.sort r).map f).sum = ∑ a ∈ s, f a := by
+  change (↑((s.sort r).map f) : Multiset M).sum =
+    (s.1.map f).sum
+  rw [← Multiset.map_coe, Finset.sort_eq]
+
+private theorem sum_map_flatMap_rows
+    {α β M : Type*} [AddMonoid M]
+    (as : List α) (f : α → List β) (g : β → M) :
+    ((as.flatMap f).map g).sum =
+      (as.map fun a => ((f a).map g).sum).sum := by
+  induction as with
+  | nil => rfl
+  | cons a as ih =>
+      simp [ih]
+
+private theorem sum_map_map_rows
+    {α β M : Type*} [AddMonoid M]
+    (as : List α) (f : α → β) (g : β → M) :
+    (((as.map f).map g).sum) =
+      (as.map fun a => g (f a)).sum := by
+  simp only [List.map_map]
+  rfl
+
+theorem pinningRows_length {n : ℕ} (C : ExplicitSystem n) :
+    C.pinningRows.length = ∑ i, (C.domains i).card := by
+  simp only [pinningRows, List.length_flatMap, List.length_map,
+    Finset.length_sort, C.card_relabeledDomain]
+  change
+    (↑((Finset.univ : Finset (Fin n)).sort (· ≤ ·) |>.map
+      fun i => (C.domains i).card) : Multiset ℕ).sum =
+      ∑ i, (C.domains i).card
+  rw [← Multiset.map_coe, Finset.sort_eq]
+  rfl
+
+theorem unequalRows_length {n : ℕ} (C : ExplicitSystem n) :
+    C.unequalRows.length = C.primalEdges.card := by
+  simp [unequalRows]
+
+theorem primalEdges_card_le_square {n : ℕ} (C : ExplicitSystem n) :
+    C.primalEdges.card ≤ n ^ 2 := by
+  have hcard :
+      C.primalEdges.card ≤
+        ((Finset.univ : Finset (Fin n)).product Finset.univ).card :=
+    Finset.card_le_card (Finset.filter_subset _ _)
+  simpa [primalEdges, pow_two] using hcard
+
+/-- Exact emitted-row count: one positive row per listed domain value and one
+negative row per deduplicated primal edge. -/
+theorem compileObjective_rows_length {n : ℕ} (C : ExplicitSystem n) :
+    C.compileObjective.rows.length =
+      (∑ i, (C.domains i).card) + C.primalEdges.card := by
+  simp [compileObjective, C.pinningRows_length, C.unequalRows_length]
+
+/-- Row-count bound for the sparse output. This is not yet a binary encoded
+bit-size or machine-running-time theorem. -/
+theorem compileObjective_rows_length_le {n : ℕ} (C : ExplicitSystem n) :
+    C.compileObjective.rows.length ≤
+      (∑ i, (C.domains i).card) + n ^ 2 := by
+  rw [C.compileObjective_rows_length]
+  exact Nat.add_le_add_left C.primalEdges_card_le_square _
+
+/-- Interpret a finite list of residual rows over a supplied p-adic field. -/
+noncomputable def rowsLoss
+    {n p : ℕ} [Fact p.Prime] (rows : List (ResidualRow n))
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) : ℝ :=
+  (rows.map fun row => row.loss (p := p) z).sum
+
+@[simp]
+theorem rowsLoss_append
+    {n p : ℕ} [Fact p.Prime] (first second : List (ResidualRow n))
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    rowsLoss (p := p) (first ++ second) z =
+      rowsLoss (p := p) first z + rowsLoss (p := p) second z := by
+  simp [rowsLoss]
+
+theorem rowsLoss_pinningRows
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    rowsLoss (p := p) C.pinningRows z =
+      PhdThesisLean.FiniteDomainCompiler.pinningLoss
+        (C.padicDomain (p := p))
+        (fun _ => (C.pinningWeight : ℝ)) z := by
+  classical
+  rw [rowsLoss, pinningRows, sum_map_flatMap_rows,
+    PhdThesisLean.FiniteDomainCompiler.pinningLoss]
+  simp_rw [C.unaryCost_padicDomain]
+  have hinner : ∀ i : Fin n,
+      (((C.relabeledDomain i).sort (· ≤ ·)).map fun a =>
+        (ResidualRow.pin i a C.pinningWeight).loss (p := p) z).sum =
+        (C.pinningWeight : ℝ) *
+          ∑ a ∈ C.relabeledDomain i, ‖z i - (a : ℚ_[p])‖ := by
+    intro i
+    rw [sum_map_finset_sort]
+    simp [Finset.mul_sum]
+  have hmap : ∀ i : Fin n,
+      ((((C.relabeledDomain i).sort (· ≤ ·)).map fun a =>
+        ResidualRow.pin i a C.pinningWeight).map
+          (fun row => row.loss (p := p) z)).sum =
+        (((C.relabeledDomain i).sort (· ≤ ·)).map fun a =>
+          (ResidualRow.pin i a C.pinningWeight).loss (p := p) z).sum := by
+    intro i
+    simp only [List.map_map]
+    rfl
+  simp_rw [hmap, hinner]
+  rw [sum_map_finset_sort]
+
+theorem rowsLoss_unequalRows
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    rowsLoss (p := p) C.unequalRows z =
+      PhdThesisLean.FiniteDomainCompiler.interactionLoss
+        (PhdThesisLean.AllDifferent.edgeObservation
+          edgeLeft edgeRight (fun _ : C.PrimalEdge => 1)) z := by
+  classical
+  have hinteraction :
+      PhdThesisLean.FiniteDomainCompiler.interactionLoss
+          (PhdThesisLean.AllDifferent.edgeObservation
+            edgeLeft edgeRight (fun _ : C.PrimalEdge => 1)) z =
+        ∑ e ∈ C.primalEdges, -‖z e.1 - z e.2‖ := by
+    rw [PhdThesisLean.FiniteDomainCompiler.interactionLoss]
+    calc
+      (∑ e : C.PrimalEdge,
+          (PhdThesisLean.AllDifferent.edgeObservation
+            edgeLeft edgeRight (fun _ : C.PrimalEdge => 1) e).sign *
+          (PhdThesisLean.AllDifferent.edgeObservation
+            edgeLeft edgeRight (fun _ : C.PrimalEdge => 1) e).weight *
+          ‖PhdThesisLean.FiniteDomainCompiler.affineResidual
+            (PhdThesisLean.AllDifferent.edgeObservation
+              edgeLeft edgeRight (fun _ : C.PrimalEdge => 1) e) z‖) =
+          ∑ e : C.PrimalEdge,
+            -‖z (edgeLeft e) - z (edgeRight e)‖ := by
+        apply Finset.sum_congr rfl
+        intro e _
+        rw [PhdThesisLean.AllDifferent.edgeResidual
+          edgeLeft edgeRight (fun _ : C.PrimalEdge => 1)
+          edgeLeft_ne_edgeRight e z]
+        simp [PhdThesisLean.AllDifferent.edgeObservation]
+      _ = ∑ e ∈ C.primalEdges, -‖z e.1 - z e.2‖ := by
+        rw [Finset.univ_eq_attach C.primalEdges]
+        simp only [edgeLeft, edgeRight]
+        rw [Finset.sum_attach C.primalEdges
+          (fun e => -‖z e.1 - z e.2‖)]
+  calc
+    rowsLoss (p := p) C.unequalRows z =
+        ∑ e ∈ C.primalEdges,
+          (ResidualRow.unequal e.1 e.2).loss (p := p) z := by
+      rw [rowsLoss, unequalRows, sum_map_map_rows, sum_map_finset_sort]
+    _ = ∑ e ∈ C.primalEdges, -‖z e.1 - z e.2‖ := by
+      apply Finset.sum_congr rfl
+      intro e he
+      have hne : e.1 ≠ e.2 :=
+        ne_of_lt ((C.mem_primalEdges_iff e.1 e.2).mp he).1
+      rw [ResidualRow.loss_unequal e.1 e.2 hne z]
+    _ = PhdThesisLean.FiniteDomainCompiler.interactionLoss
+          (PhdThesisLean.AllDifferent.edgeObservation
+            edgeLeft edgeRight (fun _ : C.PrimalEdge => 1)) z :=
+      hinteraction.symm
+
 /-- The supplied-prime signed weighted synthetic p-adic residual objective.
 
 Each primal edge has one negative unit-weight residual, and every allowed
@@ -605,6 +895,19 @@ noncomputable def suppliedPrimeLoss
   PhdThesisLean.AllDifferent.allDifferentLoss
     (C.padicDomain (p := p)) (C.pinningWeight : ℝ)
     edgeLeft edgeRight (fun _ : C.PrimalEdge => 1) z
+
+/-- Interpreting the emitted row list gives exactly the previously checked
+supplied-prime all-different objective. -/
+@[simp]
+theorem rowsLoss_compileObjective
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    rowsLoss (p := p) C.compileObjective.rows z =
+      C.suppliedPrimeLoss (p := p) z := by
+  rw [compileObjective, rowsLoss_append, C.rowsLoss_pinningRows,
+    C.rowsLoss_unequalRows, suppliedPrimeLoss,
+    PhdThesisLean.AllDifferent.allDifferentLoss,
+    PhdThesisLean.FiniteDomainCompiler.compilerLoss]
 
 theorem padicDomain_nonempty
     {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
@@ -808,6 +1111,30 @@ theorem compilerPrime_allDifferent_correctness
   exact C.suppliedPrime_allDifferent_correctness hC
     C.symbolCount_lt_compilerPrime
 
+/-- Exact minimum-conflict semantics stated directly for the finite emitted
+row list at its selected prime. -/
+theorem compileObjective_allDifferent_correctness
+    {n : ℕ} (C : ExplicitSystem n) (hC : C.WellFormed) :
+    letI : Fact C.compileObjective.prime.Prime :=
+      ⟨by simpa using C.compilerPrime_prime⟩
+    (∃ z, PhdThesisLean.AllDifferent.IsGlobalMin
+      (rowsLoss (p := C.compileObjective.prime)
+        C.compileObjective.rows) z) ∧
+    ∀ z, PhdThesisLean.AllDifferent.IsGlobalMin
+        (rowsLoss (p := C.compileObjective.prime)
+          C.compileObjective.rows) z ↔
+      ∃ x, C.MinimizesConflicts x ∧
+        C.padicAssignment (p := C.compileObjective.prime) x = z := by
+  letI : Fact C.compileObjective.prime.Prime :=
+    ⟨by simpa using C.compilerPrime_prime⟩
+  have hloss :
+      rowsLoss (p := C.compileObjective.prime) C.compileObjective.rows =
+        C.suppliedPrimeLoss (p := C.compileObjective.prime) :=
+    funext C.rowsLoss_compileObjective
+  rw [hloss]
+  simpa only [compileObjective_prime] using
+    C.compilerPrime_allDifferent_correctness hC
+
 /-- In the satisfiable case, the supplied-prime objective's global minimizers
 are exactly the embedded satisfying assignments. -/
 theorem suppliedPrime_globalMin_iff_satisfies_of_satisfiable
@@ -842,6 +1169,30 @@ theorem compilerPrime_globalMin_iff_satisfies_of_satisfiable
   exact C.suppliedPrime_globalMin_iff_satisfies_of_satisfiable hC
     C.symbolCount_lt_compilerPrime hsat
 
+/-- Satisfiable-case characterization stated directly for the finite emitted
+row list at its selected prime. -/
+theorem compileObjective_globalMin_iff_satisfies_of_satisfiable
+    {n : ℕ} (C : ExplicitSystem n) (hC : C.WellFormed)
+    (hsat : ∃ x, C.Satisfies x) :
+    letI : Fact C.compileObjective.prime.Prime :=
+      ⟨by simpa using C.compilerPrime_prime⟩
+    ∀ z : PhdThesisLean.FiniteDomainCompiler.Parameter
+        C.compileObjective.prime n,
+      PhdThesisLean.AllDifferent.IsGlobalMin
+          (rowsLoss (p := C.compileObjective.prime)
+            C.compileObjective.rows) z ↔
+        ∃ x, C.Satisfies x ∧
+          C.padicAssignment (p := C.compileObjective.prime) x = z := by
+  letI : Fact C.compileObjective.prime.Prime :=
+    ⟨by simpa using C.compilerPrime_prime⟩
+  have hloss :
+      rowsLoss (p := C.compileObjective.prime) C.compileObjective.rows =
+        C.suppliedPrimeLoss (p := C.compileObjective.prime) :=
+    funext C.rowsLoss_compileObjective
+  rw [hloss]
+  simpa only [compileObjective_prime] using
+    C.compilerPrime_globalMin_iff_satisfies_of_satisfiable hC hsat
+
 end ExplicitSystem
 
 #print axioms ExplicitSystem.satisfies_iff_isProper
@@ -850,9 +1201,12 @@ end ExplicitSystem
 #print axioms ExplicitSystem.relabeled_minimizesConflicts_relabelAssignment_iff
 #print axioms ExplicitSystem.selectPrimeAbove_prime
 #print axioms ExplicitSystem.selectPrimeAbove_lt_two_mul
+#print axioms ExplicitSystem.rowsLoss_compileObjective
 #print axioms ExplicitSystem.suppliedPrime_allDifferent_correctness
 #print axioms ExplicitSystem.compilerPrime_allDifferent_correctness
+#print axioms ExplicitSystem.compileObjective_allDifferent_correctness
 #print axioms ExplicitSystem.suppliedPrime_globalMin_iff_satisfies_of_satisfiable
 #print axioms ExplicitSystem.compilerPrime_globalMin_iff_satisfies_of_satisfiable
+#print axioms ExplicitSystem.compileObjective_globalMin_iff_satisfies_of_satisfiable
 
 end PhdThesisLean.AllDifferentCSP

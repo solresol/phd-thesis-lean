@@ -128,9 +128,13 @@ assignments. The executable `selectPrimeAbove` scans the finite Bertrand
 interval, handles `q = 0` and `q = 1` explicitly, and for `q > 1` proves
 `q < p < 2q`; `compilerPrime_allDifferent_correctness` composes this selected
 prime with the exact minimum-conflict semantics. This is not yet the full
-`cor:all-different-csp`: a finite encoded output syntax with bit-size bounds
-and a genuine polynomial-time theorem for the whole compiler, including the
-prime scan, remain.
+`cor:all-different-csp`: `ResidualRow` and `CompiledObjective` give an
+executable finite sparse row-list output, `rowsLoss_compileObjective` proves
+that its affine interpretation is exactly the checked objective, and
+`compileObjective_rows_length` proves its exact row count. Standard binary
+input/output `FinEncoding`s, encoded bit-size bounds, and a genuine
+polynomial-time theorem for the whole compiler, including the prime scan,
+remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -231,9 +235,10 @@ The copied statements are grouped by mathematical contribution:
   canonical value relabelling, and discrete semantic front end for
   `cor:all-different-csp` are formalised in
   `PhdThesisLean.AllDifferentCSP`, together with its supplied-prime p-adic
-  objective, executable compiler-selected prime, and exact minimum-conflict
-  semantics, while finite output encodings, bit-size bounds, and the genuine
-  polynomial-time compiler claim remain open; `thm:3sat-clausewise` is
+  objective, executable compiler-selected prime and sparse row-list output,
+  and exact minimum-conflict semantics, while standard binary input/output
+  encodings, bit-size bounds, and the genuine polynomial-time compiler claim
+  remain open; `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of
   `cor:signed-nphard` is formalised in `PhdThesisLean.FixedPrimeHardness`.

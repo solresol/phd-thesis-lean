@@ -205,3 +205,63 @@
   compiled domains and signed residual rows, prove that its interpretation is
   the checked `compilerPrime` objective, and establish explicit encoded
   output-size bounds before attempting the `TM2ComputableInPolyTime` machine.
+
+## 2026-07-30 05:40 AEST
+
+- Starting repository commit:
+  `e086c7bc3a3a6e5314739cbb32738552dcdcd82c` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` (thesis checkout
+  `3829f8caf4b81a07ee5b40901e774e96f44cc3cb`). Its extensive pre-existing
+  tracked and untracked work, including the active `body.tex` edit, was left
+  untouched.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` at
+  `a28b57f2eba67abdfb175d134f683399ac525cd9`. Its checked machine-composition
+  work has advanced, but it still provides no reusable CSP encoder,
+  prime-search machine, list/pair `FinEncoding`, or complete generic
+  `TM2ComputableInPolyTime` composition theorem; mathlib's generic composition
+  declaration remains `proof_wanted`.
+- Chosen increment: an executable finite selected-prime sparse residual output
+  and a semantic bridge from that concrete row list to the existing checked
+  all-different objective.
+- `PhdThesisLean/AllDifferentCSP.lean` now defines `ResidualRow`,
+  `CompiledObjective`, `pinningRows`, `unequalRows`, and `compileObjective`.
+  The compiler uses deterministic `Finset.sort` traversals, emits one positive
+  row for each relabelled domain entry and one negative unit row for each
+  deduplicated primal edge, and stores the already-checked `compilerPrime`.
+- `ResidualRow.observation` interprets each output row as a signed weighted
+  affine observation. `rowsLoss_compileObjective` proves that summing the
+  interpreted finite row list is exactly `suppliedPrimeLoss`.
+  `compileObjective_allDifferent_correctness` therefore characterises its
+  global minimisers exactly as embedded original minimum-conflict assignments;
+  `compileObjective_globalMin_iff_satisfies_of_satisfiable` gives the exact
+  satisfying-assignment characterisation in the satisfiable case.
+- `compileObjective_rows_length` proves the exact output row count
+  `sum_i |D_i| + |E|`, using injectivity of canonical relabelling, and
+  `compileObjective_rows_length_le` gives the sparse row-count bound
+  `sum_i |D_i| + n^2`. The latter is explicitly documented as a row-count
+  result, not a binary bit-size or machine-runtime theorem.
+- Resolved proof/API issues: `Finset.toList` was noncomputable at this pinned
+  revision, so the executable compiler now uses ordered `Finset.sort`;
+  componentwise product order was not total, so primal edges use `Prod.Lex`;
+  nested `List.flatMap`/`List.map` sums required small checked helper lemmas
+  rather than direct simplification.
+- Verification succeeded:
+  `lake env lean PhdThesisLean/AllDifferentCSP.lean`, `lake build` (3089 jobs),
+  `git diff --check`, and the project Lean-source forbidden-construct scan.
+  The new headline `#print axioms` audits report only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- `README.md` and `THEOREM_STATUS.md` now record the concrete row-list output
+  while keeping `cor:all-different-csp` **Partial**. Standard binary
+  input/output `FinEncoding`s, encoded bit-size bounds, deterministic
+  primality-test runtime, and a genuine whole-compiler
+  `TM2ComputableInPolyTime` theorem remain.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated changes in this repository.
+- Best next step: define standard binary `FinEncoding`s for a runtime-sized
+  explicit CSP syntax and the compiled sparse objective, then prove encoded
+  length bounds for variables, relabelled targets, weights, prime, and row
+  delimiters before constructing the full compiler machine.
