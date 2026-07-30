@@ -265,3 +265,62 @@
   explicit CSP syntax and the compiled sparse objective, then prove encoded
   length bounds for variables, relabelled targets, weights, prime, and row
   delimiters before constructing the full compiler machine.
+
+## 2026-07-31 05:30 AEST
+
+- Starting repository commit:
+  `d482a10e8f8fa1aa61cab9d27c01c3ca2e456700` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` (clean thesis checkout
+  `b363995058eceabe79c3fbf38d5e34f7c135d8f1`). The chosen increment is the
+  standard finite binary representation layer required before a genuine
+  machine theorem.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` at
+  `a28b57f2eba67abdfb175d134f683399ac525cd9`. It provides checked generic
+  `FinEncoding`/`TM2ComputableInPolyTime` wrappers and partial finite-machine
+  composition infrastructure, but no concrete list/pair binary encoding,
+  all-different compiler, primality-search machine, or completed generic
+  polynomial-time composition theorem reusable here.
+- Added `PhdThesisLean/AllDifferentCSPEncoding.lean`. `BinaryNatLists` builds a
+  self-delimiting codec over the literal alphabet `Bool` using mathlib's
+  standard `Computability.encodeNat`, proves decoder/encoder round trips, and
+  packages it as a checked `FinEncoding (List (List Nat))`.
+- Added runtime-sized `RuntimeSystem`, `RuntimeResidualRow`, and
+  `RuntimeObjective` syntax. `RuntimeSystem.finEncoding` and
+  `RuntimeObjective.finEncoding` are checked `Bool`-alphabet `FinEncoding`s;
+  `RuntimeSystem.toExplicitSystem` connects the runtime input to the existing
+  range-checked semantic syntax and preserves nonempty-domain well-formedness.
+  `compile` erases the existing checked dependent compiler output into the
+  serializable runtime objective.
+- `BinaryNatLists.encode_length`,
+  `RuntimeSystem.encodedSize_eq_wireSize`, and
+  `RuntimeObjective.encodedSize_eq_wireSize` give exact bit counts for the
+  chosen binary representation. The actual input bit length is proved to
+  dominate variable, domain-entry, and scope-entry counts.
+  `compile_rows_length_le_encodedSize_polynomial` then bounds the emitted
+  sparse row count by `s + s^2`, where `s` is the actual binary input length.
+  This remains deliberately separate from the still-open bound on every
+  encoded output field.
+- Failed proof shapes resolved during the increment: direct induction on
+  `wireSize` did not preserve the changing outer length prefix, so the checked
+  proof first bounds the sums of per-element wire sizes; `rw
+  [Fin.sum_univ_succ]` did not match the dependent `List.get` sum, while
+  `simpa [Fin.sum_univ_succ]` over an explicitly constructed additive bound
+  did. No unresolved Lean blocker remains in this increment.
+- Verification succeeded: `lake env lean
+  PhdThesisLean/AllDifferentCSPEncoding.lean`, `lake build` (3099 jobs),
+  `git diff --check`, and the project Lean-source forbidden-construct scan.
+  The headline axiom audits contain only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- `README.md` and `THEOREM_STATUS.md` now record the binary encoding and
+  exact-wire-size layer while keeping `cor:all-different-csp` **Partial**.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated changes in this repository.
+- Best next step: prove a polynomial bound for
+  `(compile C).encodedSize` from the selected-prime, canonical-target,
+  pinning-weight, endpoint, and row-count bounds; then implement and verify the
+  complete compiler, including deterministic prime selection, using
+  `TM2ComputableInPolyTime`.

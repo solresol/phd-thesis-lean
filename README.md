@@ -131,10 +131,14 @@ prime with the exact minimum-conflict semantics. This is not yet the full
 `cor:all-different-csp`: `ResidualRow` and `CompiledObjective` give an
 executable finite sparse row-list output, `rowsLoss_compileObjective` proves
 that its affine interpretation is exactly the checked objective, and
-`compileObjective_rows_length` proves its exact row count. Standard binary
-input/output `FinEncoding`s, encoded bit-size bounds, and a genuine
-polynomial-time theorem for the whole compiler, including the prime scan,
-remain.
+`compileObjective_rows_length` proves its exact row count.
+[`PhdThesisLean/AllDifferentCSPEncoding.lean`](PhdThesisLean/AllDifferentCSPEncoding.lean)
+adds runtime-sized list syntax, checked input and output `FinEncoding`s over the
+literal binary alphabet `Bool`, exact wire-length formulae, and a quadratic
+bound on emitted sparse rows in the actual encoded input length. A polynomial
+bound for the complete encoded output—including every binary numeric
+field—and a genuine polynomial-time theorem for the whole compiler, including
+the prime scan, remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -236,9 +240,11 @@ The copied statements are grouped by mathematical contribution:
   `cor:all-different-csp` are formalised in
   `PhdThesisLean.AllDifferentCSP`, together with its supplied-prime p-adic
   objective, executable compiler-selected prime and sparse row-list output,
-  and exact minimum-conflict semantics, while standard binary input/output
-  encodings, bit-size bounds, and the genuine polynomial-time compiler claim
-  remain open; `thm:3sat-clausewise` is
+  and exact minimum-conflict semantics. Runtime-sized binary input/output
+  encodings, exact wire sizes, and the sparse-row polynomial bound are in
+  `PhdThesisLean.AllDifferentCSPEncoding`; the total encoded-output polynomial
+  bound and genuine polynomial-time compiler claim remain open;
+  `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of
   `cor:signed-nphard` is formalised in `PhdThesisLean.FixedPrimeHardness`.
