@@ -20,8 +20,8 @@ their elements. Consequently, nested lists need no unbounded alphabet or
 implicit delimiter convention.
 
 These encodings establish the finite binary representation layer. Exact
-encoded-length formulae are kept separate from the later polynomial bound and
-machine-running-time proof.
+encoded-length formulae and a complete quartic output-size bound are kept
+separate from the remaining machine-running-time proof.
 -/
 
 namespace BinaryNatLists
@@ -192,6 +192,109 @@ theorem encode_length (xss : List (List ℕ)) :
 
 theorem natWireSize_pos (n : ℕ) : 0 < natWireSize n := by
   simp [natWireSize]
+
+private theorem encodePosNum_length_le (n : PosNum) :
+    (Computability.encodePosNum n).length ≤ (n : ℕ) := by
+  induction n with
+  | one => simp [Computability.encodePosNum]
+  | bit1 n ih =>
+      simp only [Computability.encodePosNum, List.length_cons]
+      simp only [PosNum.cast_bit1]
+      omega
+  | bit0 n ih =>
+      simp only [Computability.encodePosNum, List.length_cons]
+      simp only [PosNum.cast_bit0]
+      have hn : 0 < (n : ℕ) := PosNum.cast_pos n
+      omega
+
+/-- The standard binary representation of a natural has at most `n` bits.
+This deliberately coarse linear estimate is enough for the polynomial output
+bound below. -/
+theorem encodeNat_length_le (n : ℕ) :
+    (Computability.encodeNat n).length ≤ n := by
+  rw [Computability.encodeNat]
+  cases h : (n : Num) with
+  | zero => simp [Computability.encodeNum]
+  | pos p =>
+      rw [Computability.encodeNum]
+      have hp := encodePosNum_length_le p
+      have hn : n = (p : ℕ) := by
+        have h' := congrArg (fun m : Num => (m : ℕ)) h
+        simpa using h'
+      simpa [hn] using hp
+
+theorem natWireSize_le_two_mul_add_one (n : ℕ) :
+    natWireSize n ≤ 2 * n + 1 := by
+  rw [natWireSize]
+  exact Nat.add_le_add_right
+    (Nat.mul_le_mul_left 2 (encodeNat_length_le n)) 1
+
+theorem sum_natWireSize_le (xs : List ℕ) (bound : ℕ)
+    (hxs : ∀ x ∈ xs, x ≤ bound) :
+    (xs.map natWireSize).sum ≤ xs.length * (2 * bound + 1) := by
+  induction xs with
+  | nil => simp
+  | cons x xs ih =>
+      calc
+        ((x :: xs).map natWireSize).sum =
+            natWireSize x + (xs.map natWireSize).sum := by simp
+        _ ≤ (2 * bound + 1) + xs.length * (2 * bound + 1) :=
+          Nat.add_le_add
+            ((natWireSize_le_two_mul_add_one x).trans
+              (Nat.add_le_add_right
+                (Nat.mul_le_mul_left 2 (hxs x (by simp))) 1))
+            (ih fun y hy => hxs y (by simp [hy]))
+        _ = (x :: xs).length * (2 * bound + 1) := by
+          simp [Nat.succ_mul, Nat.add_comm]
+
+theorem listWireSize_le (xs : List ℕ) (bound : ℕ)
+    (hxs : ∀ x ∈ xs, x ≤ bound) :
+    listWireSize xs ≤
+      (2 * xs.length + 1) + xs.length * (2 * bound + 1) := by
+  exact Nat.add_le_add (natWireSize_le_two_mul_add_one xs.length)
+    (sum_natWireSize_le xs bound hxs)
+
+/-- A code containing at most four naturals bounded by `bound` has this
+uniform framed size bound. -/
+theorem listWireSize_le_sixteen (xs : List ℕ) (bound : ℕ)
+    (hlength : xs.length ≤ 4) (hxs : ∀ x ∈ xs, x ≤ bound) :
+    listWireSize xs ≤ 16 * (bound + 1) := by
+  have h := listWireSize_le xs bound hxs
+  have hmul : xs.length * (2 * bound + 1) ≤ 4 * (2 * bound + 1) :=
+    Nat.mul_le_mul_right (2 * bound + 1) hlength
+  omega
+
+theorem sum_listWireSize_le (xss : List (List ℕ)) (bound : ℕ)
+    (hlength : ∀ xs ∈ xss, xs.length ≤ 4)
+    (hxs : ∀ xs ∈ xss, ∀ x ∈ xs, x ≤ bound) :
+    (xss.map listWireSize).sum ≤
+      xss.length * (16 * (bound + 1)) := by
+  induction xss with
+  | nil => simp
+  | cons xs xss ih =>
+      calc
+        (((xs :: xss).map listWireSize).sum) =
+            listWireSize xs + (xss.map listWireSize).sum := by simp
+        _ ≤ (16 * (bound + 1)) +
+            xss.length * (16 * (bound + 1)) :=
+          Nat.add_le_add
+            (listWireSize_le_sixteen xs bound
+              (hlength xs (by simp)) (hxs xs (by simp)))
+            (ih (fun ys hys => hlength ys (by simp [hys]))
+              (fun ys hys => hxs ys (by simp [hys])))
+        _ = (xs :: xss).length * (16 * (bound + 1)) := by
+          simp [Nat.succ_mul, Nat.add_comm]
+
+/-- A nested code with four-field inner rows and uniformly bounded numeric
+fields has a linear-in-row-count wire-size bound. -/
+theorem wireSize_le (xss : List (List ℕ)) (bound : ℕ)
+    (hlength : ∀ xs ∈ xss, xs.length ≤ 4)
+    (hxs : ∀ xs ∈ xss, ∀ x ∈ xs, x ≤ bound) :
+    wireSize xss ≤
+      (2 * xss.length + 1) +
+        xss.length * (16 * (bound + 1)) := by
+  exact Nat.add_le_add (natWireSize_le_two_mul_add_one xss.length)
+    (sum_listWireSize_le xss bound hlength hxs)
 
 theorem length_le_listWireSize (xs : List ℕ) :
     xs.length ≤ listWireSize xs := by
@@ -486,6 +589,157 @@ private theorem sum_toFinset_card_le_sum_length :
         Nat.add_le_add (List.toFinset_card_le domain)
           (sum_toFinset_card_le_sum_length domains)
 
+private theorem pinningRow_fields_le {n : ℕ}
+    (C : ExplicitSystem n) (index : Fin n) (target weight : ℕ)
+    (hrow : ExplicitSystem.ResidualRow.pin index target weight ∈
+      C.pinningRows) :
+    target ≤ C.symbolCount ∧ weight = C.pinningWeight := by
+  simp only [ExplicitSystem.pinningRows, List.mem_flatMap,
+    List.mem_map] at hrow
+  obtain ⟨sourceIndex, _hsourceIndex, sourceTarget, hsourceTarget, heq⟩ := hrow
+  simp only [Finset.mem_sort] at hsourceTarget
+  injection heq with hindex htarget hweight
+  subst index
+  subst target
+  subst weight
+  have hvalue : sourceTarget ∈ C.relabeled.domainValues :=
+    (C.relabeled.mem_domainValues_iff sourceTarget).2
+      ⟨sourceIndex, by simpa using hsourceTarget⟩
+  rw [C.domainValues_relabeled_eq_Icc] at hvalue
+  exact ⟨(Finset.mem_Icc.mp hvalue).2, rfl⟩
+
+private theorem compiledRow_fields_le {n : ℕ}
+    (C : ExplicitSystem n) (row : ExplicitSystem.ResidualRow n)
+    (hrow : row ∈ C.compileObjective.rows) :
+    match row with
+    | .pin index target weight =>
+        index.1 < n ∧ target ≤ C.symbolCount ∧
+          weight ≤ C.primalEdges.card + 1
+    | .unequal left right => left.1 < n ∧ right.1 < n := by
+  cases row with
+  | pin index target weight =>
+      rw [ExplicitSystem.compileObjective] at hrow
+      simp only [List.mem_append] at hrow
+      rcases hrow with hpin | hneq
+      · have h := pinningRow_fields_le C index target weight hpin
+        exact ⟨index.isLt, h.1, by
+          simpa [ExplicitSystem.pinningWeight] using h.2.le⟩
+      · simp [ExplicitSystem.unequalRows] at hneq
+  | unequal left right =>
+      rw [ExplicitSystem.compileObjective] at hrow
+      simp only [List.mem_append] at hrow
+      rcases hrow with hpin | hneq
+      · simp [ExplicitSystem.pinningRows] at hpin
+      · simp only [ExplicitSystem.unequalRows, List.mem_map,
+          Finset.mem_sort] at hneq
+        obtain ⟨edge, _hedge, heq⟩ := hneq
+        injection heq with hleft hright
+        subst left
+        subst right
+        exact ⟨edge.1.isLt, edge.2.isLt⟩
+
+private theorem symbolCount_le_encodedSize (C : RuntimeSystem) :
+    C.toExplicitSystem.symbolCount ≤ C.encodedSize := by
+  calc
+    C.toExplicitSystem.symbolCount ≤
+        ∑ i, (C.toExplicitSystem.domains i).card :=
+      C.toExplicitSystem.symbolCount_le_sum_domain_card
+    _ ≤ C.domainEntryCount := by
+      simpa [RuntimeSystem.toExplicitSystem,
+        RuntimeSystem.domainEntryCount] using
+        sum_toFinset_card_le_sum_length C.domains
+    _ ≤ C.encodedSize := C.domainEntryCount_le_encodedSize
+
+private theorem compile_prime_le_fieldBound (C : RuntimeSystem) :
+    (compile C).prime ≤ 2 * (C.encodedSize + 1) ^ 2 := by
+  rw [compile_prime]
+  by_cases hq : C.toExplicitSystem.symbolCount = 0
+  · rw [ExplicitSystem.compilerPrime, hq, ExplicitSystem.selectPrimeAbove_zero]
+    have hk2 : 1 ≤ (C.encodedSize + 1) ^ 2 :=
+      Nat.one_le_pow' 2 C.encodedSize
+    simpa using Nat.mul_le_mul_left 2 hk2
+  · calc
+      C.toExplicitSystem.compilerPrime =
+          ExplicitSystem.selectPrimeAbove C.toExplicitSystem.symbolCount := rfl
+      _ ≤ 2 * C.toExplicitSystem.symbolCount :=
+        ExplicitSystem.selectPrimeAbove_le_two_mul hq
+      _ ≤ 2 * C.encodedSize :=
+        Nat.mul_le_mul_left 2 (symbolCount_le_encodedSize C)
+      _ ≤ 2 * (C.encodedSize + 1) ^ 2 := by nlinarith
+
+private theorem compile_row_entry_le_fieldBound
+    (C : RuntimeSystem) (row : RuntimeResidualRow)
+    (hrow : row ∈ (compile C).rows) (entry : ℕ)
+    (hentry : entry ∈ row.toNatList) :
+    entry ≤ 2 * (C.encodedSize + 1) ^ 2 := by
+  let D := C.toExplicitSystem
+  have hn : C.domains.length ≤ C.encodedSize :=
+    C.variableCount_le_encodedSize
+  have hq : D.symbolCount ≤ C.encodedSize := by
+    simpa [D] using symbolCount_le_encodedSize C
+  change row ∈
+    (D.compileObjective.rows.map RuntimeResidualRow.ofResidualRow) at hrow
+  obtain ⟨sourceRow, hsourceRow, rfl⟩ := List.mem_map.mp hrow
+  have hfields := compiledRow_fields_le D sourceRow hsourceRow
+  cases sourceRow with
+  | pin index target weight =>
+      simp only [RuntimeResidualRow.ofResidualRow,
+        RuntimeResidualRow.toNatList, List.mem_cons, List.not_mem_nil,
+        or_false] at hentry
+      rcases hentry with rfl | rfl | rfl | rfl
+      · nlinarith
+      · have hi := hfields.1
+        change index.1 < C.domains.length at hi
+        nlinarith
+      · exact hfields.2.1.trans (hq.trans (by nlinarith))
+      · have hedge : D.primalEdges.card ≤ C.domains.length ^ 2 :=
+          D.primalEdges_card_le_square
+        have hw : entry ≤ C.domains.length ^ 2 + 1 :=
+          hfields.2.2.trans (Nat.add_le_add_right hedge 1)
+        calc
+          entry ≤ C.domains.length ^ 2 + 1 := hw
+          _ ≤ C.encodedSize ^ 2 + 1 :=
+            Nat.add_le_add_right (Nat.pow_le_pow_left hn 2) 1
+          _ ≤ 2 * (C.encodedSize + 1) ^ 2 := by nlinarith
+  | unequal left right =>
+      simp only [RuntimeResidualRow.ofResidualRow,
+        RuntimeResidualRow.toNatList, List.mem_cons, List.not_mem_nil,
+        or_false] at hentry
+      rcases hentry with rfl | rfl | rfl
+      · nlinarith
+      · have hl := hfields.1
+        change left.1 < C.domains.length at hl
+        nlinarith
+      · have hr := hfields.2
+        change right.1 < C.domains.length at hr
+        nlinarith
+
+private theorem compile_toNatLists_inner_length_le_four
+    (C : RuntimeSystem) (code : List ℕ)
+    (hcode : code ∈ (compile C).toNatLists) :
+    code.length ≤ 4 := by
+  simp only [RuntimeObjective.toNatLists, List.mem_cons,
+    List.mem_map] at hcode
+  rcases hcode with rfl | ⟨row, _hrow, rfl⟩
+  · simp
+  · cases row <;> simp [RuntimeResidualRow.toNatList]
+
+private theorem compile_toNatLists_entry_le_fieldBound
+    (C : RuntimeSystem) (code : List ℕ)
+    (hcode : code ∈ (compile C).toNatLists)
+    (entry : ℕ) (hentry : entry ∈ code) :
+    entry ≤ 2 * (C.encodedSize + 1) ^ 2 := by
+  simp only [RuntimeObjective.toNatLists, List.mem_cons,
+    List.mem_map] at hcode
+  rcases hcode with rfl | ⟨row, hrow, rfl⟩
+  · simp only [List.mem_cons, List.not_mem_nil, or_false] at hentry
+    rcases hentry with rfl | rfl
+    · rw [compile_variableCount]
+      have hn := C.variableCount_le_encodedSize
+      nlinarith
+    · exact compile_prime_le_fieldBound C
+  · exact compile_row_entry_le_fieldBound C row hrow entry hentry
+
 /-- Sparse row count bounded by a quadratic in the actual binary input
 length. This is a row-count theorem, not yet the total encoded-output-size or
 machine-running-time theorem. -/
@@ -507,6 +761,58 @@ theorem compile_rows_length_le_encodedSize_polynomial (C : RuntimeSystem) :
       exact Nat.add_le_add C.domainEntryCount_le_encodedSize
         (Nat.pow_le_pow_left C.variableCount_le_encodedSize 2)
 
+private theorem compile_toNatLists_length_le (C : RuntimeSystem) :
+    (compile C).toNatLists.length ≤ (C.encodedSize + 1) ^ 2 := by
+  have hrows := compile_rows_length_le_encodedSize_polynomial C
+  simp only [RuntimeObjective.toNatLists, List.length_cons, List.length_map]
+  nlinarith
+
+/-- A field-sensitive polynomial bound for the complete binary output,
+including the selected prime, canonical targets, pinning weights, endpoints,
+tags, row framing, and outer framing. -/
+theorem compile_encodedSize_le_polynomial (C : RuntimeSystem) :
+    (compile C).encodedSize ≤
+      (2 * (C.encodedSize + 1) ^ 2 + 1) +
+        (C.encodedSize + 1) ^ 2 *
+          (16 * (2 * (C.encodedSize + 1) ^ 2 + 1)) := by
+  rw [(compile C).encodedSize_eq_wireSize]
+  let countBound := (C.encodedSize + 1) ^ 2
+  let fieldBound := 2 * countBound
+  have hwire := BinaryNatLists.wireSize_le
+    (compile C).toNatLists fieldBound
+    (compile_toNatLists_inner_length_le_four C)
+    (compile_toNatLists_entry_le_fieldBound C)
+  calc
+    BinaryNatLists.wireSize (compile C).toNatLists ≤
+        (2 * (compile C).toNatLists.length + 1) +
+          (compile C).toNatLists.length * (16 * (fieldBound + 1)) :=
+      hwire
+    _ ≤ (2 * countBound + 1) +
+          countBound * (16 * (fieldBound + 1)) := by
+      exact Nat.add_le_add
+        (Nat.add_le_add_right
+          (Nat.mul_le_mul_left 2 (compile_toNatLists_length_le C)) 1)
+        (Nat.mul_le_mul_right (16 * (fieldBound + 1))
+          (compile_toNatLists_length_le C))
+    _ = (2 * (C.encodedSize + 1) ^ 2 + 1) +
+        (C.encodedSize + 1) ^ 2 *
+          (16 * (2 * (C.encodedSize + 1) ^ 2 + 1)) := rfl
+
+/-- The complete encoded compiler output is bounded by an explicit quartic
+in the actual encoded input length. This is an output-size theorem, not yet a
+`TM2ComputableInPolyTime` theorem for constructing that output. -/
+theorem compile_encodedSize_le_quartic (C : RuntimeSystem) :
+    (compile C).encodedSize ≤ 64 * (C.encodedSize + 1) ^ 4 := by
+  apply (compile_encodedSize_le_polynomial C).trans
+  let square := (C.encodedSize + 1) ^ 2
+  have hsquare : 1 ≤ square := by
+    exact Nat.one_le_pow' 2 C.encodedSize
+  have hbound :
+      (2 * square + 1) + square * (16 * (2 * square + 1)) ≤
+        64 * square ^ 2 := by
+    nlinarith
+  simpa [square, ← pow_mul] using hbound
+
 #print axioms BinaryNatLists.decode_encode
 #print axioms RuntimeSystem.toExplicitSystem_wellFormed
 #print axioms RuntimeSystem.ofNatLists_toNatLists
@@ -514,5 +820,6 @@ theorem compile_rows_length_le_encodedSize_polynomial (C : RuntimeSystem) :
 #print axioms RuntimeObjective.ofNatLists_toNatLists
 #print axioms RuntimeObjective.encodedSize_eq_wireSize
 #print axioms compile_rows_length_le_encodedSize_polynomial
+#print axioms compile_encodedSize_le_quartic
 
 end PhdThesisLean.AllDifferentCSPEncoding

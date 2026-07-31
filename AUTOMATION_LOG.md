@@ -324,3 +324,55 @@
   pinning-weight, endpoint, and row-count bounds; then implement and verify the
   complete compiler, including deterministic prime selection, using
   `TM2ComputableInPolyTime`.
+
+## 2026-08-01 05:31 AEST
+
+- Starting repository commit:
+  `bcee8b59430783383861af369e2d26bbe5caec2b` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` (clean thesis checkout
+  `b363995058eceabe79c3fbf38d5e34f7c135d8f1`). The chosen increment is the
+  complete encoded-output polynomial bound named by the preceding run.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` at
+  `a28b57f2eba67abdfb175d134f683399ac525cd9`. Its checked
+  `FinEncoding`/`TM2ComputableInPolyTime` wrappers and partial combined-machine
+  infrastructure still provide no reusable all-different compiler,
+  prime-search machine, or completed generic polynomial-time composition
+  theorem.
+- `PhdThesisLean/AllDifferentCSPEncoding.lean` now proves a coarse checked
+  bound on mathlib's binary `Computability.encodeNat`, lifts it through the
+  self-delimiting list and nested-list frames, and checks bounds for every
+  emitted field: variable indices, canonical targets, pinning weights,
+  deduplicated-edge endpoints, the selected prime, tags, and length frames.
+- `compile_encodedSize_le_polynomial` gives the field-sensitive complete
+  wire-size inequality. `compile_encodedSize_le_quartic` packages it as
+  `(compile C).encodedSize ≤ 64 * (C.encodedSize + 1)^4`, where the size on the
+  right is the actual input encoding length. This is an encoded bit-size
+  theorem, not a unit-cell count or a machine-runtime claim.
+- Proof-shape issues resolved during the increment: the `PosNum.bit0` branch
+  of the binary-length induction needed the explicit positivity theorem
+  `PosNum.cast_pos`; membership in `pinningRows` exposes already relabelled
+  targets, so their bound is obtained through
+  `domainValues_relabeled_eq_Icc` rather than applying `relabelValue` again;
+  and literal-list membership needed the empty-tail case simplified before
+  substitution. No unresolved Lean error remains in this increment.
+- Verification succeeded: `lake env lean
+  PhdThesisLean/AllDifferentCSPEncoding.lean`, `lake build` (3099 jobs), and
+  `git diff --check`. The project Lean-source scan found no `sorry`, `admit`,
+  project `axiom`, `unsafe`, or `proof_wanted`; the new headline `#print
+  axioms` audit reports only `propext`, `Classical.choice`, and `Quot.sound`.
+- `README.md`, `THEOREM_STATUS.md`, and the source correspondence notes now
+  record the full quartic encoded-output bound while keeping
+  `cor:all-different-csp` **Partial**. The remaining obligation is a checked
+  whole-compiler `TM2ComputableInPolyTime` theorem, including deterministic
+  primality testing and selection.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes present.
+- Best next step: construct the finite-machine compiler in separately checked
+  stages, beginning with the encoded natural/list traversals and a deterministic
+  polynomial-time primality/prime-scan component, then compose those stages
+  into the final `TM2ComputableInPolyTime` declaration without relying on
+  mathlib's `proof_wanted` composition result.

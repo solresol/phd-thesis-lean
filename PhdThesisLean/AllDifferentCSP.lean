@@ -26,9 +26,10 @@ conflict. After the supplied-prime semantic stage, the remaining compiler work
 uses an executable bounded scan to select a prime, then composes that choice
 with the p-adic correctness theorem. The compiler now emits a finite sparse
 row list and proves that interpreting it is exactly the checked objective.
-The remaining work is to give the input and output standard binary
-`FinEncoding`s with bit-size bounds and prove the full compiler's genuine
-polynomial runtime, including the prime scan.
+The separate `AllDifferentCSPEncoding` module supplies standard binary
+`FinEncoding`s and a complete polynomial output-size bound. The remaining
+work is to prove the full compiler's genuine polynomial runtime, including
+the prime scan.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

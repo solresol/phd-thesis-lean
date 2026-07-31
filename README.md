@@ -135,10 +135,11 @@ that its affine interpretation is exactly the checked objective, and
 [`PhdThesisLean/AllDifferentCSPEncoding.lean`](PhdThesisLean/AllDifferentCSPEncoding.lean)
 adds runtime-sized list syntax, checked input and output `FinEncoding`s over the
 literal binary alphabet `Bool`, exact wire-length formulae, and a quadratic
-bound on emitted sparse rows in the actual encoded input length. A polynomial
-bound for the complete encoded output—including every binary numeric
-field—and a genuine polynomial-time theorem for the whole compiler, including
-the prime scan, remain.
+bound on emitted sparse rows in the actual encoded input length.
+`compile_encodedSize_le_quartic` also bounds the complete encoded output,
+including every binary numeric field and delimiter, by `64 * (s + 1)^4` bits
+for input bit length `s`. A genuine polynomial-time theorem for the whole
+compiler, including the prime scan, remains.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -241,9 +242,10 @@ The copied statements are grouped by mathematical contribution:
   `PhdThesisLean.AllDifferentCSP`, together with its supplied-prime p-adic
   objective, executable compiler-selected prime and sparse row-list output,
   and exact minimum-conflict semantics. Runtime-sized binary input/output
-  encodings, exact wire sizes, and the sparse-row polynomial bound are in
-  `PhdThesisLean.AllDifferentCSPEncoding`; the total encoded-output polynomial
-  bound and genuine polynomial-time compiler claim remain open;
+  encodings, exact wire sizes, the sparse-row polynomial bound, and the full
+  quartic encoded-output bound are in
+  `PhdThesisLean.AllDifferentCSPEncoding`; the genuine polynomial-time compiler
+  claim remains open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of
