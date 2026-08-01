@@ -2,6 +2,7 @@ import PhdThesisLean.AdditiveContact
 import PhdThesisLean.AllDifferent
 import PhdThesisLean.AllDifferentCSP
 import PhdThesisLean.AllDifferentCSPEncoding
+import PhdThesisLean.AllDifferentCSPMachine
 import PhdThesisLean.ClauseCompiler
 import PhdThesisLean.ContactTheorem
 import PhdThesisLean.Coreset

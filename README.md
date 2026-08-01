@@ -138,8 +138,13 @@ literal binary alphabet `Bool`, exact wire-length formulae, and a quadratic
 bound on emitted sparse rows in the actual encoded input length.
 `compile_encodedSize_le_quartic` also bounds the complete encoded output,
 including every binary numeric field and delimiter, by `64 * (s + 1)^4` bits
-for input bit length `s`. A genuine polynomial-time theorem for the whole
-compiler, including the prime scan, remains.
+for input bit length `s`.
+[`PhdThesisLean/AllDifferentCSPMachine.lean`](PhdThesisLean/AllDifferentCSPMachine.lean)
+begins the genuine finite-machine construction: `framedNatComputableInPolyTime`
+converts mathlib's raw binary natural encoding to the compiler's
+self-delimiting framed encoding in exactly `3s + 3` machine steps. The list and
+CSP traversals, deterministic primality test and prime scan, and their final
+composition into a whole-compiler polynomial-time theorem remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -244,8 +249,10 @@ The copied statements are grouped by mathematical contribution:
   and exact minimum-conflict semantics. Runtime-sized binary input/output
   encodings, exact wire sizes, the sparse-row polynomial bound, and the full
   quartic encoded-output bound are in
-  `PhdThesisLean.AllDifferentCSPEncoding`; the genuine polynomial-time compiler
-  claim remains open;
+  `PhdThesisLean.AllDifferentCSPEncoding`;
+  `PhdThesisLean.AllDifferentCSPMachine.framedNatComputableInPolyTime` proves
+  the first linear-time finite-machine encoding pass, while the complete
+  compiler machine and its prime-selection pass remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

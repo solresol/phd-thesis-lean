@@ -27,9 +27,12 @@ uses an executable bounded scan to select a prime, then composes that choice
 with the p-adic correctness theorem. The compiler now emits a finite sparse
 row list and proves that interpreting it is exactly the checked objective.
 The separate `AllDifferentCSPEncoding` module supplies standard binary
-`FinEncoding`s and a complete polynomial output-size bound. The remaining
-work is to prove the full compiler's genuine polynomial runtime, including
-the prime scan.
+`FinEncoding`s and a complete polynomial output-size bound.
+`AllDifferentCSPMachine` starts the finite-machine layer with a checked linear
+time pass from raw binary naturals to the compiler's self-delimiting framed
+natural encoding. The remaining work is to construct and compose the list,
+CSP, primality-test, and prime-scan passes into the full compiler's genuine
+polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

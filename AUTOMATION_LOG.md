@@ -376,3 +376,61 @@
   polynomial-time primality/prime-scan component, then compose those stages
   into the final `TM2ComputableInPolyTime` declaration without relying on
   mathlib's `proof_wanted` composition result.
+
+## 2026-08-02 05:27 AEST
+
+- Starting repository commit:
+  `15ab85eed9b359af244b967d79c6a507af022524` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` (clean thesis checkout
+  `b363995058eceabe79c3fbf38d5e34f7c135d8f1`). The proof still claims a
+  deterministic polynomial-time prime scan as part of the complete compiler,
+  so this increment does not weaken that obligation or mark the corollary
+  complete.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` and its live `main` ref both
+  remain at `a28b57f2eba67abdfb175d134f683399ac525cd9`. Its checked finite-control
+  and one-step simulation infrastructure still does not supply an encoded CSP
+  traversal, primality/prime-scan machine, or completed generic
+  `TM2ComputableInPolyTime` composition theorem reusable here.
+- Chosen increment: begin the genuine machine layer with the natural-field
+  framing pass used throughout the runtime CSP and objective encodings.
+  `PhdThesisLean/AllDifferentCSPMachine.lean` adds the exact framed-natural
+  `FinEncoding`, a concrete four-stack Boolean `FinTM2`, and checked phase
+  simulations for stashing the payload, restoring it, and prefixing its unary
+  bit length and separator.
+- Headline declaration:
+  `AllDifferentCSPMachine.framedNatComputableInPolyTime` is a genuine
+  `TM2ComputableInPolyTime` witness from mathlib's raw binary natural encoding
+  to the self-delimiting natural encoding used by this compiler. The machine
+  computes the identity on natural numbers while carrying out the nontrivial
+  wire-format conversion in exactly `3s + 3` machine steps for raw payload
+  length `s`. `frame_outputsInTime` records the exact arbitrary-bit-string
+  execution bound, including the empty payload case.
+- Proof/API issues resolved: TM2 evaluation evidence is data in `Type`, so the
+  recursive executions must be defined with `def`, not declared as theorems;
+  repeated `Function.update` stack equalities required extensional proofs by
+  the four stack constructors; homogeneous unary prefixes needed an explicit
+  replicate/cons commuting lemma; and `Equiv.refl` had to be unfolded when
+  discharging the input/output alphabet maps in the final machine witness.
+  Initial direct `rfl` attempts and an over-aggressive `simp` did not close
+  those goals, but no blocker remains.
+- Correspondence/status updates: imported the machine module from
+  `PhdThesisLean.lean` and updated `README.md`, `THEOREM_STATUS.md`, and the
+  CSP/encoding module notes. `cor:all-different-csp` remains **Partial**:
+  whole-list/CSP traversals, deterministic primality testing and prime
+  selection, and final finite-machine composition are still required.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3105 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. The new `#print axioms`
+  audits report only `propext`, `Classical.choice`, and `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes in this repository.
+- Best next step: construct a checked polynomial-time traversal for the
+  length-prefixed natural-list layer using the framed-natural pass, then use
+  the same finite-machine discipline for deterministic binary arithmetic,
+  primality testing, and the Bertrand-interval prime scan before final compiler
+  assembly.
