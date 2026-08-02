@@ -22,8 +22,9 @@ implicit delimiter convention.
 These encodings establish the finite binary representation layer. Exact
 encoded-length formulae and a complete quartic output-size bound are kept
 separate from the machine-running-time proof. `AllDifferentCSPMachine` proves
-the first such machine component: linear-time construction of each framed
-natural from its raw binary payload.
+linear-time construction of each framed natural from its raw binary payload
+and linear-time serialization of a stack-oriented raw-natural stream into the
+exact framed natural-list format.
 -/
 
 namespace BinaryNatLists

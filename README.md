@@ -142,9 +142,12 @@ for input bit length `s`.
 [`PhdThesisLean/AllDifferentCSPMachine.lean`](PhdThesisLean/AllDifferentCSPMachine.lean)
 begins the genuine finite-machine construction: `framedNatComputableInPolyTime`
 converts mathlib's raw binary natural encoding to the compiler's
-self-delimiting framed encoding in exactly `3s + 3` machine steps. The list and
-CSP traversals, deterministic primality test and prime scan, and their final
-composition into a whole-compiler polynomial-time theorem remain.
+self-delimiting framed encoding in exactly `3s + 3` machine steps.
+`framedNatListComputableInPolyTime` traverses a stack-oriented reverse stream
+of raw binary natural fields and emits the exact length-prefixed framed list
+encoding in at most `3s` steps, including empty fields and lists. Nested-list
+and CSP input traversal, binary arithmetic, deterministic primality testing
+and prime scanning, and final whole-compiler composition remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -250,9 +253,10 @@ The copied statements are grouped by mathematical contribution:
   encodings, exact wire sizes, the sparse-row polynomial bound, and the full
   quartic encoded-output bound are in
   `PhdThesisLean.AllDifferentCSPEncoding`;
-  `PhdThesisLean.AllDifferentCSPMachine.framedNatComputableInPolyTime` proves
-  the first linear-time finite-machine encoding pass, while the complete
-  compiler machine and its prime-selection pass remain open;
+  `PhdThesisLean.AllDifferentCSPMachine.framedNatComputableInPolyTime` and
+  `framedNatListComputableInPolyTime` prove the linear-time natural-field and
+  natural-list serialization passes, while the complete compiler machine and
+  its arithmetic and prime-selection passes remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

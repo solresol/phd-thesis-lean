@@ -434,3 +434,62 @@
   the same finite-machine discipline for deterministic binary arithmetic,
   primality testing, and the Bertrand-interval prime scan before final compiler
   assembly.
+
+## 2026-08-03 05:31 AEST
+
+- Starting repository commit:
+  `3d93751e0c8bbd79ee7e32f7d225762534e9f90e` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` (clean thesis checkout
+  `b363995058eceabe79c3fbf38d5e34f7c135d8f1`). The proof still requires a
+  deterministic polynomial-time prime scan and a whole-compiler machine; this
+  increment does not weaken those obligations or mark the corollary complete.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` and its live `main` ref have
+  advanced to `1e90d19f6c58deec211e7e878ca439ae5bf38ac8`. The new checked
+  `liftRightControl_step` completes exact one-step simulation of the second
+  component in combined control, but the generic transfer loop, multi-step
+  composition, and polynomial runtime theorem remain pending; it still has no
+  reusable list serializer, binary arithmetic, primality test, or prime scan.
+- Chosen increment: the next finite-machine wire-format layer.
+  `FramedNatList.finEncoding` packages the compiler's exact length-prefixed
+  framed natural-list codec. `RawNatList.finEncoding` gives a checked,
+  executable stack-oriented source codec whose natural fields and bits are
+  reversed and explicitly delimited, matching how a stack compiler can
+  accumulate output fields.
+- Headline declaration:
+  `AllDifferentCSPMachine.framedNatListComputableInPolyTime` is a genuine
+  `TM2ComputableInPolyTime` witness. Its concrete heterogeneous three-stack
+  machine traverses every raw field, restores bit and field order, prefixes
+  every field with its unary bit length, and emits exactly
+  `BinaryNatLists.encodeNatList xs` in at most `3s` steps for raw input length
+  `s`. `listFrame_outputsInTime` checks the full execution, including empty
+  naturals and the empty list.
+- Proof/API issues resolved: the dependent input alphabet needed an explicit
+  `Fintype (Option Bool)` witness; the previous one-step evaluation helper was
+  specialized to `frameComputer`, so this machine needed its own checked
+  helper; this Lean revision uses list nonemptiness as `xs ≠ []` rather than a
+  `List.Nonempty` proposition; and the nested `EvalsToInTime.trans` bounds
+  needed an explicit monotonicity lemma plus normalized `omega` arithmetic.
+  Initial direct inference/reuse attempts failed at those exact boundaries,
+  but no blocker remains in this increment.
+- Correspondence/status updates: synchronized the machine module notes,
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md`. `cor:all-different-csp` remains **Partial**: the new
+  theorem serializes natural lists but does not yet traverse the nested CSP
+  input, perform binary arithmetic or primality testing, select the prime in a
+  checked runtime, or assemble the whole compiler machine.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3105 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. The new `#print axioms`
+  audits report only `propext`, `Classical.choice`, and `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes in this repository.
+- Best next step: construct a checked traversal that exposes each framed field
+  of `BinaryNatLists.encode` to subsequent finite-machine passes, then add
+  deterministic binary increment/comparison as the first arithmetic component
+  needed by canonical relabelling and the Bertrand-interval prime scan.

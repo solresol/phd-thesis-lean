@@ -28,11 +28,12 @@ with the p-adic correctness theorem. The compiler now emits a finite sparse
 row list and proves that interpreting it is exactly the checked objective.
 The separate `AllDifferentCSPEncoding` module supplies standard binary
 `FinEncoding`s and a complete polynomial output-size bound.
-`AllDifferentCSPMachine` starts the finite-machine layer with a checked linear
-time pass from raw binary naturals to the compiler's self-delimiting framed
-natural encoding. The remaining work is to construct and compose the list,
-CSP, primality-test, and prime-scan passes into the full compiler's genuine
-polynomial-runtime theorem.
+`AllDifferentCSPMachine` starts the finite-machine layer with checked linear
+passes from raw binary naturals to the self-delimiting field encoding and from
+a stack-oriented raw-natural stream to the exact framed list encoding. The
+remaining work is to construct and compose nested-list/CSP traversal, binary
+arithmetic, primality-test, and prime-scan passes into the full compiler's
+genuine polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
