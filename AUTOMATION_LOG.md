@@ -493,3 +493,57 @@
   of `BinaryNatLists.encode` to subsequent finite-machine passes, then add
   deterministic binary increment/comparison as the first arithmetic component
   needed by canonical relabelling and the Bertrand-interval prime scan.
+
+## 2026-08-04 05:29 AEST
+
+- Starting repository commit:
+  `33d737d33671dfc9ad3298113450087c1c2bb0fc` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` (clean thesis checkout
+  `b363995058eceabe79c3fbf38d5e34f7c135d8f1`). The proof still requires the
+  complete deterministic compiler, including prime selection, so this run
+  keeps `cor:all-different-csp` **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` and its live `main` ref have
+  advanced to `d56e608fa83fac95d89ae9ceac17b8173242909d`. Its new
+  `liftLeftThenTransfer_step` redirects a first component's halt into transfer
+  control, but the transfer loop, multi-step composition, and polynomial
+  runtime theorem remain pending; it still supplies no reusable CSP traversal,
+  binary arithmetic, primality test, or prime scan.
+- Chosen increment: expose the standard nested-list input's fields to later
+  compiler passes. `RawNatLists.finEncoding` is a checked stack-oriented codec
+  containing the outer length, every inner length, and every value as raw
+  binary payloads with explicit delimiters. Its round trip restores the exact
+  `BinaryNatLists.encode` stream.
+- Headline declaration:
+  `AllDifferentCSPMachine.unframedNatListsComputableInPolyTime` is a genuine
+  `TM2ComputableInPolyTime` witness from the standard `Bool` nested-list
+  encoding to the raw-field encoding. Its concrete heterogeneous three-stack
+  machine scans each unary prefix, copies the counted payload, reverses fields
+  into stack order, and emits `RawNatLists.encode xss` in at most `3s` steps
+  for standard input length `s`. The proof includes zero-length binary fields,
+  empty inner lists, and the empty outer list.
+- Proof issues resolved: a pipeline expression in a theorem type was rejected
+  at the parser boundary and was replaced by an explicit `List.flatMap`; the
+  raw-payload/framed-payload equality required an explicit function equality
+  between raw framing and `BinaryNatLists.encodeNat`; and the final recursive
+  execution bounds needed separate `omega` equalities before configuration
+  simplification. No unresolved Lean error remains in this increment.
+- Correspondence/status updates: synchronized the machine module notes,
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md`. The remaining obligations are CSP structural
+  compilation, binary arithmetic, deterministic primality testing and prime
+  selection, and final whole-machine assembly.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3105 jobs);
+  `git diff --check`; and the project Lean-source scans for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. The new `#print axioms` audits
+  report only `propext`, `Classical.choice`, and `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes in this repository.
+- Best next step: add a checked raw-binary increment/comparison pass over the
+  exposed fields, then use it for deterministic candidate enumeration before
+  implementing divisibility/primality testing and the Bertrand-interval scan.

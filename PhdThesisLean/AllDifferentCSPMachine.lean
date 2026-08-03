@@ -16,11 +16,13 @@ natural encoding. This module constructs a concrete finite two-stack-machine
 program (using four stacks) for that framing pass and proves that it runs in
 linear time. A second three-stack machine traverses a stack-oriented reverse
 stream of raw binary naturals and emits the exact length-prefixed framed list
-format, also in linear time.
+format, also in linear time. A third machine performs the reverse traversal on
+the standard nested-list input encoding, exposing every length and value field
+as an explicitly delimited raw binary stream in linear time.
 
 These are checked components of the eventual compiler machine. They do not yet
-establish polynomial time for nested-list/CSP input traversal, binary
-arithmetic, primality testing, prime selection, or final compiler assembly.
+establish polynomial time for CSP structural compilation, binary arithmetic,
+primality testing, prime selection, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -169,6 +171,100 @@ def finEncoding : FinEncoding (List ℕ) where
   ΓFin := inferInstance
 
 end RawNatList
+
+namespace RawNatLists
+
+/-- Raw binary payloads underlying the standard nested-list encoding: the
+outer length, then each inner length and its natural fields. -/
+def payloads (xss : List (List ℕ)) : List (List Bool) :=
+  Computability.encodeNat xss.length ::
+    xss.flatMap fun xs =>
+      Computability.encodeNat xs.length :: xs.map Computability.encodeNat
+
+/-- A stack-oriented nested-list representation. Every raw field is reversed
+and delimited, and the complete field sequence is reversed for stack
+consumption. -/
+def encode (xss : List (List ℕ)) : List (Option Bool) :=
+  (payloads xss).reverse.flatMap RawNatList.segment
+
+private theorem parseAux_some_append
+    (bits : List Bool) (input : List (Option Bool))
+    (current : List Bool) (fields : List (List Bool)) :
+    RawNatList.parseAux (bits.map some ++ input) current fields =
+      RawNatList.parseAux input (bits.reverse ++ current) fields := by
+  induction bits generalizing current with
+  | nil => simp
+  | cons bit bits ih =>
+      simp [RawNatList.parseAux, ih, List.reverse_cons, List.append_assoc]
+
+private theorem parseAux_segments
+    (segments : List (List Bool)) (fields : List (List Bool)) :
+    RawNatList.parseAux
+        (segments.flatMap RawNatList.segment) [] fields =
+      some (segments.reverse ++ fields) := by
+  induction segments generalizing fields with
+  | nil => simp [RawNatList.parseAux]
+  | cons bits segments ih =>
+      rw [List.flatMap_cons]
+      simp only [RawNatList.segment, List.append_assoc]
+      rw [parseAux_some_append]
+      simp only [List.reverse_reverse]
+      simp only [List.singleton_append, RawNatList.parseAux]
+      rw [ih]
+      simp [List.reverse_cons, List.append_assoc]
+
+@[simp]
+theorem parse_encode (xss : List (List ℕ)) :
+    RawNatList.parse (encode xss) = some (payloads xss) := by
+  rw [RawNatList.parse, encode, parseAux_segments]
+  simp
+
+private theorem innerPayloads_frame
+    (xss : List (List ℕ)) :
+    List.flatMap BinaryNatLists.frame
+        (xss.flatMap fun xs =>
+          Computability.encodeNat xs.length :: xs.map Computability.encodeNat) =
+      xss.flatMap BinaryNatLists.encodeNatList := by
+  induction xss with
+  | nil => rfl
+  | cons xs xss ih =>
+      simp only [List.flatMap_cons, List.flatMap_append,
+        List.flatMap_cons, List.flatMap_map, ih]
+      simp only [BinaryNatLists.encodeNatList]
+      have hencode :
+          (fun n => BinaryNatLists.frame (Computability.encodeNat n)) =
+            BinaryNatLists.encodeNat := by
+        funext n
+        rfl
+      rw [hencode]
+      rfl
+
+theorem payloads_frame_eq_encode (xss : List (List ℕ)) :
+    (payloads xss).flatMap BinaryNatLists.frame =
+      BinaryNatLists.encode xss := by
+  rw [payloads, List.flatMap_cons, BinaryNatLists.encode,
+    innerPayloads_frame]
+  rfl
+
+/-- Decode a raw field stream by restoring the standard nested-list frames. -/
+def decode (input : List (Option Bool)) : Option (List (List ℕ)) := do
+  let fields ← RawNatList.parse input
+  BinaryNatLists.decode (fields.flatMap BinaryNatLists.frame)
+
+@[simp]
+theorem decode_encode (xss : List (List ℕ)) :
+    decode (encode xss) = some xss := by
+  simp [decode, payloads_frame_eq_encode]
+
+/-- Checked raw-field encoding of nested natural-number lists. -/
+def finEncoding : FinEncoding (List (List ℕ)) where
+  Γ := Option Bool
+  encode := encode
+  decode := decode
+  decode_encode := decode_encode
+  ΓFin := inferInstance
+
+end RawNatLists
 
 /-- Four Boolean stacks suffice to preserve the payload while prefixing its
 length: input, reversed payload, unary counter, and output. -/
@@ -971,11 +1067,544 @@ noncomputable def framedNatListComputableInPolyTime :
       Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_X] using
         listFrame_outputsInTime xs
 
+/-- Three heterogeneous stacks suffice to expose a framed input stream as
+raw delimited fields: the canonical Boolean input, a unary field counter, and
+the stack-oriented raw output. -/
+inductive UnframeStack
+  | input
+  | count
+  | output
+  deriving DecidableEq, Fintype
+
+/-- The input traversal scans a unary prefix, copies the counted payload, and
+then checks whether another framed field remains. -/
+inductive UnframeLabel
+  | scan
+  | payload
+  | next
+  deriving DecidableEq, Fintype
+
+/-- Finite control remembers the latest input bit and unary counter symbol. -/
+structure UnframeState where
+  inputBit : Option Bool
+  tick : Option Bool
+  deriving DecidableEq, Fintype
+
+private def unframeInitialState : UnframeState :=
+  ⟨none, none⟩
+
+private def unframePoppedInput
+    (state : UnframeState) (bit : Option Bool) : UnframeState :=
+  { state with inputBit := bit }
+
+private def unframePoppedTick
+    (state : UnframeState) (tick : Option Bool) : UnframeState :=
+  { state with tick := tick }
+
+private def unframeInputTrue : UnframeState → Bool
+  | ⟨some true, _⟩ => true
+  | _ => false
+
+private def unframeInputPresent : UnframeState → Bool
+  | ⟨some _, _⟩ => true
+  | _ => false
+
+private def unframeTickPresent : UnframeState → Bool
+  | ⟨_, some _⟩ => true
+  | _ => false
+
+private def unframeHeldInput : UnframeState → Option Bool
+  | ⟨some bit, _⟩ => some bit
+  | _ => none
+
+private def UnframeAlphabet : UnframeStack → Type
+  | .input => Bool
+  | .count => Bool
+  | .output => Option Bool
+
+/-- The finite unframing program. It consumes the unary length prefix, puts a
+field delimiter on the output, and copies the counted payload. Stack pushes
+reverse both the payload bits and the sequence of fields, producing exactly
+the raw representation used by later compiler passes. -/
+def unframeProgram :
+    UnframeLabel → TM2.Stmt UnframeAlphabet UnframeLabel UnframeState
+  | .scan =>
+      .pop .input unframePoppedInput <|
+        .branch unframeInputTrue
+          (.push .count (fun _ => true) <|
+            .goto (fun _ => .scan))
+          (.push .output (fun _ => none) <|
+            .goto (fun _ => .payload))
+  | .payload =>
+      .pop .count unframePoppedTick <|
+        .branch unframeTickPresent
+          (.pop .input unframePoppedInput <|
+            .push .output unframeHeldInput <|
+              .goto (fun _ => .payload))
+          (.goto (fun _ => .next))
+  | .next =>
+      .peek .input unframePoppedInput <|
+        .branch unframeInputPresent
+          (.goto (fun _ => .scan))
+          .halt
+
+/-- Concrete finite machine converting canonical framed fields into the raw
+stack stream used by subsequent passes. -/
+def unframeComputer : FinTM2 where
+  K := UnframeStack
+  k₀ := .input
+  k₁ := .output
+  Γ := UnframeAlphabet
+  Λ := UnframeLabel
+  main := .scan
+  σ := UnframeState
+  initialState := unframeInitialState
+  Γk₀Fin := Bool.fintype
+  m := unframeProgram
+
+private def unframeStackContents
+    (input count : List Bool) (output : List (Option Bool)) :
+    (index : UnframeStack) → List (UnframeAlphabet index)
+  | .input => input
+  | .count => count
+  | .output => output
+
+private def unframeCfg (label : Option UnframeLabel)
+    (state : UnframeState) (input count : List Bool)
+    (output : List (Option Bool)) : unframeComputer.Cfg where
+  l := label
+  var := state
+  stk := unframeStackContents input count output
+
+private theorem unframe_step_scan_true (input count : List Bool)
+    (output : List (Option Bool)) (state : UnframeState) :
+    unframeComputer.step
+        (unframeCfg (some .scan) state (true :: input) count output) =
+      some (unframeCfg (some .scan)
+        (unframePoppedInput state (some true)) input
+        (true :: count) output) := by
+  simp [unframeComputer, FinTM2.step, unframeCfg, unframeProgram,
+    unframeStackContents, UnframeAlphabet, unframePoppedInput,
+    unframeInputTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem unframe_step_scan_false (input count : List Bool)
+    (output : List (Option Bool)) (state : UnframeState) :
+    unframeComputer.step
+        (unframeCfg (some .scan) state (false :: input) count output) =
+      some (unframeCfg (some .payload)
+        (unframePoppedInput state (some false)) input count
+        (none :: output)) := by
+  simp [unframeComputer, FinTM2.step, unframeCfg, unframeProgram,
+    unframeStackContents, UnframeAlphabet, unframePoppedInput,
+    unframeInputTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem unframe_step_payload_cons (bit tick : Bool)
+    (input count : List Bool) (output : List (Option Bool))
+    (state : UnframeState) :
+    unframeComputer.step
+        (unframeCfg (some .payload) state (bit :: input)
+          (tick :: count) output) =
+      some (unframeCfg (some .payload)
+        (unframePoppedInput (unframePoppedTick state (some tick))
+          (some bit))
+        input count (some bit :: output)) := by
+  simp [unframeComputer, FinTM2.step, unframeCfg, unframeProgram,
+    unframeStackContents, UnframeAlphabet, unframePoppedInput,
+    unframePoppedTick, unframeTickPresent, unframeHeldInput,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem unframe_step_payload_nil (input : List Bool)
+    (output : List (Option Bool)) (state : UnframeState) :
+    unframeComputer.step
+        (unframeCfg (some .payload) state input [] output) =
+      some (unframeCfg (some .next)
+        (unframePoppedTick state none) input [] output) := by
+  simp [unframeComputer, FinTM2.step, unframeCfg, unframeProgram,
+    unframeStackContents, UnframeAlphabet, unframePoppedTick,
+    unframeTickPresent, Function.update]
+
+private theorem unframe_step_next_cons (bit : Bool)
+    (input : List Bool) (output : List (Option Bool))
+    (state : UnframeState) :
+    unframeComputer.step
+        (unframeCfg (some .next) state (bit :: input) [] output) =
+      some (unframeCfg (some .scan)
+        (unframePoppedInput state (some bit))
+        (bit :: input) [] output) := by
+  simp [unframeComputer, FinTM2.step, unframeCfg, unframeProgram,
+    unframeStackContents, UnframeAlphabet, unframePoppedInput,
+    unframeInputPresent]
+
+private theorem unframe_step_next_nil (output : List (Option Bool))
+    (inputBit : Option Bool) :
+    unframeComputer.step
+        (unframeCfg (some .next) ⟨inputBit, none⟩ [] [] output) =
+      some (unframeCfg none unframeInitialState [] [] output) := by
+  simp [unframeComputer, FinTM2.step, unframeCfg, unframeProgram,
+    unframeStackContents, UnframeAlphabet, unframePoppedInput,
+    unframeInputPresent, unframeInitialState]
+
+private def unframeEvalsToInTimeOne
+    {start finish : unframeComputer.Cfg}
+    (hstep : unframeComputer.step start = some finish) :
+    EvalsToInTime unframeComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def unframe_scan_evals (prefixLength : ℕ) (input count : List Bool)
+    (output : List (Option Bool)) (state : UnframeState) :
+    EvalsToInTime unframeComputer.step
+      (unframeCfg (some .scan) state
+        (List.replicate prefixLength true ++ false :: input)
+        count output)
+      (some (unframeCfg (some .payload)
+        (unframePoppedInput state (some false)) input
+        (List.replicate prefixLength true ++ count) (none :: output)))
+      (prefixLength + 1) := by
+  induction prefixLength generalizing count state with
+  | zero =>
+      simpa using unframeEvalsToInTimeOne
+        (unframe_step_scan_false input count output state)
+  | succ prefixLength ih =>
+      let middle := unframeCfg (some .scan)
+        (unframePoppedInput state (some true))
+        (List.replicate prefixLength true ++ false :: input)
+        (true :: count) output
+      have hone : EvalsToInTime unframeComputer.step
+          (unframeCfg (some .scan) state
+            (List.replicate (prefixLength + 1) true ++ false :: input)
+            count output)
+          (some middle) 1 :=
+        unframeEvalsToInTimeOne (by
+          simpa [middle, List.replicate_succ] using
+            unframe_step_scan_true
+              (List.replicate prefixLength true ++ false :: input)
+              count output state)
+      have hrest := ih (true :: count)
+        (unframePoppedInput state (some true))
+      have htrans := EvalsToInTime.trans unframeComputer.step
+        1 (prefixLength + 1)
+        (unframeCfg (some .scan) state
+          (List.replicate (prefixLength + 1) true ++ false :: input)
+          count output)
+        middle
+        (some (unframeCfg (some .payload)
+          (unframePoppedInput state (some false)) input
+          (List.replicate (prefixLength + 1) true ++ count)
+          (none :: output)))
+        hone
+        (by
+          simpa [middle, unframePoppedInput, List.replicate_succ,
+            replicate_true_append_cons] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+/-- State after copying a payload. Only the last copied bit is retained, and
+the exhausted unary counter is recorded as absent. -/
+private def unframePayloadState (inputBit : Option Bool) :
+    List Bool → UnframeState
+  | [] => ⟨inputBit, none⟩
+  | bit :: bits => unframePayloadState (some bit) bits
+
+@[simp]
+private theorem unframePayloadState_tick
+    (inputBit : Option Bool) (bits : List Bool) :
+    (unframePayloadState inputBit bits).tick = none := by
+  induction bits generalizing inputBit with
+  | nil => rfl
+  | cons bit bits ih => exact ih (some bit)
+
+private def unframe_payload_evals (bits input : List Bool)
+    (output : List (Option Bool)) (state : UnframeState) :
+    EvalsToInTime unframeComputer.step
+      (unframeCfg (some .payload) state (bits ++ input)
+        (List.replicate bits.length true) output)
+      (some (unframeCfg (some .next)
+        (unframePayloadState state.inputBit bits) input []
+        (bits.reverse.map some ++ output)))
+      (bits.length + 1) := by
+  induction bits generalizing output state with
+  | nil =>
+      cases state with
+      | mk inputBit tick =>
+          simpa [unframePayloadState, unframePoppedTick] using
+            unframeEvalsToInTimeOne
+              (unframe_step_payload_nil input output ⟨inputBit, tick⟩)
+  | cons bit bits ih =>
+      let middle := unframeCfg (some .payload)
+        (unframePoppedInput (unframePoppedTick state (some true))
+          (some bit))
+        (bits ++ input) (List.replicate bits.length true)
+        (some bit :: output)
+      have hone : EvalsToInTime unframeComputer.step
+          (unframeCfg (some .payload) state
+            ((bit :: bits) ++ input)
+            (List.replicate (bit :: bits).length true) output)
+          (some middle) 1 :=
+        unframeEvalsToInTimeOne (by
+          simpa [middle, List.replicate_succ] using
+            unframe_step_payload_cons bit true
+              (bits ++ input) (List.replicate bits.length true)
+              output state)
+      have hrest := ih (some bit :: output)
+        (unframePoppedInput (unframePoppedTick state (some true))
+          (some bit))
+      have htrans := EvalsToInTime.trans unframeComputer.step
+        1 (bits.length + 1)
+        (unframeCfg (some .payload) state
+          ((bit :: bits) ++ input)
+          (List.replicate (bit :: bits).length true) output)
+        middle
+        (some (unframeCfg (some .next)
+          (unframePayloadState state.inputBit (bit :: bits))
+          input [] ((bit :: bits).reverse.map some ++ output)))
+        hone
+        (by
+          simpa [middle, unframePayloadState, unframePoppedInput,
+            unframePoppedTick, List.reverse_cons, List.map_append,
+            List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def unframe_next_present_evals (input : List Bool)
+    (hinput : input ≠ []) (output : List (Option Bool))
+    (state : UnframeState) :
+    EvalsToInTime unframeComputer.step
+      (unframeCfg (some .next) state input [] output)
+      (some (unframeCfg (some .scan)
+        (unframePoppedInput state input.head?) input [] output)) 1 := by
+  cases input with
+  | nil => exact (hinput rfl).elim
+  | cons bit input =>
+      simpa using unframeEvalsToInTimeOne
+        (unframe_step_next_cons bit input output state)
+
+private def unframe_next_nil_evals (output : List (Option Bool))
+    (state : UnframeState) (htick : state.tick = none) :
+    EvalsToInTime unframeComputer.step
+      (unframeCfg (some .next) state [] [] output)
+      (some (unframeCfg none unframeInitialState [] [] output)) 1 := by
+  cases state with
+  | mk inputBit tick =>
+      change tick = none at htick
+      subst tick
+      exact unframeEvalsToInTimeOne
+        (unframe_step_next_nil output inputBit)
+
+private theorem frames_flatMap_nonempty (bits : List Bool)
+    (fields : List (List Bool)) :
+    ((bits :: fields).flatMap BinaryNatLists.frame) ≠ [] := by
+  simp [BinaryNatLists.frame]
+
+private def unframe_fields_evals
+    (fields : List (List Bool)) (hfields : fields ≠ [])
+    (output : List (Option Bool)) (state : UnframeState) :
+    EvalsToInTime unframeComputer.step
+      (unframeCfg (some .scan) state
+        (fields.flatMap BinaryNatLists.frame) [] output)
+      (some (unframeCfg none unframeInitialState [] []
+        (fields.reverse.flatMap RawNatList.segment ++ output)))
+      ((fields.flatMap BinaryNatLists.frame).length + 2 * fields.length) := by
+  induction fields generalizing output state with
+  | nil => exact (hfields rfl).elim
+  | cons bits fields ih =>
+      let tailInput := fields.flatMap BinaryNatLists.frame
+      have hscan := unframe_scan_evals bits.length
+        (bits ++ tailInput) [] output state
+      have hpayload := unframe_payload_evals bits tailInput
+        (none :: output) (unframePoppedInput state (some false))
+      have hfirst := EvalsToInTime.trans unframeComputer.step
+        (bits.length + 1) (bits.length + 1)
+        (unframeCfg (some .scan) state
+          ((bits :: fields).flatMap BinaryNatLists.frame) [] output)
+        (unframeCfg (some .payload)
+          (unframePoppedInput state (some false))
+          (bits ++ tailInput) (List.replicate bits.length true)
+          (none :: output))
+        (some (unframeCfg (some .next)
+          (unframePayloadState
+            (unframePoppedInput state (some false)).inputBit bits)
+          tailInput [] (RawNatList.segment bits ++ output)))
+        (by
+          simpa [tailInput, BinaryNatLists.frame, List.append_assoc] using hscan)
+        (by
+          simpa [RawNatList.segment, List.append_assoc] using hpayload)
+      cases fields with
+      | nil =>
+          have hnext := unframe_next_nil_evals
+            (RawNatList.segment bits ++ output)
+            (unframePayloadState
+              (unframePoppedInput state (some false)).inputBit bits)
+            (unframePayloadState_tick _ _)
+          have hall := EvalsToInTime.trans unframeComputer.step
+            ((bits.length + 1) + (bits.length + 1)) 1
+            (unframeCfg (some .scan) state
+              ([bits].flatMap BinaryNatLists.frame) [] output)
+            (unframeCfg (some .next)
+              (unframePayloadState
+                (unframePoppedInput state (some false)).inputBit bits)
+              [] [] (RawNatList.segment bits ++ output))
+            (some (unframeCfg none unframeInitialState [] []
+              (RawNatList.segment bits ++ output)))
+            (by simpa [tailInput] using hfirst)
+            hnext
+          have htime :
+              1 + ((bits.length + 1) + (bits.length + 1)) =
+                ([bits].flatMap BinaryNatLists.frame).length +
+                  2 * [bits].length := by
+            simp [BinaryNatLists.frame]
+            omega
+          rw [htime] at hall
+          simpa [RawNatList.segment] using hall
+      | cons next fields =>
+          let rest := next :: fields
+          have htail :
+              (rest.flatMap BinaryNatLists.frame) ≠ [] :=
+            frames_flatMap_nonempty next fields
+          have hnext := unframe_next_present_evals
+            (rest.flatMap BinaryNatLists.frame) htail
+            (RawNatList.segment bits ++ output)
+            (unframePayloadState
+              (unframePoppedInput state (some false)).inputBit bits)
+          have hthroughNext := EvalsToInTime.trans unframeComputer.step
+            ((bits.length + 1) + (bits.length + 1)) 1
+            (unframeCfg (some .scan) state
+              ((bits :: rest).flatMap BinaryNatLists.frame) [] output)
+            (unframeCfg (some .next)
+              (unframePayloadState
+                (unframePoppedInput state (some false)).inputBit bits)
+              (rest.flatMap BinaryNatLists.frame) []
+              (RawNatList.segment bits ++ output))
+            (some (unframeCfg (some .scan)
+              (unframePoppedInput
+                (unframePayloadState
+                  (unframePoppedInput state (some false)).inputBit bits)
+                (rest.flatMap BinaryNatLists.frame).head?)
+              (rest.flatMap BinaryNatLists.frame) []
+              (RawNatList.segment bits ++ output)))
+            (by simpa [tailInput, rest] using hfirst)
+            hnext
+          have hrest := ih (by simp)
+            (RawNatList.segment bits ++ output)
+            (unframePoppedInput
+              (unframePayloadState
+                (unframePoppedInput state (some false)).inputBit bits)
+              (rest.flatMap BinaryNatLists.frame).head?)
+          have hall := EvalsToInTime.trans unframeComputer.step
+            (1 + ((bits.length + 1) + (bits.length + 1)))
+            ((rest.flatMap BinaryNatLists.frame).length +
+              2 * rest.length)
+            (unframeCfg (some .scan) state
+              ((bits :: rest).flatMap BinaryNatLists.frame) [] output)
+            (unframeCfg (some .scan)
+              (unframePoppedInput
+                (unframePayloadState
+                  (unframePoppedInput state (some false)).inputBit bits)
+                (rest.flatMap BinaryNatLists.frame).head?)
+              (rest.flatMap BinaryNatLists.frame) []
+              (RawNatList.segment bits ++ output))
+            (some (unframeCfg none unframeInitialState [] []
+              ((bits :: rest).reverse.flatMap RawNatList.segment ++ output)))
+            hthroughNext
+            (by
+              simpa [rest, List.reverse_cons, List.append_assoc] using hrest)
+          have htime :
+              ((rest.flatMap BinaryNatLists.frame).length +
+                  2 * rest.length) +
+                  (1 + ((bits.length + 1) + (bits.length + 1))) =
+                ((bits :: rest).flatMap BinaryNatLists.frame).length +
+                  2 * (bits :: rest).length := by
+            simp [BinaryNatLists.frame]
+            omega
+          rw [htime] at hall
+          simpa [rest, List.append_assoc] using hall
+
+private theorem fields_length_le_frames_length
+    (fields : List (List Bool)) :
+    fields.length ≤ (fields.flatMap BinaryNatLists.frame).length := by
+  induction fields with
+  | nil => simp
+  | cons bits fields ih =>
+      simp only [List.length_cons, List.flatMap_cons, List.length_append]
+      have hpositive : 0 < (BinaryNatLists.frame bits).length := by
+        simp [BinaryNatLists.frame]
+      omega
+
+private theorem unframe_initList_eq_cfg (input : List Bool) :
+    initList unframeComputer input =
+      unframeCfg (some .scan) unframeInitialState input [] [] := by
+  unfold initList unframeCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem unframe_haltList_eq_cfg (output : List (Option Bool)) :
+    haltList unframeComputer output =
+      unframeCfg none unframeInitialState [] [] output := by
+  unfold haltList unframeCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- The unframing traversal consumes the standard nested-list encoding and
+emits its explicit stack-oriented raw fields in at most three times the input
+length. -/
+def unframe_outputsInTime (xss : List (List ℕ)) :
+    TM2OutputsInTime unframeComputer (BinaryNatLists.encode xss)
+      (some (RawNatLists.encode xss))
+      (3 * (BinaryNatLists.encode xss).length) := by
+  have hpayloads : RawNatLists.payloads xss ≠ [] := by
+    simp [RawNatLists.payloads]
+  have hfields := unframe_fields_evals
+    (RawNatLists.payloads xss) hpayloads [] unframeInitialState
+  have hlength :=
+    fields_length_le_frames_length (RawNatLists.payloads xss)
+  have hbound :
+      ((RawNatLists.payloads xss).flatMap BinaryNatLists.frame).length +
+          2 * (RawNatLists.payloads xss).length ≤
+        3 * ((RawNatLists.payloads xss).flatMap
+          BinaryNatLists.frame).length := by
+    omega
+  have hmono := evalsToInTimeMono hfields hbound
+  have hinput :
+      BinaryNatLists.encode xss =
+        (RawNatLists.payloads xss).flatMap BinaryNatLists.frame :=
+    (RawNatLists.payloads_frame_eq_encode xss).symm
+  rw [TM2OutputsInTime, hinput, unframe_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [unframe_haltList_eq_cfg]
+  simpa [RawNatLists.encode] using hmono
+
+/-- A genuine linear-time finite-machine witness exposing every field of the
+standard nested-list input as an explicitly delimited raw binary stack stream.
+The mathematical function is the identity; the change of encoding supplies
+the traversal interface used by later arithmetic and compiler passes. -/
+noncomputable def unframedNatListsComputableInPolyTime :
+    @TM2ComputableInPolyTime (List (List ℕ)) (List (List ℕ))
+      BinaryNatLists.finEncoding RawNatLists.finEncoding id where
+  tm := unframeComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := 3 * Polynomial.X
+  outputsFun xss := by
+    simpa [BinaryNatLists.finEncoding, RawNatLists.finEncoding, Equiv.refl,
+      Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_X] using
+        unframe_outputsInTime xss
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
 #print axioms RawNatList.decode_encode
 #print axioms listFrame_outputsInTime
 #print axioms framedNatListComputableInPolyTime
+#print axioms RawNatLists.decode_encode
+#print axioms unframe_outputsInTime
+#print axioms unframedNatListsComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine
