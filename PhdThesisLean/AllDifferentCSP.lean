@@ -32,9 +32,11 @@ The separate `AllDifferentCSPEncoding` module supplies standard binary
 passes from raw binary naturals to the self-delimiting field encoding and from
 a stack-oriented raw-natural stream to the exact framed list encoding. It also
 checks the reverse traversal from the standard nested-list encoding to an
-explicit delimited raw-field stream. The remaining work is to construct and
-compose CSP structural compilation, binary arithmetic, primality-test, and
-prime-scan passes into the full compiler's genuine polynomial-runtime theorem.
+explicit delimited raw-field stream, and supplies a linear-time successor
+machine on canonical binary naturals. The remaining work is to construct and
+compose CSP structural compilation, comparison and division arithmetic,
+primality-test, and prime-scan passes into the full compiler's genuine
+polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

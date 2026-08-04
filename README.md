@@ -148,9 +148,12 @@ of raw binary natural fields and emits the exact length-prefixed framed list
 encoding in at most `3s` steps, including empty fields and lists.
 `unframedNatListsComputableInPolyTime` traverses the standard nested-list
 input in at most `3s` steps and exposes its outer length, inner lengths, and
-values as an explicitly delimited raw-field stack stream. CSP structural
-compilation, binary arithmetic, deterministic primality testing and prime
-scanning, and final whole-compiler composition remain.
+values as an explicitly delimited raw-field stack stream.
+`binarySuccComputableInPolyTime` computes successor on mathlib's canonical
+binary natural encoding in at most `2s + 3` steps, including zero and carry
+growth. CSP structural compilation, the remaining binary arithmetic,
+deterministic primality testing and prime scanning, and final whole-compiler
+composition remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -260,9 +263,10 @@ The copied statements are grouped by mathematical contribution:
   `framedNatListComputableInPolyTime` prove the linear-time natural-field and
   natural-list serialization passes, and
   `unframedNatListsComputableInPolyTime` proves linear-time traversal of the
-  standard nested-list input into explicit raw fields, while the complete
-  compiler machine and its structural, arithmetic, and prime-selection passes
-  remain open;
+  standard nested-list input into explicit raw fields;
+  `binarySuccComputableInPolyTime` proves linear-time successor on canonical
+  binary naturals, while the complete compiler machine and its structural,
+  remaining arithmetic, and prime-selection passes remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

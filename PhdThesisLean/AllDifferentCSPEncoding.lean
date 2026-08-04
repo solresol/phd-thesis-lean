@@ -25,7 +25,8 @@ separate from the machine-running-time proof. `AllDifferentCSPMachine` proves
 linear-time construction of each framed natural from its raw binary payload
 and linear-time serialization of a stack-oriented raw-natural stream into the
 exact framed natural-list format. It also proves a linear-time traversal from
-this module's standard nested-list encoding to an explicit raw-field stream.
+this module's standard nested-list encoding to an explicit raw-field stream,
+and a linear-time successor pass on canonical binary naturals.
 -/
 
 namespace BinaryNatLists

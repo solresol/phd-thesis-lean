@@ -547,3 +547,60 @@
 - Best next step: add a checked raw-binary increment/comparison pass over the
   exposed fields, then use it for deterministic candidate enumeration before
   implementing divisibility/primality testing and the Bertrand-interval scan.
+
+## 2026-08-05 05:27 AEST
+
+- Starting repository commit:
+  `80391839c54bbf12f65730289d0d6aeb0afa5d59` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed, so no fast-forward was needed. The
+  automation memory file was absent, so continuity was reconstructed from this
+  log, theorem status, recent commits, and the repository sources.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `f8161beb7546aafe3fdd85aa61b18a5917a7d00f`. That sibling checkout already had
+  unrelated modifications to `.gitignore` and `todo.md`; this automation did
+  not alter them. The thesis proof still requires deterministic primality
+  testing, prime scanning, and the complete compiler machine, so
+  `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` and its live `main` ref agreed
+  at `6473f3bc46d10d2ea34d8ca1009b612cda47ae5d`. Its new scratch-stack layout
+  supports the unfinished generic machine transfer construction, but it still
+  has no reusable checked binary arithmetic, primality test, prime scan, or
+  completed polynomial-time composition theorem.
+- Chosen increment: the first checked arithmetic primitive needed by candidate
+  enumeration. `binarySuccBits` defines carry propagation on mathlib's
+  least-significant-bit-first binary words and
+  `binarySuccBits_encodeNat` proves that it emits exactly `encodeNat (n + 1)`,
+  including the empty encoding of zero and carry growth.
+- Headline declaration:
+  `AllDifferentCSPMachine.binarySuccComputableInPolyTime` is a genuine
+  `TM2ComputableInPolyTime` witness from `finEncodingNatBool` to itself. Its
+  concrete three-stack `FinTM2` propagates carry, copies the untouched suffix,
+  restores canonical bit order, and halts in at most `2s + 3` steps for input
+  length `s`. `binarySucc_outputsInTime` checks the stronger arbitrary-bit-word
+  execution claim.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the executable
+  machine, phase simulations, semantic connection, runtime bound, and axiom
+  audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` now distinguish the completed successor primitive from
+  the remaining arithmetic and whole-compiler obligations.
+- One failed proof attempt supplied useful evidence: leaving the target time of
+  `evalsToInTimeMono` implicit produced an unresolved upper-bound metavariable,
+  so `omega` reported a possible counterexample at the final runtime bound.
+  Giving the result the explicit `2 * bits.length + 3` type exposed the intended
+  inequality and closed it using `binarySuccBits_length_le`. No blocker remains
+  in this increment.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3105 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. The new `#print axioms` audits
+  report only `propext`, `Classical.choice`, and `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes in this repository.
+- Best next step: add a checked polynomial-time comparison pass for canonical
+  binary naturals, then combine successor and comparison for bounded candidate
+  enumeration before divisibility, deterministic primality testing, and the
+  Bertrand-interval prime scan.

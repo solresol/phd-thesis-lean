@@ -18,11 +18,13 @@ linear time. A second three-stack machine traverses a stack-oriented reverse
 stream of raw binary naturals and emits the exact length-prefixed framed list
 format, also in linear time. A third machine performs the reverse traversal on
 the standard nested-list input encoding, exposing every length and value field
-as an explicitly delimited raw binary stream in linear time.
+as an explicitly delimited raw binary stream in linear time. A fourth finite
+machine computes successor on mathlib's canonical binary natural encoding in
+linear time.
 
 These are checked components of the eventual compiler machine. They do not yet
-establish polynomial time for CSP structural compilation, binary arithmetic,
-primality testing, prime selection, or final compiler assembly.
+establish polynomial time for CSP structural compilation, the remaining binary
+arithmetic, primality testing, prime selection, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -1597,6 +1599,408 @@ noncomputable def unframedNatListsComputableInPolyTime :
       Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_X] using
         unframe_outputsInTime xss
 
+/-! ## Binary successor
+
+The prime scan and several structural compiler passes need arithmetic on the
+raw binary fields exposed above. The following machine supplies the first such
+primitive: successor on mathlib's least-significant-bit-first natural-number
+encoding. It propagates carry on the input stack, copies the untouched suffix,
+and reverses one work stack into the canonical output order.
+-/
+
+/-- Increment a least-significant-bit-first binary word. On canonical
+`encodeNat` words this is exactly natural-number successor. -/
+def binarySuccBits : List Bool → List Bool
+  | [] => [true]
+  | false :: bits => true :: bits
+  | true :: bits => false :: binarySuccBits bits
+
+private theorem binarySuccBits_encodePosNum (n : PosNum) :
+    binarySuccBits (encodePosNum n) = encodePosNum n.succ := by
+  induction n with
+  | one => rfl
+  | bit0 n ih => rfl
+  | bit1 n ih =>
+      simp only [encodePosNum, binarySuccBits, PosNum.succ]
+      rw [ih]
+
+private theorem binarySuccBits_encodeNum (n : Num) :
+    binarySuccBits (encodeNum n) = encodeNum n.succ := by
+  cases n with
+  | zero => rfl
+  | pos n =>
+      simp only [encodeNum, Num.succ, Num.succ']
+      exact binarySuccBits_encodePosNum n
+
+/-- The bit-level transformation agrees with successor on mathlib's canonical
+binary natural encoding, including the empty encoding of zero. -/
+@[simp]
+theorem binarySuccBits_encodeNat (n : ℕ) :
+    binarySuccBits (encodeNat n) = encodeNat (n + 1) := by
+  unfold encodeNat
+  rw [binarySuccBits_encodeNum]
+  change encodeNum (Num.ofNat' n).succ = encodeNum (Num.ofNat' (n + 1))
+  rw [Num.ofNat'_succ, Num.add_one]
+
+private theorem binarySuccBits_length_le (bits : List Bool) :
+    (binarySuccBits bits).length ≤ bits.length + 1 := by
+  induction bits with
+  | nil => simp [binarySuccBits]
+  | cons bit bits ih =>
+      cases bit <;> simp [binarySuccBits, ih]
+
+/-- Input, reversal work, and canonical output stacks for binary successor. -/
+inductive SuccStack
+  | input
+  | work
+  | output
+  deriving DecidableEq, Fintype
+
+/-- Carry propagation, untouched-suffix copy, and output reversal phases. -/
+inductive SuccLabel
+  | carry
+  | copy
+  | reverse
+  deriving DecidableEq, Fintype
+
+/-- Finite control remembers the most recently popped bit. -/
+structure SuccState where
+  bit : Option Bool
+  deriving DecidableEq, Fintype
+
+private def succInitialState : SuccState :=
+  ⟨none⟩
+
+private def succPoppedBit (_state : SuccState) (bit : Option Bool) : SuccState :=
+  ⟨bit⟩
+
+private def succBitPresent : SuccState → Bool
+  | ⟨some _⟩ => true
+  | _ => false
+
+private def succBitTrue : SuccState → Bool
+  | ⟨some true⟩ => true
+  | _ => false
+
+private def succHeldBit : SuccState → Bool
+  | ⟨some bit⟩ => bit
+  | _ => false
+
+private def SuccAlphabet (_index : SuccStack) : Type := Bool
+
+/-- A finite three-stack successor program for least-significant-bit-first
+binary words. -/
+def binarySuccProgram :
+    SuccLabel → TM2.Stmt SuccAlphabet SuccLabel SuccState
+  | .carry =>
+      .pop .input succPoppedBit <|
+        .branch succBitPresent
+          (.branch succBitTrue
+            (.push .work (fun _ => false) <|
+              .goto (fun _ => .carry))
+            (.push .work (fun _ => true) <|
+              .goto (fun _ => .copy)))
+          (.push .work (fun _ => true) <|
+            .goto (fun _ => .reverse))
+  | .copy =>
+      .pop .input succPoppedBit <|
+        .branch succBitPresent
+          (.push .work succHeldBit <|
+            .goto (fun _ => .copy))
+          (.goto (fun _ => .reverse))
+  | .reverse =>
+      .pop .work succPoppedBit <|
+        .branch succBitPresent
+          (.push .output succHeldBit <|
+            .goto (fun _ => .reverse))
+          .halt
+
+/-- Concrete finite machine computing binary successor. -/
+def binarySuccComputer : FinTM2 where
+  K := SuccStack
+  k₀ := .input
+  k₁ := .output
+  Γ := SuccAlphabet
+  Λ := SuccLabel
+  main := .carry
+  σ := SuccState
+  initialState := succInitialState
+  Γk₀Fin := Bool.fintype
+  m := binarySuccProgram
+
+private def succStackContents
+    (input work output : List Bool) :
+    (index : SuccStack) → List (SuccAlphabet index)
+  | .input => input
+  | .work => work
+  | .output => output
+
+private def succCfg (label : Option SuccLabel) (state : SuccState)
+    (input work output : List Bool) : binarySuccComputer.Cfg where
+  l := label
+  var := state
+  stk := succStackContents input work output
+
+private theorem succ_step_carry_nil (work output : List Bool)
+    (state : SuccState) :
+    binarySuccComputer.step
+        (succCfg (some .carry) state [] work output) =
+      some (succCfg (some .reverse) succInitialState []
+        (true :: work) output) := by
+  simp [binarySuccComputer, FinTM2.step, succCfg, binarySuccProgram,
+    succStackContents, SuccAlphabet, succPoppedBit, succBitPresent,
+    succInitialState, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem succ_step_carry_false (bits work output : List Bool)
+    (state : SuccState) :
+    binarySuccComputer.step
+        (succCfg (some .carry) state (false :: bits) work output) =
+      some (succCfg (some .copy) ⟨some false⟩ bits
+        (true :: work) output) := by
+  simp [binarySuccComputer, FinTM2.step, succCfg, binarySuccProgram,
+    succStackContents, SuccAlphabet, succPoppedBit, succBitPresent,
+    succBitTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem succ_step_carry_true (bits work output : List Bool)
+    (state : SuccState) :
+    binarySuccComputer.step
+        (succCfg (some .carry) state (true :: bits) work output) =
+      some (succCfg (some .carry) ⟨some true⟩ bits
+        (false :: work) output) := by
+  simp [binarySuccComputer, FinTM2.step, succCfg, binarySuccProgram,
+    succStackContents, SuccAlphabet, succPoppedBit, succBitPresent,
+    succBitTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem succ_step_copy_nil (work output : List Bool)
+    (state : SuccState) :
+    binarySuccComputer.step
+        (succCfg (some .copy) state [] work output) =
+      some (succCfg (some .reverse) succInitialState [] work output) := by
+  simp [binarySuccComputer, FinTM2.step, succCfg, binarySuccProgram,
+    succStackContents, SuccAlphabet, succPoppedBit, succBitPresent,
+    succInitialState, Function.update]
+
+private theorem succ_step_copy_cons (bit : Bool) (bits work output : List Bool)
+    (state : SuccState) :
+    binarySuccComputer.step
+        (succCfg (some .copy) state (bit :: bits) work output) =
+      some (succCfg (some .copy) ⟨some bit⟩ bits
+        (bit :: work) output) := by
+  cases bit <;>
+    simp [binarySuccComputer, FinTM2.step, succCfg, binarySuccProgram,
+      succStackContents, SuccAlphabet, succPoppedBit, succBitPresent,
+      succHeldBit, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem succ_step_reverse_nil (output : List Bool)
+    (state : SuccState) :
+    binarySuccComputer.step
+        (succCfg (some .reverse) state [] [] output) =
+      some (succCfg none succInitialState [] [] output) := by
+  simp [binarySuccComputer, FinTM2.step, succCfg, binarySuccProgram,
+    succStackContents, SuccAlphabet, succPoppedBit, succBitPresent,
+    succInitialState, Function.update]
+
+private theorem succ_step_reverse_cons (bit : Bool)
+    (work output : List Bool) (state : SuccState) :
+    binarySuccComputer.step
+        (succCfg (some .reverse) state [] (bit :: work) output) =
+      some (succCfg (some .reverse) ⟨some bit⟩ [] work
+        (bit :: output)) := by
+  cases bit <;>
+    simp [binarySuccComputer, FinTM2.step, succCfg, binarySuccProgram,
+      succStackContents, SuccAlphabet, succPoppedBit, succBitPresent,
+      succHeldBit, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private def succEvalsToInTimeOne
+    {start finish : binarySuccComputer.Cfg}
+    (hstep : binarySuccComputer.step start = some finish) :
+    EvalsToInTime binarySuccComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def succ_copy_evals (bits work output : List Bool)
+    (state : SuccState) :
+    EvalsToInTime binarySuccComputer.step
+      (succCfg (some .copy) state bits work output)
+      (some (succCfg (some .reverse) succInitialState []
+        (bits.reverse ++ work) output))
+      (bits.length + 1) := by
+  induction bits generalizing work state with
+  | nil =>
+      simpa using succEvalsToInTimeOne
+        (succ_step_copy_nil work output state)
+  | cons bit bits ih =>
+      let middle := succCfg (some .copy) ⟨some bit⟩ bits
+        (bit :: work) output
+      have hone : EvalsToInTime binarySuccComputer.step
+          (succCfg (some .copy) state (bit :: bits) work output)
+          (some middle) 1 :=
+        succEvalsToInTimeOne (by
+          simpa [middle] using succ_step_copy_cons bit bits work output state)
+      have hrest := ih (bit :: work) ⟨some bit⟩
+      have htrans := EvalsToInTime.trans binarySuccComputer.step
+        1 (bits.length + 1)
+        (succCfg (some .copy) state (bit :: bits) work output)
+        middle
+        (some (succCfg (some .reverse) succInitialState []
+          ((bit :: bits).reverse ++ work) output))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def succ_carry_evals (bits work output : List Bool)
+    (state : SuccState) :
+    EvalsToInTime binarySuccComputer.step
+      (succCfg (some .carry) state bits work output)
+      (some (succCfg (some .reverse) succInitialState []
+        ((binarySuccBits bits).reverse ++ work) output))
+      (bits.length + 1) := by
+  induction bits generalizing work state with
+  | nil =>
+      simpa [binarySuccBits] using succEvalsToInTimeOne
+        (succ_step_carry_nil work output state)
+  | cons bit bits ih =>
+      cases bit with
+      | false =>
+          let middle := succCfg (some .copy) ⟨some false⟩ bits
+            (true :: work) output
+          have hone : EvalsToInTime binarySuccComputer.step
+              (succCfg (some .carry) state (false :: bits) work output)
+              (some middle) 1 :=
+            succEvalsToInTimeOne (by
+              simpa [middle] using succ_step_carry_false bits work output state)
+          have hcopy := succ_copy_evals bits (true :: work) output ⟨some false⟩
+          have htrans := EvalsToInTime.trans binarySuccComputer.step
+            1 (bits.length + 1)
+            (succCfg (some .carry) state (false :: bits) work output)
+            middle
+            (some (succCfg (some .reverse) succInitialState []
+              ((binarySuccBits (false :: bits)).reverse ++ work) output))
+            hone
+            (by
+              simpa [middle, binarySuccBits, List.reverse_cons,
+                List.append_assoc] using hcopy)
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+      | true =>
+          let middle := succCfg (some .carry) ⟨some true⟩ bits
+            (false :: work) output
+          have hone : EvalsToInTime binarySuccComputer.step
+              (succCfg (some .carry) state (true :: bits) work output)
+              (some middle) 1 :=
+            succEvalsToInTimeOne (by
+              simpa [middle] using succ_step_carry_true bits work output state)
+          have hrest := ih (false :: work) ⟨some true⟩
+          have htrans := EvalsToInTime.trans binarySuccComputer.step
+            1 (bits.length + 1)
+            (succCfg (some .carry) state (true :: bits) work output)
+            middle
+            (some (succCfg (some .reverse) succInitialState []
+              ((binarySuccBits (true :: bits)).reverse ++ work) output))
+            hone
+            (by
+              simpa [middle, binarySuccBits, List.reverse_cons,
+                List.append_assoc] using hrest)
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def succ_reverse_evals (work output : List Bool)
+    (state : SuccState) :
+    EvalsToInTime binarySuccComputer.step
+      (succCfg (some .reverse) state [] work output)
+      (some (succCfg none succInitialState [] []
+        (work.reverse ++ output)))
+      (work.length + 1) := by
+  induction work generalizing output state with
+  | nil =>
+      simpa using succEvalsToInTimeOne
+        (succ_step_reverse_nil output state)
+  | cons bit work ih =>
+      let middle := succCfg (some .reverse) ⟨some bit⟩ [] work
+        (bit :: output)
+      have hone : EvalsToInTime binarySuccComputer.step
+          (succCfg (some .reverse) state [] (bit :: work) output)
+          (some middle) 1 :=
+        succEvalsToInTimeOne (by
+          simpa [middle] using succ_step_reverse_cons bit work output state)
+      have hrest := ih (bit :: output) ⟨some bit⟩
+      have htrans := EvalsToInTime.trans binarySuccComputer.step
+        1 (work.length + 1)
+        (succCfg (some .reverse) state [] (bit :: work) output)
+        middle
+        (some (succCfg none succInitialState [] []
+          ((bit :: work).reverse ++ output)))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private theorem succ_initList_eq_cfg (input : List Bool) :
+    initList binarySuccComputer input =
+      succCfg (some .carry) succInitialState input [] [] := by
+  unfold initList succCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem succ_haltList_eq_cfg (output : List Bool) :
+    haltList binarySuccComputer output =
+      succCfg none succInitialState [] [] output := by
+  unfold haltList succCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- Binary successor runs in at most `2s + 3` steps on an arbitrary bit word
+of length `s` and emits `binarySuccBits` of that word. -/
+def binarySucc_outputsInTime (bits : List Bool) :
+    TM2OutputsInTime binarySuccComputer bits
+      (some (binarySuccBits bits)) (2 * bits.length + 3) := by
+  have hcarry := succ_carry_evals bits [] [] succInitialState
+  have hreverse := succ_reverse_evals
+    (binarySuccBits bits).reverse [] succInitialState
+  have hall := EvalsToInTime.trans binarySuccComputer.step
+    (bits.length + 1) ((binarySuccBits bits).reverse.length + 1)
+    (succCfg (some .carry) succInitialState bits [] [])
+    (succCfg (some .reverse) succInitialState []
+      (binarySuccBits bits).reverse [])
+    (some (succCfg none succInitialState [] [] (binarySuccBits bits)))
+    (by simpa using hcarry)
+    (by simpa using hreverse)
+  have hbound := binarySuccBits_length_le bits
+  have hmono : EvalsToInTime binarySuccComputer.step
+      (succCfg (some .carry) succInitialState bits [] [])
+      (some (succCfg none succInitialState [] [] (binarySuccBits bits)))
+      (2 * bits.length + 3) :=
+    evalsToInTimeMono hall (by
+      simp only [List.length_reverse]
+      omega)
+  rw [TM2OutputsInTime, succ_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [succ_haltList_eq_cfg]
+  exact hmono
+
+/-- A genuine linear-time finite-machine witness for successor on mathlib's
+standard binary natural-number encoding. -/
+noncomputable def binarySuccComputableInPolyTime :
+    @TM2ComputableInPolyTime ℕ ℕ finEncodingNatBool finEncodingNatBool
+      (fun n => n + 1) where
+  tm := binarySuccComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := 2 * Polynomial.X + 3
+  outputsFun n := by
+    simpa [finEncodingNatBool, Equiv.refl, binarySuccBits_encodeNat,
+      Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_natCast,
+      Polynomial.eval_X] using binarySucc_outputsInTime (encodeNat n)
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
@@ -1606,5 +2010,8 @@ noncomputable def unframedNatListsComputableInPolyTime :
 #print axioms RawNatLists.decode_encode
 #print axioms unframe_outputsInTime
 #print axioms unframedNatListsComputableInPolyTime
+#print axioms binarySuccBits_encodeNat
+#print axioms binarySucc_outputsInTime
+#print axioms binarySuccComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine
