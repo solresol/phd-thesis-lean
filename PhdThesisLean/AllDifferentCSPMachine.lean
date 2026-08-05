@@ -20,7 +20,8 @@ format, also in linear time. A third machine performs the reverse traversal on
 the standard nested-list input encoding, exposing every length and value field
 as an explicitly delimited raw binary stream in linear time. A fourth finite
 machine computes successor on mathlib's canonical binary natural encoding in
-linear time.
+linear time. A fifth finite machine compares two aligned canonical binary
+naturals in linear time.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, the remaining binary
@@ -2001,6 +2002,502 @@ noncomputable def binarySuccComputableInPolyTime :
       Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_natCast,
       Polynomial.eval_X] using binarySucc_outputsInTime (encodeNat n)
 
+/-! ## Binary comparison
+
+Bounded enumeration and the eventual prime scan need a checked comparison
+primitive. Two canonical least-significant-bit-first words are aligned into a
+finite paired alphabet. Missing bits are represented by `none`; this preserves
+both words exactly while letting one finite-control pass visit corresponding
+bit positions from least to most significant.
+-/
+
+namespace BinaryNatPair
+
+/-- Align two bit strings, padding only the exhausted side with `none`. -/
+def zipBits : List Bool → List Bool → List (Option Bool × Option Bool)
+  | [], [] => []
+  | left :: lefts, [] => (some left, none) :: zipBits lefts []
+  | [], right :: rights => (none, some right) :: zipBits [] rights
+  | left :: lefts, right :: rights =>
+      (some left, some right) :: zipBits lefts rights
+
+/-- Recover the left bit string from an aligned pair stream. -/
+def leftBits : List (Option Bool × Option Bool) → List Bool
+  | [] => []
+  | (none, _) :: pairs => leftBits pairs
+  | (some bit, _) :: pairs => bit :: leftBits pairs
+
+/-- Recover the right bit string from an aligned pair stream. -/
+def rightBits : List (Option Bool × Option Bool) → List Bool
+  | [] => []
+  | (_, none) :: pairs => rightBits pairs
+  | (_, some bit) :: pairs => bit :: rightBits pairs
+
+@[simp]
+theorem leftBits_zipBits (left right : List Bool) :
+    leftBits (zipBits left right) = left := by
+  induction left generalizing right with
+  | nil =>
+      induction right with
+      | nil => simp [zipBits, leftBits]
+      | cons right rights ih =>
+          simp [zipBits, leftBits, ih]
+  | cons left lefts ih =>
+      cases right with
+      | nil => simp [zipBits, leftBits, ih]
+      | cons right rights => simp [zipBits, leftBits, ih]
+
+@[simp]
+theorem rightBits_zipBits (left right : List Bool) :
+    rightBits (zipBits left right) = right := by
+  induction left generalizing right with
+  | nil =>
+      induction right with
+      | nil => simp [zipBits, rightBits]
+      | cons right rights ih =>
+          simp [zipBits, rightBits, ih]
+  | cons left lefts ih =>
+      cases right with
+      | nil => simp [zipBits, rightBits, ih]
+      | cons right rights => simp [zipBits, rightBits, ih]
+
+/-- Canonical paired binary encoding of two naturals. -/
+def encode (pair : ℕ × ℕ) : List (Option Bool × Option Bool) :=
+  zipBits (encodeNat pair.1) (encodeNat pair.2)
+
+/-- Decode both projections of an aligned bit stream. -/
+def decode (pairs : List (Option Bool × Option Bool)) : Option (ℕ × ℕ) :=
+  some (decodeNat (leftBits pairs), decodeNat (rightBits pairs))
+
+@[simp]
+theorem decode_encode (pair : ℕ × ℕ) : decode (encode pair) = some pair := by
+  rcases pair with ⟨left, right⟩
+  simp [decode, encode]
+
+/-- Checked finite encoding of a pair of canonical binary naturals. -/
+def finEncoding : FinEncoding (ℕ × ℕ) where
+  Γ := Option Bool × Option Bool
+  encode := encode
+  decode := decode
+  decode_encode := decode_encode
+  ΓFin := inferInstance
+
+end BinaryNatPair
+
+/-- Update a less-than-or-equal decision with one more significant aligned
+bit pair. A missing high bit makes that side shorter; unequal present bits
+replace the decision made by all less significant positions. -/
+def binaryLEUpdate (current : Bool) : Option Bool → Option Bool → Bool
+  | none, none => current
+  | none, some _ => true
+  | some _, none => false
+  | some false, some true => true
+  | some true, some false => false
+  | some false, some false => current
+  | some true, some true => current
+
+/-- Comparison directly on two least-significant-bit-first words. -/
+def binaryLEBitsAux : Bool → List Bool → List Bool → Bool
+  | current, [], [] => current
+  | current, left :: lefts, [] =>
+      binaryLEBitsAux (binaryLEUpdate current (some left) none) lefts []
+  | current, [], right :: rights =>
+      binaryLEBitsAux (binaryLEUpdate current none (some right)) [] rights
+  | current, left :: lefts, right :: rights =>
+      binaryLEBitsAux
+        (binaryLEUpdate current (some left) (some right)) lefts rights
+
+/-- Fold the same comparison update over the paired wire representation. -/
+def binaryLEPairsAux : Bool → List (Option Bool × Option Bool) → Bool
+  | current, [] => current
+  | current, pair :: pairs =>
+      binaryLEPairsAux (binaryLEUpdate current pair.1 pair.2) pairs
+
+@[simp]
+theorem binaryLEPairsAux_zipBits
+    (current : Bool) (left right : List Bool) :
+    binaryLEPairsAux current (BinaryNatPair.zipBits left right) =
+      binaryLEBitsAux current left right := by
+  induction left generalizing current right with
+  | nil =>
+      induction right generalizing current with
+      | nil => simp [BinaryNatPair.zipBits, binaryLEPairsAux,
+          binaryLEBitsAux]
+      | cons right rights ih =>
+          simp [BinaryNatPair.zipBits, binaryLEPairsAux,
+            binaryLEBitsAux, ih]
+  | cons left lefts ih =>
+      cases right with
+      | nil =>
+          simp [BinaryNatPair.zipBits, binaryLEPairsAux,
+            binaryLEBitsAux, ih]
+      | cons right rights =>
+          simp [BinaryNatPair.zipBits, binaryLEPairsAux,
+            binaryLEBitsAux, ih]
+
+/-- Translate a three-way comparison into a decision, retaining `current`
+only when all inspected higher bits are equal. -/
+def orderingLEResult (current : Bool) : Ordering → Bool
+  | .lt => true
+  | .eq => current
+  | .gt => false
+
+private theorem binaryLEBitsAux_true_left_nil (bits : List Bool) :
+    binaryLEBitsAux true [] bits = true := by
+  induction bits with
+  | nil => simp [binaryLEBitsAux]
+  | cons bit bits ih =>
+      cases bit <;> simpa [binaryLEBitsAux, binaryLEUpdate] using ih
+
+private theorem binaryLEBitsAux_false_right_nil (bits : List Bool) :
+    binaryLEBitsAux false bits [] = false := by
+  induction bits with
+  | nil => simp [binaryLEBitsAux]
+  | cons bit bits ih =>
+      cases bit <;> simpa [binaryLEBitsAux, binaryLEUpdate] using ih
+
+private theorem binaryLEBitsAux_left_nonempty
+    (current bit : Bool) (bits : List Bool) :
+    binaryLEBitsAux current [] (bit :: bits) = true := by
+  cases bit <;>
+    simpa [binaryLEBitsAux, binaryLEUpdate] using
+      binaryLEBitsAux_true_left_nil bits
+
+private theorem binaryLEBitsAux_right_nonempty
+    (current bit : Bool) (bits : List Bool) :
+    binaryLEBitsAux current (bit :: bits) [] = false := by
+  cases bit <;>
+    simpa [binaryLEBitsAux, binaryLEUpdate] using
+      binaryLEBitsAux_false_right_nil bits
+
+private theorem binaryLEBitsAux_left_of_nonempty
+    (current : Bool) {bits : List Bool} (hbits : bits ≠ []) :
+    binaryLEBitsAux current [] bits = true := by
+  cases bits with
+  | nil => exact (hbits rfl).elim
+  | cons bit bits => exact binaryLEBitsAux_left_nonempty current bit bits
+
+private theorem binaryLEBitsAux_right_of_nonempty
+    (current : Bool) {bits : List Bool} (hbits : bits ≠ []) :
+    binaryLEBitsAux current bits [] = false := by
+  cases bits with
+  | nil => exact (hbits rfl).elim
+  | cons bit bits => exact binaryLEBitsAux_right_nonempty current bit bits
+
+private theorem binaryLEBitsAux_encodePosNum
+    (current : Bool) (left right : PosNum) :
+    binaryLEBitsAux current (encodePosNum left) (encodePosNum right) =
+      orderingLEResult current (PosNum.cmp left right) := by
+  induction left generalizing current right with
+  | one =>
+      cases right with
+      | one => simp [encodePosNum, binaryLEBitsAux, binaryLEUpdate,
+          orderingLEResult, PosNum.cmp]
+      | bit1 right =>
+          simp only [encodePosNum, binaryLEBitsAux, binaryLEUpdate,
+            orderingLEResult, PosNum.cmp]
+          exact binaryLEBitsAux_left_of_nonempty current
+            (encodePosNum_nonempty right)
+      | bit0 right =>
+          simp only [encodePosNum, binaryLEBitsAux, binaryLEUpdate,
+            orderingLEResult, PosNum.cmp]
+          exact binaryLEBitsAux_left_of_nonempty false
+            (encodePosNum_nonempty right)
+  | bit1 left ih =>
+      cases right with
+      | one =>
+          simp only [encodePosNum, binaryLEBitsAux, binaryLEUpdate,
+            orderingLEResult, PosNum.cmp]
+          exact binaryLEBitsAux_right_of_nonempty current
+            (encodePosNum_nonempty left)
+      | bit1 right =>
+          simpa [encodePosNum, binaryLEBitsAux, binaryLEUpdate,
+            PosNum.cmp] using ih current right
+      | bit0 right =>
+          have h := ih (binaryLEUpdate current (some true) (some false)) right
+          cases hcmp : PosNum.cmp left right <;>
+            simp [encodePosNum, binaryLEBitsAux, binaryLEUpdate,
+              PosNum.cmp, hcmp, orderingLEResult] at h ⊢ <;>
+            exact h
+  | bit0 left ih =>
+      cases right with
+      | one =>
+          simp only [encodePosNum, binaryLEBitsAux, binaryLEUpdate,
+            orderingLEResult, PosNum.cmp]
+          exact binaryLEBitsAux_right_of_nonempty true
+            (encodePosNum_nonempty left)
+      | bit1 right =>
+          have h := ih (binaryLEUpdate current (some false) (some true)) right
+          cases hcmp : PosNum.cmp left right <;>
+            simp [encodePosNum, binaryLEBitsAux, binaryLEUpdate,
+              PosNum.cmp, hcmp, orderingLEResult] at h ⊢ <;>
+            exact h
+      | bit0 right =>
+          simpa [encodePosNum, binaryLEBitsAux, binaryLEUpdate,
+            PosNum.cmp] using ih current right
+
+private theorem orderingLEResult_cmp_true (left right : PosNum) :
+    orderingLEResult true (PosNum.cmp left right) =
+      decide ((left : ℕ) ≤ (right : ℕ)) := by
+  have hcmpNat := PosNum.cmp_to_nat left right
+  cases hcmp : PosNum.cmp left right with
+  | lt =>
+      simp [hcmp] at hcmpNat
+      have hlePos : left ≤ right := hcmpNat.le
+      have hle : (left : ℕ) ≤ (right : ℕ) :=
+        PosNum.le_to_nat.mpr hlePos
+      simp [orderingLEResult, hle]
+  | eq =>
+      simp [hcmp] at hcmpNat
+      subst right
+      simp [orderingLEResult]
+  | gt =>
+      simp [hcmp] at hcmpNat
+      have hlt : (right : ℕ) < (left : ℕ) :=
+        PosNum.lt_to_nat.mpr hcmpNat
+      have hnle : ¬(left : ℕ) ≤ (right : ℕ) := Nat.not_le_of_gt hlt
+      simp [orderingLEResult, hnle]
+
+/-- Bit comparison agrees with natural-number comparison on canonical binary
+encodings, including zero on either side. -/
+@[simp]
+theorem binaryLEBitsAux_encodeNat (left right : ℕ) :
+    binaryLEBitsAux true (encodeNat left) (encodeNat right) =
+      decide (left ≤ right) := by
+  unfold encodeNat
+  cases hleft : (left : Num) with
+  | zero =>
+      cases hright : (right : Num) with
+      | zero =>
+          have hleftNat := congrArg (fun n : Num => (n : ℕ)) hleft
+          have hrightNat := congrArg (fun n : Num => (n : ℕ)) hright
+          simp at hleftNat hrightNat
+          simp [hleftNat, hrightNat, encodeNum, binaryLEBitsAux]
+      | pos rightPos =>
+          have hleftNat := congrArg (fun n : Num => (n : ℕ)) hleft
+          have hrightNat := congrArg (fun n : Num => (n : ℕ)) hright
+          simp at hleftNat hrightNat
+          have hcompare :
+              binaryLEBitsAux true [] (encodePosNum rightPos) = true :=
+            binaryLEBitsAux_left_of_nonempty true
+              (encodePosNum_nonempty rightPos)
+          simp [hleftNat, hrightNat, encodeNum, hcompare]
+  | pos leftPos =>
+      cases hright : (right : Num) with
+      | zero =>
+          have hleftNat := congrArg (fun n : Num => (n : ℕ)) hleft
+          have hrightNat := congrArg (fun n : Num => (n : ℕ)) hright
+          simp at hleftNat hrightNat
+          have hleftPos : 0 < (leftPos : ℕ) := PosNum.to_nat_pos leftPos
+          have hcompare :
+              binaryLEBitsAux true (encodePosNum leftPos) [] = false :=
+            binaryLEBitsAux_right_of_nonempty true
+              (encodePosNum_nonempty leftPos)
+          simp [hleftNat, hrightNat, encodeNum, hcompare,
+            Nat.ne_of_gt hleftPos]
+      | pos rightPos =>
+          have hleftNat := congrArg (fun n : Num => (n : ℕ)) hleft
+          have hrightNat := congrArg (fun n : Num => (n : ℕ)) hright
+          simp at hleftNat hrightNat
+          rw [show encodeNum (Num.pos leftPos) = encodePosNum leftPos by rfl,
+            show encodeNum (Num.pos rightPos) = encodePosNum rightPos by rfl,
+            binaryLEBitsAux_encodePosNum,
+            orderingLEResult_cmp_true]
+          simp [hleftNat, hrightNat]
+
+/-- Input and single-bit output stacks for binary comparison. -/
+inductive CompareStack
+  | input
+  | output
+  deriving DecidableEq, Fintype
+
+/-- The comparison program needs one scanning label. -/
+inductive CompareLabel
+  | scan
+  deriving DecidableEq, Fintype
+
+/-- Finite control stores the last aligned pair and the decision from all bit
+positions inspected so far. -/
+structure CompareState where
+  pair : Option (Option Bool × Option Bool)
+  result : Bool
+  deriving DecidableEq, Fintype
+
+private def compareInitialState : CompareState :=
+  ⟨none, true⟩
+
+private def comparePoppedPair
+    (state : CompareState)
+    (pair : Option (Option Bool × Option Bool)) : CompareState :=
+  match pair with
+  | none => { state with pair := none }
+  | some bits =>
+      ⟨some bits, binaryLEUpdate state.result bits.1 bits.2⟩
+
+private def comparePairPresent : CompareState → Bool
+  | ⟨some _, _⟩ => true
+  | _ => false
+
+private def compareResult (state : CompareState) : Bool :=
+  state.result
+
+private def CompareAlphabet : CompareStack → Type
+  | .input => Option Bool × Option Bool
+  | .output => Bool
+
+/-- One-pass finite program for aligned binary comparison. -/
+def binaryLEProgram :
+    CompareLabel → TM2.Stmt CompareAlphabet CompareLabel CompareState
+  | .scan =>
+      .pop .input comparePoppedPair <|
+        .branch comparePairPresent
+          (.goto (fun _ => .scan))
+          (.push .output compareResult <|
+            .load (fun _ => compareInitialState) .halt)
+
+/-- Concrete finite machine deciding less-than-or-equal on paired binary
+naturals. -/
+def binaryLEComputer : FinTM2 where
+  K := CompareStack
+  k₀ := .input
+  k₁ := .output
+  Γ := CompareAlphabet
+  Λ := CompareLabel
+  main := .scan
+  σ := CompareState
+  initialState := compareInitialState
+  Γk₀Fin := by
+    change Fintype (Option Bool × Option Bool)
+    infer_instance
+  m := binaryLEProgram
+
+private def compareStackContents
+    (input : List (Option Bool × Option Bool)) (output : List Bool) :
+    (index : CompareStack) → List (CompareAlphabet index)
+  | .input => input
+  | .output => output
+
+private def compareCfg (label : Option CompareLabel) (state : CompareState)
+    (input : List (Option Bool × Option Bool)) (output : List Bool) :
+    binaryLEComputer.Cfg where
+  l := label
+  var := state
+  stk := compareStackContents input output
+
+private theorem compare_step_cons
+    (pair : Option Bool × Option Bool)
+    (pairs : List (Option Bool × Option Bool)) (output : List Bool)
+    (state : CompareState) :
+    binaryLEComputer.step
+        (compareCfg (some .scan) state (pair :: pairs) output) =
+      some (compareCfg (some .scan)
+        (comparePoppedPair state (some pair)) pairs output) := by
+  rcases pair with ⟨left, right⟩
+  rcases left with _ | left <;> rcases right with _ | right <;>
+    simp [binaryLEComputer, FinTM2.step, compareCfg, binaryLEProgram,
+      compareStackContents, CompareAlphabet, comparePoppedPair,
+      comparePairPresent, binaryLEUpdate, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem compare_step_nil (output : List Bool)
+    (state : CompareState) :
+    binaryLEComputer.step
+        (compareCfg (some .scan) state [] output) =
+      some (compareCfg none compareInitialState []
+        (state.result :: output)) := by
+  rcases state with ⟨pair, result⟩
+  simp [binaryLEComputer, FinTM2.step, compareCfg, binaryLEProgram,
+    compareStackContents, CompareAlphabet, comparePoppedPair,
+    comparePairPresent, compareResult, compareInitialState,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private def compareEvalsToInTimeOne
+    {start finish : binaryLEComputer.Cfg}
+    (hstep : binaryLEComputer.step start = some finish) :
+    EvalsToInTime binaryLEComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def compare_scan_evals
+    (pairs : List (Option Bool × Option Bool)) (output : List Bool)
+    (state : CompareState) :
+    EvalsToInTime binaryLEComputer.step
+      (compareCfg (some .scan) state pairs output)
+      (some (compareCfg none compareInitialState []
+        (binaryLEPairsAux state.result pairs :: output)))
+      (pairs.length + 1) := by
+  induction pairs generalizing state with
+  | nil =>
+      simpa [binaryLEPairsAux] using compareEvalsToInTimeOne
+        (compare_step_nil output state)
+  | cons pair pairs ih =>
+      let middle := compareCfg (some .scan)
+        (comparePoppedPair state (some pair)) pairs output
+      have hone : EvalsToInTime binaryLEComputer.step
+          (compareCfg (some .scan) state (pair :: pairs) output)
+          (some middle) 1 :=
+        compareEvalsToInTimeOne (by
+          simpa [middle] using compare_step_cons pair pairs output state)
+      have hrest := ih (comparePoppedPair state (some pair))
+      have htrans := EvalsToInTime.trans binaryLEComputer.step
+        1 (pairs.length + 1)
+        (compareCfg (some .scan) state (pair :: pairs) output)
+        middle
+        (some (compareCfg none compareInitialState []
+          (binaryLEPairsAux state.result (pair :: pairs) :: output)))
+        hone
+        (by
+          simpa [middle, comparePoppedPair, binaryLEPairsAux] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private theorem compare_initList_eq_cfg
+    (input : List (Option Bool × Option Bool)) :
+    initList binaryLEComputer input =
+      compareCfg (some .scan) compareInitialState input [] := by
+  unfold initList compareCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem compare_haltList_eq_cfg (output : List Bool) :
+    haltList binaryLEComputer output =
+      compareCfg none compareInitialState [] output := by
+  unfold haltList compareCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- Binary comparison runs in exactly one scan plus the final output step. -/
+def binaryLE_outputsInTime (pair : ℕ × ℕ) :
+    TM2OutputsInTime binaryLEComputer (BinaryNatPair.encode pair)
+      (some [decide (pair.1 ≤ pair.2)])
+      ((BinaryNatPair.encode pair).length + 1) := by
+  have hrun := compare_scan_evals (BinaryNatPair.encode pair) []
+    compareInitialState
+  rw [TM2OutputsInTime, compare_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [compare_haltList_eq_cfg]
+  rcases pair with ⟨left, right⟩
+  simpa [BinaryNatPair.encode, compareInitialState] using hrun
+
+/-- A genuine linear-time finite-machine witness deciding comparison on two
+canonical binary naturals. -/
+noncomputable def binaryLEComputableInPolyTime :
+    @TM2ComputableInPolyTime (ℕ × ℕ) Bool BinaryNatPair.finEncoding
+      finEncodingBoolBool (fun pair => decide (pair.1 ≤ pair.2)) where
+  tm := binaryLEComputer
+  inputAlphabet := Equiv.refl (Option Bool × Option Bool)
+  outputAlphabet := Equiv.refl Bool
+  time := Polynomial.X + 1
+  outputsFun pair := by
+    simpa [BinaryNatPair.finEncoding, finEncodingBoolBool, encodeBool,
+      Equiv.refl, Polynomial.eval_add, Polynomial.eval_one,
+      Polynomial.eval_X] using binaryLE_outputsInTime pair
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
@@ -2013,5 +2510,9 @@ noncomputable def binarySuccComputableInPolyTime :
 #print axioms binarySuccBits_encodeNat
 #print axioms binarySucc_outputsInTime
 #print axioms binarySuccComputableInPolyTime
+#print axioms BinaryNatPair.decode_encode
+#print axioms binaryLEBitsAux_encodeNat
+#print axioms binaryLE_outputsInTime
+#print axioms binaryLEComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine

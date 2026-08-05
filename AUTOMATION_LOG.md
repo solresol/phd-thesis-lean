@@ -604,3 +604,64 @@
   binary naturals, then combine successor and comparison for bounded candidate
   enumeration before divisibility, deterministic primality testing, and the
   Bertrand-interval prime scan.
+
+## 2026-08-06 05:33 AEST
+
+- Starting repository commit:
+  `ef0e13ed2f2ffb451f2793ade3c3705084e8f821` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `f8161beb7546aafe3fdd85aa61b18a5917a7d00f`. That sibling checkout retains
+  unrelated modifications to `.gitignore` and `todo.md`; this automation did
+  not alter them. The proof still requires deterministic primality testing,
+  prime scanning, and the complete compiler machine, so
+  `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` and its live `main` ref agree
+  at `745b81a3f188e12060ffccbfba979740abcb9f25`. Its latest checked work lifts
+  the two component programs into the combined scratch-stack layout, but the
+  transfer loop, complete composition theorem, and polynomial runtime proof
+  remain unfinished; it still has no reusable checked comparison, division,
+  primality test, or prime scan.
+- Chosen increment: the next binary arithmetic primitive needed for bounded
+  candidate enumeration. `BinaryNatPair.finEncoding` is a checked finite
+  aligned-pair encoding that preserves both mathlib canonical binary natural
+  words, including zero and unequal-length inputs. `binaryLEBitsAux_encodeNat`
+  proves that the least-to-most-significant comparison fold emits exactly
+  `decide (left ≤ right)`.
+- Headline declaration:
+  `AllDifferentCSPMachine.binaryLEComputableInPolyTime` is a genuine
+  `TM2ComputableInPolyTime` witness from `BinaryNatPair.finEncoding` to
+  `finEncodingBoolBool`. Its concrete two-stack `FinTM2` scans one aligned bit
+  pair per step, lets each more significant unequal bit replace the earlier
+  decision, handles exhausted sides explicitly, and emits the comparison bit
+  in `s + 1` steps for encoded input length `s`. `binaryLE_outputsInTime`
+  records the exact machine execution bound.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the encoding,
+  semantic comparison proof, finite machine, exact runtime proof, polynomial
+  witness, and axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` now distinguish the completed comparison primitive from
+  the remaining arithmetic and whole-compiler obligations.
+- Failed proof/API approaches supplied two useful corrections. First,
+  simplifying `List.filterMap Prod.fst` and `Prod.snd` through the dependent
+  aligned recursion left unhelpful membership goals, so the checked decoder
+  projections were replaced by direct structural recursions. Second, a final
+  `.halt` retains finite control rather than restoring `initialState`; the
+  output branch therefore now pushes the stored decision and then explicitly
+  loads `compareInitialState`, making its final configuration exactly
+  `haltList`. No blocker remains in this increment.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3105 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. The new headline
+  `#print axioms` audits report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes in this repository.
+- Best next step: combine the checked successor and comparison primitives into
+  bounded candidate enumeration, then add binary remainder/divisibility and a
+  deterministic primality predicate before proving the Bertrand-interval
+  prime scan's machine runtime.
