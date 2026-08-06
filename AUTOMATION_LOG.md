@@ -665,3 +665,64 @@
   bounded candidate enumeration, then add binary remainder/divisibility and a
   deterministic primality predicate before proving the Bertrand-interval
   prime scan's machine runtime.
+
+## 2026-08-07 05:29 AEST
+
+- Starting repository commit:
+  `cc9c0762a79d6a80b67ffa915077f03022dc3111` on `main`. The automation began
+  with a clean working tree; after fetching, local `HEAD`, `origin/main`, and
+  the live remote `refs/heads/main` agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `f8161beb7546aafe3fdd85aa61b18a5917a7d00f`. That sibling checkout retains
+  unrelated modifications to `.gitignore` and `todo.md`; this automation did
+  not alter them. The proof still requires a deterministic polynomial-time
+  prime scan and the complete compiler machine, so
+  `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean at
+  `5bcaa737ed38c260124506e1e0aad080c93edd5b`. Its latest checked increment
+  verifies the reverse-output loop of the unfinished generic machine transfer,
+  but the fill-input phase, complete composition theorem, and polynomial
+  runtime proof remain pending; it still provides no reusable binary
+  arithmetic, divisibility, primality test, or prime scan.
+- Chosen increment: checked binary addition, which constructs the Bertrand
+  interval endpoint `2q` and supplies ripple-carry arithmetic needed by later
+  bounded enumeration. `binaryAddBitsAux_encodeNat` proves that the aligned
+  least-significant-bit-first fold emits exactly `encodeNat (left + right)`,
+  including zero operands and a final carry bit.
+- Headline declaration:
+  `AllDifferentCSPMachine.binaryAddComputableInPolyTime` is a genuine
+  `TM2ComputableInPolyTime` witness from `BinaryNatPair.finEncoding` to
+  `finEncodingNatBool`. Its concrete three-stack `FinTM2` scans each aligned
+  pair once, stores only the current carry in finite control, reverses the work
+  stack into canonical output order, and halts in at most `2s + 3` steps for
+  paired input length `s`. `binaryAdd_outputsInTime` records the stronger
+  execution bound and exact output.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the semantic
+  ripple-carry fold, finite machine, phase simulations, runtime bound,
+  polynomial witness, and axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` now distinguish checked addition from the remaining
+  bounded-enumeration, remainder/divisibility, primality, and assembly work.
+- Failed proof approaches supplied three useful corrections. Expressing the
+  finite addition truth table through arithmetic counts left opaque `if` and
+  `decide` terms under structural rewriting, so it was replaced by an explicit
+  exhaustive finite-control table. Direct simplification of `PosNum.add` did
+  not expose its constructor cases, so the semantic proof now states each
+  normalized constructor target explicitly. Finally, the runtime inequality
+  initially left the local `result` abbreviation opaque to `omega`; changing
+  the checked length bound to `result.length ≤ input.length + 1` exposed the
+  required relation. No blocker remains in this increment.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3105 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. The new headline
+  `#print axioms` audits report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes in this repository.
+- Best next step: use successor, comparison, and addition to build a checked
+  bounded candidate enumerator for `[q + 1, 2q]`; then add binary
+  remainder/divisibility and a deterministic primality predicate before
+  proving the Bertrand-interval prime scan's machine runtime.

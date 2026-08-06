@@ -21,11 +21,13 @@ the standard nested-list input encoding, exposing every length and value field
 as an explicitly delimited raw binary stream in linear time. A fourth finite
 machine computes successor on mathlib's canonical binary natural encoding in
 linear time. A fifth finite machine compares two aligned canonical binary
-naturals in linear time.
+naturals in linear time. A sixth finite machine adds the same aligned binary
+naturals by ripple carry in linear time.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, the remaining binary
-arithmetic, primality testing, prime selection, or final compiler assembly.
+arithmetic (notably remainder/divisibility), primality testing, prime selection,
+or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -2498,6 +2500,567 @@ noncomputable def binaryLEComputableInPolyTime :
       Equiv.refl, Polynomial.eval_add, Polynomial.eval_one,
       Polynomial.eval_X] using binaryLE_outputsInTime pair
 
+/-! ## Binary addition
+
+The Bertrand interval has upper endpoint `2 * q`, and bounded candidate
+enumeration repeatedly advances binary values.  The following ripple-carry
+pass complements successor and comparison with checked addition on the same
+aligned-pair encoding.  Bits are visited least-significant first, so finite
+control only needs the current carry.
+-/
+
+/-- One ripple-carry addition step.  The first component is the emitted bit;
+the second is the carry into the next bit position. -/
+def binaryAddStep (carry : Bool) (left right : Option Bool) : Bool × Bool :=
+  match carry, left, right with
+  | false, none, none => (false, false)
+  | false, none, some false => (false, false)
+  | false, some false, none => (false, false)
+  | false, some false, some false => (false, false)
+  | false, none, some true => (true, false)
+  | false, some true, none => (true, false)
+  | false, some false, some true => (true, false)
+  | false, some true, some false => (true, false)
+  | false, some true, some true => (false, true)
+  | true, none, none => (true, false)
+  | true, none, some false => (true, false)
+  | true, some false, none => (true, false)
+  | true, some false, some false => (true, false)
+  | true, none, some true => (false, true)
+  | true, some true, none => (false, true)
+  | true, some false, some true => (false, true)
+  | true, some true, some false => (false, true)
+  | true, some true, some true => (true, true)
+
+/-- Ripple-carry addition directly on two least-significant-bit-first words. -/
+def binaryAddBitsAux : Bool → List Bool → List Bool → List Bool
+  | carry, [], [] => if carry then [true] else []
+  | carry, left :: lefts, [] =>
+      let step := binaryAddStep carry (some left) none
+      step.1 :: binaryAddBitsAux step.2 lefts []
+  | carry, [], right :: rights =>
+      let step := binaryAddStep carry none (some right)
+      step.1 :: binaryAddBitsAux step.2 [] rights
+  | carry, left :: lefts, right :: rights =>
+      let step := binaryAddStep carry (some left) (some right)
+      step.1 :: binaryAddBitsAux step.2 lefts rights
+
+/-- The same addition fold over the aligned pair wire representation. -/
+def binaryAddPairsAux : Bool →
+    List (Option Bool × Option Bool) → List Bool
+  | carry, [] => if carry then [true] else []
+  | carry, pair :: pairs =>
+      let step := binaryAddStep carry pair.1 pair.2
+      step.1 :: binaryAddPairsAux step.2 pairs
+
+@[simp]
+theorem binaryAddPairsAux_zipBits
+    (carry : Bool) (left right : List Bool) :
+    binaryAddPairsAux carry (BinaryNatPair.zipBits left right) =
+      binaryAddBitsAux carry left right := by
+  induction left generalizing carry right with
+  | nil =>
+      induction right generalizing carry with
+      | nil => simp [BinaryNatPair.zipBits, binaryAddPairsAux,
+          binaryAddBitsAux]
+      | cons right rights ih =>
+          simp [BinaryNatPair.zipBits, binaryAddPairsAux,
+            binaryAddBitsAux, ih]
+  | cons left lefts ih =>
+      cases right with
+      | nil =>
+          simp [BinaryNatPair.zipBits, binaryAddPairsAux,
+            binaryAddBitsAux, ih]
+      | cons right rights =>
+          simp [BinaryNatPair.zipBits, binaryAddPairsAux,
+            binaryAddBitsAux, ih]
+
+private theorem binaryAddBitsAux_false_left_nil (bits : List Bool) :
+    binaryAddBitsAux false [] bits = bits := by
+  induction bits with
+  | nil => simp [binaryAddBitsAux]
+  | cons bit bits ih =>
+      cases bit <;> simp [binaryAddBitsAux, binaryAddStep, ih]
+
+private theorem binaryAddBitsAux_false_right_nil (bits : List Bool) :
+    binaryAddBitsAux false bits [] = bits := by
+  induction bits with
+  | nil => simp [binaryAddBitsAux]
+  | cons bit bits ih =>
+      cases bit <;> simp [binaryAddBitsAux, binaryAddStep, ih]
+
+private theorem binaryAddBitsAux_true_left_nil (bits : List Bool) :
+    binaryAddBitsAux true [] bits = binarySuccBits bits := by
+  induction bits with
+  | nil => simp [binaryAddBitsAux, binarySuccBits]
+  | cons bit bits ih =>
+      cases bit <;> simp [binaryAddBitsAux, binaryAddStep,
+        binarySuccBits, binaryAddBitsAux_false_left_nil, ih]
+
+private theorem binaryAddBitsAux_true_right_nil (bits : List Bool) :
+    binaryAddBitsAux true bits [] = binarySuccBits bits := by
+  induction bits with
+  | nil => simp [binaryAddBitsAux, binarySuccBits]
+  | cons bit bits ih =>
+      cases bit <;> simp [binaryAddBitsAux, binaryAddStep,
+        binarySuccBits, binaryAddBitsAux_false_right_nil, ih]
+
+private theorem binaryAddBitsAux_true_eq_succ
+    (left right : List Bool) :
+    binaryAddBitsAux true left right =
+      binarySuccBits (binaryAddBitsAux false left right) := by
+  induction left generalizing right with
+  | nil =>
+      rw [binaryAddBitsAux_true_left_nil,
+        binaryAddBitsAux_false_left_nil]
+  | cons left lefts ih =>
+      cases right with
+      | nil =>
+          rw [binaryAddBitsAux_true_right_nil,
+            binaryAddBitsAux_false_right_nil]
+      | cons right rights =>
+          cases left <;> cases right <;>
+            simp [binaryAddBitsAux, binaryAddStep, binarySuccBits, ih]
+
+private theorem binaryAddBitsAux_encodePosNum
+    (left right : PosNum) :
+    binaryAddBitsAux false (encodePosNum left) (encodePosNum right) =
+      encodePosNum (left + right) := by
+  induction left generalizing right with
+  | one =>
+      cases right with
+      | one =>
+          change binaryAddBitsAux false [true] [true] = [false, true]
+          simp [binaryAddBitsAux, binaryAddStep]
+      | bit1 right =>
+          change binaryAddBitsAux false [true]
+              (true :: encodePosNum right) =
+            encodePosNum (PosNum.bit1 right).succ
+          simp only [binaryAddBitsAux, binaryAddStep]
+          rw [binaryAddBitsAux_true_left_nil,
+            binarySuccBits_encodePosNum]
+          change false :: encodePosNum right.succ =
+            false :: encodePosNum right.succ
+          rfl
+      | bit0 right =>
+          change binaryAddBitsAux false [true]
+              (false :: encodePosNum right) =
+            encodePosNum (PosNum.bit0 right).succ
+          simp only [binaryAddBitsAux, binaryAddStep]
+          rw [binaryAddBitsAux_false_left_nil]
+          rfl
+  | bit1 left ih =>
+      cases right with
+      | one =>
+          change binaryAddBitsAux false (true :: encodePosNum left)
+              [true] = encodePosNum (PosNum.bit1 left).succ
+          simp only [binaryAddBitsAux, binaryAddStep]
+          rw [binaryAddBitsAux_true_right_nil,
+            binarySuccBits_encodePosNum]
+          change false :: encodePosNum left.succ =
+            false :: encodePosNum left.succ
+          rfl
+      | bit1 right =>
+          change binaryAddBitsAux false (true :: encodePosNum left)
+              (true :: encodePosNum right) =
+            encodePosNum (PosNum.bit0 ((left + right).succ))
+          simp only [binaryAddBitsAux, binaryAddStep, encodePosNum]
+          rw [binaryAddBitsAux_true_eq_succ,
+            ih, binarySuccBits_encodePosNum]
+      | bit0 right =>
+          change binaryAddBitsAux false (true :: encodePosNum left)
+              (false :: encodePosNum right) =
+            encodePosNum (PosNum.bit1 (left + right))
+          simp only [binaryAddBitsAux, binaryAddStep, encodePosNum]
+          rw [ih]
+  | bit0 left ih =>
+      cases right with
+      | one =>
+          change binaryAddBitsAux false (false :: encodePosNum left)
+              [true] = encodePosNum (PosNum.bit0 left).succ
+          simp only [binaryAddBitsAux, binaryAddStep]
+          rw [binaryAddBitsAux_false_right_nil]
+          rfl
+      | bit1 right =>
+          change binaryAddBitsAux false (false :: encodePosNum left)
+              (true :: encodePosNum right) =
+            encodePosNum (PosNum.bit1 (left + right))
+          simp only [binaryAddBitsAux, binaryAddStep, encodePosNum]
+          rw [ih]
+      | bit0 right =>
+          change binaryAddBitsAux false (false :: encodePosNum left)
+              (false :: encodePosNum right) =
+            encodePosNum (PosNum.bit0 (left + right))
+          simp only [binaryAddBitsAux, binaryAddStep, encodePosNum]
+          rw [ih]
+
+private theorem binaryAddBitsAux_encodeNum (left right : Num) :
+    binaryAddBitsAux false (encodeNum left) (encodeNum right) =
+      encodeNum (left + right) := by
+  cases left with
+  | zero =>
+      change binaryAddBitsAux false [] (encodeNum right) = encodeNum right
+      exact binaryAddBitsAux_false_left_nil (encodeNum right)
+  | pos left =>
+      cases right with
+      | zero =>
+          change binaryAddBitsAux false (encodePosNum left) [] =
+            encodePosNum left
+          exact binaryAddBitsAux_false_right_nil (encodePosNum left)
+      | pos right =>
+          change binaryAddBitsAux false (encodePosNum left)
+              (encodePosNum right) = encodePosNum (left + right)
+          exact
+            binaryAddBitsAux_encodePosNum left right
+
+/-- Ripple-carry addition agrees with natural-number addition on mathlib's
+canonical binary encodings, including zero on either side. -/
+@[simp]
+theorem binaryAddBitsAux_encodeNat (left right : ℕ) :
+    binaryAddBitsAux false (encodeNat left) (encodeNat right) =
+      encodeNat (left + right) := by
+  unfold encodeNat
+  rw [binaryAddBitsAux_encodeNum, ← Num.add_of_nat]
+
+private theorem binaryAddPairsAux_length_le
+    (carry : Bool) (pairs : List (Option Bool × Option Bool)) :
+    (binaryAddPairsAux carry pairs).length ≤ pairs.length + 1 := by
+  induction pairs generalizing carry with
+  | nil => cases carry <;> simp [binaryAddPairsAux]
+  | cons pair pairs ih =>
+      simp only [binaryAddPairsAux, List.length_cons]
+      exact Nat.succ_le_succ (ih (binaryAddStep carry pair.1 pair.2).2)
+
+/-- Input, reverse-work, and canonical output stacks for binary addition. -/
+inductive AddStack
+  | input
+  | work
+  | output
+  deriving DecidableEq, Fintype
+
+/-- Ripple-carry scanning and output reversal phases. -/
+inductive AddLabel
+  | scan
+  | reverse
+  deriving DecidableEq, Fintype
+
+/-- Finite control stores the latest aligned pair, its emitted bit, and the
+carry into the next position. -/
+structure AddState where
+  pair : Option (Option Bool × Option Bool)
+  bit : Option Bool
+  carry : Bool
+  deriving DecidableEq, Fintype
+
+private def addInitialState : AddState :=
+  ⟨none, none, false⟩
+
+private def addPoppedPair
+    (state : AddState)
+    (pair : Option (Option Bool × Option Bool)) : AddState :=
+  match pair with
+  | none => { state with pair := none }
+  | some bits =>
+      let step := binaryAddStep state.carry bits.1 bits.2
+      ⟨some bits, some step.1, step.2⟩
+
+private def addPoppedWork
+    (state : AddState) (bit : Option Bool) : AddState :=
+  { state with bit := bit }
+
+private def addPairPresent : AddState → Bool
+  | ⟨some _, _, _⟩ => true
+  | _ => false
+
+private def addBitPresent : AddState → Bool
+  | ⟨_, some _, _⟩ => true
+  | _ => false
+
+private def addCarry (state : AddState) : Bool :=
+  state.carry
+
+private def addEmittedBit : AddState → Bool
+  | ⟨_, some bit, _⟩ => bit
+  | _ => false
+
+private def AddAlphabet : AddStack → Type
+  | .input => Option Bool × Option Bool
+  | .work => Bool
+  | .output => Bool
+
+/-- A finite ripple-carry adder.  Scanning pushes emitted bits onto a work
+stack; the reverse phase restores least-significant-bit-first output order. -/
+def binaryAddProgram :
+    AddLabel → TM2.Stmt AddAlphabet AddLabel AddState
+  | .scan =>
+      .pop .input addPoppedPair <|
+        .branch addPairPresent
+          (.push .work addEmittedBit <|
+            .goto (fun _ => .scan))
+          (.branch addCarry
+            (.push .work (fun _ => true) <|
+              .goto (fun _ => .reverse))
+            (.goto (fun _ => .reverse)))
+  | .reverse =>
+      .pop .work addPoppedWork <|
+        .branch addBitPresent
+          (.push .output addEmittedBit <|
+            .goto (fun _ => .reverse))
+          (.load (fun _ => addInitialState) .halt)
+
+/-- Concrete finite machine adding two aligned canonical binary naturals. -/
+def binaryAddComputer : FinTM2 where
+  K := AddStack
+  k₀ := .input
+  k₁ := .output
+  Γ := AddAlphabet
+  Λ := AddLabel
+  main := .scan
+  σ := AddState
+  initialState := addInitialState
+  Γk₀Fin := by
+    change Fintype (Option Bool × Option Bool)
+    infer_instance
+  m := binaryAddProgram
+
+private def addStackContents
+    (input : List (Option Bool × Option Bool))
+    (work output : List Bool) :
+    (index : AddStack) → List (AddAlphabet index)
+  | .input => input
+  | .work => work
+  | .output => output
+
+private def addCfg (label : Option AddLabel) (state : AddState)
+    (input : List (Option Bool × Option Bool))
+    (work output : List Bool) : binaryAddComputer.Cfg where
+  l := label
+  var := state
+  stk := addStackContents input work output
+
+private theorem add_step_scan_cons
+    (pair : Option Bool × Option Bool)
+    (pairs : List (Option Bool × Option Bool))
+    (work output : List Bool) (state : AddState) :
+    binaryAddComputer.step
+        (addCfg (some .scan) state (pair :: pairs) work output) =
+      some (addCfg (some .scan)
+        (addPoppedPair state (some pair)) pairs
+        ((binaryAddStep state.carry pair.1 pair.2).1 :: work) output) := by
+  rcases state with ⟨heldPair, heldBit, carry⟩
+  rcases pair with ⟨left, right⟩
+  rcases left with _ | left <;> rcases right with _ | right <;>
+    cases carry <;>
+    simp [binaryAddComputer, FinTM2.step, addCfg, binaryAddProgram,
+      addStackContents, AddAlphabet, addPoppedPair, addPairPresent,
+      addEmittedBit, binaryAddStep, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem add_step_scan_nil_false
+    (work output : List Bool) (pair : Option (Option Bool × Option Bool))
+    (bit : Option Bool) :
+    binaryAddComputer.step
+        (addCfg (some .scan) ⟨pair, bit, false⟩ [] work output) =
+      some (addCfg (some .reverse) ⟨none, bit, false⟩ [] work output) := by
+  simp [binaryAddComputer, FinTM2.step, addCfg, binaryAddProgram,
+    addStackContents, AddAlphabet, addPoppedPair, addPairPresent, addCarry,
+    Function.update]
+
+private theorem add_step_scan_nil_true
+    (work output : List Bool) (pair : Option (Option Bool × Option Bool))
+    (bit : Option Bool) :
+    binaryAddComputer.step
+        (addCfg (some .scan) ⟨pair, bit, true⟩ [] work output) =
+      some (addCfg (some .reverse) ⟨none, bit, true⟩ []
+        (true :: work) output) := by
+  simp [binaryAddComputer, FinTM2.step, addCfg, binaryAddProgram,
+    addStackContents, AddAlphabet, addPoppedPair, addPairPresent, addCarry,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem add_step_reverse_cons
+    (bit : Bool) (work output : List Bool) (state : AddState) :
+    binaryAddComputer.step
+        (addCfg (some .reverse) state [] (bit :: work) output) =
+      some (addCfg (some .reverse) (addPoppedWork state (some bit))
+        [] work (bit :: output)) := by
+  rcases state with ⟨pair, heldBit, carry⟩
+  cases bit <;>
+    simp [binaryAddComputer, FinTM2.step, addCfg, binaryAddProgram,
+      addStackContents, AddAlphabet, addPoppedWork, addBitPresent,
+      addEmittedBit, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem add_step_reverse_nil
+    (output : List Bool) (state : AddState) :
+    binaryAddComputer.step
+        (addCfg (some .reverse) state [] [] output) =
+      some (addCfg none addInitialState [] [] output) := by
+  rcases state with ⟨pair, bit, carry⟩
+  simp [binaryAddComputer, FinTM2.step, addCfg, binaryAddProgram,
+    addStackContents, AddAlphabet, addPoppedWork, addBitPresent,
+    addInitialState, Function.update]
+
+private def addEvalsToInTimeOne
+    {start finish : binaryAddComputer.Cfg}
+    (hstep : binaryAddComputer.step start = some finish) :
+    EvalsToInTime binaryAddComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def addFoldState :
+    AddState → List (Option Bool × Option Bool) → AddState
+  | state, [] => addPoppedPair state none
+  | state, pair :: pairs =>
+      addFoldState (addPoppedPair state (some pair)) pairs
+
+private def add_scan_evals
+    (pairs : List (Option Bool × Option Bool))
+    (work output : List Bool) (state : AddState) :
+    EvalsToInTime binaryAddComputer.step
+      (addCfg (some .scan) state pairs work output)
+      (some (addCfg (some .reverse) (addFoldState state pairs) []
+        ((binaryAddPairsAux state.carry pairs).reverse ++ work) output))
+      (pairs.length + 1) := by
+  induction pairs generalizing work state with
+  | nil =>
+      rcases state with ⟨pair, bit, carry⟩
+      cases carry with
+      | false =>
+          simpa [addFoldState, binaryAddPairsAux] using
+            addEvalsToInTimeOne
+              (add_step_scan_nil_false work output pair bit)
+      | true =>
+          simpa [addFoldState, binaryAddPairsAux] using
+            addEvalsToInTimeOne
+              (add_step_scan_nil_true work output pair bit)
+  | cons pair pairs ih =>
+      let nextState := addPoppedPair state (some pair)
+      let step := binaryAddStep state.carry pair.1 pair.2
+      let middle := addCfg (some .scan) nextState pairs
+        (step.1 :: work) output
+      have hone : EvalsToInTime binaryAddComputer.step
+          (addCfg (some .scan) state (pair :: pairs) work output)
+          (some middle) 1 :=
+        addEvalsToInTimeOne (by
+          simpa [middle, nextState, step] using
+            add_step_scan_cons pair pairs work output state)
+      have hrest := ih (step.1 :: work) nextState
+      have htrans := EvalsToInTime.trans binaryAddComputer.step
+        1 (pairs.length + 1)
+        (addCfg (some .scan) state (pair :: pairs) work output)
+        middle
+        (some (addCfg (some .reverse)
+          (addFoldState state (pair :: pairs)) []
+          ((binaryAddPairsAux state.carry (pair :: pairs)).reverse ++ work)
+          output))
+        hone
+        (by
+          simpa [middle, nextState, step, addFoldState,
+            binaryAddPairsAux, addPoppedPair, List.reverse_cons,
+            List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def add_reverse_evals
+    (work output : List Bool) (state : AddState) :
+    EvalsToInTime binaryAddComputer.step
+      (addCfg (some .reverse) state [] work output)
+      (some (addCfg none addInitialState [] []
+        (work.reverse ++ output)))
+      (work.length + 1) := by
+  induction work generalizing output state with
+  | nil =>
+      simpa using addEvalsToInTimeOne (add_step_reverse_nil output state)
+  | cons bit work ih =>
+      let nextState := addPoppedWork state (some bit)
+      let middle := addCfg (some .reverse) nextState [] work
+        (bit :: output)
+      have hone : EvalsToInTime binaryAddComputer.step
+          (addCfg (some .reverse) state [] (bit :: work) output)
+          (some middle) 1 :=
+        addEvalsToInTimeOne (by
+          simpa [middle, nextState] using
+            add_step_reverse_cons bit work output state)
+      have hrest := ih (bit :: output) nextState
+      have htrans := EvalsToInTime.trans binaryAddComputer.step
+        1 (work.length + 1)
+        (addCfg (some .reverse) state [] (bit :: work) output)
+        middle
+        (some (addCfg none addInitialState [] []
+          ((bit :: work).reverse ++ output)))
+        hone
+        (by simpa [middle, nextState, List.reverse_cons,
+          List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private theorem add_initList_eq_cfg
+    (input : List (Option Bool × Option Bool)) :
+    initList binaryAddComputer input =
+      addCfg (some .scan) addInitialState input [] [] := by
+  unfold initList addCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem add_haltList_eq_cfg (output : List Bool) :
+    haltList binaryAddComputer output =
+      addCfg none addInitialState [] [] output := by
+  unfold haltList addCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- Binary addition uses one aligned scan and one output reversal, taking at
+most `2s + 3` steps for paired input length `s`. -/
+def binaryAdd_outputsInTime (pair : ℕ × ℕ) :
+    TM2OutputsInTime binaryAddComputer (BinaryNatPair.encode pair)
+      (some (encodeNat (pair.1 + pair.2)))
+      (2 * (BinaryNatPair.encode pair).length + 3) := by
+  let input := BinaryNatPair.encode pair
+  let result := binaryAddPairsAux false input
+  have hscan := add_scan_evals input [] [] addInitialState
+  have hreverse := add_reverse_evals result.reverse []
+    (addFoldState addInitialState input)
+  have hall := EvalsToInTime.trans binaryAddComputer.step
+    (input.length + 1) (result.reverse.length + 1)
+    (addCfg (some .scan) addInitialState input [] [])
+    (addCfg (some .reverse) (addFoldState addInitialState input) []
+      result.reverse [])
+    (some (addCfg none addInitialState [] [] result))
+    (by simpa [result] using hscan)
+    (by simpa [result] using hreverse)
+  have hlength := binaryAddPairsAux_length_le false input
+  change result.length ≤ input.length + 1 at hlength
+  have hmono : EvalsToInTime binaryAddComputer.step
+      (addCfg (some .scan) addInitialState input [] [])
+      (some (addCfg none addInitialState [] [] result))
+      (2 * input.length + 3) :=
+    evalsToInTimeMono hall (by
+      simp only [List.length_reverse]
+      omega)
+  rw [TM2OutputsInTime, add_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [add_haltList_eq_cfg]
+  rcases pair with ⟨left, right⟩
+  simpa [input, result, BinaryNatPair.encode, addInitialState] using hmono
+
+/-- A genuine linear-time finite-machine witness for addition on mathlib's
+standard binary natural-number encoding. -/
+noncomputable def binaryAddComputableInPolyTime :
+    @TM2ComputableInPolyTime (ℕ × ℕ) ℕ BinaryNatPair.finEncoding
+      finEncodingNatBool (fun pair => pair.1 + pair.2) where
+  tm := binaryAddComputer
+  inputAlphabet := Equiv.refl (Option Bool × Option Bool)
+  outputAlphabet := Equiv.refl Bool
+  time := 2 * Polynomial.X + 3
+  outputsFun pair := by
+    simpa [BinaryNatPair.finEncoding, finEncodingNatBool, Equiv.refl,
+      Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_natCast,
+      Polynomial.eval_X] using binaryAdd_outputsInTime pair
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
@@ -2514,5 +3077,8 @@ noncomputable def binaryLEComputableInPolyTime :
 #print axioms binaryLEBitsAux_encodeNat
 #print axioms binaryLE_outputsInTime
 #print axioms binaryLEComputableInPolyTime
+#print axioms binaryAddBitsAux_encodeNat
+#print axioms binaryAdd_outputsInTime
+#print axioms binaryAddComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine

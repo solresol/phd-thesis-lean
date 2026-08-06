@@ -153,9 +153,12 @@ values as an explicitly delimited raw-field stack stream.
 binary natural encoding in at most `2s + 3` steps, including zero and carry
 growth. `binaryLEComputableInPolyTime` decides less-than-or-equal on a checked
 aligned-pair encoding of two canonical binary naturals in `s + 1` steps,
-including zero and unequal-length words. CSP structural compilation, the
-remaining binary arithmetic, deterministic primality testing and prime
-scanning, and final whole-compiler composition remain.
+including zero and unequal-length words. `binaryAddComputableInPolyTime` adds
+the same aligned canonical words by ripple carry in at most `2s + 3` steps,
+including zero operands and a final carry bit. CSP structural compilation,
+bounded candidate enumeration, remainder/divisibility, deterministic
+primality testing and prime scanning, and final whole-compiler composition
+remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
