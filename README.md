@@ -155,10 +155,16 @@ growth. `binaryLEComputableInPolyTime` decides less-than-or-equal on a checked
 aligned-pair encoding of two canonical binary naturals in `s + 1` steps,
 including zero and unequal-length words. `binaryAddComputableInPolyTime` adds
 the same aligned canonical words by ripple carry in at most `2s + 3` steps,
-including zero operands and a final carry bit. CSP structural compilation,
-bounded candidate enumeration, remainder/divisibility, deterministic
-primality testing and prime scanning, and final whole-compiler composition
-remain.
+including zero operands and a final carry bit.
+`bertrandCandidatesComputableInPolyTime` consumes mathlib's unary encoding of
+`q` and emits the exact raw-natural-list encoding of every candidate in
+`[q + 1, 2q]` in at most `16(q + 1)^2` steps. The unary interface is
+deliberate: the final structural pass must establish it while scanning the
+explicit CSP input, whose length is at least the distinct-symbol count `q`;
+the theorem does not misstate enumeration as polynomial in standalone binary
+`q`. CSP structural compilation and unary-bound production,
+remainder/divisibility, deterministic primality testing and prime filtering,
+and final whole-compiler composition remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -271,8 +277,11 @@ The copied statements are grouped by mathematical contribution:
   standard nested-list input into explicit raw fields;
   `binarySuccComputableInPolyTime` proves linear-time successor and
   `binaryLEComputableInPolyTime` proves linear-time less-than-or-equal on
-  canonical binary naturals, while the complete compiler machine and its
-  structural, remaining arithmetic, and prime-selection passes remain open;
+  canonical binary naturals; `binaryAddComputableInPolyTime` proves
+  linear-time addition; and `bertrandCandidatesComputableInPolyTime` proves
+  quadratic-time enumeration of `[q + 1, 2q]` from a unary bound. The complete
+  compiler machine and its structural unary-bound production, remaining
+  arithmetic, primality-filtering, and prime-selection passes remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

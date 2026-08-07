@@ -726,3 +726,72 @@
   bounded candidate enumerator for `[q + 1, 2q]`; then add binary
   remainder/divisibility and a deterministic primality predicate before
   proving the Bertrand-interval prime scan's machine runtime.
+
+## 2026-08-08 05:33 AEST
+
+- Starting repository commit:
+  `56492c3c020aa2be22d025036dbebadd10a9713d` on `main`. The automation began
+  with a clean working tree; `git fetch --prune origin` confirmed local
+  `HEAD` and `origin/main` had divergence count `0 0`, and the live remote
+  `refs/heads/main` agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `f8161beb7546aafe3fdd85aa61b18a5917a7d00f`. That sibling checkout retains
+  unrelated modifications to `.gitignore` and `todo.md`; this automation did
+  not alter them. The proof still requires deterministic primality testing,
+  prime filtering/selection, structural compiler composition, and the complete
+  polynomial-time machine, so `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and agreed with its
+  tracked remote at `3f2ccabb51f9804e403ccb4b3046805e17c269db`. Its latest
+  checked increment verifies the fill-input transfer iteration, but the full
+  generic composition program, semantic simulation, and polynomial runtime
+  theorem remain unfinished. It still supplies no reusable remainder,
+  divisibility, primality-test, or prime-scan implementation.
+- Chosen increment: checked enumeration of the complete Bertrand interval.
+  `intervalFrom`, `bertrandCandidates`, and
+  `mem_bertrandCandidates_iff` define and characterize exactly the `q`
+  candidates in `[q + 1, 2q]`, including the empty `q = 0` case and the
+  singleton `q = 1` case.
+- Headline declaration:
+  `AllDifferentCSPMachine.bertrandCandidatesComputableInPolyTime` is a genuine
+  `TM2ComputableInPolyTime` witness from mathlib's `unaryFinEncodingNat` to
+  `RawNatList.finEncoding`. Its concrete five-stack finite machine counts the
+  unary bound into canonical binary, preserves a unary iteration copy,
+  repeatedly increments and emits raw binary fields, clears every non-output
+  stack, and produces exactly the checked encoding of
+  `[q + 1, ..., 2q]` in at most `16 * (q + 1)^2` steps.
+- The unary input is a statement-faithful interface, not a weakened complexity
+  claim: enumerating `q` explicit candidates is not polynomial in the bit
+  length of standalone binary `q`. The eventual structural pass must produce
+  the unary distinct-symbol bound while scanning the full explicit CSP input,
+  whose bit length is already at least `q`. README and theorem-status notes now
+  state this boundary explicitly.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the interval
+  semantics, finite enumerator, phase simulations, exact output connection,
+  quadratic runtime bound, polynomial witness, and axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` distinguish completed unary-bound enumeration from
+  unary-bound production and the remaining prime-selection and assembly work.
+- Failed proof/design approaches supplied useful corrections. Treating binary
+  `q` as the standalone input would make explicit interval enumeration
+  exponential in input bit length, so the machine was redesigned around the
+  full-compiler unary-bound invariant. The first recursive interval clause
+  needed parentheses around `current + 1` to avoid parsing addition against a
+  list. Core Lean did not expose a `List.reverse_map` theorem under the assumed
+  name, so the exact raw-output proof now uses a checked structural induction
+  for reversed mapped fields. No blocker remains in this increment.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3105 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. The new headline
+  `#print axioms` audits report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes in this repository.
+- Best next step: implement checked binary remainder/divisibility on canonical
+  naturals, then use it for deterministic trial-division primality filtering
+  over the enumerated candidates. Structural production of the unary
+  distinct-symbol bound and final machine composition remain separate
+  obligations.

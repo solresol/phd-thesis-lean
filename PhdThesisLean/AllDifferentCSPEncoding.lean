@@ -27,7 +27,8 @@ and linear-time serialization of a stack-oriented raw-natural stream into the
 exact framed natural-list format. It also proves a linear-time traversal from
 this module's standard nested-list encoding to an explicit raw-field stream,
 plus linear-time successor and less-than-or-equal passes on canonical binary
-naturals and a linear-time ripple-carry addition pass on aligned pairs.
+naturals, a linear-time ripple-carry addition pass on aligned pairs, and a
+quadratic-time unary-bound enumerator for the complete Bertrand interval.
 -/
 
 namespace BinaryNatLists
