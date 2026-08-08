@@ -233,6 +233,7 @@ require native compilation of all mathlib imports.
 
 The current statement-by-statement audit, including pending and partial
 results, is in [`THEOREM_STATUS.md`](THEOREM_STATUS.md).
+The actionable formalisation queue is in [`TODO.md`](TODO.md).
 
 The copied statements are grouped by mathematical contribution:
 

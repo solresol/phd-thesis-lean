@@ -44,6 +44,27 @@ complete count because its explicit Lean syntax captures the intended
 three-distinct-variable convention; a normalisation theorem for arbitrary
 3-CNF syntax would remove that qualification.
 
+## Post-snapshot formalisation queue
+
+The following statements were added to the active thesis after the 24 July
+snapshot. They are queued separately so that the audited 24-statement baseline
+and its source commit remain unchanged. “Pending” here means that the thesis
+contains a proof but no statement-faithful Lean declaration has yet been
+reviewed. They also appear as dependency-ordered checkbox tasks in
+[`TODO.md`](TODO.md).
+
+| Thesis label | Status | Lean declaration or remaining work |
+|---|---|---|
+| `prop:precision-growth-covering` | Pending | Define finite-precision prediction patterns and prove that their cardinality is the covering number of the prediction image by radius-$p^{-k}$ balls in the product sup metric. |
+| `prop:precision-growth-vc` | Pending | Identify reduction modulo $2$ at precision one with the ordinary binary growth function, then recover the VC-dimension criterion from full $2^m$-pattern realisation. |
+| `thm:affine-precision-growth` | Pending | For affine maps on `ZMod (p ^ K)`, prove that the reduced evaluation image on an $m$-sample has maximal cardinality $p^{k\min(m,d+1)}$; use the sample $0,e_1,\ldots,e_d$ for the lower bound. |
+| `prop:tree-syntax-growth-bound` | Pending | Formalise the finite description-count argument for a family of rooted tree shapes with bounded split-rule choices and `ZMod (p ^ k)` leaf labels. |
+| `cor:binary-tree-precision-growth` | Pending | Specialise the syntax bound to ordered full binary trees using the Catalan count and the identity $L=I+1$. |
+
+The logarithmic entropy notation in the thesis need not be the first Lean
+interface. The cardinality equalities and inequalities are the algebraic core;
+the real logarithm formulas can be derived afterwards if useful.
+
 ## The active thesis contains more than the headline catalogue
 
 The active thesis checkout contains 54 theorem, corollary, proposition, or
