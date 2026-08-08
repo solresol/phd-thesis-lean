@@ -36,10 +36,12 @@ explicit delimited raw-field stream, and supplies linear-time successor and
 less-than-or-equal machines on canonical binary naturals, plus a linear-time
 ripple-carry adder on their aligned-pair encoding. Its unary-bound Bertrand
 enumerator emits exactly `[q + 1, ..., 2q]` in quadratic time, making explicit
-the eventual full-input invariant `q ≤ input length`. The remaining work is to
-construct and compose CSP structural compilation and unary-bound production,
-remainder/divisibility, primality-test, prime-filtering, and final assembly
-passes into the full compiler's genuine polynomial-runtime theorem.
+the eventual full-input invariant `q ≤ input length`; its checked unary-padded
+divisibility machine handles every natural pair in time linear in the padded
+pair length. The remaining work is to construct and compose CSP structural
+compilation, production of the padded bounds, primality testing and filtering,
+prime selection, and final assembly into the full compiler's genuine
+polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

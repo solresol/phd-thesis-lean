@@ -28,7 +28,9 @@ exact framed natural-list format. It also proves a linear-time traversal from
 this module's standard nested-list encoding to an explicit raw-field stream,
 plus linear-time successor and less-than-or-equal passes on canonical binary
 naturals, a linear-time ripple-carry addition pass on aligned pairs, and a
-quadratic-time unary-bound enumerator for the complete Bertrand interval.
+quadratic-time unary-bound enumerator for the complete Bertrand interval. Its
+delimiter-separated unary-pair encoding and divisibility machine also supply a
+linear-time padded trial-division primitive for the future prime scan.
 -/
 
 namespace BinaryNatLists

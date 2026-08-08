@@ -162,9 +162,14 @@ including zero operands and a final carry bit.
 deliberate: the final structural pass must establish it while scanning the
 explicit CSP input, whose length is at least the distinct-symbol count `q`;
 the theorem does not misstate enumeration as polynomial in standalone binary
-`q`. CSP structural compilation and unary-bound production,
-remainder/divisibility, deterministic primality testing and prime filtering,
-and final whole-compiler composition remain.
+`q`. `unaryDvdComputableInPolyTime` similarly decides `d ∣ n` in at most
+`6s + 16` steps on a checked delimiter-separated unary-pair encoding of length
+`s = n + d + 1`, including all zero cases. This padded interface is the one
+needed by bounded trial division after the full compiler has established
+candidate and divisor bounds linear in its input. CSP structural compilation,
+production of the unary bound and padded trial inputs, deterministic
+primality testing and prime filtering, and final whole-compiler composition
+remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -280,9 +285,11 @@ The copied statements are grouped by mathematical contribution:
   `binaryLEComputableInPolyTime` proves linear-time less-than-or-equal on
   canonical binary naturals; `binaryAddComputableInPolyTime` proves
   linear-time addition; and `bertrandCandidatesComputableInPolyTime` proves
-  quadratic-time enumeration of `[q + 1, 2q]` from a unary bound. The complete
-  compiler machine and its structural unary-bound production, remaining
-  arithmetic, primality-filtering, and prime-selection passes remain open;
+  quadratic-time enumeration of `[q + 1, 2q]` from a unary bound;
+  `unaryDvdComputableInPolyTime` decides divisibility in linear time on
+  unary-padded pairs. The complete compiler machine and its structural
+  production of padded bounds, primality-filtering, and prime-selection passes
+  remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

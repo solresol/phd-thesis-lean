@@ -25,13 +25,14 @@ naturals in linear time. A sixth finite machine adds the same aligned binary
 naturals by ripple carry in linear time. A seventh finite machine consumes a
 unary scan bound and emits every natural in the Bertrand interval
 `[q + 1, 2q]` in quadratic time; the unary interface records the eventual full
-CSP invariant that the explicit input length is at least `q`.
+CSP invariant that the explicit input length is at least `q`. An eighth finite
+machine decides divisibility on delimiter-separated unary-padded pairs in
+linear time, including zero dividend and divisor cases.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, production of the
-unary distinct-symbol bound, the remaining binary arithmetic (notably
-remainder/divisibility), primality testing, prime filtering/selection, or final
-compiler assembly.
+unary distinct-symbol bound and padded trial inputs, primality testing,
+prime filtering/selection, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -4294,6 +4295,1262 @@ noncomputable def bertrandCandidatesComputableInPolyTime :
       Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
         bertrandCandidate_outputsInTime q
 
+/-! ## Unary-padded divisibility
+
+The eventual prime scan works under the full-input invariant `q ≤ s`, where
+`s` is the bit length of the explicit CSP.  Consequently every candidate and
+trial divisor is at most linear in `s`.  The following paired unary interface
+records that padding explicitly.  It is deliberately not a polynomial-time
+claim for standalone binary inputs.
+-/
+
+namespace UnaryNatPair
+
+/-- Two unary naturals separated by a single false delimiter. -/
+def encode (pair : ℕ × ℕ) : List Bool :=
+  List.replicate pair.1 true ++ false :: List.replicate pair.2 true
+
+/-- Decoder for the canonical delimiter-separated unary pair syntax. -/
+def decodeAux : List Bool → ℕ × ℕ
+  | [] => (0, 0)
+  | false :: bits => (0, bits.length)
+  | true :: bits =>
+      let decoded := decodeAux bits
+      (decoded.1 + 1, decoded.2)
+
+def decode (input : List Bool) : Option (ℕ × ℕ) :=
+  some (decodeAux input)
+
+private theorem decodeAux_replicate (left right : ℕ) :
+    decodeAux
+        (List.replicate left true ++ false :: List.replicate right true) =
+      (left, right) := by
+  induction left with
+  | zero => simp [decodeAux]
+  | succ left ih =>
+      simp [List.replicate_succ, decodeAux, ih]
+
+@[simp]
+theorem decode_encode (pair : ℕ × ℕ) :
+    decode (encode pair) = some pair := by
+  rcases pair with ⟨left, right⟩
+  simp [decode, encode, decodeAux_replicate]
+
+/-- Checked finite encoding of a unary-padded pair of naturals. -/
+def finEncoding : FinEncoding (ℕ × ℕ) where
+  Γ := Bool
+  encode := encode
+  decode := decode
+  decode_encode := decode_encode
+  ΓFin := Bool.fintype
+
+@[simp]
+theorem encode_length (pair : ℕ × ℕ) :
+    (encode pair).length = pair.1 + pair.2 + 1 := by
+  simp [encode]
+  omega
+
+end UnaryNatPair
+
+/-- Input, the unary dividend, the unconsumed and consumed parts of the
+divisor, and the Boolean output. -/
+inductive DvdStack
+  | input
+  | dividend
+  | remaining
+  | used
+  | output
+  deriving DecidableEq, Fintype
+
+/-- Parsing, cyclic divisor consumption, restoration, decision, and cleanup
+phases of the unary divisibility checker. -/
+inductive DvdLabel
+  | scanDividend
+  | scanDivisor
+  | start
+  | consume
+  | restore
+  | check
+  | finish
+  | clearDividend
+  | clearRemaining
+  | clearUsed
+  deriving DecidableEq, Fintype
+
+/-- Finite control stores the most recently observed marker and the decision
+bit once it is known. -/
+structure DvdState where
+  marker : Option Bool
+  result : Bool
+  deriving DecidableEq, Fintype
+
+private def dvdInitialState : DvdState :=
+  ⟨none, false⟩
+
+private def dvdObserved
+    (state : DvdState) (marker : Option Bool) : DvdState :=
+  { state with marker := marker }
+
+private def dvdSetResult (result : Bool) (_state : DvdState) : DvdState :=
+  ⟨none, result⟩
+
+private def dvdMarkerPresent : DvdState → Bool
+  | ⟨some _, _⟩ => true
+  | _ => false
+
+private def dvdMarkerTrue : DvdState → Bool
+  | ⟨some true, _⟩ => true
+  | _ => false
+
+private def dvdResult (state : DvdState) : Bool :=
+  state.result
+
+private def DvdAlphabet (_index : DvdStack) : Type :=
+  Bool
+
+/-- A cyclic unary divisibility program.  For a positive divisor, the
+`remaining` and `used` stacks partition one divisor-length cycle. -/
+def unaryDvdProgram :
+    DvdLabel → TM2.Stmt DvdAlphabet DvdLabel DvdState
+  | .scanDividend =>
+      .pop .input dvdObserved <|
+        .branch dvdMarkerPresent
+          (.branch dvdMarkerTrue
+            (.push .dividend (fun _ => true) <|
+              .goto (fun _ => .scanDividend))
+            (.goto (fun _ => .scanDivisor)))
+          (.goto (fun _ => .scanDivisor))
+  | .scanDivisor =>
+      .pop .input dvdObserved <|
+        .branch dvdMarkerPresent
+          (.push .remaining (fun _ => true) <|
+            .goto (fun _ => .scanDivisor))
+          (.goto (fun _ => .start))
+  | .start =>
+      .peek .dividend dvdObserved <|
+        .branch dvdMarkerPresent
+          (.peek .remaining dvdObserved <|
+            .branch dvdMarkerPresent
+              (.goto (fun _ => .consume))
+              (.load (dvdSetResult false) <|
+                .goto (fun _ => .finish)))
+          (.load (dvdSetResult true) <|
+            .goto (fun _ => .finish))
+  | .consume =>
+      .peek .dividend dvdObserved <|
+        .branch dvdMarkerPresent
+          (.peek .remaining dvdObserved <|
+            .branch dvdMarkerPresent
+              (.pop .dividend dvdObserved <|
+                .pop .remaining dvdObserved <|
+                  .push .used (fun _ => true) <|
+                    .goto (fun _ => .consume))
+              (.goto (fun _ => .restore)))
+          (.goto (fun _ => .check))
+  | .restore =>
+      .pop .used dvdObserved <|
+        .branch dvdMarkerPresent
+          (.push .remaining (fun _ => true) <|
+            .goto (fun _ => .restore))
+          (.goto (fun _ => .consume))
+  | .check =>
+      .peek .remaining dvdObserved <|
+        .branch dvdMarkerPresent
+          (.load (dvdSetResult false) <|
+            .goto (fun _ => .finish))
+          (.load (dvdSetResult true) <|
+            .goto (fun _ => .finish))
+  | .finish =>
+      .push .output dvdResult <|
+        .goto (fun _ => .clearDividend)
+  | .clearDividend =>
+      .pop .dividend dvdObserved <|
+        .branch dvdMarkerPresent
+          (.goto (fun _ => .clearDividend))
+          (.goto (fun _ => .clearRemaining))
+  | .clearRemaining =>
+      .pop .remaining dvdObserved <|
+        .branch dvdMarkerPresent
+          (.goto (fun _ => .clearRemaining))
+          (.goto (fun _ => .clearUsed))
+  | .clearUsed =>
+      .pop .used dvdObserved <|
+        .branch dvdMarkerPresent
+          (.goto (fun _ => .clearUsed))
+          (.load (fun _ => dvdInitialState) .halt)
+
+/-- Concrete finite machine deciding divisibility on unary-padded inputs. -/
+def unaryDvdComputer : FinTM2 where
+  K := DvdStack
+  k₀ := .input
+  k₁ := .output
+  Γ := DvdAlphabet
+  Λ := DvdLabel
+  main := .scanDividend
+  σ := DvdState
+  initialState := dvdInitialState
+  Γk₀Fin := Bool.fintype
+  m := unaryDvdProgram
+
+private def dvdStackContents
+    (input dividend remaining used output : List Bool) :
+    (index : DvdStack) → List (DvdAlphabet index)
+  | .input => input
+  | .dividend => dividend
+  | .remaining => remaining
+  | .used => used
+  | .output => output
+
+private def dvdCfg (label : Option DvdLabel) (state : DvdState)
+    (input dividend remaining used output : List Bool) :
+    unaryDvdComputer.Cfg where
+  l := label
+  var := state
+  stk := dvdStackContents input dividend remaining used output
+
+private def dvdEvalsToInTimeOne
+    {start finish : unaryDvdComputer.Cfg}
+    (hstep : unaryDvdComputer.step start = some finish) :
+    EvalsToInTime unaryDvdComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private theorem dvd_step_scanDividend_true
+    (input dividend remaining used output : List Bool)
+    (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .scanDividend) state (true :: input)
+          dividend remaining used output) =
+      some (dvdCfg (some .scanDividend)
+        (dvdObserved state (some true)) input (true :: dividend)
+        remaining used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    dvdMarkerTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_step_scanDividend_false
+    (input dividend remaining used output : List Bool)
+    (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .scanDividend) state (false :: input)
+          dividend remaining used output) =
+      some (dvdCfg (some .scanDivisor)
+        (dvdObserved state (some false)) input dividend
+        remaining used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    dvdMarkerTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_step_scanDivisor_true
+    (input dividend remaining used output : List Bool)
+    (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .scanDivisor) state (true :: input)
+          dividend remaining used output) =
+      some (dvdCfg (some .scanDivisor)
+        (dvdObserved state (some true)) input dividend
+        (true :: remaining) used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_step_scanDivisor_nil
+    (dividend remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .scanDivisor) state [] dividend remaining used output) =
+      some (dvdCfg (some .start) (dvdObserved state none) []
+        dividend remaining used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    Function.update]
+
+private theorem dvd_step_start_zero
+    (remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .start) state [] [] remaining used output) =
+      some (dvdCfg (some .finish) (dvdSetResult true state) [] []
+        remaining used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    dvdSetResult]
+
+private theorem dvd_step_start_positive_zero
+    (dividend : List Bool) (used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .start) state [] (true :: dividend) [] used output) =
+      some (dvdCfg (some .finish) (dvdSetResult false state) []
+        (true :: dividend) [] used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    dvdSetResult]
+
+private theorem dvd_step_start_positive_positive
+    (dividend remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .start) state [] (true :: dividend)
+          (true :: remaining) used output) =
+      some (dvdCfg (some .consume)
+        (dvdObserved (dvdObserved state (some true)) (some true)) []
+        (true :: dividend) (true :: remaining) used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+
+private theorem dvd_step_consume_both
+    (dividend remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .consume) state [] (true :: dividend)
+          (true :: remaining) used output) =
+      some (dvdCfg (some .consume)
+        (dvdObserved (dvdObserved (dvdObserved
+          (dvdObserved state (some true)) (some true)) (some true))
+          (some true)) [] dividend remaining (true :: used) output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_step_consume_dividend_nil
+    (remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .consume) state [] [] remaining used output) =
+      some (dvdCfg (some .check) (dvdObserved state none) [] []
+        remaining used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+
+private theorem dvd_step_consume_remaining_nil
+    (dividend used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .consume) state [] (true :: dividend) [] used output) =
+      some (dvdCfg (some .restore)
+        (dvdObserved (dvdObserved state (some true)) none) []
+        (true :: dividend) [] used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+
+private theorem dvd_step_restore_cons
+    (dividend remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .restore) state [] dividend remaining
+          (true :: used) output) =
+      some (dvdCfg (some .restore) (dvdObserved state (some true)) []
+        dividend (true :: remaining) used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_step_restore_nil
+    (dividend remaining output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .restore) state [] dividend remaining [] output) =
+      some (dvdCfg (some .consume) (dvdObserved state none) []
+        dividend remaining [] output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    Function.update]
+
+private theorem dvd_step_check_cons
+    (remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .check) state [] [] (true :: remaining) used output) =
+      some (dvdCfg (some .finish) (dvdSetResult false state) [] []
+        (true :: remaining) used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    dvdSetResult]
+
+private theorem dvd_step_check_nil
+    (used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .check) state [] [] [] used output) =
+      some (dvdCfg (some .finish) (dvdSetResult true state) [] [] []
+        used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    dvdSetResult]
+
+private theorem dvd_step_finish
+    (input dividend remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .finish) state input dividend remaining used output) =
+      some (dvdCfg (some .clearDividend) state input dividend remaining used
+        (state.result :: output)) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdResult]
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_step_clearDividend_cons
+    (input dividend remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .clearDividend) state input (true :: dividend)
+          remaining used output) =
+      some (dvdCfg (some .clearDividend) (dvdObserved state (some true))
+        input dividend remaining used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_step_clearDividend_nil
+    (input remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .clearDividend) state input [] remaining used output) =
+      some (dvdCfg (some .clearRemaining) (dvdObserved state none)
+        input [] remaining used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+
+private theorem dvd_step_clearRemaining_cons
+    (input remaining used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .clearRemaining) state input []
+          (true :: remaining) used output) =
+      some (dvdCfg (some .clearRemaining) (dvdObserved state (some true))
+        input [] remaining used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_step_clearRemaining_nil
+    (input used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .clearRemaining) state input [] [] used output) =
+      some (dvdCfg (some .clearUsed) (dvdObserved state none)
+        input [] [] used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+
+private theorem dvd_step_clearUsed_cons
+    (input used output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .clearUsed) state input [] [] (true :: used) output) =
+      some (dvdCfg (some .clearUsed) (dvdObserved state (some true))
+        input [] [] used output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_step_clearUsed_nil
+    (output : List Bool) (state : DvdState) :
+    unaryDvdComputer.step
+        (dvdCfg (some .clearUsed) state [] [] [] [] output) =
+      some (dvdCfg none dvdInitialState [] [] [] [] output) := by
+  rcases state with ⟨marker, result⟩
+  simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+    dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent,
+    dvdInitialState]
+
+private def dvd_scanDividend_evals
+    (left : ℕ) (input dividend remaining used output : List Bool)
+    (state : DvdState) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .scanDividend) state
+        (List.replicate left true ++ false :: input)
+        dividend remaining used output)
+      (some (dvdCfg (some .scanDivisor)
+        (dvdObserved state (some false)) input
+        (List.replicate left true ++ dividend) remaining used output))
+      (left + 1) := by
+  induction left generalizing state dividend with
+  | zero =>
+      simpa using dvdEvalsToInTimeOne
+        (dvd_step_scanDividend_false input dividend remaining used output state)
+  | succ left ih =>
+      let nextState := dvdObserved state (some true)
+      let middle := dvdCfg (some .scanDividend) nextState
+        (List.replicate left true ++ false :: input)
+        (true :: dividend) remaining used output
+      have hone : EvalsToInTime unaryDvdComputer.step
+          (dvdCfg (some .scanDividend) state
+            (List.replicate (left + 1) true ++ false :: input)
+            dividend remaining used output)
+          (some middle) 1 :=
+        dvdEvalsToInTimeOne (by
+          simpa [middle, nextState, List.replicate_succ] using
+            dvd_step_scanDividend_true
+              (List.replicate left true ++ false :: input)
+              dividend remaining used output state)
+      have hrest := ih (true :: dividend) nextState
+      have htrans := EvalsToInTime.trans unaryDvdComputer.step
+        1 (left + 1)
+        (dvdCfg (some .scanDividend) state
+          (List.replicate (left + 1) true ++ false :: input)
+          dividend remaining used output)
+        middle
+        (some (dvdCfg (some .scanDivisor)
+          (dvdObserved state (some false)) input
+          (List.replicate (left + 1) true ++ dividend)
+          remaining used output))
+        hone
+        (by
+          simpa [middle, nextState, dvdObserved, List.replicate_succ,
+            replicate_true_append_cons]
+            using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def dvd_scanDivisor_evals
+    (right : ℕ) (dividend remaining used output : List Bool)
+    (state : DvdState) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .scanDivisor) state (List.replicate right true)
+        dividend remaining used output)
+      (some (dvdCfg (some .start) (dvdObserved state none) [] dividend
+        (List.replicate right true ++ remaining) used output))
+      (right + 1) := by
+  induction right generalizing state remaining with
+  | zero =>
+      simpa using dvdEvalsToInTimeOne
+        (dvd_step_scanDivisor_nil dividend remaining used output state)
+  | succ right ih =>
+      let nextState := dvdObserved state (some true)
+      let middle := dvdCfg (some .scanDivisor) nextState
+        (List.replicate right true) dividend (true :: remaining) used output
+      have hone : EvalsToInTime unaryDvdComputer.step
+          (dvdCfg (some .scanDivisor) state
+            (List.replicate (right + 1) true)
+            dividend remaining used output)
+          (some middle) 1 :=
+        dvdEvalsToInTimeOne (by
+          simpa [middle, nextState, List.replicate_succ] using
+            dvd_step_scanDivisor_true (List.replicate right true)
+              dividend remaining used output state)
+      have hrest := ih (true :: remaining) nextState
+      have htrans := EvalsToInTime.trans unaryDvdComputer.step
+        1 (right + 1)
+        (dvdCfg (some .scanDivisor) state
+          (List.replicate (right + 1) true)
+          dividend remaining used output)
+        middle
+        (some (dvdCfg (some .start) (dvdObserved state none) [] dividend
+          (List.replicate (right + 1) true ++ remaining) used output))
+        hone
+        (by
+          simpa [middle, nextState, dvdObserved, List.replicate_succ,
+            replicate_true_append_cons]
+            using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def dvdAfterConsume (state : DvdState) : DvdState :=
+  dvdObserved (dvdObserved (dvdObserved
+    (dvdObserved state (some true)) (some true)) (some true)) (some true)
+
+private def dvdConsumeState : DvdState → ℕ → DvdState
+  | state, 0 => state
+  | state, count + 1 => dvdConsumeState (dvdAfterConsume state) count
+
+private def dvd_consume_prefix_evals
+    (count : ℕ) (dividend remaining used output : List Bool)
+    (state : DvdState) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .consume) state []
+        (List.replicate count true ++ dividend)
+        (List.replicate count true ++ remaining) used output)
+      (some (dvdCfg (some .consume) (dvdConsumeState state count) []
+        dividend remaining (List.replicate count true ++ used) output))
+      count := by
+  induction count generalizing state used with
+  | zero =>
+      simpa [dvdConsumeState] using EvalsToInTime.refl
+        unaryDvdComputer.step
+        (dvdCfg (some .consume) state [] dividend remaining used output)
+  | succ count ih =>
+      let nextState := dvdAfterConsume state
+      let middle := dvdCfg (some .consume) nextState []
+        (List.replicate count true ++ dividend)
+        (List.replicate count true ++ remaining) (true :: used) output
+      have hone : EvalsToInTime unaryDvdComputer.step
+          (dvdCfg (some .consume) state []
+            (List.replicate (count + 1) true ++ dividend)
+            (List.replicate (count + 1) true ++ remaining) used output)
+          (some middle) 1 :=
+        dvdEvalsToInTimeOne (by
+          simpa [middle, nextState, dvdAfterConsume,
+            List.replicate_succ] using
+              dvd_step_consume_both
+                (List.replicate count true ++ dividend)
+                (List.replicate count true ++ remaining) used output state)
+      have hrest := ih (true :: used) nextState
+      have htrans := EvalsToInTime.trans unaryDvdComputer.step
+        1 count
+        (dvdCfg (some .consume) state []
+          (List.replicate (count + 1) true ++ dividend)
+          (List.replicate (count + 1) true ++ remaining) used output)
+        middle
+        (some (dvdCfg (some .consume)
+          (dvdConsumeState state (count + 1)) [] dividend remaining
+          (List.replicate (count + 1) true ++ used) output))
+        hone
+        (by
+          simpa [middle, nextState, dvdConsumeState, dvdAfterConsume,
+            List.replicate_succ, replicate_true_append_cons] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def dvdRestoreState : DvdState → ℕ → DvdState
+  | state, 0 => dvdObserved state none
+  | state, count + 1 => dvdRestoreState (dvdObserved state (some true)) count
+
+private def dvd_restore_evals
+    (count : ℕ) (dividend remaining output : List Bool)
+    (state : DvdState) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .restore) state [] dividend remaining
+        (List.replicate count true) output)
+      (some (dvdCfg (some .consume) (dvdRestoreState state count) []
+        dividend (List.replicate count true ++ remaining) [] output))
+      (count + 1) := by
+  induction count generalizing state remaining with
+  | zero =>
+      simpa [dvdRestoreState] using dvdEvalsToInTimeOne
+        (dvd_step_restore_nil dividend remaining output state)
+  | succ count ih =>
+      let nextState := dvdObserved state (some true)
+      let middle := dvdCfg (some .restore) nextState [] dividend
+        (true :: remaining) (List.replicate count true) output
+      have hone : EvalsToInTime unaryDvdComputer.step
+          (dvdCfg (some .restore) state [] dividend remaining
+            (List.replicate (count + 1) true) output)
+          (some middle) 1 :=
+        dvdEvalsToInTimeOne (by
+          simpa [middle, nextState, List.replicate_succ] using
+            dvd_step_restore_cons dividend remaining
+              (List.replicate count true) output state)
+      have hrest := ih (true :: remaining) nextState
+      have htrans := EvalsToInTime.trans unaryDvdComputer.step
+        1 (count + 1)
+        (dvdCfg (some .restore) state [] dividend remaining
+          (List.replicate (count + 1) true) output)
+        middle
+        (some (dvdCfg (some .consume) (dvdRestoreState state (count + 1)) []
+          dividend (List.replicate (count + 1) true ++ remaining) [] output))
+        hone
+        (by
+          simpa [middle, nextState, dvdRestoreState, dvdObserved,
+            List.replicate_succ, replicate_true_append_cons] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def dvd_clearUsed_evals
+    (used output : List Bool) (state : DvdState) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .clearUsed) state [] [] [] used output)
+      (some (dvdCfg none dvdInitialState [] [] [] [] output))
+      (used.length + 1) := by
+  induction used generalizing state with
+  | nil =>
+      simpa using dvdEvalsToInTimeOne
+        (dvd_step_clearUsed_nil output state)
+  | cons marker used ih =>
+      cases marker
+      · simp only [List.length_cons]
+        have hstep : unaryDvdComputer.step
+            (dvdCfg (some .clearUsed) state [] [] [] (false :: used) output) =
+          some (dvdCfg (some .clearUsed) (dvdObserved state (some false))
+            [] [] [] used output) := by
+          rcases state with ⟨held, result⟩
+          simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+            dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+          funext index
+          cases index <;> rfl
+        have hone := dvdEvalsToInTimeOne hstep
+        have hrest := ih (dvdObserved state (some false))
+        have htrans := EvalsToInTime.trans unaryDvdComputer.step
+          1 (used.length + 1)
+          (dvdCfg (some .clearUsed) state [] [] [] (false :: used) output)
+          (dvdCfg (some .clearUsed) (dvdObserved state (some false))
+            [] [] [] used output)
+          (some (dvdCfg none dvdInitialState [] [] [] [] output))
+          hone hrest
+        omega
+      · have hone := dvdEvalsToInTimeOne
+          (dvd_step_clearUsed_cons [] used output state)
+        have hrest := ih (dvdObserved state (some true))
+        have htrans := EvalsToInTime.trans unaryDvdComputer.step
+          1 (used.length + 1)
+          (dvdCfg (some .clearUsed) state [] [] [] (true :: used) output)
+          (dvdCfg (some .clearUsed) (dvdObserved state (some true))
+            [] [] [] used output)
+          (some (dvdCfg none dvdInitialState [] [] [] [] output))
+          hone hrest
+        simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def dvd_clearRemaining_evals
+    (remaining used output : List Bool) (state : DvdState) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .clearRemaining) state [] [] remaining used output)
+      (some (dvdCfg none dvdInitialState [] [] [] [] output))
+      (remaining.length + used.length + 2) := by
+  induction remaining generalizing state with
+  | nil =>
+      have hone := dvdEvalsToInTimeOne
+        (dvd_step_clearRemaining_nil [] used output state)
+      have hrest := dvd_clearUsed_evals used output (dvdObserved state none)
+      have htrans := EvalsToInTime.trans unaryDvdComputer.step
+        1 (used.length + 1)
+        (dvdCfg (some .clearRemaining) state [] [] [] used output)
+        (dvdCfg (some .clearUsed) (dvdObserved state none) [] [] [] used output)
+        (some (dvdCfg none dvdInitialState [] [] [] [] output))
+        hone hrest
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+  | cons marker remaining ih =>
+      cases marker
+      · have hstep : unaryDvdComputer.step
+            (dvdCfg (some .clearRemaining) state [] []
+              (false :: remaining) used output) =
+          some (dvdCfg (some .clearRemaining)
+            (dvdObserved state (some false)) [] [] remaining used output) := by
+          rcases state with ⟨held, result⟩
+          simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+            dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+          funext index
+          cases index <;> rfl
+        have hone := dvdEvalsToInTimeOne hstep
+        have hrest := ih (dvdObserved state (some false))
+        have htrans := EvalsToInTime.trans unaryDvdComputer.step
+          1 (remaining.length + used.length + 2)
+          (dvdCfg (some .clearRemaining) state [] []
+            (false :: remaining) used output)
+          (dvdCfg (some .clearRemaining) (dvdObserved state (some false))
+            [] [] remaining used output)
+          (some (dvdCfg none dvdInitialState [] [] [] [] output))
+          hone hrest
+        simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+      · have hone := dvdEvalsToInTimeOne
+          (dvd_step_clearRemaining_cons [] remaining used output state)
+        have hrest := ih (dvdObserved state (some true))
+        have htrans := EvalsToInTime.trans unaryDvdComputer.step
+          1 (remaining.length + used.length + 2)
+          (dvdCfg (some .clearRemaining) state [] []
+            (true :: remaining) used output)
+          (dvdCfg (some .clearRemaining) (dvdObserved state (some true))
+            [] [] remaining used output)
+          (some (dvdCfg none dvdInitialState [] [] [] [] output))
+          hone hrest
+        simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def dvd_clearDividend_evals
+    (dividend remaining used output : List Bool) (state : DvdState) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .clearDividend) state [] dividend remaining used output)
+      (some (dvdCfg none dvdInitialState [] [] [] [] output))
+      (dividend.length + remaining.length + used.length + 3) := by
+  induction dividend generalizing state with
+  | nil =>
+      have hone := dvdEvalsToInTimeOne
+        (dvd_step_clearDividend_nil [] remaining used output state)
+      have hrest := dvd_clearRemaining_evals remaining used output
+        (dvdObserved state none)
+      have htrans := EvalsToInTime.trans unaryDvdComputer.step
+        1 (remaining.length + used.length + 2)
+        (dvdCfg (some .clearDividend) state [] [] remaining used output)
+        (dvdCfg (some .clearRemaining) (dvdObserved state none)
+          [] [] remaining used output)
+        (some (dvdCfg none dvdInitialState [] [] [] [] output))
+        hone hrest
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+  | cons marker dividend ih =>
+      cases marker
+      · have hstep : unaryDvdComputer.step
+            (dvdCfg (some .clearDividend) state [] (false :: dividend)
+              remaining used output) =
+          some (dvdCfg (some .clearDividend)
+            (dvdObserved state (some false)) [] dividend remaining used output) := by
+          rcases state with ⟨held, result⟩
+          simp [unaryDvdComputer, FinTM2.step, dvdCfg, unaryDvdProgram,
+            dvdStackContents, DvdAlphabet, dvdObserved, dvdMarkerPresent]
+          funext index
+          cases index <;> rfl
+        have hone := dvdEvalsToInTimeOne hstep
+        have hrest := ih (dvdObserved state (some false))
+        have htrans := EvalsToInTime.trans unaryDvdComputer.step
+          1 (dividend.length + remaining.length + used.length + 3)
+          (dvdCfg (some .clearDividend) state [] (false :: dividend)
+            remaining used output)
+          (dvdCfg (some .clearDividend) (dvdObserved state (some false))
+            [] dividend remaining used output)
+          (some (dvdCfg none dvdInitialState [] [] [] [] output))
+          hone hrest
+        simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+      · have hone := dvdEvalsToInTimeOne
+          (dvd_step_clearDividend_cons [] dividend remaining used output state)
+        have hrest := ih (dvdObserved state (some true))
+        have htrans := EvalsToInTime.trans unaryDvdComputer.step
+          1 (dividend.length + remaining.length + used.length + 3)
+          (dvdCfg (some .clearDividend) state [] (true :: dividend)
+            remaining used output)
+          (dvdCfg (some .clearDividend) (dvdObserved state (some true))
+            [] dividend remaining used output)
+          (some (dvdCfg none dvdInitialState [] [] [] [] output))
+          hone hrest
+        simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def dvd_finish_evals
+    (dividend remaining used output : List Bool) (state : DvdState) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .finish) state [] dividend remaining used output)
+      (some (dvdCfg none dvdInitialState [] [] [] []
+        (state.result :: output)))
+      (dividend.length + remaining.length + used.length + 4) := by
+  have hone := dvdEvalsToInTimeOne
+    (dvd_step_finish [] dividend remaining used output state)
+  have hrest := dvd_clearDividend_evals dividend remaining used
+    (state.result :: output) state
+  have htrans := EvalsToInTime.trans unaryDvdComputer.step
+    1 (dividend.length + remaining.length + used.length + 3)
+    (dvdCfg (some .finish) state [] dividend remaining used output)
+    (dvdCfg (some .clearDividend) state [] dividend remaining used
+      (state.result :: output))
+    (some (dvdCfg none dvdInitialState [] [] [] []
+      (state.result :: output)))
+    hone hrest
+  simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private noncomputable def dvd_consume_evals
+    (n d : ℕ) (hn : 0 < n) (hd : 0 < d)
+    (output : List Bool) (state : DvdState) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .consume) state []
+        (List.replicate n true) (List.replicate d true) [] output)
+      (some (dvdCfg none dvdInitialState [] [] [] []
+        (decide (d ∣ n) :: output)))
+      (4 * n + d + 8) := by
+  induction n using Nat.strongRecOn generalizing state with
+  | ind n ih =>
+      by_cases hle : n ≤ d
+      · have hsplit :
+            List.replicate d true =
+              List.replicate n true ++ List.replicate (d - n) true := by
+          calc
+            List.replicate d true =
+                List.replicate (n + (d - n)) true := by
+              rw [Nat.add_sub_of_le hle]
+            _ = List.replicate n true ++
+                List.replicate (d - n) true :=
+              List.replicate_add n (d - n) true
+        have hprefix := dvd_consume_prefix_evals n []
+          (List.replicate (d - n) true) [] output state
+        have hprefix' : EvalsToInTime unaryDvdComputer.step
+            (dvdCfg (some .consume) state []
+              (List.replicate n true) (List.replicate d true) [] output)
+            (some (dvdCfg (some .consume) (dvdConsumeState state n) [] []
+              (List.replicate (d - n) true)
+              (List.replicate n true) output)) n := by
+          simpa only [List.append_nil, ← hsplit] using hprefix
+        have hempty := dvdEvalsToInTimeOne
+          (dvd_step_consume_dividend_nil
+            (List.replicate (d - n) true) (List.replicate n true)
+            output (dvdConsumeState state n))
+        have htoCheck := EvalsToInTime.trans unaryDvdComputer.step
+          n 1
+          (dvdCfg (some .consume) state []
+            (List.replicate n true) (List.replicate d true) [] output)
+          (dvdCfg (some .consume) (dvdConsumeState state n) [] []
+            (List.replicate (d - n) true)
+            (List.replicate n true) output)
+          (some (dvdCfg (some .check)
+            (dvdObserved (dvdConsumeState state n) none) [] []
+            (List.replicate (d - n) true)
+            (List.replicate n true) output))
+          hprefix' hempty
+        by_cases heq : n = d
+        · subst d
+          have hcheck := dvdEvalsToInTimeOne
+            (dvd_step_check_nil (List.replicate n true) output
+              (dvdObserved (dvdConsumeState state n) none))
+          have hfinish := dvd_finish_evals [] []
+            (List.replicate n true) output
+            (dvdSetResult true
+              (dvdObserved (dvdConsumeState state n) none))
+          have hthroughCheck := EvalsToInTime.trans unaryDvdComputer.step
+            (1 + n) 1
+            (dvdCfg (some .consume) state []
+              (List.replicate n true) (List.replicate n true) [] output)
+            (dvdCfg (some .check)
+              (dvdObserved (dvdConsumeState state n) none) [] [] []
+              (List.replicate n true) output)
+            (some (dvdCfg (some .finish)
+              (dvdSetResult true
+                (dvdObserved (dvdConsumeState state n) none))
+              [] [] [] (List.replicate n true) output))
+            (by simpa using htoCheck)
+            hcheck
+          have hall := EvalsToInTime.trans unaryDvdComputer.step
+            (1 + (1 + n)) (n + 4)
+            (dvdCfg (some .consume) state []
+              (List.replicate n true) (List.replicate n true) [] output)
+            (dvdCfg (some .finish)
+              (dvdSetResult true
+                (dvdObserved (dvdConsumeState state n) none))
+              [] [] [] (List.replicate n true) output)
+            (some (dvdCfg none dvdInitialState [] [] [] []
+              (decide (n ∣ n) :: output)))
+            hthroughCheck
+            (by simpa [dvdSetResult] using hfinish)
+          exact evalsToInTimeMono hall (by omega)
+        · have hlt : n < d := lt_of_le_of_ne hle heq
+          have hsubpos : 0 < d - n := Nat.sub_pos_of_lt hlt
+          let rest := (d - n).pred
+          have hrest : d - n = rest + 1 := by
+            exact (Nat.succ_pred_eq_of_pos hsubpos).symm
+          have hcheck := dvdEvalsToInTimeOne
+            (dvd_step_check_cons (List.replicate rest true)
+              (List.replicate n true) output
+              (dvdObserved (dvdConsumeState state n) none))
+          have hfinish := dvd_finish_evals []
+            (List.replicate (d - n) true)
+            (List.replicate n true) output
+            (dvdSetResult false
+              (dvdObserved (dvdConsumeState state n) none))
+          have hnot : ¬d ∣ n :=
+            Nat.not_dvd_of_pos_of_lt hn hlt
+          have hthroughCheck := EvalsToInTime.trans unaryDvdComputer.step
+            (1 + n) 1
+            (dvdCfg (some .consume) state []
+              (List.replicate n true) (List.replicate d true) [] output)
+            (dvdCfg (some .check)
+              (dvdObserved (dvdConsumeState state n) none) [] []
+              (List.replicate (d - n) true)
+              (List.replicate n true) output)
+            (some (dvdCfg (some .finish)
+              (dvdSetResult false
+                (dvdObserved (dvdConsumeState state n) none))
+              [] [] (List.replicate (d - n) true)
+              (List.replicate n true) output))
+            htoCheck
+            (by simpa [hrest, List.replicate_succ] using hcheck)
+          have hall := EvalsToInTime.trans unaryDvdComputer.step
+            (1 + (1 + n)) ((d - n) + n + 4)
+            (dvdCfg (some .consume) state []
+              (List.replicate n true) (List.replicate d true) [] output)
+            (dvdCfg (some .finish)
+              (dvdSetResult false
+                (dvdObserved (dvdConsumeState state n) none))
+              [] [] (List.replicate (d - n) true)
+              (List.replicate n true) output)
+            (some (dvdCfg none dvdInitialState [] [] [] []
+              (decide (d ∣ n) :: output)))
+            hthroughCheck
+            (by simpa [dvdSetResult, hnot] using hfinish)
+          exact evalsToInTimeMono hall (by omega)
+      · have hlt : d < n := lt_of_not_ge hle
+        have hdle : d ≤ n := Nat.le_of_lt hlt
+        have hsplit :
+            List.replicate n true =
+              List.replicate d true ++ List.replicate (n - d) true := by
+          calc
+            List.replicate n true =
+                List.replicate (d + (n - d)) true := by
+              rw [Nat.add_sub_of_le hdle]
+            _ = List.replicate d true ++
+                List.replicate (n - d) true :=
+              List.replicate_add d (n - d) true
+        have hprefix := dvd_consume_prefix_evals d
+          (List.replicate (n - d) true) [] [] output state
+        have hprefix' : EvalsToInTime unaryDvdComputer.step
+            (dvdCfg (some .consume) state []
+              (List.replicate n true) (List.replicate d true) [] output)
+            (some (dvdCfg (some .consume) (dvdConsumeState state d) []
+              (List.replicate (n - d) true) []
+              (List.replicate d true) output)) d := by
+          simpa only [List.append_nil, ← hsplit] using hprefix
+        have hsubpos : 0 < n - d := Nat.sub_pos_of_lt hlt
+        let tail := (n - d).pred
+        have htail : n - d = tail + 1 := by
+          exact (Nat.succ_pred_eq_of_pos hsubpos).symm
+        have hboundary := dvdEvalsToInTimeOne
+          (dvd_step_consume_remaining_nil (List.replicate tail true)
+            (List.replicate d true) output (dvdConsumeState state d))
+        have htoRestore := EvalsToInTime.trans unaryDvdComputer.step
+          d 1
+          (dvdCfg (some .consume) state []
+            (List.replicate n true) (List.replicate d true) [] output)
+          (dvdCfg (some .consume) (dvdConsumeState state d) []
+            (List.replicate (n - d) true) []
+            (List.replicate d true) output)
+          (some (dvdCfg (some .restore)
+            (dvdObserved (dvdObserved (dvdConsumeState state d) (some true)) none)
+            [] (List.replicate (n - d) true) []
+            (List.replicate d true) output))
+          hprefix'
+          (by simpa [htail, List.replicate_succ] using hboundary)
+        have hrestore := dvd_restore_evals d
+          (List.replicate (n - d) true) [] output
+          (dvdObserved (dvdObserved (dvdConsumeState state d) (some true)) none)
+        have hrestore' : EvalsToInTime unaryDvdComputer.step
+            (dvdCfg (some .restore)
+              (dvdObserved
+                (dvdObserved (dvdConsumeState state d) (some true)) none)
+              [] (List.replicate (n - d) true) []
+              (List.replicate d true) output)
+            (some (dvdCfg (some .consume)
+              (dvdRestoreState
+                (dvdObserved
+                  (dvdObserved (dvdConsumeState state d) (some true)) none) d)
+              [] (List.replicate (n - d) true)
+              (List.replicate d true) [] output)) (d + 1) := by
+          simpa only [List.append_nil] using hrestore
+        have hcycle := EvalsToInTime.trans unaryDvdComputer.step
+          (1 + d) (d + 1)
+          (dvdCfg (some .consume) state []
+            (List.replicate n true) (List.replicate d true) [] output)
+          (dvdCfg (some .restore)
+            (dvdObserved (dvdObserved (dvdConsumeState state d) (some true)) none)
+            [] (List.replicate (n - d) true) []
+            (List.replicate d true) output)
+          (some (dvdCfg (some .consume)
+            (dvdRestoreState
+              (dvdObserved
+                (dvdObserved (dvdConsumeState state d) (some true)) none) d)
+            [] (List.replicate (n - d) true)
+            (List.replicate d true) [] output))
+          (by simpa [Nat.add_comm] using htoRestore)
+          hrestore'
+        have hrec := ih (n - d) (Nat.sub_lt hn hd)
+          hsubpos
+          (dvdRestoreState
+            (dvdObserved
+              (dvdObserved (dvdConsumeState state d) (some true)) none) d)
+        have hdvd : d ∣ n - d ↔ d ∣ n :=
+          Nat.dvd_sub_iff_left hdle (Nat.dvd_refl d)
+        have hall := EvalsToInTime.trans unaryDvdComputer.step
+          ((d + 1) + (1 + d)) (4 * (n - d) + d + 8)
+          (dvdCfg (some .consume) state []
+            (List.replicate n true) (List.replicate d true) [] output)
+          (dvdCfg (some .consume)
+            (dvdRestoreState
+              (dvdObserved
+                (dvdObserved (dvdConsumeState state d) (some true)) none) d)
+            [] (List.replicate (n - d) true)
+            (List.replicate d true) [] output)
+          (some (dvdCfg none dvdInitialState [] [] [] []
+            (decide (d ∣ n) :: output)))
+          hcycle
+          (by simpa only [hdvd] using hrec)
+        exact evalsToInTimeMono hall (by omega)
+
+private def dvd_parse_evals (n d : ℕ) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .scanDividend) dvdInitialState
+        (UnaryNatPair.encode (n, d)) [] [] [] [])
+      (some (dvdCfg (some .start)
+        (dvdObserved (dvdObserved dvdInitialState (some false)) none)
+        [] (List.replicate n true) (List.replicate d true) [] []))
+      (n + d + 2) := by
+  have hleft := dvd_scanDividend_evals n
+    (List.replicate d true) [] [] [] [] dvdInitialState
+  have hright := dvd_scanDivisor_evals d
+    (List.replicate n true) [] [] []
+    (dvdObserved dvdInitialState (some false))
+  have hall := EvalsToInTime.trans unaryDvdComputer.step
+    (n + 1) (d + 1)
+    (dvdCfg (some .scanDividend) dvdInitialState
+      (UnaryNatPair.encode (n, d)) [] [] [] [])
+    (dvdCfg (some .scanDivisor)
+      (dvdObserved dvdInitialState (some false))
+      (List.replicate d true) (List.replicate n true) [] [] [])
+    (some (dvdCfg (some .start)
+      (dvdObserved (dvdObserved dvdInitialState (some false)) none)
+      [] (List.replicate n true) (List.replicate d true) [] []))
+    (by simpa [UnaryNatPair.encode] using hleft)
+    (by simpa using hright)
+  simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem dvd_initList_eq_cfg (input : List Bool) :
+    initList unaryDvdComputer input =
+      dvdCfg (some .scanDividend) dvdInitialState input [] [] [] [] := by
+  unfold initList dvdCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem dvd_haltList_eq_cfg (output : List Bool) :
+    haltList unaryDvdComputer output =
+      dvdCfg none dvdInitialState [] [] [] [] output := by
+  unfold haltList dvdCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- The unary-padded checker decides natural-number divisibility in at most
+`6s + 16` steps, where `s = n + d + 1` is its actual encoded input length. -/
+noncomputable def unaryDvd_outputsInTime (pair : ℕ × ℕ) :
+    TM2OutputsInTime unaryDvdComputer (UnaryNatPair.encode pair)
+      (some (encodeBool (decide (pair.2 ∣ pair.1))))
+      (6 * (UnaryNatPair.encode pair).length + 16) := by
+  rcases pair with ⟨n, d⟩
+  have hparse := dvd_parse_evals n d
+  cases n with
+  | zero =>
+      let parsedState :=
+        dvdObserved (dvdObserved dvdInitialState (some false)) none
+      have hstart := dvdEvalsToInTimeOne
+        (dvd_step_start_zero (List.replicate d true) [] [] parsedState)
+      have hfinish := dvd_finish_evals [] (List.replicate d true) [] []
+        (dvdSetResult true parsedState)
+      have hthroughStart := EvalsToInTime.trans unaryDvdComputer.step
+        (d + 2) 1
+        (dvdCfg (some .scanDividend) dvdInitialState
+          (UnaryNatPair.encode (0, d)) [] [] [] [])
+        (dvdCfg (some .start) parsedState [] []
+          (List.replicate d true) [] [])
+        (some (dvdCfg (some .finish) (dvdSetResult true parsedState)
+          [] [] (List.replicate d true) [] []))
+        (by simpa [parsedState] using hparse)
+        hstart
+      have hall := EvalsToInTime.trans unaryDvdComputer.step
+        (1 + (d + 2)) (d + 4)
+        (dvdCfg (some .scanDividend) dvdInitialState
+          (UnaryNatPair.encode (0, d)) [] [] [] [])
+        (dvdCfg (some .finish) (dvdSetResult true parsedState)
+          [] [] (List.replicate d true) [] [])
+        (some (dvdCfg none dvdInitialState [] [] [] []
+          (encodeBool (decide (d ∣ 0)))))
+        hthroughStart
+        (by simpa [encodeBool, dvdSetResult] using hfinish)
+      have hbound :
+          (d + 4) + (1 + (d + 2)) ≤
+            6 * (UnaryNatPair.encode (0, d)).length + 16 := by
+        simp [UnaryNatPair.encode]
+        omega
+      have hmono := evalsToInTimeMono hall hbound
+      rw [TM2OutputsInTime, dvd_initList_eq_cfg]
+      simp only [Option.map_some]
+      rw [dvd_haltList_eq_cfg]
+      exact hmono
+  | succ n =>
+      cases d with
+      | zero =>
+          let parsedState :=
+            dvdObserved (dvdObserved dvdInitialState (some false)) none
+          have hstart := dvdEvalsToInTimeOne
+            (dvd_step_start_positive_zero (List.replicate n true) [] []
+              parsedState)
+          have hfinish := dvd_finish_evals
+            (List.replicate (n + 1) true) [] [] []
+            (dvdSetResult false parsedState)
+          have hthroughStart := EvalsToInTime.trans unaryDvdComputer.step
+            (n + 1 + 0 + 2) 1
+            (dvdCfg (some .scanDividend) dvdInitialState
+              (UnaryNatPair.encode (n + 1, 0)) [] [] [] [])
+            (dvdCfg (some .start) parsedState []
+              (List.replicate (n + 1) true) [] [] [])
+            (some (dvdCfg (some .finish) (dvdSetResult false parsedState)
+              [] (List.replicate (n + 1) true) [] [] []))
+            (by simpa [parsedState] using hparse)
+            (by simpa [List.replicate_succ] using hstart)
+          have hall := EvalsToInTime.trans unaryDvdComputer.step
+            (1 + (n + 1 + 0 + 2)) (n + 1 + 4)
+            (dvdCfg (some .scanDividend) dvdInitialState
+              (UnaryNatPair.encode (n + 1, 0)) [] [] [] [])
+            (dvdCfg (some .finish) (dvdSetResult false parsedState)
+              [] (List.replicate (n + 1) true) [] [] [])
+            (some (dvdCfg none dvdInitialState [] [] [] []
+              (encodeBool (decide (0 ∣ n + 1)))))
+            hthroughStart
+            (by simpa [encodeBool, dvdSetResult] using hfinish)
+          have hbound :
+              (n + 1 + 4) + (1 + (n + 1 + 0 + 2)) ≤
+                6 * (UnaryNatPair.encode (n + 1, 0)).length + 16 := by
+            simp [UnaryNatPair.encode]
+            omega
+          have hmono := evalsToInTimeMono hall hbound
+          rw [TM2OutputsInTime, dvd_initList_eq_cfg]
+          simp only [Option.map_some]
+          rw [dvd_haltList_eq_cfg]
+          exact hmono
+      | succ d =>
+          let parsedState :=
+            dvdObserved (dvdObserved dvdInitialState (some false)) none
+          let consumeState :=
+            dvdObserved (dvdObserved parsedState (some true)) (some true)
+          have hstart := dvdEvalsToInTimeOne
+            (dvd_step_start_positive_positive
+              (List.replicate n true) (List.replicate d true) [] []
+              parsedState)
+          have hconsume := dvd_consume_evals (n + 1) (d + 1)
+            (Nat.succ_pos n) (Nat.succ_pos d) [] consumeState
+          have hthroughStart := EvalsToInTime.trans unaryDvdComputer.step
+            (n + 1 + (d + 1) + 2) 1
+            (dvdCfg (some .scanDividend) dvdInitialState
+              (UnaryNatPair.encode (n + 1, d + 1)) [] [] [] [])
+            (dvdCfg (some .start) parsedState []
+              (List.replicate (n + 1) true)
+              (List.replicate (d + 1) true) [] [])
+            (some (dvdCfg (some .consume) consumeState []
+              (List.replicate (n + 1) true)
+              (List.replicate (d + 1) true) [] []))
+            (by simpa [parsedState] using hparse)
+            (by simpa [consumeState, List.replicate_succ] using hstart)
+          have hall := EvalsToInTime.trans unaryDvdComputer.step
+            (1 + (n + 1 + (d + 1) + 2))
+            (4 * (n + 1) + (d + 1) + 8)
+            (dvdCfg (some .scanDividend) dvdInitialState
+              (UnaryNatPair.encode (n + 1, d + 1)) [] [] [] [])
+            (dvdCfg (some .consume) consumeState []
+              (List.replicate (n + 1) true)
+              (List.replicate (d + 1) true) [] [])
+            (some (dvdCfg none dvdInitialState [] [] [] []
+              (encodeBool (decide (d + 1 ∣ n + 1)))))
+            hthroughStart
+            (by simpa [encodeBool] using hconsume)
+          have hbound :
+              (4 * (n + 1) + (d + 1) + 8) +
+                  (1 + (n + 1 + (d + 1) + 2)) ≤
+                6 * (UnaryNatPair.encode (n + 1, d + 1)).length + 16 := by
+            simp [UnaryNatPair.encode]
+            omega
+          have hmono := evalsToInTimeMono hall hbound
+          rw [TM2OutputsInTime, dvd_initList_eq_cfg]
+          simp only [Option.map_some]
+          rw [dvd_haltList_eq_cfg]
+          exact hmono
+
+/-- Genuine polynomial-time divisibility on the unary-padded interface used
+by the future bounded prime scan. -/
+noncomputable def unaryDvdComputableInPolyTime :
+    @TM2ComputableInPolyTime (ℕ × ℕ) Bool UnaryNatPair.finEncoding
+      finEncodingBoolBool (fun pair => decide (pair.2 ∣ pair.1)) where
+  tm := unaryDvdComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := 6 * Polynomial.X + 16
+  outputsFun pair := by
+    simpa [UnaryNatPair.finEncoding, finEncodingBoolBool, Equiv.refl,
+      Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_natCast,
+      Polynomial.eval_X] using unaryDvd_outputsInTime pair
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
@@ -4316,5 +5573,8 @@ noncomputable def bertrandCandidatesComputableInPolyTime :
 #print axioms mem_bertrandCandidates_iff
 #print axioms bertrandCandidate_outputsInTime
 #print axioms bertrandCandidatesComputableInPolyTime
+#print axioms UnaryNatPair.decode_encode
+#print axioms unaryDvd_outputsInTime
+#print axioms unaryDvdComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine

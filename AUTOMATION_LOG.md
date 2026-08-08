@@ -795,3 +795,68 @@
   over the enumerated candidates. Structural production of the unary
   distinct-symbol bound and final machine composition remain separate
   obligations.
+
+## 2026-08-09 05:38 AEST
+
+- Starting repository commit:
+  `bec29346b0a82480c96242ad5e4463c0746776a2` on `main`. The automation began
+  with a clean working tree; `git fetch --prune origin` confirmed divergence
+  count `0 0`, and local `HEAD`, `origin/main`, and the live remote
+  `refs/heads/main` agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `67aeb9bddf458fd79182470a70a17952bcc305a1`. That checkout retains unrelated
+  modifications to `.gitignore` and `todo.md`; this automation did not alter
+  them. The proof still requires deterministic primality testing, candidate
+  filtering/selection, structural compiler composition, and the complete
+  polynomial-time machine, so `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and agreed with its
+  tracked remote at `d675fe391b9f19684d90a983082e87d6d0bf5a1c`. Its latest
+  checked increment proves whole-list fill-input transfer, but generic
+  composition remains unfinished and it still supplies no reusable
+  remainder, divisibility, primality-test, or prime-scan implementation.
+- Chosen increment: checked divisibility on unary-padded natural pairs. This is
+  the shortest statement-faithful route after the existing unary Bertrand
+  interface: every candidate and trial divisor is `O(q)`, while the full CSP
+  input establishes `q ≤ s`. The result is deliberately not presented as a
+  polynomial-time theorem for standalone binary integers.
+- `UnaryNatPair.finEncoding` gives a checked delimiter-separated encoding with
+  exact length `n + d + 1`. The concrete five-stack `unaryDvdComputer`
+  cyclically partitions one divisor copy between `remaining` and `used`,
+  restores it between cycles, clears every non-output stack, and handles
+  `0 ∣ 0`, `0 ∣ n` for positive `n`, and `d ∣ 0` explicitly.
+- Headline declarations:
+  `AllDifferentCSPMachine.unaryDvd_outputsInTime` proves the concrete machine
+  emits exactly `decide (d ∣ n)` in at most `6s + 16` steps for actual input
+  length `s`; `unaryDvdComputableInPolyTime` packages this as a genuine
+  `TM2ComputableInPolyTime` witness. The cycle proof covers exact, partial, and
+  repeated divisor cycles rather than appealing to an unchecked arithmetic
+  oracle.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the encoding,
+  finite program, exact step simulations, divisibility semantics, runtime
+  bound, polynomial witness, and axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the padded interface and keep the full corollary
+  open.
+- Failed/design approaches supplied useful corrections. A standalone binary
+  remainder machine was not pursued because it is unnecessary for the checked
+  full-input padding invariant and would lengthen the path to prime filtering.
+  In the proof, `Nat.strong_induction_on` rejected the Type-valued
+  `EvalsToInTime` motive, so the checked definition uses `Nat.strongRecOn`;
+  eliminating `Nat.exists_eq_succ_of_ne_zero` into that Type-valued motive was
+  also rejected, so positive remainders are decomposed constructively with
+  `Nat.pred` and `Nat.succ_pred_eq_of_pos`. No unresolved Lean blocker remains.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3105 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. The new headline
+  `#print axioms` audits report only `propext`, `Classical.choice`, and
+  `Quot.sound` (the pair decoder itself uses only `propext`).
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes present in this repository.
+- Best next step: build a checked deterministic trial-division primality
+  predicate over unary-padded candidates and divisors, then filter/select the
+  first prime in the already checked Bertrand interval. Structural production
+  of the padded distinct-symbol bound and final compiler composition remain
+  separate obligations.
