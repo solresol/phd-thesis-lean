@@ -16,7 +16,7 @@ base-`p` logarithm identities can be added after the cardinality results.
 - [ ] `prop:precision-growth-vc` — at `p = 2` and `k = 1`, identify the
   finite-precision pattern count with the ordinary binary growth function and
   derive the usual VC shattering criterion.
-- [ ] `thm:affine-precision-growth` — for affine maps on `ZMod (p ^ K)`, prove
+- [x] `thm:affine-precision-growth` — for affine maps on `ZMod (p ^ K)`, prove
   that the maximal reduced evaluation-image cardinality on an `m`-sample is
   `p ^ (k * min m (d + 1))`; use `0, e_1, ..., e_d` for the lower bound.
 - [ ] `prop:tree-syntax-growth-bound` — formalise the finite description-count

@@ -228,6 +228,20 @@ regularisation-path placeholder have been removed. The number of distinct
 regularisation-path solutions remains an open thesis question and is not
 misrepresented as a completed theorem.
 
+The precision-indexed prediction growth development is formalised in
+[`PhdThesisLean/PrecisionGrowth.lean`](PhdThesisLean/PrecisionGrowth.lean).
+It defines the finite-precision prediction-pattern interface from
+`def:precision-indexed-growth` — realised pattern sets, the pattern count
+`N(S, k)`, and the growth function `Π(m, k)` as a supremum over ordered
+samples — for an arbitrary output reduction, together with the ambient
+`p ^ (k m)` bound. The theorem `affine_precision_growth` proves
+`thm:affine-precision-growth`: for the affine class on `(ZMod (p ^ K))^d`
+reduced to precision `k ≤ K`, the growth function is exactly
+`p ^ (k * min m (d + 1))`, with the upper bound through the reduced
+coefficient vector and the lower bound attained on the sample
+`0, e_1, …, e_{r-1}` padded by zeros. The base-`p` logarithm form
+`E = k * min m (d + 1)` is recorded by `affine_precision_growth_log`.
+
 The proof library builds locally with `lake build`, and the repository has a
 GitHub Actions build check. `PhdThesisLean` is an explicit default target, so a
 bare build checks both the contact theorem and the imported inherited module.

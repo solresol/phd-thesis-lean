@@ -57,7 +57,7 @@ reviewed. They also appear as dependency-ordered checkbox tasks in
 |---|---|---|
 | `prop:precision-growth-covering` | Pending | Define finite-precision prediction patterns and prove that their cardinality is the covering number of the prediction image by radius-$p^{-k}$ balls in the product sup metric. |
 | `prop:precision-growth-vc` | Pending | Identify reduction modulo $2$ at precision one with the ordinary binary growth function, then recover the VC-dimension criterion from full $2^m$-pattern realisation. |
-| `thm:affine-precision-growth` | Pending | For affine maps on `ZMod (p ^ K)`, prove that the reduced evaluation image on an $m$-sample has maximal cardinality $p^{k\min(m,d+1)}$; use the sample $0,e_1,\ldots,e_d$ for the lower bound. |
+| `thm:affine-precision-growth` | Complete | `PrecisionGrowth.affine_precision_growth` proves $\Pi = p^{k\min(m,d+1)}$ for the affine class on `ZMod (p ^ K)` reduced to precision $k \le K$: `affine_patternCount_le` bounds every sample through the reduced coefficient vector, and `affine_patternCount_basisSample` attains the bound on the thesis sample $0,e_1,\ldots,e_{r-1}$ padded by zeros. `affine_precision_growth_log` records the base-$p$ logarithm form $E = k\min(m,d+1)$. |
 | `prop:tree-syntax-growth-bound` | Pending | Formalise the finite description-count argument for a family of rooted tree shapes with bounded split-rule choices and `ZMod (p ^ k)` leaf labels. |
 | `cor:binary-tree-precision-growth` | Pending | Specialise the syntax bound to ordered full binary trees using the Catalan count and the identity $L=I+1$. |
 
