@@ -38,10 +38,12 @@ ripple-carry adder on their aligned-pair encoding. Its unary-bound Bertrand
 enumerator emits exactly `[q + 1, ..., 2q]` in quadratic time, making explicit
 the eventual full-input invariant `q ≤ input length`; its checked unary-padded
 divisibility machine handles every natural pair in time linear in the padded
-pair length. The remaining work is to construct and compose CSP structural
-compilation, production of the padded bounds, primality testing and filtering,
-prime selection, and final assembly into the full compiler's genuine
-polynomial-runtime theorem.
+pair length. Its executable trial-division specification tests exactly the
+divisors in `[2, n)`, filters the enumerated Bertrand candidates, and proves
+that the first survivor is `selectPrimeAbove`. The remaining work is to
+construct and compose CSP structural compilation, production of the padded
+bounds, the finite-machine trial filter and selection pass, and final assembly
+into the full compiler's genuine polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

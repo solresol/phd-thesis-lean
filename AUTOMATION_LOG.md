@@ -860,3 +860,74 @@
   first prime in the already checked Bertrand interval. Structural production
   of the padded distinct-symbol bound and final compiler composition remain
   separate obligations.
+
+## 2026-08-10 05:28 AEST
+
+- Starting repository commit:
+  `a3b36cd28d043651c008cd09130e9b27df2db133` on `main`. The automation began
+  with a clean working tree; `git fetch --prune origin` confirmed divergence
+  count `0 0`, and local `HEAD`, `origin/main`, and the live remote
+  `refs/heads/main` agreed, so no fast-forward was needed. The two commits
+  since the preceding CSP run formalise the separate precision-growth queue
+  and were preserved unchanged.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `5294a3754f4987514ed9f03e73658df37a684156`. That checkout retains unrelated
+  modifications to `.gitignore` and `todo.md`; this automation did not alter
+  them. The proof still requires a genuine polynomial-time whole compiler, so
+  `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized at
+  `2a95106fdfa11258046ce9457d65536407942def`. Its checked
+  `reverseOutput_whole_list` and `fillInput_whole_list` transfer lemmas are
+  useful future composition components, but a complete generic composition
+  theorem and reusable primality/filtering machine are still absent.
+- Chosen increment: the exact executable deterministic trial-division and
+  first-prime specification that the next finite-machine pass must realize.
+  `trialDivisors` enumerates precisely `[2,n)`, and
+  `trialPrime_eq_true_iff` proves that its bounded `List.all` divisibility test
+  is equivalent to `Nat.Prime`, including `n = 0,1,2`.
+- `trialDivisionPairs` gives the exact unary-padded inputs to the existing
+  divisibility machine. Every pair has length at most `2n`, and
+  `trialDivisionInputSize_le` bounds their aggregate unary cell count by
+  `2 * n * (n - 2)`. This is deliberately recorded as an input-size lemma,
+  not misrepresented as a bit-level or machine-runtime theorem.
+- `bertrandPrimeCandidates` filters the already checked ordered list
+  `[q+1,...,2q]`. `mem_bertrandPrimeCandidates_iff` proves exact membership,
+  `pairwise_lt_bertrandPrimeCandidates` proves the survivors remain strictly
+  ordered, and `firstBertrandPrime` handles `q = 0` explicitly before taking
+  the first survivor for positive `q`.
+- Headline declaration:
+  `firstBertrandPrime_eq_selectPrimeAbove` proves that this executable
+  first-survivor trial-division scan returns exactly the least prime already
+  used by the semantic compiler. Consequently the checked prime bounds and
+  the existing p-adic minimizer theorems apply without changing the compiled
+  objective.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the trial
+  specification, exact semantics, padding bounds, filtered scan, selector
+  equality, and axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the completed semantic bridge while keeping the
+  finite-machine filter and full corollary open.
+- Failed proof/API probes supplied useful corrections. Mathlib at the pinned
+  revision has no `List.rel_get_of_lt`; the least-head argument is instead a
+  checked structural lemma over `List.pairwise_cons`. `Finset.min'_le` takes a
+  candidate and membership proof rather than an explicit nonemptiness proof,
+  so the selector equality unfolds the positive branch and uses exact filtered
+  membership. No blocker remains in this increment.
+- Verification succeeded: targeted `lake env lean` checks for
+  `AllDifferentCSP.lean`, `AllDifferentCSPEncoding.lean`, and
+  `AllDifferentCSPMachine.lean`; full `lake build` (3114 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  `trialPrime_eq_true_iff`, `trialDivisionInputSize_le`,
+  `mem_bertrandPrimeCandidates_iff`, and
+  `firstBertrandPrime_eq_selectPrimeAbove` report only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes present in this repository.
+- Best next step: implement a concrete finite-machine loop that generates the
+  padded trial pairs, realizes `trialPrime` with `unaryDvdComputer`, filters
+  the ordered Bertrand stream, and emits its first survivor. Keep structural
+  CSP bound production and final whole-compiler composition as later,
+  separately audited obligations.

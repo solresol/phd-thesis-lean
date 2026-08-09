@@ -166,10 +166,17 @@ the theorem does not misstate enumeration as polynomial in standalone binary
 `6s + 16` steps on a checked delimiter-separated unary-pair encoding of length
 `s = n + d + 1`, including all zero cases. This padded interface is the one
 needed by bounded trial division after the full compiler has established
-candidate and divisor bounds linear in its input. CSP structural compilation,
-production of the unary bound and padded trial inputs, deterministic
-primality testing and prime filtering, and final whole-compiler composition
-remain.
+candidate and divisor bounds linear in its input. `trialDivisors`,
+`trialPrime`, and `bertrandPrimeCandidates` now give the exact executable
+bounded trial-division specification: they test precisely the divisors in
+`[2, n)`, retain exactly the primes in the checked Bertrand list, and bound the
+complete unary trial-pair input for one candidate by `2n(n-2)` cells.
+`firstBertrandPrime_eq_selectPrimeAbove` proves that taking the first survivor
+returns exactly the prime already used by the semantic compiler, including its
+explicit `q = 0, 1` cases. These list definitions and cell bounds are not a
+machine-runtime theorem. CSP structural compilation, production of the unary
+bound and padded trial inputs, finite-machine trial filtering/selection, and
+final whole-compiler composition remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -316,8 +323,12 @@ The copied statements are grouped by mathematical contribution:
   linear-time addition; and `bertrandCandidatesComputableInPolyTime` proves
   quadratic-time enumeration of `[q + 1, 2q]` from a unary bound;
   `unaryDvdComputableInPolyTime` decides divisibility in linear time on
-  unary-padded pairs. The complete compiler machine and its structural
-  production of padded bounds, primality-filtering, and prime-selection passes
+  unary-padded pairs. `trialPrime_eq_true_iff` proves the exact bounded
+  trial-division specification, and
+  `firstBertrandPrime_eq_selectPrimeAbove` proves that filtering the enumerated
+  interval and taking its first survivor agrees with the semantic compiler's
+  selected prime. The complete compiler machine and its structural production
+  of padded bounds, finite-machine filtering/selection, and final composition
   remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction

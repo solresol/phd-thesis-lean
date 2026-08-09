@@ -30,7 +30,10 @@ plus linear-time successor and less-than-or-equal passes on canonical binary
 naturals, a linear-time ripple-carry addition pass on aligned pairs, and a
 quadratic-time unary-bound enumerator for the complete Bertrand interval. Its
 delimiter-separated unary-pair encoding and divisibility machine also supply a
-linear-time padded trial-division primitive for the future prime scan.
+linear-time padded trial-division primitive. Its executable trial specification
+enumerates exactly `[2, n)`, filters the Bertrand candidates, and returns the
+same prime as the semantic compiler; realizing that complete filter as a
+finite machine remains separate from these encoding and size results.
 -/
 
 namespace BinaryNatLists

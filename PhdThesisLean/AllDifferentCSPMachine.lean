@@ -6,6 +6,7 @@ namespace PhdThesisLean.AllDifferentCSPMachine
 open Computability
 open Turing
 open PhdThesisLean.AllDifferentCSPEncoding
+open PhdThesisLean.AllDifferentCSP.ExplicitSystem
 
 /-!
 # Finite-machine encoding components for the all-different compiler
@@ -27,12 +28,15 @@ unary scan bound and emits every natural in the Bertrand interval
 `[q + 1, 2q]` in quadratic time; the unary interface records the eventual full
 CSP invariant that the explicit input length is at least `q`. An eighth finite
 machine decides divisibility on delimiter-separated unary-padded pairs in
-linear time, including zero dividend and divisor cases.
+linear time, including zero dividend and divisor cases.  The executable
+trial-division specification below enumerates exactly the proper divisors,
+filters the checked Bertrand candidates, and proves that its first survivor is
+the prime already selected by the semantic compiler.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, production of the
-unary distinct-symbol bound and padded trial inputs, primality testing,
-prime filtering/selection, or final compiler assembly.
+unary distinct-symbol bound and padded trial inputs, finite-machine realization
+of the trial-division filter and selection pass, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -4352,6 +4356,212 @@ theorem encode_length (pair : ℕ × ℕ) :
 
 end UnaryNatPair
 
+/-! ## Deterministic trial-division specification
+
+The existing divisibility machine supplies the Boolean test needed for each
+pair below.  This section fixes the exact finite computation that the next
+machine pass must realize: test every divisor in `[2, n)`, retain exactly the
+prime Bertrand candidates, and take the first survivor.  The specification is
+executable, but no polynomial-time claim is made merely from these list
+definitions.  The unary-pair and aggregate-size bounds expose the padding that
+the finite-machine proof will use.
+-/
+
+/-- Every possible nontrivial proper divisor of `n`, in increasing order. -/
+def trialDivisors (n : ℕ) : List ℕ :=
+  List.range' 2 (n - 2)
+
+@[simp]
+theorem trialDivisors_length (n : ℕ) :
+    (trialDivisors n).length = n - 2 := by
+  simp [trialDivisors]
+
+@[simp]
+theorem mem_trialDivisors_iff (n d : ℕ) :
+    d ∈ trialDivisors n ↔ 2 ≤ d ∧ d < n := by
+  simp [trialDivisors]
+  omega
+
+/-- Bounded trial division as an executable Boolean predicate. -/
+def trialPrime (n : ℕ) : Bool :=
+  decide (2 ≤ n) &&
+    (trialDivisors n).all fun d => decide (¬ d ∣ n)
+
+/-- Testing all and only the divisors in `[2, n)` decides natural primality. -/
+theorem trialPrime_eq_true_iff (n : ℕ) :
+    trialPrime n = true ↔ n.Prime := by
+  rw [Nat.prime_def_lt']
+  simp only [trialPrime, Bool.and_eq_true, decide_eq_true_eq,
+    List.all_eq_true]
+  constructor
+  · rintro ⟨hn, htrial⟩
+    exact ⟨hn, fun d hd2 hdn =>
+      htrial d ((mem_trialDivisors_iff n d).2 ⟨hd2, hdn⟩)⟩
+  · rintro ⟨hn, hprime⟩
+    exact ⟨hn, fun d hd => hprime d
+      ((mem_trialDivisors_iff n d).1 hd).1
+      ((mem_trialDivisors_iff n d).1 hd).2⟩
+
+/-- The exact sequence of padded divisibility inputs used to test `n`. -/
+def trialDivisionPairs (n : ℕ) : List (ℕ × ℕ) :=
+  (trialDivisors n).map fun d => (n, d)
+
+@[simp]
+theorem trialDivisionPairs_length (n : ℕ) :
+    (trialDivisionPairs n).length = n - 2 := by
+  simp [trialDivisionPairs]
+
+theorem mem_trialDivisionPairs_iff (n : ℕ) (pair : ℕ × ℕ) :
+    pair ∈ trialDivisionPairs n ↔
+      pair.1 = n ∧ 2 ≤ pair.2 ∧ pair.2 < n := by
+  constructor
+  · intro hp
+    obtain ⟨d, hd, rfl⟩ := List.mem_map.mp hp
+    exact ⟨rfl, (mem_trialDivisors_iff n d).mp hd⟩
+  · rintro ⟨hfirst, hd2, hdlt⟩
+    exact List.mem_map.mpr ⟨pair.2,
+      (mem_trialDivisors_iff n pair.2).mpr ⟨hd2, hdlt⟩,
+      Prod.ext hfirst.symm rfl⟩
+
+/-- Each trial pair has unary length at most twice its candidate. -/
+theorem unaryPair_length_le_two_mul_of_mem_trialDivisionPairs
+    {n : ℕ} {pair : ℕ × ℕ} (hp : pair ∈ trialDivisionPairs n) :
+    (UnaryNatPair.encode pair).length ≤ 2 * n := by
+  rw [UnaryNatPair.encode_length]
+  have h := (mem_trialDivisionPairs_iff n pair).mp hp
+  omega
+
+/-- Total unary cells in the complete list of trial pairs for one candidate. -/
+def trialDivisionInputSize (n : ℕ) : ℕ :=
+  ((trialDivisionPairs n).map fun pair =>
+    (UnaryNatPair.encode pair).length).sum
+
+/-- The complete padded trial-division input for one candidate is quadratic. -/
+theorem trialDivisionInputSize_le (n : ℕ) :
+    trialDivisionInputSize n ≤ 2 * n * (n - 2) := by
+  have hsum := List.sum_le_card_nsmul
+    ((trialDivisionPairs n).map fun pair =>
+      (UnaryNatPair.encode pair).length) (2 * n) (by
+        intro length hlength
+        obtain ⟨pair, hpair, rfl⟩ := List.mem_map.mp hlength
+        exact unaryPair_length_le_two_mul_of_mem_trialDivisionPairs hpair)
+  simpa [trialDivisionInputSize, trialDivisionPairs_length,
+    Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using hsum
+
+/-- The checked Bertrand interval after deterministic trial-division
+filtering. -/
+def bertrandPrimeCandidates (q : ℕ) : List ℕ :=
+  (bertrandCandidates q).filter trialPrime
+
+theorem pairwise_lt_intervalFrom (count current : ℕ) :
+    (intervalFrom count current).Pairwise (· < ·) := by
+  induction count generalizing current with
+  | zero => simp [intervalFrom]
+  | succ count ih =>
+      rw [intervalFrom, List.pairwise_cons]
+      constructor
+      · intro value hvalue
+        have hbounds :=
+          (mem_intervalFrom_iff value count (current + 1)).mp hvalue
+        omega
+      · exact ih (current + 1)
+
+theorem pairwise_lt_bertrandPrimeCandidates (q : ℕ) :
+    (bertrandPrimeCandidates q).Pairwise (· < ·) := by
+  exact (pairwise_lt_intervalFrom q q).filter trialPrime
+
+@[simp]
+theorem mem_bertrandPrimeCandidates_iff (q value : ℕ) :
+    value ∈ bertrandPrimeCandidates q ↔
+      value.Prime ∧ q < value ∧ value ≤ 2 * q := by
+  rw [bertrandPrimeCandidates, List.mem_filter]
+  rw [trialPrime_eq_true_iff, mem_bertrandCandidates_iff]
+  tauto
+
+theorem selectPrimeAbove_mem_bertrandPrimeCandidates
+    {q : ℕ} (hq : q ≠ 0) :
+    selectPrimeAbove q ∈ bertrandPrimeCandidates q := by
+  rw [mem_bertrandPrimeCandidates_iff]
+  exact (mem_primeCandidates_iff q (selectPrimeAbove q)).mp
+    (selectPrimeAbove_mem_primeCandidates hq)
+
+theorem bertrandPrimeCandidates_ne_nil {q : ℕ} (hq : q ≠ 0) :
+    bertrandPrimeCandidates q ≠ [] := by
+  intro hempty
+  have hmem := selectPrimeAbove_mem_bertrandPrimeCandidates hq
+  rw [hempty] at hmem
+  simp at hmem
+
+/-- Select the first candidate surviving bounded trial division, with the
+same explicit `q = 0` convention as the semantic compiler. -/
+def firstBertrandPrime (q : ℕ) : ℕ :=
+  if hq : q = 0 then 2
+  else (bertrandPrimeCandidates q).head (bertrandPrimeCandidates_ne_nil hq)
+
+@[simp]
+theorem firstBertrandPrime_zero : firstBertrandPrime 0 = 2 := by
+  simp [firstBertrandPrime]
+
+theorem firstBertrandPrime_mem {q : ℕ} (hq : q ≠ 0) :
+    firstBertrandPrime q ∈ bertrandPrimeCandidates q := by
+  rw [firstBertrandPrime, dif_neg hq]
+  exact List.head_mem _
+
+private theorem head_le_of_pairwise_lt {xs : List ℕ} (hne : xs ≠ [])
+    (hsorted : xs.Pairwise (· < ·)) {value : ℕ} (hvalue : value ∈ xs) :
+    xs.head hne ≤ value := by
+  cases xs with
+  | nil => simp at hne
+  | cons first rest =>
+      rw [List.pairwise_cons] at hsorted
+      rcases List.mem_cons.mp hvalue with hfirst | hrest
+      · subst value
+        exact le_rfl
+      · exact (hsorted.1 value hrest).le
+
+/-- The executable first-survivor scan returns exactly the least prime used by
+the already checked semantic compiler. -/
+theorem firstBertrandPrime_eq_selectPrimeAbove (q : ℕ) :
+    firstBertrandPrime q = selectPrimeAbove q := by
+  by_cases hq : q = 0
+  · subst q
+    simp
+  · apply Nat.le_antisymm
+    · rw [firstBertrandPrime, dif_neg hq]
+      exact head_le_of_pairwise_lt (bertrandPrimeCandidates_ne_nil hq)
+        (pairwise_lt_bertrandPrimeCandidates q)
+        (selectPrimeAbove_mem_bertrandPrimeCandidates hq)
+    · rw [selectPrimeAbove, dif_neg hq]
+      exact Finset.min'_le (primeCandidates q) (firstBertrandPrime q)
+        ((mem_bertrandPrimeCandidates_iff q (firstBertrandPrime q)).mp
+          (firstBertrandPrime_mem hq) |>
+            (mem_primeCandidates_iff q (firstBertrandPrime q)).mpr)
+
+theorem firstBertrandPrime_prime (q : ℕ) :
+    (firstBertrandPrime q).Prime := by
+  rw [firstBertrandPrime_eq_selectPrimeAbove]
+  exact selectPrimeAbove_prime q
+
+theorem lt_firstBertrandPrime (q : ℕ) :
+    q < firstBertrandPrime q := by
+  rw [firstBertrandPrime_eq_selectPrimeAbove]
+  exact lt_selectPrimeAbove q
+
+theorem firstBertrandPrime_le_two_mul {q : ℕ} (hq : q ≠ 0) :
+    firstBertrandPrime q ≤ 2 * q := by
+  rw [firstBertrandPrime_eq_selectPrimeAbove]
+  exact selectPrimeAbove_le_two_mul hq
+
+theorem firstBertrandPrime_lt_two_mul {q : ℕ} (hq : 1 < q) :
+    firstBertrandPrime q < 2 * q := by
+  rw [firstBertrandPrime_eq_selectPrimeAbove]
+  exact selectPrimeAbove_lt_two_mul hq
+
+@[simp]
+theorem firstBertrandPrime_one : firstBertrandPrime 1 = 2 := by
+  rw [firstBertrandPrime_eq_selectPrimeAbove]
+  exact selectPrimeAbove_one
+
 /-- Input, the unary dividend, the unconsumed and consumed parts of the
 divisor, and the Boolean output. -/
 inductive DvdStack
@@ -5574,6 +5784,10 @@ noncomputable def unaryDvdComputableInPolyTime :
 #print axioms bertrandCandidate_outputsInTime
 #print axioms bertrandCandidatesComputableInPolyTime
 #print axioms UnaryNatPair.decode_encode
+#print axioms trialPrime_eq_true_iff
+#print axioms trialDivisionInputSize_le
+#print axioms mem_bertrandPrimeCandidates_iff
+#print axioms firstBertrandPrime_eq_selectPrimeAbove
 #print axioms unaryDvd_outputsInTime
 #print axioms unaryDvdComputableInPolyTime
 
