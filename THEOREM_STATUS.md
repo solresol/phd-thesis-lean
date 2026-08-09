@@ -48,22 +48,22 @@ three-distinct-variable convention; a normalisation theorem for arbitrary
 
 The following statements were added to the active thesis after the 24 July
 snapshot. They are queued separately so that the audited 24-statement baseline
-and its source commit remain unchanged. “Pending” here means that the thesis
-contains a proof but no statement-faithful Lean declaration has yet been
-reviewed. They also appear as dependency-ordered checkbox tasks in
-[`TODO.md`](TODO.md).
+and its source commit remain unchanged. All five are now formalised in
+[`PhdThesisLean/PrecisionGrowth.lean`](PhdThesisLean/PrecisionGrowth.lean),
+and the corresponding checkbox tasks in [`TODO.md`](TODO.md) are complete.
 
 | Thesis label | Status | Lean declaration or remaining work |
 |---|---|---|
-| `prop:precision-growth-covering` | Pending | Define finite-precision prediction patterns and prove that their cardinality is the covering number of the prediction image by radius-$p^{-k}$ balls in the product sup metric. |
-| `prop:precision-growth-vc` | Pending | Identify reduction modulo $2$ at precision one with the ordinary binary growth function, then recover the VC-dimension criterion from full $2^m$-pattern realisation. |
+| `prop:precision-growth-covering` | Complete | `PrecisionGrowth.precision_growth_covering` proves $N_{\mathcal H}(S,k)$ equals the covering number of the prediction set in `ℤ_[p]^m` by closed radius-$p^{-k}$ balls in the product sup metric. `mem_closedBall_iff_toZModPow` identifies same-ball membership with coordinatewise agreement under `PadicInt.toZModPow`, and `coveringNumber_eq_ncard_image` proves the class-counting identity for arbitrary vector sets. |
+| `prop:precision-growth-vc` | Complete | `PrecisionGrowth.precision_growth_binary` identifies the precision-one growth function at $p=2$ with the ordinary growth function of the reduced class, and `precision_growth_vc` proves the shattering-defined VC dimension of the reduced class equals the largest $m$ with $\Pi_{\mathcal H}^{(2)}(m,1)=2^m$, via `shatters_iff_patternCount_eq`. |
 | `thm:affine-precision-growth` | Complete | `PrecisionGrowth.affine_precision_growth` proves $\Pi = p^{k\min(m,d+1)}$ for the affine class on `ZMod (p ^ K)` reduced to precision $k \le K$: `affine_patternCount_le` bounds every sample through the reduced coefficient vector, and `affine_patternCount_basisSample` attains the bound on the thesis sample $0,e_1,\ldots,e_{r-1}$ padded by zeros. `affine_precision_growth_log` records the base-$p$ logarithm form $E = k\min(m,d+1)$. |
-| `prop:tree-syntax-growth-bound` | Pending | Formalise the finite description-count argument for a family of rooted tree shapes with bounded split-rule choices and `ZMod (p ^ k)` leaf labels. |
-| `cor:binary-tree-precision-growth` | Pending | Specialise the syntax bound to ordered full binary trees using the Catalan count and the identity $L=I+1$. |
+| `prop:tree-syntax-growth-bound` | Complete | `PrecisionGrowth.tree_syntax_growth_bound` bounds the pattern count of `syntaxClass` — any interpretation of a finite shape family with `R` split-rule choices per internal node and `ZMod (p ^ k)` leaf labels — by $\min(p^{km}, \sum_T R^{I(T)} p^{kL(T)})$. |
+| `cor:binary-tree-precision-growth` | Complete | `PrecisionGrowth.binary_tree_precision_growth` specialises the bound to ordered full binary trees with at most $n$ internal nodes via mathlib's `Tree.treesOfNumNodesEq_card_eq_catalan` and `Tree.numLeaves_eq_numNodes_succ`, giving $\min(p^{km}, \sum_{i\le n} C_i R^i p^{k(i+1)})$. |
 
-The logarithmic entropy notation in the thesis need not be the first Lean
-interface. The cardinality equalities and inequalities are the algebraic core;
-the real logarithm formulas can be derived afterwards if useful.
+The cardinality equalities and inequalities are the primary Lean interface,
+as planned. For the affine theorem the base-`p` logarithm identity
+`E = k * min m (d + 1)` is also recorded via `Nat.log`; the real-logarithm
+entropy formulas can be derived later if useful.
 
 ## The active thesis contains more than the headline catalogue
 

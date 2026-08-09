@@ -229,18 +229,33 @@ regularisation-path solutions remains an open thesis question and is not
 misrepresented as a completed theorem.
 
 The precision-indexed prediction growth development is formalised in
-[`PhdThesisLean/PrecisionGrowth.lean`](PhdThesisLean/PrecisionGrowth.lean).
-It defines the finite-precision prediction-pattern interface from
-`def:precision-indexed-growth` — realised pattern sets, the pattern count
-`N(S, k)`, and the growth function `Π(m, k)` as a supremum over ordered
-samples — for an arbitrary output reduction, together with the ambient
-`p ^ (k m)` bound. The theorem `affine_precision_growth` proves
-`thm:affine-precision-growth`: for the affine class on `(ZMod (p ^ K))^d`
-reduced to precision `k ≤ K`, the growth function is exactly
-`p ^ (k * min m (d + 1))`, with the upper bound through the reduced
-coefficient vector and the lower bound attained on the sample
+[`PhdThesisLean/PrecisionGrowth.lean`](PhdThesisLean/PrecisionGrowth.lean),
+completing the whole post-snapshot queue from
+`sec:precision-indexed-growth`. It defines the finite-precision
+prediction-pattern interface from `def:precision-indexed-growth` — realised
+pattern sets, the pattern count `N(S, k)`, and the growth function `Π(m, k)`
+as a supremum over ordered samples — for an arbitrary output reduction,
+together with the ambient `p ^ (k m)` bound. The theorem
+`affine_precision_growth` proves `thm:affine-precision-growth`: for the
+affine class on `(ZMod (p ^ K))^d` reduced to precision `k ≤ K`, the growth
+function is exactly `p ^ (k * min m (d + 1))`, with the upper bound through
+the reduced coefficient vector and the lower bound attained on the sample
 `0, e_1, …, e_{r-1}` padded by zeros. The base-`p` logarithm form
 `E = k * min m (d + 1)` is recorded by `affine_precision_growth_log`.
+`precision_growth_covering` proves `prop:precision-growth-covering`: the
+pattern count is the covering number of the prediction set in `ℤ_[p]^m` by
+closed radius-`p ^ (-k)` balls in the product sup metric, via the
+coordinatewise congruence characterisation of same-ball membership.
+`precision_growth_binary` and `precision_growth_vc` prove
+`prop:precision-growth-vc`: at `p = 2` and precision one the growth function
+is the ordinary binary growth function of the reduced class, and the
+shattering-defined VC dimension equals the largest `m` at which the growth
+function attains `2 ^ m`. `tree_syntax_growth_bound` proves
+`prop:tree-syntax-growth-bound` for any interpretation of a finite family of
+tree shapes with bounded split-rule choices and `ZMod (p ^ k)` leaf labels,
+and `binary_tree_precision_growth` specialises it to ordered full binary
+trees through mathlib's Catalan count, proving
+`cor:binary-tree-precision-growth`.
 
 The proof library builds locally with `lake build`, and the repository has a
 GitHub Actions build check. `PhdThesisLean` is an explicit default target, so a

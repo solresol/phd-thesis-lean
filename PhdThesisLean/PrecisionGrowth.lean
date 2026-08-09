@@ -6,7 +6,9 @@
   `sec:precision-indexed-growth` in the active thesis checkout (post-snapshot
   formalisation queue; see THEOREM_STATUS.md).
 
-  Thesis labels: def:precision-indexed-growth, thm:affine-precision-growth.
+  Thesis labels: def:precision-indexed-growth, prop:precision-growth-covering,
+  prop:precision-growth-vc, thm:affine-precision-growth,
+  prop:tree-syntax-growth-bound, cor:binary-tree-precision-growth.
 -/
 
 import Mathlib.Combinatorics.Enumerative.Catalan
@@ -323,7 +325,313 @@ theorem affine_precision_growth_log {p : ℕ} [hp : Fact p.Prime] {K k d : ℕ}
       = k * min m (d + 1) := by
   rw [affine_precision_growth hk m, Nat.log_pow hp.out.one_lt]
 
+/-! ### Covering interpretation: `prop:precision-growth-covering`
+
+For a fixed sample, the realised precision-`k` pattern count is the minimum
+number of closed balls of radius `p ^ (-k)`, in the product sup metric on
+`ℤ_p^m`, required to cover the prediction set: occupied residue classes are
+disjoint, each needs one covering ball, and one ball covers a full class. -/
+
+/-- The set of prediction vectors of `H` on the sample `S`. -/
+def predictionSet {p : ℕ} [Fact p.Prime] {X : Type*} {m : ℕ}
+    (H : Set (X → ℤ_[p])) (S : Fin m → X) : Set (Fin m → ℤ_[p]) :=
+  (fun h => fun i => h (S i)) '' H
+
+/-- The covering number of `P` by closed balls of radius `r`: the least
+cardinality of a finite set of centres whose closed balls cover `P`. -/
+noncomputable def coveringNumber {α : Type*} [PseudoMetricSpace α] (r : ℝ)
+    (P : Set α) : ℕ :=
+  sInf {n | ∃ t : Finset α, t.card = n ∧ P ⊆ ⋃ c ∈ t, Metric.closedBall c r}
+
+/-- Two `p`-adic vectors lie within `p ^ (-k)` of each other in the product
+sup metric exactly when they agree coordinatewise modulo `p ^ k`. -/
+theorem mem_closedBall_iff_toZModPow {p : ℕ} [Fact p.Prime] {m k : ℕ}
+    (u v : Fin m → ℤ_[p]) :
+    u ∈ Metric.closedBall v ((p : ℝ) ^ (-(k : ℤ))) ↔
+      ∀ i, PadicInt.toZModPow k (u i) = PadicInt.toZModPow k (v i) := by
+  rw [Metric.mem_closedBall, dist_pi_le_iff (zpow_nonneg (Nat.cast_nonneg p) _)]
+  refine forall_congr' fun i => ?_
+  rw [dist_eq_norm, PadicInt.norm_le_pow_iff_mem_span_pow,
+    ← PadicInt.ker_toZModPow, RingHom.mem_ker, map_sub, sub_eq_zero]
+
+/-- The covering number of any set of `p`-adic vectors at radius `p ^ (-k)`
+is the number of occupied coordinatewise residue classes modulo `p ^ k`. -/
+theorem coveringNumber_eq_ncard_image {p : ℕ} [hp : Fact p.Prime] {m k : ℕ}
+    (P : Set (Fin m → ℤ_[p])) :
+    coveringNumber ((p : ℝ) ^ (-(k : ℤ))) P
+      = ((fun u : Fin m → ℤ_[p] =>
+          fun i => PadicInt.toZModPow k (u i)) '' P).ncard := by
+  classical
+  haveI : NeZero (p ^ k) := ⟨pow_ne_zero k hp.out.ne_zero⟩
+  set ρ : (Fin m → ℤ_[p]) → (Fin m → ZMod (p ^ k)) :=
+    fun u => fun i => PadicInt.toZModPow k (u i) with hρ
+  have hQfin : (ρ '' P).Finite := Set.toFinite _
+  have hcov : P ⊆ ⋃ c ∈ hQfin.toFinset.image (Function.invFunOn ρ P),
+      Metric.closedBall c ((p : ℝ) ^ (-(k : ℤ))) := by
+    intro v hv
+    have hexv : ∃ a ∈ P, ρ a = ρ v := ⟨v, hv, rfl⟩
+    refine Set.mem_iUnion₂.mpr ⟨Function.invFunOn ρ P (ρ v), ?_, ?_⟩
+    · exact Finset.mem_image.mpr
+        ⟨ρ v, hQfin.mem_toFinset.mpr ⟨v, hv, rfl⟩, rfl⟩
+    · rw [mem_closedBall_iff_toZModPow]
+      intro i
+      exact (congrFun (Function.invFunOn_eq hexv) i).symm
+  have hmem : (hQfin.toFinset.image (Function.invFunOn ρ P)).card ∈
+      {n | ∃ t : Finset (Fin m → ℤ_[p]), t.card = n ∧
+        P ⊆ ⋃ c ∈ t, Metric.closedBall c ((p : ℝ) ^ (-(k : ℤ)))} :=
+    ⟨_, rfl, hcov⟩
+  refine le_antisymm ((Nat.sInf_le hmem).trans ?_) (le_csInf ⟨_, hmem⟩ ?_)
+  · calc (hQfin.toFinset.image (Function.invFunOn ρ P)).card
+        ≤ hQfin.toFinset.card := Finset.card_image_le
+      _ = (ρ '' P).ncard := by rw [Set.ncard_eq_toFinset_card _ hQfin]
+  · rintro n ⟨t, rfl, hcovt⟩
+    have hex : ∀ w ∈ ρ '' P,
+        ∃ c ∈ (↑t : Set (Fin m → ℤ_[p])), ρ c = w := by
+      rintro w ⟨v, hv, rfl⟩
+      obtain ⟨c, hc, hvc⟩ := Set.mem_iUnion₂.mp (hcovt hv)
+      refine ⟨c, hc, ?_⟩
+      funext i
+      exact ((mem_closedBall_iff_toZModPow v c).mp hvc i).symm
+    calc (ρ '' P).ncard
+        ≤ (↑t : Set (Fin m → ℤ_[p])).ncard := by
+          refine Set.ncard_le_ncard_of_injOn (Function.invFunOn ρ ↑t)
+            (fun w hw => Function.invFunOn_mem (hex w hw)) ?_ t.finite_toSet
+          intro w hw w' hw' heq
+          rw [← Function.invFunOn_eq (hex w hw),
+            ← Function.invFunOn_eq (hex w' hw'), heq]
+      _ = t.card := Set.ncard_coe_finset t
+
+/-- Thesis `prop:precision-growth-covering`: for a fixed sample, the number
+of realised precision-`k` patterns is the covering number of the prediction
+set by closed balls of radius `p ^ (-k)` in the product sup metric. -/
+theorem precision_growth_covering {p : ℕ} [hp : Fact p.Prime] {X : Type*}
+    {m k : ℕ} (H : Set (X → ℤ_[p])) (S : Fin m → X) :
+    patternCount H (⇑(PadicInt.toZModPow k)) S
+      = coveringNumber ((p : ℝ) ^ (-(k : ℤ))) (predictionSet H S) := by
+  rw [coveringNumber_eq_ncard_image, patternCount]
+  congr 1
+  rw [patternSet, predictionSet, Set.image_image]
+
+/-! ### Recovery of binary growth and VC dimension:
+`prop:precision-growth-vc`
+
+At `p = 2` and `k = 1` the finite-precision pattern count is the ordinary
+binary growth function of the reduced class, and complete residue shattering
+recovers the usual VC criterion. -/
+
+/-- Complete residue shattering: the class realises every reduced labelling
+of the sample. -/
+def Shatters {X O : Type*} {m : ℕ} (H' : Set (X → O)) (S : Fin m → X) : Prop :=
+  patternSet H' id S = Set.univ
+
+/-- The VC dimension of a class of already-reduced hypotheses: the largest
+sample size on which every labelling is realised. -/
+noncomputable def vcDim {X O : Type*} (H' : Set (X → O)) : ℕ :=
+  sSup {m | ∃ S : Fin m → X, Shatters H' S}
+
+theorem patternSet_image_comp {X Ω Ω' : Type*} {m : ℕ} (H : Set (X → Ω))
+    (ρ : Ω → Ω') (S : Fin m → X) :
+    patternSet ((fun h => ρ ∘ h) '' H) id S = patternSet H ρ S := by
+  rw [patternSet, patternSet, Set.image_image]
+  rfl
+
+theorem patternCount_image_comp {X Ω Ω' : Type*} {m : ℕ} (H : Set (X → Ω))
+    (ρ : Ω → Ω') (S : Fin m → X) :
+    patternCount ((fun h => ρ ∘ h) '' H) id S = patternCount H ρ S := by
+  rw [patternCount, patternCount, patternSet_image_comp]
+
+/-- Thesis `prop:precision-growth-vc`, growth-function half: at `p = 2` and
+`k = 1` the precision-indexed growth function is the ordinary binary growth
+function of the reduced class `H̄ = ρ₁ ∘ H`. -/
+theorem precision_growth_binary {X : Type*} (H : Set (X → ℤ_[2])) (m : ℕ) :
+    growth H (⇑(PadicInt.toZModPow (p := 2) 1)) m
+      = growth ((fun h => ⇑(PadicInt.toZModPow (p := 2) 1) ∘ h) '' H) id m := by
+  rw [growth, growth]
+  congr 1
+  ext n
+  simp only [Set.mem_setOf_eq]
+  constructor
+  · rintro ⟨S, rfl⟩
+    exact ⟨S, patternCount_image_comp H _ S⟩
+  · rintro ⟨S, rfl⟩
+    exact ⟨S, (patternCount_image_comp H _ S).symm⟩
+
+/-- Shattering is exactly attainment of the full labelling count. -/
+theorem shatters_iff_patternCount_eq {X O : Type*} [Fintype O] {m : ℕ}
+    (H' : Set (X → O)) (S : Fin m → X) :
+    Shatters H' S ↔ patternCount H' id S = Fintype.card O ^ m := by
+  classical
+  have huniv : (Set.univ : Set (Fin m → O)).ncard = Fintype.card O ^ m := by
+    rw [Set.ncard_univ, Nat.card_eq_fintype_card, Fintype.card_fun,
+      Fintype.card_fin]
+  constructor
+  · intro hS
+    rw [patternCount, hS, huniv]
+  · intro hc
+    exact Set.eq_of_subset_of_ncard_le (Set.subset_univ _)
+      (huniv.trans_le hc.ge) Set.finite_univ
+
+/-- Thesis `prop:precision-growth-vc`, VC-criterion half: the VC dimension of
+the reduced binary class is the largest sample size at which the
+precision-one growth function attains `2 ^ m`. -/
+theorem precision_growth_vc {X : Type*} (H : Set (X → ℤ_[2])) :
+    vcDim ((fun h => ⇑(PadicInt.toZModPow (p := 2) 1) ∘ h) '' H)
+      = sSup {m | growth H (⇑(PadicInt.toZModPow (p := 2) 1)) m = 2 ^ m} := by
+  haveI : NeZero ((2 : ℕ) ^ 1) := ⟨by norm_num⟩
+  rw [vcDim]
+  congr 1
+  ext m
+  simp only [Set.mem_setOf_eq]
+  have hub : ∀ S : Fin m → X,
+      patternCount H (⇑(PadicInt.toZModPow (p := 2) 1)) S ≤ 2 ^ m := by
+    intro S'
+    have h := patternCount_le_card H (⇑(PadicInt.toZModPow (p := 2) 1)) S'
+    rw [ZMod.card] at h
+    exact h
+  constructor
+  · rintro ⟨S, hS⟩
+    have hcount : patternCount H (⇑(PadicInt.toZModPow (p := 2) 1)) S
+        = 2 ^ m := by
+      rw [← patternCount_image_comp H _ S]
+      have h := (shatters_iff_patternCount_eq _ S).mp hS
+      rw [ZMod.card] at h
+      exact h
+    exact growth_eq_of_bounds hub ⟨S, hcount⟩
+  · intro hgr
+    have hne : {n | ∃ S : Fin m → X,
+        patternCount H (⇑(PadicInt.toZModPow (p := 2) 1)) S = n}.Nonempty := by
+      by_contra hemp
+      rw [Set.not_nonempty_iff_eq_empty] at hemp
+      rw [growth, hemp, csSup_empty] at hgr
+      exact (pow_pos two_pos m).ne' hgr.symm
+    have hbdd : BddAbove {n | ∃ S : Fin m → X,
+        patternCount H (⇑(PadicInt.toZModPow (p := 2) 1)) S = n} := by
+      refine ⟨2 ^ m, ?_⟩
+      rintro n ⟨S, rfl⟩
+      exact hub S
+    obtain ⟨S, hS⟩ := Nat.sSup_mem hne hbdd
+    refine ⟨S, (shatters_iff_patternCount_eq _ S).mpr ?_⟩
+    rw [patternCount_image_comp, ZMod.card]
+    exact hS.trans hgr
+
+/-! ### Tree-syntax growth bounds: `prop:tree-syntax-growth-bound` and
+`cor:binary-tree-precision-growth`
+
+Counting model descriptions bounds the realised pattern count for any
+interpretation of a finite family of tree shapes, and the ordered binary tree
+case is counted by the Catalan numbers with `L = I + 1`. -/
+
+/-- The class described by a finite family of shapes: each model of shape
+`T` chooses one of `R` split rules at each of the `I T` internal nodes and an
+output label at each of the `L T` leaves, interpreted by `interp`. -/
+def syntaxClass {X Shape : Type*} (𝔗 : Finset Shape) (I L : Shape → ℕ)
+    (R : ℕ) (O : Type*)
+    (interp : (T : Shape) → ((Fin (I T) → Fin R) × (Fin (L T) → O)) →
+      (X → O)) : Set (X → O) :=
+  ⋃ T ∈ 𝔗, Set.range (interp T)
+
+theorem ncard_biUnion_le {α γ : Type*} (s : Finset γ) (f : γ → Set α) :
+    (⋃ i ∈ s, f i).ncard ≤ ∑ i ∈ s, (f i).ncard := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | insert a s ha ih =>
+    rw [Finset.set_biUnion_insert, Finset.sum_insert ha]
+    exact (Set.ncard_union_le _ _).trans (Nat.add_le_add le_rfl ih)
+
+/-- Thesis `prop:tree-syntax-growth-bound`: the description count bounds the
+realised pattern count for any interpretation of a finite family of tree
+shapes with at most `R` split-rule choices per internal node and `p ^ k`
+residue outputs per leaf. -/
+theorem tree_syntax_growth_bound {p : ℕ} [hp : Fact p.Prime] {X Shape : Type*}
+    {k m : ℕ} (𝔗 : Finset Shape) (I L : Shape → ℕ) (R : ℕ)
+    (interp : (T : Shape) →
+      ((Fin (I T) → Fin R) × (Fin (L T) → ZMod (p ^ k))) →
+        (X → ZMod (p ^ k)))
+    (S : Fin m → X) :
+    patternCount (syntaxClass 𝔗 I L R (ZMod (p ^ k)) interp) id S
+      ≤ min (p ^ (k * m)) (∑ T ∈ 𝔗, R ^ I T * p ^ (k * L T)) := by
+  classical
+  haveI : NeZero (p ^ k) := ⟨pow_ne_zero k hp.out.ne_zero⟩
+  refine le_min ?_ ?_
+  · have h := patternCount_le_card
+      (syntaxClass 𝔗 I L R (ZMod (p ^ k)) interp) id S
+    rwa [ZMod.card, ← pow_mul] at h
+  · have hset : patternSet (syntaxClass 𝔗 I L R (ZMod (p ^ k)) interp) id S
+        = ⋃ T ∈ 𝔗, patternSet (Set.range (interp T)) id S := by
+      simp only [patternSet, syntaxClass, Set.image_iUnion]
+    rw [patternCount, hset]
+    refine (ncard_biUnion_le 𝔗 _).trans (Finset.sum_le_sum ?_)
+    intro T _
+    have himg : patternSet (Set.range (interp T)) id S
+        = Set.range
+            (fun md : (Fin (I T) → Fin R) × (Fin (L T) → ZMod (p ^ k)) =>
+              fun i => interp T md (S i)) := by
+      rw [patternSet, ← Set.range_comp]
+      rfl
+    rw [himg]
+    have h1 : (Set.range
+        (fun md : (Fin (I T) → Fin R) × (Fin (L T) → ZMod (p ^ k)) =>
+          fun i => interp T md (S i))).ncard
+        ≤ Nat.card ((Fin (I T) → Fin R) × (Fin (L T) → ZMod (p ^ k))) := by
+      rw [← Set.image_univ]
+      exact (Set.ncard_image_le Set.finite_univ).trans (Set.ncard_univ _).le
+    have h2 : Nat.card ((Fin (I T) → Fin R) × (Fin (L T) → ZMod (p ^ k)))
+        = R ^ I T * p ^ (k * L T) := by
+      rw [Nat.card_eq_fintype_card, Fintype.card_prod, Fintype.card_fun,
+        Fintype.card_fun, ZMod.card, Fintype.card_fin, Fintype.card_fin,
+        Fintype.card_fin, ← pow_mul]
+    exact h1.trans h2.le
+
+open Tree in
+/-- Thesis `cor:binary-tree-precision-growth`: for ordered full binary tree
+shapes with at most `n` internal nodes — counted by the Catalan numbers, with
+`L = I + 1` leaves — the description bound becomes
+`∑_{i ≤ n} C_i R^i p^(k(i+1))`. -/
+theorem binary_tree_precision_growth {p : ℕ} [hp : Fact p.Prime] {X : Type*}
+    {k m : ℕ} (n R : ℕ)
+    (interp : (T : Tree Unit) →
+      ((Fin T.numNodes → Fin R) × (Fin T.numLeaves → ZMod (p ^ k))) →
+        (X → ZMod (p ^ k)))
+    (S : Fin m → X) :
+    patternCount
+      (syntaxClass ((Finset.range (n + 1)).biUnion treesOfNumNodesEq)
+        Tree.numNodes Tree.numLeaves R (ZMod (p ^ k)) interp) id S
+      ≤ min (p ^ (k * m))
+          (∑ i ∈ Finset.range (n + 1),
+            catalan i * (R ^ i * p ^ (k * (i + 1)))) := by
+  classical
+  refine (tree_syntax_growth_bound _ _ _ _ interp S).trans (le_of_eq ?_)
+  have hdisj : (↑(Finset.range (n + 1)) : Set ℕ).PairwiseDisjoint
+      treesOfNumNodesEq := by
+    intro a _ b _ hab
+    simp only [Function.onFun]
+    rw [Finset.disjoint_left]
+    intro T hTa hTb
+    rw [mem_treesOfNumNodesEq] at hTa hTb
+    exact hab (hTa.symm.trans hTb)
+  have hsum : ∑ T ∈ (Finset.range (n + 1)).biUnion treesOfNumNodesEq,
+      R ^ T.numNodes * p ^ (k * T.numLeaves)
+      = ∑ i ∈ Finset.range (n + 1),
+          catalan i * (R ^ i * p ^ (k * (i + 1))) := by
+    rw [Finset.sum_biUnion hdisj]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    have hconst : ∀ T ∈ treesOfNumNodesEq i,
+        R ^ T.numNodes * p ^ (k * T.numLeaves)
+          = R ^ i * p ^ (k * (i + 1)) := by
+      intro T hT
+      rw [mem_treesOfNumNodesEq] at hT
+      rw [numLeaves_eq_numNodes_succ, hT]
+    rw [Finset.sum_congr rfl hconst, Finset.sum_const,
+      treesOfNumNodesEq_card_eq_catalan, smul_eq_mul]
+  rw [hsum]
+
 #print axioms affine_precision_growth
 #print axioms affine_precision_growth_log
+#print axioms precision_growth_covering
+#print axioms precision_growth_binary
+#print axioms precision_growth_vc
+#print axioms tree_syntax_growth_bound
+#print axioms binary_tree_precision_growth
 
 end PhdThesisLean.PrecisionGrowth
