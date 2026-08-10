@@ -32,8 +32,10 @@ quadratic-time unary-bound enumerator for the complete Bertrand interval. Its
 delimiter-separated unary-pair encoding and divisibility machine also supply a
 linear-time padded trial-division primitive. Its executable trial specification
 enumerates exactly `[2, n)`, filters the Bertrand candidates, and returns the
-same prime as the semantic compiler; realizing that complete filter as a
-finite machine remains separate from these encoding and size results.
+same prime as the semantic compiler. A separate checked finite machine emits
+the complete stack-oriented padded pair list in quadratic time; repeated
+divisibility, Boolean aggregation, and candidate filtering still remain
+separate from these encoding and size results.
 -/
 
 namespace BinaryNatLists

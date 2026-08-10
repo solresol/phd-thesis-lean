@@ -173,10 +173,13 @@ bounded trial-division specification: they test precisely the divisors in
 complete unary trial-pair input for one candidate by `2n(n-2)` cells.
 `firstBertrandPrime_eq_selectPrimeAbove` proves that taking the first survivor
 returns exactly the prime already used by the semantic compiler, including its
-explicit `q = 0, 1` cases. These list definitions and cell bounds are not a
-machine-runtime theorem. CSP structural compilation, production of the unary
-bound and padded trial inputs, finite-machine trial filtering/selection, and
-final whole-compiler composition remain.
+explicit `q = 0, 1` cases. `RawUnaryPairList.finEncoding` gives the padded pair
+stream a checked finite encoding, while
+`trialDivisionPairsComputableInPolyTime` emits exactly
+`[(n,2), ..., (n,n-1)]` from unary `n` in at most `8(n+1)^2` steps, including
+the empty `n = 0,1,2` cases. CSP structural compilation, production of the
+unary bound, repeated divisibility and Boolean aggregation, finite-machine
+candidate filtering/selection, and final whole-compiler composition remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -324,12 +327,14 @@ The copied statements are grouped by mathematical contribution:
   quadratic-time enumeration of `[q + 1, 2q]` from a unary bound;
   `unaryDvdComputableInPolyTime` decides divisibility in linear time on
   unary-padded pairs. `trialPrime_eq_true_iff` proves the exact bounded
-  trial-division specification, and
+  trial-division specification,
+  `trialDivisionPairsComputableInPolyTime` emits its complete padded pair list
+  in quadratic time, and
   `firstBertrandPrime_eq_selectPrimeAbove` proves that filtering the enumerated
   interval and taking its first survivor agrees with the semantic compiler's
   selected prime. The complete compiler machine and its structural production
-  of padded bounds, finite-machine filtering/selection, and final composition
-  remain open;
+  of unary bounds, repeated divisibility and Boolean aggregation,
+  finite-machine filtering/selection, and final composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

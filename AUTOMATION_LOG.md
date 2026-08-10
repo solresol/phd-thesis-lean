@@ -931,3 +931,69 @@
   the ordered Bertrand stream, and emits its first survivor. Keep structural
   CSP bound production and final whole-compiler composition as later,
   separately audited obligations.
+
+## 2026-08-11 05:47 AEST
+
+- Starting repository commit:
+  `345c1437a501a7d434cc22448c4368286ea1b74f` on `main`. The automation began
+  with a clean working tree; `git fetch --prune origin` confirmed divergence
+  count `0 0`, and local `HEAD`, `origin/main`, and the live remote
+  `refs/heads/main` agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `5294a3754f4987514ed9f03e73658df37a684156`. That checkout retains unrelated
+  modifications to `.gitignore` and `todo.md`; this automation did not alter
+  them. The proof still requires a genuine polynomial-time whole compiler, so
+  `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized at
+  `516000d`. Its new `MachineComposition.transfer_whole_list` gives a checked
+  order-preserving intermediate-stack transfer, but the total composed
+  `FinTM2`, multi-step component simulation, and polynomial runtime theorem
+  remain pending. It still supplies no reusable trial-filter or prime-scan
+  machine.
+- Chosen increment: finite-machine production of the complete unary-padded
+  trial-division input list for one candidate. `RawUnaryPairList.finEncoding`
+  gives the stack-oriented pair stream a checked `Option Bool` alphabet and
+  `RawUnaryPairList.decode_encode` proves exact round-trip decoding.
+- Headline declarations:
+  `trialDivisionPairs_outputsInTime` proves that the concrete six-stack
+  `trialDivisionPairComputer` emits exactly
+  `[(n,2), ..., (n,n-1)]` in at most `8 * (n + 1)^2` steps from unary `n`.
+  The proof explicitly handles the empty `n = 0,1,2` cases, preserves the
+  dividend while emitting each delimited pair, increments the unary divisor,
+  and clears every non-output stack. `trialDivisionPairsComputableInPolyTime`
+  packages this execution as a genuine `TM2ComputableInPolyTime` witness from
+  `unaryFinEncodingNat` to `RawUnaryPairList.finEncoding`.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the checked
+  pair-list encoding, concrete finite program, phase simulations, exact list
+  semantics, quadratic runtime bound, polynomial witness, and axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record that padded-pair generation is complete while
+  repeated divisibility, Boolean aggregation, candidate filtering/selection,
+  structural bound production, and final assembly remain open.
+- Failed proof approaches supplied a useful audit correction. The first
+  emission proof left exact time normalisation and the unary/pair-encoding
+  bridge unresolved; Lean continued elaboration with `sorryAx`, which the new
+  headline `#print axioms` audit exposed. The proof was split into checked
+  phase-composition lemmas, the time equalities were normalised explicitly
+  with `two_mul`, and `unaryEncodeNat_eq_replicate` now connects mathlib's
+  unary input to the pair encoder. The final declarations have no `sorryAx`
+  dependency.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3114 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  `RawUnaryPairList.decode_encode`, `trialPairsFrom_sub_two`,
+  `trialDivisionPairs_outputsInTime`, and
+  `trialDivisionPairsComputableInPolyTime` report only `propext`,
+  `Classical.choice`, and `Quot.sound` (the encoding round trip omits
+  `Classical.choice`, and the exact list identity uses only `propext`).
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes present in this repository.
+- Best next step: drive `unaryDvdComputer` repeatedly over the checked padded
+  pair stream, aggregate its Boolean results into exact `trialPrime`, and then
+  use that checked predicate to filter the ordered Bertrand candidates and
+  emit the first survivor. Structural production of the unary distinct-symbol
+  bound and final compiler composition remain separate later obligations.

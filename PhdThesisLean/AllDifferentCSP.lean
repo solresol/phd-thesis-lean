@@ -40,10 +40,13 @@ the eventual full-input invariant `q ≤ input length`; its checked unary-padded
 divisibility machine handles every natural pair in time linear in the padded
 pair length. Its executable trial-division specification tests exactly the
 divisors in `[2, n)`, filters the enumerated Bertrand candidates, and proves
-that the first survivor is `selectPrimeAbove`. The remaining work is to
-construct and compose CSP structural compilation, production of the padded
-bounds, the finite-machine trial filter and selection pass, and final assembly
-into the full compiler's genuine polynomial-runtime theorem.
+that the first survivor is `selectPrimeAbove`. A checked quadratic-time finite
+machine now emits the complete stack-oriented list of padded pairs
+`(n,2), ..., (n,n-1)`, including the empty small-`n` cases. The remaining work
+is to construct and compose CSP structural compilation, production of the
+unary bounds, repeated divisibility and Boolean aggregation, finite-machine
+candidate filtering and selection, and final assembly into the full compiler's
+genuine polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

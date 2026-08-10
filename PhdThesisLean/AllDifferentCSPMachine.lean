@@ -28,15 +28,18 @@ unary scan bound and emits every natural in the Bertrand interval
 `[q + 1, 2q]` in quadratic time; the unary interface records the eventual full
 CSP invariant that the explicit input length is at least `q`. An eighth finite
 machine decides divisibility on delimiter-separated unary-padded pairs in
-linear time, including zero dividend and divisor cases.  The executable
-trial-division specification below enumerates exactly the proper divisors,
-filters the checked Bertrand candidates, and proves that its first survivor is
-the prime already selected by the semantic compiler.
+linear time, including zero dividend and divisor cases. A ninth finite machine
+emits the exact stack-oriented list of every padded pair `(n,d)` with
+`2 ≤ d < n` in quadratic time. The executable trial-division specification
+below enumerates exactly the proper divisors, filters the checked Bertrand
+candidates, and proves that its first survivor is the prime already selected
+by the semantic compiler.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, production of the
-unary distinct-symbol bound and padded trial inputs, finite-machine realization
-of the trial-division filter and selection pass, or final compiler assembly.
+unary distinct-symbol bound, repeated divisibility invocation and Boolean
+aggregation across the padded pair stream, finite-machine candidate filtering
+and selection, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -4562,6 +4565,88 @@ theorem firstBertrandPrime_one : firstBertrandPrime 1 = 2 := by
   rw [firstBertrandPrime_eq_selectPrimeAbove]
   exact selectPrimeAbove_one
 
+/-! ## Stack-oriented trial-pair lists
+
+The finite prime filter feeds the existing divisibility checker one unary pair
+at a time.  This encoding keeps every complete `UnaryNatPair` payload intact,
+reverses both the list of pairs and each payload for stack consumption, and
+separates payloads by a symbol outside the Boolean input alphabet.
+-/
+
+namespace RawUnaryPairList
+
+/-- Stack-oriented encoding of a list of unary-padded natural pairs. -/
+def encode (pairs : List (ℕ × ℕ)) : List (Option Bool) :=
+  (pairs.map UnaryNatPair.encode).reverse.flatMap RawNatList.segment
+
+private theorem parseAux_some_append
+    (bits : List Bool) (input : List (Option Bool))
+    (current : List Bool) (fields : List (List Bool)) :
+    RawNatList.parseAux (bits.map some ++ input) current fields =
+      RawNatList.parseAux input (bits.reverse ++ current) fields := by
+  induction bits generalizing current with
+  | nil => simp
+  | cons bit bits ih =>
+      simp [RawNatList.parseAux, ih, List.reverse_cons, List.append_assoc]
+
+private theorem parseAux_segments
+    (segments : List (List Bool)) (fields : List (List Bool)) :
+    RawNatList.parseAux
+        (segments.flatMap RawNatList.segment) [] fields =
+      some (segments.reverse ++ fields) := by
+  induction segments generalizing fields with
+  | nil => simp [RawNatList.parseAux]
+  | cons bits segments ih =>
+      rw [List.flatMap_cons]
+      simp only [RawNatList.segment, List.append_assoc]
+      rw [parseAux_some_append]
+      simp only [List.reverse_reverse]
+      simp only [List.singleton_append, RawNatList.parseAux]
+      rw [ih]
+      simp [List.reverse_cons, List.append_assoc]
+
+@[simp]
+theorem parse_encode (pairs : List (ℕ × ℕ)) :
+    RawNatList.parse (encode pairs) =
+      some (pairs.map UnaryNatPair.encode) := by
+  rw [RawNatList.parse, encode, parseAux_segments]
+  simp
+
+/-- Decode every complete pair payload in a parsed field list. -/
+def decodeFields : List (List Bool) → Option (List (ℕ × ℕ))
+  | [] => some []
+  | field :: fields => do
+      let pair ← UnaryNatPair.decode field
+      let pairs ← decodeFields fields
+      some (pair :: pairs)
+
+@[simp]
+theorem decodeFields_map_encode (pairs : List (ℕ × ℕ)) :
+    decodeFields (pairs.map UnaryNatPair.encode) = some pairs := by
+  induction pairs with
+  | nil => rfl
+  | cons pair pairs ih => simp [decodeFields, ih]
+
+/-- Decode a complete stack-oriented list of unary pairs. -/
+def decode (input : List (Option Bool)) : Option (List (ℕ × ℕ)) := do
+  let fields ← RawNatList.parse input
+  decodeFields fields
+
+@[simp]
+theorem decode_encode (pairs : List (ℕ × ℕ)) :
+    decode (encode pairs) = some pairs := by
+  simp [decode]
+
+/-- Checked finite encoding for a stack-oriented list of padded trial pairs. -/
+def finEncoding : FinEncoding (List (ℕ × ℕ)) where
+  Γ := Option Bool
+  encode := encode
+  decode := decode
+  decode_encode := decode_encode
+  ΓFin := inferInstance
+
+end RawUnaryPairList
+
 /-- Input, the unary dividend, the unconsumed and consumed parts of the
 divisor, and the Boolean output. -/
 inductive DvdStack
@@ -5595,7 +5680,7 @@ private def dvd_parse_evals (n d : ℕ) :
       [] (List.replicate n true) (List.replicate d true) [] []))
     (by simpa [UnaryNatPair.encode] using hleft)
     (by simpa using hright)
-  simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+  simpa [two_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
 
 private theorem dvd_initList_eq_cfg (input : List Bool) :
     initList unaryDvdComputer input =
@@ -5761,6 +5846,1264 @@ noncomputable def unaryDvdComputableInPolyTime :
       Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_natCast,
       Polynomial.eval_X] using unaryDvd_outputsInTime pair
 
+/-! ## Finite-machine generation of padded trial pairs
+
+The next machine consumes unary `n` and emits, in stack order, exactly the
+inputs `(n, 2), ..., (n, n - 1)` required by bounded trial division.  Its
+quadratic output is polynomial in this deliberately padded input interface.
+-/
+
+/-- Input, a preserved dividend, remaining divisor iterations, the current
+divisor, copy work storage, and the raw pair-list output. -/
+inductive TrialPairStack
+  | input
+  | dividend
+  | remaining
+  | divisor
+  | work
+  | output
+  deriving DecidableEq, Fintype
+
+/-- Counting, initial trimming, pair emission, iteration, and cleanup phases. -/
+inductive TrialPairLabel
+  | scan
+  | trimFirst
+  | trimSecond
+  | loop
+  | emitStart
+  | copyDividend
+  | restoreDividend
+  | copyDivisor
+  | restoreDivisor
+  | cleanupDivisor
+  | cleanupDividend
+  deriving DecidableEq, Fintype
+
+/-- Finite control holds the most recently popped Boolean symbol. -/
+structure TrialPairState where
+  marker : Option Bool
+  deriving DecidableEq, Fintype
+
+private def trialPairInitialState : TrialPairState :=
+  ⟨none⟩
+
+private def trialPairObserved
+    (_state : TrialPairState) (marker : Option Bool) : TrialPairState :=
+  ⟨marker⟩
+
+private def trialPairMarkerPresent : TrialPairState → Bool
+  | ⟨some _⟩ => true
+  | _ => false
+
+private def trialPairHeldBit : TrialPairState → Bool
+  | ⟨some bit⟩ => bit
+  | _ => false
+
+private def trialPairHeldRawBit : TrialPairState → Option Bool
+  | ⟨some bit⟩ => some bit
+  | _ => none
+
+private def TrialPairAlphabet : TrialPairStack → Type
+  | .input => Bool
+  | .dividend => Bool
+  | .remaining => Bool
+  | .divisor => Bool
+  | .work => Bool
+  | .output => Option Bool
+
+/-- Generate every padded pair `(n,d)` for `2 ≤ d < n`. -/
+def trialDivisionPairProgram :
+    TrialPairLabel →
+      TM2.Stmt TrialPairAlphabet TrialPairLabel TrialPairState
+  | .scan =>
+      .pop .input trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.push .dividend trialPairHeldBit <|
+            .push .remaining trialPairHeldBit <|
+              .goto (fun _ => .scan))
+          (.goto (fun _ => .trimFirst))
+  | .trimFirst =>
+      .pop .remaining trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.goto (fun _ => .trimSecond))
+          (.goto (fun _ => .cleanupDivisor))
+  | .trimSecond =>
+      .pop .remaining trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.push .divisor (fun _ => true) <|
+            .push .divisor (fun _ => true) <|
+              .goto (fun _ => .loop))
+          (.goto (fun _ => .cleanupDivisor))
+  | .loop =>
+      .pop .remaining trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.goto (fun _ => .emitStart))
+          (.goto (fun _ => .cleanupDivisor))
+  | .emitStart =>
+      .push .output (fun _ => none) <|
+        .goto (fun _ => .copyDividend)
+  | .copyDividend =>
+      .pop .dividend trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.push .work trialPairHeldBit <|
+            .push .output trialPairHeldRawBit <|
+              .goto (fun _ => .copyDividend))
+          (.goto (fun _ => .restoreDividend))
+  | .restoreDividend =>
+      .pop .work trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.push .dividend trialPairHeldBit <|
+            .goto (fun _ => .restoreDividend))
+          (.push .output (fun _ => some false) <|
+            .goto (fun _ => .copyDivisor))
+  | .copyDivisor =>
+      .pop .divisor trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.push .work trialPairHeldBit <|
+            .push .output trialPairHeldRawBit <|
+              .goto (fun _ => .copyDivisor))
+          (.goto (fun _ => .restoreDivisor))
+  | .restoreDivisor =>
+      .pop .work trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.push .divisor trialPairHeldBit <|
+            .goto (fun _ => .restoreDivisor))
+          (.push .divisor (fun _ => true) <|
+            .goto (fun _ => .loop))
+  | .cleanupDivisor =>
+      .pop .divisor trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.goto (fun _ => .cleanupDivisor))
+          (.goto (fun _ => .cleanupDividend))
+  | .cleanupDividend =>
+      .pop .dividend trialPairObserved <|
+        .branch trialPairMarkerPresent
+          (.goto (fun _ => .cleanupDividend))
+          (.load (fun _ => trialPairInitialState) .halt)
+
+/-- Concrete finite machine producing `RawUnaryPairList.finEncoding`. -/
+def trialDivisionPairComputer : FinTM2 where
+  K := TrialPairStack
+  k₀ := .input
+  k₁ := .output
+  Γ := TrialPairAlphabet
+  Λ := TrialPairLabel
+  main := .scan
+  σ := TrialPairState
+  initialState := trialPairInitialState
+  Γk₀Fin := Bool.fintype
+  m := trialDivisionPairProgram
+
+private def trialPairStackContents
+    (input dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) :
+    (index : TrialPairStack) → List (TrialPairAlphabet index)
+  | .input => input
+  | .dividend => dividend
+  | .remaining => remaining
+  | .divisor => divisor
+  | .work => work
+  | .output => output
+
+private def trialPairCfg (label : Option TrialPairLabel)
+    (state : TrialPairState)
+    (input dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) : trialDivisionPairComputer.Cfg where
+  l := label
+  var := state
+  stk := trialPairStackContents input dividend remaining divisor work output
+
+private def trialPairEvalsToInTimeOne
+    {start finish : trialDivisionPairComputer.Cfg}
+    (hstep : trialDivisionPairComputer.step start = some finish) :
+    EvalsToInTime trialDivisionPairComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private theorem trialPair_step_scan_cons
+    (bit : Bool) (input dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .scan) state (bit :: input) dividend remaining
+          divisor work output) =
+      some (trialPairCfg (some .scan) ⟨some bit⟩ input
+        (bit :: dividend) (bit :: remaining) divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent, trialPairHeldBit,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_scan_nil
+    (dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .scan) state [] dividend remaining divisor work
+          output) =
+      some (trialPairCfg (some .trimFirst) ⟨none⟩ [] dividend remaining
+        divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+
+private theorem trialPair_step_trimFirst_cons
+    (bit : Bool) (dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .trimFirst) state [] dividend
+          (bit :: remaining) divisor work output) =
+      some (trialPairCfg (some .trimSecond) ⟨some bit⟩ [] dividend remaining
+        divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_trimFirst_nil
+    (dividend divisor work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .trimFirst) state [] dividend [] divisor work
+          output) =
+      some (trialPairCfg (some .cleanupDivisor) ⟨none⟩ [] dividend []
+        divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+
+private theorem trialPair_step_trimSecond_cons
+    (bit : Bool) (dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .trimSecond) state [] dividend
+          (bit :: remaining) divisor work output) =
+      some (trialPairCfg (some .loop) ⟨some bit⟩ [] dividend remaining
+        (true :: true :: divisor) work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_trimSecond_nil
+    (dividend divisor work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .trimSecond) state [] dividend [] divisor work
+          output) =
+      some (trialPairCfg (some .cleanupDivisor) ⟨none⟩ [] dividend []
+        divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent, Function.update]
+
+private theorem trialPair_step_loop_cons
+    (bit : Bool) (dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .loop) state [] dividend (bit :: remaining)
+          divisor work output) =
+      some (trialPairCfg (some .emitStart) ⟨some bit⟩ [] dividend remaining
+        divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_loop_nil
+    (dividend divisor work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .loop) state [] dividend [] divisor work output) =
+      some (trialPairCfg (some .cleanupDivisor) ⟨none⟩ [] dividend []
+        divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+
+private theorem trialPair_step_emitStart
+    (dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .emitStart) state [] dividend remaining divisor
+          work output) =
+      some (trialPairCfg (some .copyDividend) state [] dividend remaining
+        divisor work (none :: output)) := by
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_copyDividend_cons
+    (bit : Bool) (dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .copyDividend) state [] (bit :: dividend)
+          remaining divisor work output) =
+      some (trialPairCfg (some .copyDividend) ⟨some bit⟩ [] dividend
+        remaining divisor (bit :: work) (some bit :: output)) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent, trialPairHeldBit,
+    trialPairHeldRawBit, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_copyDividend_nil
+    (remaining divisor work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .copyDividend) state [] [] remaining divisor work
+          output) =
+      some (trialPairCfg (some .restoreDividend) ⟨none⟩ [] [] remaining
+        divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+
+private theorem trialPair_step_restoreDividend_cons
+    (bit : Bool) (dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .restoreDividend) state [] dividend remaining
+          divisor (bit :: work) output) =
+      some (trialPairCfg (some .restoreDividend) ⟨some bit⟩ []
+        (bit :: dividend) remaining divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent, trialPairHeldBit,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_restoreDividend_nil
+    (dividend remaining divisor : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .restoreDividend) state [] dividend remaining
+          divisor [] output) =
+      some (trialPairCfg (some .copyDivisor) ⟨none⟩ [] dividend remaining
+        divisor [] (some false :: output)) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_copyDivisor_cons
+    (bit : Bool) (dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .copyDivisor) state [] dividend remaining
+          (bit :: divisor) work output) =
+      some (trialPairCfg (some .copyDivisor) ⟨some bit⟩ [] dividend
+        remaining divisor (bit :: work) (some bit :: output)) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent, trialPairHeldBit,
+    trialPairHeldRawBit, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_copyDivisor_nil
+    (dividend remaining work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .copyDivisor) state [] dividend remaining [] work
+          output) =
+      some (trialPairCfg (some .restoreDivisor) ⟨none⟩ [] dividend remaining
+        [] work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+
+private theorem trialPair_step_restoreDivisor_cons
+    (bit : Bool) (dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .restoreDivisor) state [] dividend remaining
+          divisor (bit :: work) output) =
+      some (trialPairCfg (some .restoreDivisor) ⟨some bit⟩ [] dividend
+        remaining (bit :: divisor) work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent, trialPairHeldBit,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_restoreDivisor_nil
+    (dividend remaining divisor : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .restoreDivisor) state [] dividend remaining
+          divisor [] output) =
+      some (trialPairCfg (some .loop) ⟨none⟩ [] dividend remaining
+        (true :: divisor) [] output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_cleanupDivisor_cons
+    (bit : Bool) (dividend divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .cleanupDivisor) state [] dividend []
+          (bit :: divisor) work output) =
+      some (trialPairCfg (some .cleanupDivisor) ⟨some bit⟩ [] dividend []
+        divisor work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_cleanupDivisor_nil
+    (dividend work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .cleanupDivisor) state [] dividend [] [] work
+          output) =
+      some (trialPairCfg (some .cleanupDividend) ⟨none⟩ [] dividend [] []
+        work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+
+private theorem trialPair_step_cleanupDividend_cons
+    (bit : Bool) (dividend work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .cleanupDividend) state [] (bit :: dividend) []
+          [] work output) =
+      some (trialPairCfg (some .cleanupDividend) ⟨some bit⟩ [] dividend []
+        [] work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_step_cleanupDividend_nil
+    (work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    trialDivisionPairComputer.step
+        (trialPairCfg (some .cleanupDividend) state [] [] [] [] work output) =
+      some (trialPairCfg none trialPairInitialState [] [] [] [] work output) := by
+  rcases state with ⟨marker⟩
+  simp [trialDivisionPairComputer, FinTM2.step, trialPairCfg,
+    trialDivisionPairProgram, trialPairStackContents, TrialPairAlphabet,
+    trialPairObserved, trialPairMarkerPresent, trialPairInitialState]
+
+private def trialPair_scan_evals
+    (input dividend remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .scan) state input dividend remaining divisor work
+        output)
+      (some (trialPairCfg (some .trimFirst) ⟨none⟩ []
+        (input.reverse ++ dividend) (input.reverse ++ remaining)
+        divisor work output))
+      (input.length + 1) := by
+  induction input generalizing dividend remaining state with
+  | nil =>
+      simpa using trialPairEvalsToInTimeOne
+        (trialPair_step_scan_nil dividend remaining divisor work output state)
+  | cons bit input ih =>
+      let middle := trialPairCfg (some .scan) ⟨some bit⟩ input
+        (bit :: dividend) (bit :: remaining) divisor work output
+      have hone : EvalsToInTime trialDivisionPairComputer.step
+          (trialPairCfg (some .scan) state (bit :: input) dividend remaining
+            divisor work output)
+          (some middle) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [middle] using trialPair_step_scan_cons bit input dividend
+            remaining divisor work output state)
+      have hrest := ih (bit :: dividend) (bit :: remaining) ⟨some bit⟩
+      have htrans := EvalsToInTime.trans trialDivisionPairComputer.step
+        1 (input.length + 1)
+        (trialPairCfg (some .scan) state (bit :: input) dividend remaining
+          divisor work output)
+        middle
+        (some (trialPairCfg (some .trimFirst) ⟨none⟩ []
+          ((bit :: input).reverse ++ dividend)
+          ((bit :: input).reverse ++ remaining) divisor work output))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def trialPair_copyDividend_evals
+    (bits remaining divisor work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .copyDividend) state [] bits remaining divisor work
+        output)
+      (some (trialPairCfg (some .restoreDividend) ⟨none⟩ [] [] remaining
+        divisor (bits.reverse ++ work) (bits.reverse.map some ++ output)))
+      (bits.length + 1) := by
+  induction bits generalizing work output state with
+  | nil =>
+      simpa using trialPairEvalsToInTimeOne
+        (trialPair_step_copyDividend_nil remaining divisor work output state)
+  | cons bit bits ih =>
+      let middle := trialPairCfg (some .copyDividend) ⟨some bit⟩ [] bits
+        remaining divisor (bit :: work) (some bit :: output)
+      have hone : EvalsToInTime trialDivisionPairComputer.step
+          (trialPairCfg (some .copyDividend) state [] (bit :: bits)
+            remaining divisor work output)
+          (some middle) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [middle] using trialPair_step_copyDividend_cons bit bits
+            remaining divisor work output state)
+      have hrest := ih (bit :: work) (some bit :: output) ⟨some bit⟩
+      have htrans := EvalsToInTime.trans trialDivisionPairComputer.step
+        1 (bits.length + 1)
+        (trialPairCfg (some .copyDividend) state [] (bit :: bits)
+          remaining divisor work output)
+        middle
+        (some (trialPairCfg (some .restoreDividend) ⟨none⟩ [] [] remaining
+          divisor ((bit :: bits).reverse ++ work)
+          ((bit :: bits).reverse.map some ++ output)))
+        hone
+        (by simpa [middle, List.reverse_cons, List.map_append,
+          List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def trialPair_restoreDividend_evals
+    (work dividend remaining divisor : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .restoreDividend) state [] dividend remaining
+        divisor work output)
+      (some (trialPairCfg (some .copyDivisor) ⟨none⟩ []
+        (work.reverse ++ dividend) remaining divisor []
+        (some false :: output)))
+      (work.length + 1) := by
+  induction work generalizing dividend state with
+  | nil =>
+      simpa using trialPairEvalsToInTimeOne
+        (trialPair_step_restoreDividend_nil dividend remaining divisor output
+          state)
+  | cons bit work ih =>
+      let middle := trialPairCfg (some .restoreDividend) ⟨some bit⟩ []
+        (bit :: dividend) remaining divisor work output
+      have hone : EvalsToInTime trialDivisionPairComputer.step
+          (trialPairCfg (some .restoreDividend) state [] dividend remaining
+            divisor (bit :: work) output)
+          (some middle) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [middle] using trialPair_step_restoreDividend_cons bit
+            dividend remaining divisor work output state)
+      have hrest := ih (bit :: dividend) ⟨some bit⟩
+      have htrans := EvalsToInTime.trans trialDivisionPairComputer.step
+        1 (work.length + 1)
+        (trialPairCfg (some .restoreDividend) state [] dividend remaining
+          divisor (bit :: work) output)
+        middle
+        (some (trialPairCfg (some .copyDivisor) ⟨none⟩ []
+          ((bit :: work).reverse ++ dividend) remaining divisor []
+          (some false :: output)))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def trialPair_copyDivisor_evals
+    (bits dividend remaining work : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .copyDivisor) state [] dividend remaining bits work
+        output)
+      (some (trialPairCfg (some .restoreDivisor) ⟨none⟩ [] dividend
+        remaining [] (bits.reverse ++ work)
+        (bits.reverse.map some ++ output)))
+      (bits.length + 1) := by
+  induction bits generalizing work output state with
+  | nil =>
+      simpa using trialPairEvalsToInTimeOne
+        (trialPair_step_copyDivisor_nil dividend remaining work output state)
+  | cons bit bits ih =>
+      let middle := trialPairCfg (some .copyDivisor) ⟨some bit⟩ [] dividend
+        remaining bits (bit :: work) (some bit :: output)
+      have hone : EvalsToInTime trialDivisionPairComputer.step
+          (trialPairCfg (some .copyDivisor) state [] dividend remaining
+            (bit :: bits) work output)
+          (some middle) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [middle] using trialPair_step_copyDivisor_cons bit dividend
+            remaining bits work output state)
+      have hrest := ih (bit :: work) (some bit :: output) ⟨some bit⟩
+      have htrans := EvalsToInTime.trans trialDivisionPairComputer.step
+        1 (bits.length + 1)
+        (trialPairCfg (some .copyDivisor) state [] dividend remaining
+          (bit :: bits) work output)
+        middle
+        (some (trialPairCfg (some .restoreDivisor) ⟨none⟩ [] dividend
+          remaining [] ((bit :: bits).reverse ++ work)
+          ((bit :: bits).reverse.map some ++ output)))
+        hone
+        (by simpa [middle, List.reverse_cons, List.map_append,
+          List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def trialPair_restoreDivisor_evals
+    (work dividend remaining divisor : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .restoreDivisor) state [] dividend remaining divisor
+        work output)
+      (some (trialPairCfg (some .loop) ⟨none⟩ [] dividend remaining
+        (true :: work.reverse ++ divisor) [] output))
+      (work.length + 1) := by
+  induction work generalizing divisor state with
+  | nil =>
+      simpa using trialPairEvalsToInTimeOne
+        (trialPair_step_restoreDivisor_nil dividend remaining divisor output
+          state)
+  | cons bit work ih =>
+      let middle := trialPairCfg (some .restoreDivisor) ⟨some bit⟩ []
+        dividend remaining (bit :: divisor) work output
+      have hone : EvalsToInTime trialDivisionPairComputer.step
+          (trialPairCfg (some .restoreDivisor) state [] dividend remaining
+            divisor (bit :: work) output)
+          (some middle) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [middle] using trialPair_step_restoreDivisor_cons bit dividend
+            remaining divisor work output state)
+      have hrest := ih (bit :: divisor) ⟨some bit⟩
+      have htrans := EvalsToInTime.trans trialDivisionPairComputer.step
+        1 (work.length + 1)
+        (trialPairCfg (some .restoreDivisor) state [] dividend remaining
+          divisor (bit :: work) output)
+        middle
+        (some (trialPairCfg (some .loop) ⟨none⟩ [] dividend remaining
+          (true :: (bit :: work).reverse ++ divisor) [] output))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def trialPairEmitTime (dividend divisor : List Bool) : ℕ :=
+  2 * dividend.length + 2 * divisor.length + 5
+
+private theorem trialPair_segment_append
+    (dividend divisor : List Bool) (output : List (Option Bool)) :
+    divisor.reverse.map some ++ some false ::
+        dividend.reverse.map some ++ none :: output =
+      RawNatList.segment (dividend ++ false :: divisor) ++ output := by
+  simp [RawNatList.segment, List.reverse_append, List.map_append,
+    List.append_assoc]
+
+private def trialPair_emit_copyDividend_evals
+    (dividend remaining divisor : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+        output)
+      (some (trialPairCfg (some .restoreDividend) ⟨none⟩ [] [] remaining
+        divisor dividend.reverse
+        (dividend.reverse.map some ++ none :: output)))
+      (dividend.length + 2) := by
+  let afterStart := trialPairCfg (some .copyDividend) state [] dividend
+    remaining divisor [] (none :: output)
+  have hstart : EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+        output)
+      (some afterStart) 1 :=
+    trialPairEvalsToInTimeOne (by
+      simpa [afterStart] using trialPair_step_emitStart dividend remaining
+        divisor [] output state)
+  have hcopy := trialPair_copyDividend_evals dividend remaining divisor []
+    (none :: output) state
+  have hall := EvalsToInTime.trans trialDivisionPairComputer.step
+    1 (dividend.length + 1)
+    (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+      output)
+    afterStart
+    (some (trialPairCfg (some .restoreDividend) ⟨none⟩ [] [] remaining
+      divisor dividend.reverse
+      (dividend.reverse.map some ++ none :: output)))
+    hstart
+    (by simpa [afterStart] using hcopy)
+  simpa [two_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def trialPair_emit_restoreDividend_evals
+    (dividend remaining divisor : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+        output)
+      (some (trialPairCfg (some .copyDivisor) ⟨none⟩ [] dividend remaining
+        divisor [] (some false :: dividend.reverse.map some ++ none :: output)))
+      (2 * dividend.length + 3) := by
+  have hfirst := trialPair_emit_copyDividend_evals dividend remaining divisor
+    output state
+  have hrestore := trialPair_restoreDividend_evals dividend.reverse []
+    remaining divisor (dividend.reverse.map some ++ none :: output) ⟨none⟩
+  have hall := EvalsToInTime.trans trialDivisionPairComputer.step
+    (dividend.length + 2) (dividend.reverse.length + 1)
+    (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+      output)
+    (trialPairCfg (some .restoreDividend) ⟨none⟩ [] [] remaining divisor
+      dividend.reverse (dividend.reverse.map some ++ none :: output))
+    (some (trialPairCfg (some .copyDivisor) ⟨none⟩ [] dividend remaining
+      divisor [] (some false :: dividend.reverse.map some ++ none :: output)))
+    hfirst
+    (by simpa using hrestore)
+  simpa [two_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def trialPair_emit_copyDivisor_evals
+    (dividend remaining divisor : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+        output)
+      (some (trialPairCfg (some .restoreDivisor) ⟨none⟩ [] dividend remaining
+        [] divisor.reverse
+        (divisor.reverse.map some ++ some false ::
+          dividend.reverse.map some ++ none :: output)))
+      (2 * dividend.length + divisor.length + 4) := by
+  have hfirst := trialPair_emit_restoreDividend_evals dividend remaining divisor
+    output state
+  have hcopy := trialPair_copyDivisor_evals divisor dividend remaining []
+    (some false :: dividend.reverse.map some ++ none :: output) ⟨none⟩
+  have hall := EvalsToInTime.trans trialDivisionPairComputer.step
+    (2 * dividend.length + 3) (divisor.length + 1)
+    (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+      output)
+    (trialPairCfg (some .copyDivisor) ⟨none⟩ [] dividend remaining divisor []
+      (some false :: dividend.reverse.map some ++ none :: output))
+    (some (trialPairCfg (some .restoreDivisor) ⟨none⟩ [] dividend remaining
+      [] divisor.reverse
+      (divisor.reverse.map some ++ some false ::
+        dividend.reverse.map some ++ none :: output)))
+    hfirst
+    (by simpa [List.append_assoc] using hcopy)
+  simpa [two_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def trialPair_emit_restoreDivisor_evals
+    (dividend remaining divisor : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+        output)
+      (some (trialPairCfg (some .loop) ⟨none⟩ [] dividend remaining
+        (true :: divisor) []
+        (RawNatList.segment (dividend ++ false :: divisor) ++ output)))
+      (2 * dividend.length + 2 * divisor.length + 5) := by
+  have hfirst := trialPair_emit_copyDivisor_evals dividend remaining divisor
+    output state
+  have hrestore := trialPair_restoreDivisor_evals divisor.reverse dividend
+    remaining []
+    (divisor.reverse.map some ++ some false ::
+      dividend.reverse.map some ++ none :: output) ⟨none⟩
+  have hall := EvalsToInTime.trans trialDivisionPairComputer.step
+    (2 * dividend.length + divisor.length + 4)
+    (divisor.reverse.length + 1)
+    (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+      output)
+    (trialPairCfg (some .restoreDivisor) ⟨none⟩ [] dividend remaining []
+      divisor.reverse
+      (divisor.reverse.map some ++ some false ::
+        dividend.reverse.map some ++ none :: output))
+    (some (trialPairCfg (some .loop) ⟨none⟩ [] dividend remaining
+      (true :: divisor) []
+      (RawNatList.segment (dividend ++ false :: divisor) ++ output)))
+    hfirst
+    (by
+      rw [← trialPair_segment_append dividend divisor output]
+      simpa using hrestore)
+  simpa [two_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def trialPair_emit_evals
+    (dividend remaining divisor : List Bool)
+    (output : List (Option Bool)) (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .emitStart) state [] dividend remaining divisor []
+        output)
+      (some (trialPairCfg (some .loop) ⟨none⟩ [] dividend remaining
+        (true :: divisor) []
+        (RawNatList.segment (dividend ++ false :: divisor) ++ output)))
+      (trialPairEmitTime dividend divisor) := by
+  simpa [trialPairEmitTime] using
+    trialPair_emit_restoreDivisor_evals dividend remaining divisor output state
+
+private def trialPair_cleanupDivisor_evals
+    (divisor dividend work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .cleanupDivisor) state [] dividend [] divisor work
+        output)
+      (some (trialPairCfg (some .cleanupDividend) ⟨none⟩ [] dividend [] []
+        work output))
+      (divisor.length + 1) := by
+  induction divisor generalizing state with
+  | nil =>
+      simpa using trialPairEvalsToInTimeOne
+        (trialPair_step_cleanupDivisor_nil dividend work output state)
+  | cons bit divisor ih =>
+      let middle := trialPairCfg (some .cleanupDivisor) ⟨some bit⟩ []
+        dividend [] divisor work output
+      have hone : EvalsToInTime trialDivisionPairComputer.step
+          (trialPairCfg (some .cleanupDivisor) state [] dividend []
+            (bit :: divisor) work output)
+          (some middle) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [middle] using trialPair_step_cleanupDivisor_cons bit dividend
+            divisor work output state)
+      have hrest := ih ⟨some bit⟩
+      have htrans := EvalsToInTime.trans trialDivisionPairComputer.step
+        1 (divisor.length + 1)
+        (trialPairCfg (some .cleanupDivisor) state [] dividend []
+          (bit :: divisor) work output)
+        middle
+        (some (trialPairCfg (some .cleanupDividend) ⟨none⟩ [] dividend [] []
+          work output))
+        hone
+        (by simpa [middle] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private def trialPair_cleanupDividend_evals
+    (dividend work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .cleanupDividend) state [] dividend [] [] work
+        output)
+      (some (trialPairCfg none trialPairInitialState [] [] [] [] work output))
+      (dividend.length + 1) := by
+  induction dividend generalizing state with
+  | nil =>
+      simpa using trialPairEvalsToInTimeOne
+        (trialPair_step_cleanupDividend_nil work output state)
+  | cons bit dividend ih =>
+      let middle := trialPairCfg (some .cleanupDividend) ⟨some bit⟩ []
+        dividend [] [] work output
+      have hone : EvalsToInTime trialDivisionPairComputer.step
+          (trialPairCfg (some .cleanupDividend) state [] (bit :: dividend) []
+            [] work output)
+          (some middle) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [middle] using trialPair_step_cleanupDividend_cons bit
+            dividend work output state)
+      have hrest := ih ⟨some bit⟩
+      have htrans := EvalsToInTime.trans trialDivisionPairComputer.step
+        1 (dividend.length + 1)
+        (trialPairCfg (some .cleanupDividend) state [] (bit :: dividend) []
+          [] work output)
+        middle
+        (some (trialPairCfg none trialPairInitialState [] [] [] [] work
+          output))
+        hone
+        (by simpa [middle] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+/-- The consecutive pair suffix beginning at divisor `first`. -/
+def trialPairsFrom : ℕ → ℕ → ℕ → List (ℕ × ℕ)
+  | 0, _n, _first => []
+  | count + 1, n, first =>
+      (n, first) :: trialPairsFrom count n (first + 1)
+
+theorem trialPairsFrom_eq_range (count n first : ℕ) :
+    trialPairsFrom count n first =
+      (List.range' first count).map fun divisor => (n, divisor) := by
+  induction count generalizing first with
+  | zero => rfl
+  | succ count ih =>
+      simp [trialPairsFrom, List.range'_succ, ih]
+
+@[simp]
+theorem trialPairsFrom_sub_two (n : ℕ) :
+    trialPairsFrom (n - 2) n 2 = trialDivisionPairs n := by
+  rw [trialPairsFrom_eq_range]
+  rfl
+
+private def encodedTrialPairSuffix (count n first : ℕ) :
+    List (Option Bool) :=
+  RawUnaryPairList.encode (trialPairsFrom count n first)
+
+private theorem encodedTrialPairSuffix_succ (count n first : ℕ) :
+    encodedTrialPairSuffix (count + 1) n first =
+      encodedTrialPairSuffix count n (first + 1) ++
+        RawNatList.segment (UnaryNatPair.encode (n, first)) := by
+  simp [encodedTrialPairSuffix, trialPairsFrom, RawUnaryPairList.encode,
+    List.reverse_cons, List.flatMap_append]
+
+private def trialPairLoopTime : ℕ → ℕ → ℕ → ℕ
+  | 0, n, first => n + first + 3
+  | count + 1, n, first =>
+      1 + trialPairEmitTime (unaryEncodeNat n) (unaryEncodeNat first) +
+        trialPairLoopTime count n (first + 1)
+
+private theorem unaryEncodeNat_eq_replicate (n : ℕ) :
+    unaryEncodeNat n = List.replicate n true := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      rw [unaryEncodeNat, List.replicate_succ, ih]
+
+private def trialPair_loop_evals
+    (count n first : ℕ) (output : List (Option Bool))
+    (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .loop) state [] (unaryEncodeNat n)
+        (unaryEncodeNat count) (unaryEncodeNat first) [] output)
+      (some (trialPairCfg none trialPairInitialState [] [] [] [] []
+        (encodedTrialPairSuffix count n first ++ output)))
+      (trialPairLoopTime count n first) := by
+  induction count generalizing first output state with
+  | zero =>
+      let afterLoop := trialPairCfg (some .cleanupDivisor) ⟨none⟩ []
+        (unaryEncodeNat n) [] (unaryEncodeNat first) [] output
+      have hloop : EvalsToInTime trialDivisionPairComputer.step
+          (trialPairCfg (some .loop) state [] (unaryEncodeNat n) []
+            (unaryEncodeNat first) [] output)
+          (some afterLoop) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [afterLoop] using trialPair_step_loop_nil
+            (unaryEncodeNat n) (unaryEncodeNat first) [] output state)
+      have hcleanupDivisor := trialPair_cleanupDivisor_evals
+        (unaryEncodeNat first) (unaryEncodeNat n) [] output ⟨none⟩
+      let afterDivisor := trialPairCfg (some .cleanupDividend) ⟨none⟩ []
+        (unaryEncodeNat n) [] [] [] output
+      have hfirst := EvalsToInTime.trans trialDivisionPairComputer.step
+        1 ((unaryEncodeNat first).length + 1)
+        (trialPairCfg (some .loop) state [] (unaryEncodeNat n) []
+          (unaryEncodeNat first) [] output)
+        afterLoop
+        (some afterDivisor)
+        hloop
+        (by simpa [afterLoop, afterDivisor] using hcleanupDivisor)
+      have hcleanupDividend := trialPair_cleanupDividend_evals
+        (unaryEncodeNat n) [] output ⟨none⟩
+      have hall := EvalsToInTime.trans trialDivisionPairComputer.step
+        (1 + ((unaryEncodeNat first).length + 1))
+        ((unaryEncodeNat n).length + 1)
+        (trialPairCfg (some .loop) state [] (unaryEncodeNat n) []
+          (unaryEncodeNat first) [] output)
+        afterDivisor
+        (some (trialPairCfg none trialPairInitialState [] [] [] [] []
+          output))
+        (by simpa [Nat.add_comm] using hfirst)
+        (by simpa [afterDivisor] using hcleanupDividend)
+      simpa [trialPairLoopTime, encodedTrialPairSuffix,
+        trialPairInitialState, unaryEncodeNat_length, Nat.add_assoc,
+        Nat.add_comm, Nat.add_left_comm] using hall
+  | succ count ih =>
+      let afterLoop := trialPairCfg (some .emitStart) ⟨some true⟩ []
+        (unaryEncodeNat n) (unaryEncodeNat count)
+        (unaryEncodeNat first) [] output
+      have hloop : EvalsToInTime trialDivisionPairComputer.step
+          (trialPairCfg (some .loop) state [] (unaryEncodeNat n)
+            (unaryEncodeNat (count + 1)) (unaryEncodeNat first) [] output)
+          (some afterLoop) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [afterLoop, unaryEncodeNat] using trialPair_step_loop_cons true
+            (unaryEncodeNat n) (unaryEncodeNat count)
+            (unaryEncodeNat first) [] output state)
+      have hemit := trialPair_emit_evals (unaryEncodeNat n)
+        (unaryEncodeNat count) (unaryEncodeNat first) output ⟨some true⟩
+      let afterEmit := trialPairCfg (some .loop) ⟨none⟩ []
+        (unaryEncodeNat n) (unaryEncodeNat count)
+        (unaryEncodeNat (first + 1)) []
+        (RawNatList.segment (UnaryNatPair.encode (n, first)) ++ output)
+      have hfirst := EvalsToInTime.trans trialDivisionPairComputer.step
+        1 (trialPairEmitTime (unaryEncodeNat n) (unaryEncodeNat first))
+        (trialPairCfg (some .loop) state [] (unaryEncodeNat n)
+          (unaryEncodeNat (count + 1)) (unaryEncodeNat first) [] output)
+        afterLoop
+        (some afterEmit)
+        hloop
+        (by
+          simpa [afterLoop, afterEmit, UnaryNatPair.encode,
+            unaryEncodeNat_eq_replicate]
+            using hemit)
+      have hrest := ih (first + 1)
+        (RawNatList.segment (UnaryNatPair.encode (n, first)) ++ output)
+        ⟨none⟩
+      have hall := EvalsToInTime.trans trialDivisionPairComputer.step
+        (1 + trialPairEmitTime (unaryEncodeNat n) (unaryEncodeNat first))
+        (trialPairLoopTime count n (first + 1))
+        (trialPairCfg (some .loop) state [] (unaryEncodeNat n)
+          (unaryEncodeNat (count + 1)) (unaryEncodeNat first) [] output)
+        afterEmit
+        (some (trialPairCfg none trialPairInitialState [] [] [] [] []
+          (encodedTrialPairSuffix (count + 1) n first ++ output)))
+        (by simpa [Nat.add_comm] using hfirst)
+        (by
+          rw [encodedTrialPairSuffix_succ]
+          simpa [afterEmit, List.append_assoc] using hrest)
+      simpa [trialPairLoopTime, Nat.add_assoc, Nat.add_comm,
+        Nat.add_left_comm] using hall
+
+private theorem trialPairLoopTime_le (count n first : ℕ) :
+    trialPairLoopTime count n first ≤
+      count * (2 * n + 2 * (first + count) + 6) +
+        n + (first + count) + 3 := by
+  induction count generalizing first with
+  | zero => simp [trialPairLoopTime]
+  | succ count ih =>
+      have hrest := ih (first + 1)
+      simp only [trialPairLoopTime, trialPairEmitTime,
+        unaryEncodeNat_length]
+      nlinarith
+
+private def trialPair_prepare_evals
+    (count n : ℕ) (output : List (Option Bool))
+    (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .trimFirst) state [] (unaryEncodeNat n)
+        (unaryEncodeNat (count + 2)) [] [] output)
+      (some (trialPairCfg (some .loop) ⟨some true⟩ [] (unaryEncodeNat n)
+        (unaryEncodeNat count) (unaryEncodeNat 2) [] output))
+      2 := by
+  let middle := trialPairCfg (some .trimSecond) ⟨some true⟩ []
+    (unaryEncodeNat n) (unaryEncodeNat (count + 1)) [] [] output
+  have hfirst : EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .trimFirst) state [] (unaryEncodeNat n)
+        (unaryEncodeNat (count + 2)) [] [] output)
+      (some middle) 1 :=
+    trialPairEvalsToInTimeOne (by
+      simpa [middle, unaryEncodeNat] using trialPair_step_trimFirst_cons true
+        (unaryEncodeNat n) (unaryEncodeNat (count + 1)) [] [] output state)
+  have hsecond : EvalsToInTime trialDivisionPairComputer.step
+      middle
+      (some (trialPairCfg (some .loop) ⟨some true⟩ [] (unaryEncodeNat n)
+        (unaryEncodeNat count) (unaryEncodeNat 2) [] output)) 1 :=
+    trialPairEvalsToInTimeOne (by
+      simpa [middle, unaryEncodeNat] using trialPair_step_trimSecond_cons true
+        (unaryEncodeNat n) (unaryEncodeNat count) [] [] output ⟨some true⟩)
+  simpa using EvalsToInTime.trans trialDivisionPairComputer.step 1 1
+    (trialPairCfg (some .trimFirst) state [] (unaryEncodeNat n)
+      (unaryEncodeNat (count + 2)) [] [] output)
+    middle
+    (some (trialPairCfg (some .loop) ⟨some true⟩ [] (unaryEncodeNat n)
+      (unaryEncodeNat count) (unaryEncodeNat 2) [] output))
+    hfirst hsecond
+
+private def trialPair_cleanup_evals
+    (divisor dividend work : List Bool) (output : List (Option Bool))
+    (state : TrialPairState) :
+    EvalsToInTime trialDivisionPairComputer.step
+      (trialPairCfg (some .cleanupDivisor) state [] dividend [] divisor work
+        output)
+      (some (trialPairCfg none trialPairInitialState [] [] [] [] work output))
+      (divisor.length + dividend.length + 2) := by
+  have hdivisor := trialPair_cleanupDivisor_evals divisor dividend work output
+    state
+  have hdividend := trialPair_cleanupDividend_evals dividend work output ⟨none⟩
+  have hall := EvalsToInTime.trans trialDivisionPairComputer.step
+    (divisor.length + 1) (dividend.length + 1)
+    (trialPairCfg (some .cleanupDivisor) state [] dividend [] divisor work
+      output)
+    (trialPairCfg (some .cleanupDividend) ⟨none⟩ [] dividend [] [] work
+      output)
+    (some (trialPairCfg none trialPairInitialState [] [] [] [] work output))
+    hdivisor hdividend
+  simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem unaryEncodeNat_reverse (n : ℕ) :
+    (unaryEncodeNat n).reverse = unaryEncodeNat n := by
+  rw [unaryEncodeNat_eq_replicate, List.reverse_replicate]
+
+private theorem trialPair_initList_eq_cfg (input : List Bool) :
+    initList trialDivisionPairComputer input =
+      trialPairCfg (some .scan) trialPairInitialState input [] [] [] [] [] := by
+  unfold initList trialPairCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem trialPair_haltList_eq_cfg (output : List (Option Bool)) :
+    haltList trialDivisionPairComputer output =
+      trialPairCfg none trialPairInitialState [] [] [] [] [] output := by
+  unfold haltList trialPairCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- The concrete generator emits every padded trial pair in at most
+`8(n+1)^2` steps from unary input `n`. -/
+def trialDivisionPairs_outputsInTime (n : ℕ) :
+    TM2OutputsInTime trialDivisionPairComputer (unaryEncodeNat n)
+      (some (RawUnaryPairList.encode (trialDivisionPairs n)))
+      (8 * (n + 1) ^ 2) := by
+  cases n with
+  | zero =>
+      have hscan := trialPair_scan_evals [] [] [] [] [] []
+        trialPairInitialState
+      let afterScan := trialPairCfg (some .trimFirst) ⟨none⟩ [] [] [] [] [] []
+      have htrim : EvalsToInTime trialDivisionPairComputer.step afterScan
+          (some (trialPairCfg (some .cleanupDivisor) ⟨none⟩ [] [] [] [] []
+            [])) 1 :=
+        trialPairEvalsToInTimeOne (by
+          simpa [afterScan] using trialPair_step_trimFirst_nil [] [] [] []
+            ⟨none⟩)
+      have hcleanup := trialPair_cleanup_evals [] [] [] [] ⟨none⟩
+      have hfirst := EvalsToInTime.trans trialDivisionPairComputer.step 1 1
+        (trialPairCfg (some .scan) trialPairInitialState [] [] [] [] [] [])
+        afterScan
+        (some (trialPairCfg (some .cleanupDivisor) ⟨none⟩ [] [] [] [] []
+          []))
+        (by simpa [afterScan] using hscan)
+        htrim
+      have hall := EvalsToInTime.trans trialDivisionPairComputer.step 2 2
+        (trialPairCfg (some .scan) trialPairInitialState [] [] [] [] [] [])
+        (trialPairCfg (some .cleanupDivisor) ⟨none⟩ [] [] [] [] [] [])
+        (some (trialPairCfg none trialPairInitialState [] [] [] [] [] []))
+        (by simpa using hfirst)
+        (by simpa using hcleanup)
+      have hmono := evalsToInTimeMono hall (by norm_num : 4 ≤ 8 * (0 + 1) ^ 2)
+      rw [TM2OutputsInTime, trialPair_initList_eq_cfg]
+      simp only [Option.map_some]
+      rw [trialPair_haltList_eq_cfg]
+      simpa [trialDivisionPairs, trialDivisors, RawUnaryPairList.encode] using
+        hmono
+  | succ n =>
+      cases n with
+      | zero =>
+          have hscan := trialPair_scan_evals (unaryEncodeNat 1) [] [] [] [] []
+            trialPairInitialState
+          let afterScan := trialPairCfg (some .trimFirst) ⟨none⟩ []
+            (unaryEncodeNat 1) (unaryEncodeNat 1) [] [] []
+          let afterFirst := trialPairCfg (some .trimSecond) ⟨some true⟩ []
+            (unaryEncodeNat 1) [] [] [] []
+          let afterSecond := trialPairCfg (some .cleanupDivisor) ⟨none⟩ []
+            (unaryEncodeNat 1) [] [] [] []
+          have hfirstTrim : EvalsToInTime trialDivisionPairComputer.step
+              afterScan (some afterFirst) 1 :=
+            trialPairEvalsToInTimeOne (by
+              simpa [afterScan, afterFirst, unaryEncodeNat] using
+                trialPair_step_trimFirst_cons true (unaryEncodeNat 1) [] []
+                  [] [] ⟨none⟩)
+          have hsecondTrim : EvalsToInTime trialDivisionPairComputer.step
+              afterFirst (some afterSecond) 1 :=
+            trialPairEvalsToInTimeOne (by
+              simpa [afterFirst, afterSecond] using
+                trialPair_step_trimSecond_nil (unaryEncodeNat 1) [] [] []
+                  ⟨some true⟩)
+          have hcleanup := trialPair_cleanup_evals [] (unaryEncodeNat 1) [] []
+            ⟨none⟩
+          have hthroughFirst := EvalsToInTime.trans
+            trialDivisionPairComputer.step 2 1
+            (trialPairCfg (some .scan) trialPairInitialState
+              (unaryEncodeNat 1) [] [] [] [] [])
+            afterScan
+            (some afterFirst)
+            (by
+              simpa [afterScan, unaryEncodeNat_reverse] using hscan)
+            hfirstTrim
+          have hthroughSecond := EvalsToInTime.trans
+            trialDivisionPairComputer.step 3 1
+            (trialPairCfg (some .scan) trialPairInitialState
+              (unaryEncodeNat 1) [] [] [] [] [])
+            afterFirst
+            (some afterSecond)
+            (by simpa using hthroughFirst)
+            hsecondTrim
+          have hall := EvalsToInTime.trans trialDivisionPairComputer.step 4 3
+            (trialPairCfg (some .scan) trialPairInitialState
+              (unaryEncodeNat 1) [] [] [] [] [])
+            afterSecond
+            (some (trialPairCfg none trialPairInitialState [] [] [] [] [] []))
+            (by simpa using hthroughSecond)
+            (by simpa [afterSecond, unaryEncodeNat_length] using hcleanup)
+          have hmono := evalsToInTimeMono hall
+            (by norm_num : 7 ≤ 8 * (1 + 1) ^ 2)
+          rw [TM2OutputsInTime, trialPair_initList_eq_cfg]
+          simp only [Option.map_some]
+          rw [trialPair_haltList_eq_cfg]
+          simpa [trialDivisionPairs, trialDivisors, RawUnaryPairList.encode]
+            using hmono
+      | succ count =>
+          let value := count + 2
+          have hscan := trialPair_scan_evals (unaryEncodeNat value) [] [] []
+            [] [] trialPairInitialState
+          let afterScan := trialPairCfg (some .trimFirst) ⟨none⟩ []
+            (unaryEncodeNat value) (unaryEncodeNat value) [] [] []
+          have hprepare := trialPair_prepare_evals count value [] ⟨none⟩
+          let afterPrepare := trialPairCfg (some .loop) ⟨some true⟩ []
+            (unaryEncodeNat value) (unaryEncodeNat count)
+            (unaryEncodeNat 2) [] []
+          have hfirst := EvalsToInTime.trans trialDivisionPairComputer.step
+            ((unaryEncodeNat value).length + 1) 2
+            (trialPairCfg (some .scan) trialPairInitialState
+              (unaryEncodeNat value) [] [] [] [] [])
+            afterScan
+            (some afterPrepare)
+            (by
+              simpa [afterScan, unaryEncodeNat_reverse] using hscan)
+            (by simpa [afterScan, afterPrepare, value] using hprepare)
+          have hloop := trialPair_loop_evals count value 2 [] ⟨some true⟩
+          have hpairs :
+              trialPairsFrom count value 2 = trialDivisionPairs value := by
+            simpa [value] using trialPairsFrom_sub_two value
+          have hall := EvalsToInTime.trans trialDivisionPairComputer.step
+            (((unaryEncodeNat value).length + 1) + 2)
+            (trialPairLoopTime count value 2)
+            (trialPairCfg (some .scan) trialPairInitialState
+              (unaryEncodeNat value) [] [] [] [] [])
+            afterPrepare
+            (some (trialPairCfg none trialPairInitialState [] [] [] [] []
+              (RawUnaryPairList.encode (trialDivisionPairs value))))
+            (by simpa [Nat.add_comm] using hfirst)
+            (by
+              simpa [afterPrepare, encodedTrialPairSuffix, hpairs]
+                using hloop)
+          have hloopBound := trialPairLoopTime_le count value 2
+          have hbound :
+              ((unaryEncodeNat value).length + 1 + 2) +
+                  trialPairLoopTime count value 2 ≤
+                8 * (value + 1) ^ 2 := by
+            simp only [unaryEncodeNat_length, value] at hloopBound ⊢
+            nlinarith
+          have hmono := evalsToInTimeMono
+            (by simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+              hall)
+            hbound
+          rw [TM2OutputsInTime, trialPair_initList_eq_cfg]
+          simp only [Option.map_some]
+          rw [trialPair_haltList_eq_cfg]
+          simpa [value] using hmono
+
+/-- Genuine polynomial-time production of all unary-padded inputs needed to
+test one candidate by bounded trial division. -/
+noncomputable def trialDivisionPairsComputableInPolyTime :
+    @TM2ComputableInPolyTime ℕ (List (ℕ × ℕ)) unaryFinEncodingNat
+      RawUnaryPairList.finEncoding trialDivisionPairs where
+  tm := trialDivisionPairComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := 8 * (Polynomial.X + 1) ^ 2
+  outputsFun n := by
+    simpa [unaryFinEncodingNat, RawUnaryPairList.finEncoding, Equiv.refl,
+      Polynomial.eval_mul, Polynomial.eval_pow, Polynomial.eval_add,
+      Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
+        trialDivisionPairs_outputsInTime n
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
@@ -5790,5 +7133,9 @@ noncomputable def unaryDvdComputableInPolyTime :
 #print axioms firstBertrandPrime_eq_selectPrimeAbove
 #print axioms unaryDvd_outputsInTime
 #print axioms unaryDvdComputableInPolyTime
+#print axioms RawUnaryPairList.decode_encode
+#print axioms trialPairsFrom_sub_two
+#print axioms trialDivisionPairs_outputsInTime
+#print axioms trialDivisionPairsComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine
