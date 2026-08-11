@@ -30,16 +30,18 @@ CSP invariant that the explicit input length is at least `q`. An eighth finite
 machine decides divisibility on delimiter-separated unary-padded pairs in
 linear time, including zero dividend and divisor cases. A ninth finite machine
 emits the exact stack-oriented list of every padded pair `(n,d)` with
-`2 ≤ d < n` in quadratic time. The executable trial-division specification
-below enumerates exactly the proper divisors, filters the checked Bertrand
-candidates, and proves that its first survivor is the prime already selected
-by the semantic compiler.
+`2 ≤ d < n` in quadratic time. A tenth finite machine folds a Boolean result
+stream in linear time and accepts exactly when none of the proposed divisors
+divided the candidate. The executable trial-division specification below
+enumerates exactly the proper divisors, filters the checked Bertrand candidates,
+and proves that its first survivor is the prime already selected by the
+semantic compiler.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, production of the
-unary distinct-symbol bound, repeated divisibility invocation and Boolean
-aggregation across the padded pair stream, finite-machine candidate filtering
-and selection, or final compiler assembly.
+unary distinct-symbol bound, repeated divisibility invocation across the padded
+pair stream, composition with the checked Boolean fold, finite-machine
+candidate filtering and selection, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -7104,6 +7106,276 @@ noncomputable def trialDivisionPairsComputableInPolyTime :
       Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
         trialDivisionPairs_outputsInTime n
 
+/-! ## Boolean aggregation of trial-division results
+
+The repeated divisibility driver will emit one Boolean for every padded trial
+pair, with `true` meaning that the proposed divisor divides the candidate.  The
+following finite machine folds that result stream to `true` exactly when no
+test succeeded.  This keeps Boolean aggregation separate from the still-open
+machine that repeatedly invokes `unaryDvdComputer` on the padded pair stream.
+-/
+
+namespace RawBoolList
+
+/-- The literal Boolean stream encoding used between the future repeated
+divisibility driver and the checked aggregation pass. -/
+def finEncoding : FinEncoding (List Bool) where
+  Γ := Bool
+  encode := id
+  decode := some
+  decode_encode := fun _ => rfl
+  ΓFin := Bool.fintype
+
+@[simp]
+theorem encode_eq (results : List Bool) :
+    finEncoding.encode results = results :=
+  rfl
+
+end RawBoolList
+
+/-- Fold a stream of divisibility results into the assertion that every result
+is false.  The accumulator form matches the finite-machine invariant. -/
+def allFalseFrom : Bool → List Bool → Bool
+  | aggregate, [] => aggregate
+  | aggregate, result :: results =>
+      allFalseFrom (aggregate && !result) results
+
+/-- `true` exactly when the input stream contains no `true` result. -/
+def allFalse (results : List Bool) : Bool :=
+  allFalseFrom true results
+
+@[simp]
+theorem allFalseFrom_false (results : List Bool) :
+    allFalseFrom false results = false := by
+  induction results with
+  | nil => rfl
+  | cons result results ih => simp [allFalseFrom, ih]
+
+/-- The exact Boolean result stream produced by applying divisibility to every
+padded trial pair for `n`. -/
+def trialDivisionResults (n : ℕ) : List Bool :=
+  (trialDivisionPairs n).map fun pair => decide (pair.2 ∣ pair.1)
+
+private theorem allFalse_map_dvd (n : ℕ) (divisors : List ℕ) :
+    allFalse (divisors.map fun d => decide (d ∣ n)) =
+      divisors.all fun d => decide (¬d ∣ n) := by
+  induction divisors with
+  | nil => rfl
+  | cons d divisors ih =>
+      by_cases hd : d ∣ n
+      · simp [allFalse, allFalseFrom, hd, allFalseFrom_false]
+      · simpa [allFalse, allFalseFrom, hd] using ih
+
+/-- Folding the concrete divisibility-result stream is the Boolean
+proper-divisor test used by `trialPrime`. -/
+theorem allFalse_trialDivisionResults (n : ℕ) :
+    allFalse (trialDivisionResults n) =
+      (trialDivisors n).all fun d => decide (¬d ∣ n) := by
+  rw [trialDivisionResults, trialDivisionPairs, List.map_map]
+  simpa [Function.comp_def] using allFalse_map_dvd n (trialDivisors n)
+
+/-- The executable prime predicate separates the lower-bound check from the
+checked Boolean aggregation of all divisibility results. -/
+theorem trialPrime_eq_lowerBound_and_allFalse (n : ℕ) :
+    trialPrime n =
+      (decide (2 ≤ n) && allFalse (trialDivisionResults n)) := by
+  rw [trialPrime, allFalse_trialDivisionResults]
+
+/-- Bertrand candidates are at least two, so their trial-prime decision is
+exactly the aggregate of their divisibility results. -/
+theorem trialPrime_eq_allFalse_trialDivisionResults
+    {n : ℕ} (hn : 2 ≤ n) :
+    trialPrime n = allFalse (trialDivisionResults n) := by
+  rw [trialPrime_eq_lowerBound_and_allFalse]
+  simp [hn]
+
+/-- On candidates at least two, the Boolean fold accepts exactly the natural
+primes. -/
+theorem allFalse_trialDivisionResults_eq_true_iff
+    {n : ℕ} (hn : 2 ≤ n) :
+    allFalse (trialDivisionResults n) = true ↔ n.Prime := by
+  rw [← trialPrime_eq_allFalse_trialDivisionResults hn]
+  exact trialPrime_eq_true_iff n
+
+/-- Input and output stacks for the Boolean result fold. -/
+inductive AllFalseStack
+  | input
+  | output
+  deriving DecidableEq, Fintype
+
+/-- The fold needs a single scanning label. -/
+inductive AllFalseLabel
+  | scan
+  deriving DecidableEq, Fintype
+
+/-- Finite control records the most recent pop and the running conjunction. -/
+structure AllFalseState where
+  observed : Option Bool
+  aggregate : Bool
+  deriving DecidableEq, Fintype
+
+private def allFalseInitialState : AllFalseState :=
+  ⟨none, true⟩
+
+private def allFalseObserve
+    (state : AllFalseState) : Option Bool → AllFalseState
+  | some result => ⟨some result, state.aggregate && !result⟩
+  | none => ⟨none, state.aggregate⟩
+
+private def allFalseObservedPresent : AllFalseState → Bool
+  | ⟨some _, _⟩ => true
+  | _ => false
+
+private def allFalseAggregate (state : AllFalseState) : Bool :=
+  state.aggregate
+
+private def AllFalseAlphabet (_index : AllFalseStack) : Type :=
+  Bool
+
+/-- Scan the result stream once, conjoin the negated results in finite control,
+and emit the final Boolean. -/
+def allFalseProgram :
+    AllFalseLabel → TM2.Stmt AllFalseAlphabet AllFalseLabel AllFalseState
+  | .scan =>
+      .pop .input allFalseObserve <|
+        .branch allFalseObservedPresent
+          (.goto fun _ => .scan)
+          (.push .output allFalseAggregate <|
+            .load (fun _ => allFalseInitialState) .halt)
+
+/-- Concrete two-stack finite machine for Boolean result aggregation. -/
+def allFalseComputer : FinTM2 where
+  K := AllFalseStack
+  k₀ := .input
+  k₁ := .output
+  Γ := AllFalseAlphabet
+  Λ := AllFalseLabel
+  main := .scan
+  σ := AllFalseState
+  initialState := allFalseInitialState
+  Γk₀Fin := Bool.fintype
+  m := allFalseProgram
+
+private def allFalseStackContents
+    (input output : List Bool) :
+    (index : AllFalseStack) → List (AllFalseAlphabet index)
+  | .input => input
+  | .output => output
+
+private def allFalseCfg (label : Option AllFalseLabel)
+    (state : AllFalseState) (input output : List Bool) :
+    allFalseComputer.Cfg where
+  l := label
+  var := state
+  stk := allFalseStackContents input output
+
+private def allFalseEvalsToInTimeOne
+    {start finish : allFalseComputer.Cfg}
+    (hstep : allFalseComputer.step start = some finish) :
+    EvalsToInTime allFalseComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private theorem allFalse_step_cons
+    (result : Bool) (results output : List Bool) (state : AllFalseState) :
+    allFalseComputer.step
+        (allFalseCfg (some .scan) state (result :: results) output) =
+      some (allFalseCfg (some .scan)
+        (allFalseObserve state (some result)) results output) := by
+  rcases state with ⟨observed, aggregate⟩
+  simp [allFalseComputer, FinTM2.step, allFalseCfg, allFalseProgram,
+    allFalseStackContents, AllFalseAlphabet, allFalseObserve,
+    allFalseObservedPresent, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem allFalse_step_nil
+    (output : List Bool) (state : AllFalseState) :
+    allFalseComputer.step
+        (allFalseCfg (some .scan) state [] output) =
+      some (allFalseCfg none allFalseInitialState []
+        (state.aggregate :: output)) := by
+  rcases state with ⟨observed, aggregate⟩
+  simp [allFalseComputer, FinTM2.step, allFalseCfg, allFalseProgram,
+    allFalseStackContents, AllFalseAlphabet, allFalseObserve,
+    allFalseObservedPresent, allFalseAggregate, allFalseInitialState,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private def allFalse_scan_evals
+    (results output : List Bool) (state : AllFalseState) :
+    EvalsToInTime allFalseComputer.step
+      (allFalseCfg (some .scan) state results output)
+      (some (allFalseCfg none allFalseInitialState []
+        (allFalseFrom state.aggregate results :: output)))
+      (results.length + 1) := by
+  induction results generalizing state with
+  | nil =>
+      simpa [allFalseFrom] using allFalseEvalsToInTimeOne
+        (allFalse_step_nil output state)
+  | cons result results ih =>
+      let middle := allFalseCfg (some .scan)
+        (allFalseObserve state (some result)) results output
+      have hone : EvalsToInTime allFalseComputer.step
+          (allFalseCfg (some .scan) state (result :: results) output)
+          (some middle) 1 :=
+        allFalseEvalsToInTimeOne (by
+          simpa [middle] using allFalse_step_cons result results output state)
+      have hrest := ih (allFalseObserve state (some result))
+      have htrans := EvalsToInTime.trans allFalseComputer.step
+        1 (results.length + 1)
+        (allFalseCfg (some .scan) state (result :: results) output)
+        middle
+        (some (allFalseCfg none allFalseInitialState []
+          (allFalseFrom state.aggregate (result :: results) :: output)))
+        hone
+        (by
+          simpa [middle, allFalseFrom, allFalseObserve] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using htrans
+
+private theorem allFalse_initList_eq_cfg (results : List Bool) :
+    initList allFalseComputer results =
+      allFalseCfg (some .scan) allFalseInitialState results [] := by
+  unfold initList allFalseCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem allFalse_haltList_eq_cfg (result : Bool) :
+    haltList allFalseComputer [result] =
+      allFalseCfg none allFalseInitialState [] [result] := by
+  unfold haltList allFalseCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- Boolean aggregation takes at most one scan step per result plus the final
+empty-input step. -/
+def allFalse_outputsInTime (results : List Bool) :
+    TM2OutputsInTime allFalseComputer results
+      (some (encodeBool (allFalse results))) (results.length + 1) := by
+  have hscan := allFalse_scan_evals results [] allFalseInitialState
+  rw [TM2OutputsInTime, allFalse_initList_eq_cfg]
+  simp only [Option.map_some, encodeBool, List.pure_def]
+  rw [allFalse_haltList_eq_cfg]
+  simpa [allFalse, allFalseInitialState, encodeBool] using hscan
+
+/-- Genuine linear-time finite-machine aggregation of a Boolean result list. -/
+noncomputable def allFalseComputableInPolyTime :
+    @TM2ComputableInPolyTime (List Bool) Bool RawBoolList.finEncoding
+      finEncodingBoolBool allFalse where
+  tm := allFalseComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := Polynomial.X + 1
+  outputsFun results := by
+    simpa [RawBoolList.finEncoding, finEncodingBoolBool, Equiv.refl,
+      Polynomial.eval_add, Polynomial.eval_one, Polynomial.eval_X] using
+        allFalse_outputsInTime results
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
@@ -7137,5 +7409,8 @@ noncomputable def trialDivisionPairsComputableInPolyTime :
 #print axioms trialPairsFrom_sub_two
 #print axioms trialDivisionPairs_outputsInTime
 #print axioms trialDivisionPairsComputableInPolyTime
+#print axioms allFalse_trialDivisionResults_eq_true_iff
+#print axioms allFalse_outputsInTime
+#print axioms allFalseComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine

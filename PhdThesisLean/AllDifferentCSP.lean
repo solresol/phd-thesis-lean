@@ -42,11 +42,13 @@ pair length. Its executable trial-division specification tests exactly the
 divisors in `[2, n)`, filters the enumerated Bertrand candidates, and proves
 that the first survivor is `selectPrimeAbove`. A checked quadratic-time finite
 machine now emits the complete stack-oriented list of padded pairs
-`(n,2), ..., (n,n-1)`, including the empty small-`n` cases. The remaining work
-is to construct and compose CSP structural compilation, production of the
-unary bounds, repeated divisibility and Boolean aggregation, finite-machine
-candidate filtering and selection, and final assembly into the full compiler's
-genuine polynomial-runtime theorem.
+`(n,2), ..., (n,n-1)`, including the empty small-`n` cases. A checked linear-time
+Boolean fold accepts exactly when none of the produced divisibility results is
+true, and its trial-result bridge is equivalent to primality for `n ≥ 2`. The
+remaining work is to construct and compose CSP structural compilation,
+production of the unary bounds, repeated divisibility across the pair stream,
+composition with that fold, finite-machine candidate filtering and selection,
+and final assembly into the full compiler's genuine polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

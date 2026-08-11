@@ -997,3 +997,68 @@
   use that checked predicate to filter the ordered Bertrand candidates and
   emit the first survivor. Structural production of the unary distinct-symbol
   bound and final compiler composition remain separate later obligations.
+
+## 2026-08-12 05:26 AEST
+
+- Starting repository commit:
+  `73b1ffa6bbaf3ae0331b17594a67997959e1c03f` on `main`. The automation began
+  with a clean working tree; `git fetch --prune origin` confirmed that local
+  `HEAD`, `origin/main`, and the live remote `refs/heads/main` agreed, so no
+  fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `5294a3754f4987514ed9f03e73658df37a684156`. Its unrelated modifications to
+  `.gitignore` and `todo.md` were left untouched. The complete corollary still
+  requires a genuine polynomial-time whole compiler, including compiler-owned
+  prime selection.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized at
+  `85c5c181662b2d33eb71b3a22e8a05bd44d2810c`. Its new
+  `MachineComposition.compositionMachine` constructs the total finite machine
+  for sequential composition and proves one-step component simulations, but
+  deliberately supplies no computation or polynomial-runtime theorem yet. It
+  therefore cannot discharge this run's repeated prime-test composition
+  obligation without additional checked runtime work.
+- Chosen increment: the Boolean aggregation pass that follows repeated padded
+  divisibility. `RawBoolList.finEncoding` gives the intermediate result stream
+  a literal checked Boolean-list encoding; `trialDivisionResults` fixes the
+  exact per-pair result contract; and
+  `allFalse_trialDivisionResults_eq_true_iff` proves that for every `n ≥ 2`,
+  accepting precisely when every divisibility result is false is equivalent to
+  `n.Prime`.
+- Headline machine declarations: `allFalse_outputsInTime` proves the concrete
+  two-stack `allFalseComputer` emits the exact aggregate in at most `s + 1`
+  steps for result-list length `s`;
+  `allFalseComputableInPolyTime` packages this as a genuine linear
+  `TM2ComputableInPolyTime` witness. Empty lists are accepted, as required for
+  the prime candidate `n = 2`; the separate lower-bound conjunct in
+  `trialPrime_eq_lowerBound_and_allFalse` handles `n = 0,1` faithfully.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the checked
+  result semantics, finite machine, exact execution proof, polynomial witness,
+  and axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record Boolean aggregation as checked while keeping
+  `cor:all-different-csp` **Partial**.
+- Failed proof shapes supplied useful corrections. The first semantic equality
+  omitted parentheses around a Boolean conjunction, so Lean parsed it as a
+  proposition-valued conjunction; the corrected statement makes the Boolean
+  equality explicit. The first transition proofs also needed function
+  extensionality for stack updates, and the output proof needed to normalize
+  `encodeBool`'s list `pure` to a singleton before rewriting `haltList`. The
+  initial targeted check consequently reported `sorryAx` in the unfinished
+  declarations; after these changes, the declarations elaborate with no
+  `sorryAx` dependency.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3114 jobs);
+  `git diff --check`; and a project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  `allFalse_trialDivisionResults_eq_true_iff`, `allFalse_outputsInTime`, and
+  `allFalseComputableInPolyTime` report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes present in this repository.
+- Best next step: implement the finite-machine driver that consumes
+  `RawUnaryPairList`, invokes the checked divisibility logic for every pair,
+  and emits `trialDivisionResults`; then compose that driver with
+  `allFalseComputer` and the lower-bound check to realize `trialPrime` before
+  filtering the ordered Bertrand candidate stream.
