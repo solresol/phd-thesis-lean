@@ -1062,3 +1062,74 @@
   and emits `trialDivisionResults`; then compose that driver with
   `allFalseComputer` and the lower-bound check to realize `trialPrime` before
   filtering the ordered Bertrand candidate stream.
+
+## 2026-08-13 05:42 AEST
+
+- Starting repository commit:
+  `167ef534efc7e433372d7d2707bdadde21d21fab` on `main`. The automation began
+  with a clean working tree; `git fetch --prune origin` confirmed divergence
+  count `0 0`, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `5294a3754f4987514ed9f03e73658df37a684156`. Its unrelated modifications to
+  `.gitignore` and `todo.md` were preserved. The proof still claims a genuine
+  polynomial-time compiler-owned prime scan and whole compiler, so
+  `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized at
+  `41bbee6e21b1d19f397cf8539d47955eab0cc4f4`. Its structural composition
+  machine now proves the complete order-preserving transfer under the total
+  program, but still has no theorem that the composed machine computes the
+  composed function or runs in polynomial time. This increment therefore used
+  a concrete checked component lift without editing or importing the sibling.
+- Chosen increment: repeated divisibility across the complete padded pair
+  stream. `pairDvdComputer` restores each reversed raw field on the existing
+  `unaryDvdComputer` input stack, executes that checked program, redirects its
+  halt to the next field, and pushes results so their final order matches the
+  source pair order.
+- Headline declarations: `pairDvd_outputsInTime` proves exact output
+  `pairDivisionResults pairs` in at most `17s + 1` steps for actual
+  `RawUnaryPairList` encoded length `s`;
+  `pairDivisionResultsComputableInPolyTime` packages the concrete finite
+  machine as a genuine `TM2ComputableInPolyTime` witness. The proof includes
+  empty streams, arbitrary pairs (including zero cases inherited from the
+  component checker), exact outer/inner reversal restoration, component-state
+  cleanup, and complete result order.
+- Size bridge: `RawUnaryPairList.encode_length` counts every padded payload and
+  field separator exactly, while `trialDivisionPairStream_length_le` bounds the
+  concrete stream for candidate `n` by `(2 * n + 1) * (n - 2)`. Thus the new
+  linear driver and the existing quadratic pair generator expose compatible
+  checked representations; their machine-level composition remains separate.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the reusable
+  output-preserving divisibility execution, outer driver, simulations, exact
+  semantics, runtime and size bounds, polynomial witness, and axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the completed standalone repeated-divisibility
+  stage without claiming the whole corollary.
+- Failed proof/API shapes supplied useful corrections. Generalizing the
+  component execution initially passed one extra list to
+  `dvd_step_start_positive_zero`. The first iteration simulation used
+  `Function.iterate_succ_apply'`, which exposes the last rather than first
+  step; `Function.iterate_succ_apply` and a separate `unaryDvd_iterate_none`
+  lemma established the needed forward simulation. The raw-separator step also
+  required an explicit dependent stack-family extensionality proof. Targeted
+  checks exposed temporary `sorryAx` dependencies while these goals were open;
+  every such dependency was removed before the final checks.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3114 jobs);
+  `git diff --check`; and the project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  `RawUnaryPairList.encode_length`, `trialDivisionPairStream_length_le`,
+  `pairDvd_outputsInTime`, and
+  `pairDivisionResultsComputableInPolyTime` report only `propext`,
+  `Classical.choice`, and `Quot.sound` (the exact encoding-length identity
+  omits `Classical.choice`).
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated changes in this repository.
+- Best next step: compose `trialDivisionPairsComputableInPolyTime`,
+  `pairDivisionResultsComputableInPolyTime`, and
+  `allFalseComputableInPolyTime` into a checked `trialPrime` machine (including
+  its `n < 2` guard), then use it to filter the ordered Bertrand candidate
+  stream and emit the first survivor. Keep CSP structural unary-bound
+  production and final whole-compiler assembly as later obligations.

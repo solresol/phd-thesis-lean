@@ -5657,29 +5657,29 @@ private noncomputable def dvd_consume_evals
           (by simpa only [hdvd] using hrec)
         exact evalsToInTimeMono hall (by omega)
 
-private def dvd_parse_evals (n d : ℕ) :
+private def dvd_parse_evals (n d : ℕ) (output : List Bool) :
     EvalsToInTime unaryDvdComputer.step
       (dvdCfg (some .scanDividend) dvdInitialState
-        (UnaryNatPair.encode (n, d)) [] [] [] [])
+        (UnaryNatPair.encode (n, d)) [] [] [] output)
       (some (dvdCfg (some .start)
         (dvdObserved (dvdObserved dvdInitialState (some false)) none)
-        [] (List.replicate n true) (List.replicate d true) [] []))
+        [] (List.replicate n true) (List.replicate d true) [] output))
       (n + d + 2) := by
   have hleft := dvd_scanDividend_evals n
-    (List.replicate d true) [] [] [] [] dvdInitialState
+    (List.replicate d true) [] [] [] output dvdInitialState
   have hright := dvd_scanDivisor_evals d
-    (List.replicate n true) [] [] []
+    (List.replicate n true) [] [] output
     (dvdObserved dvdInitialState (some false))
   have hall := EvalsToInTime.trans unaryDvdComputer.step
     (n + 1) (d + 1)
     (dvdCfg (some .scanDividend) dvdInitialState
-      (UnaryNatPair.encode (n, d)) [] [] [] [])
+      (UnaryNatPair.encode (n, d)) [] [] [] output)
     (dvdCfg (some .scanDivisor)
       (dvdObserved dvdInitialState (some false))
-      (List.replicate d true) (List.replicate n true) [] [] [])
+      (List.replicate d true) (List.replicate n true) [] [] output)
     (some (dvdCfg (some .start)
       (dvdObserved (dvdObserved dvdInitialState (some false)) none)
-      [] (List.replicate n true) (List.replicate d true) [] []))
+      [] (List.replicate n true) (List.replicate d true) [] output))
     (by simpa [UnaryNatPair.encode] using hleft)
     (by simpa using hright)
   simpa [two_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
@@ -5700,93 +5700,87 @@ private theorem dvd_haltList_eq_cfg (output : List Bool) :
   funext index
   cases index <;> rfl
 
-/-- The unary-padded checker decides natural-number divisibility in at most
-`6s + 16` steps, where `s = n + d + 1` is its actual encoded input length. -/
-noncomputable def unaryDvd_outputsInTime (pair : ℕ × ℕ) :
-    TM2OutputsInTime unaryDvdComputer (UnaryNatPair.encode pair)
-      (some (encodeBool (decide (pair.2 ∣ pair.1))))
+private noncomputable def unaryDvd_evals_with_output
+    (pair : ℕ × ℕ) (output : List Bool) :
+    EvalsToInTime unaryDvdComputer.step
+      (dvdCfg (some .scanDividend) dvdInitialState
+        (UnaryNatPair.encode pair) [] [] [] output)
+      (some (dvdCfg none dvdInitialState [] [] [] []
+        (decide (pair.2 ∣ pair.1) :: output)))
       (6 * (UnaryNatPair.encode pair).length + 16) := by
   rcases pair with ⟨n, d⟩
-  have hparse := dvd_parse_evals n d
+  have hparse := dvd_parse_evals n d output
   cases n with
   | zero =>
       let parsedState :=
         dvdObserved (dvdObserved dvdInitialState (some false)) none
       have hstart := dvdEvalsToInTimeOne
-        (dvd_step_start_zero (List.replicate d true) [] [] parsedState)
-      have hfinish := dvd_finish_evals [] (List.replicate d true) [] []
+        (dvd_step_start_zero (List.replicate d true) [] output parsedState)
+      have hfinish := dvd_finish_evals [] (List.replicate d true) [] output
         (dvdSetResult true parsedState)
       have hthroughStart := EvalsToInTime.trans unaryDvdComputer.step
         (d + 2) 1
         (dvdCfg (some .scanDividend) dvdInitialState
-          (UnaryNatPair.encode (0, d)) [] [] [] [])
+          (UnaryNatPair.encode (0, d)) [] [] [] output)
         (dvdCfg (some .start) parsedState [] []
-          (List.replicate d true) [] [])
+          (List.replicate d true) [] output)
         (some (dvdCfg (some .finish) (dvdSetResult true parsedState)
-          [] [] (List.replicate d true) [] []))
+          [] [] (List.replicate d true) [] output))
         (by simpa [parsedState] using hparse)
         hstart
       have hall := EvalsToInTime.trans unaryDvdComputer.step
         (1 + (d + 2)) (d + 4)
         (dvdCfg (some .scanDividend) dvdInitialState
-          (UnaryNatPair.encode (0, d)) [] [] [] [])
+          (UnaryNatPair.encode (0, d)) [] [] [] output)
         (dvdCfg (some .finish) (dvdSetResult true parsedState)
-          [] [] (List.replicate d true) [] [])
+          [] [] (List.replicate d true) [] output)
         (some (dvdCfg none dvdInitialState [] [] [] []
-          (encodeBool (decide (d ∣ 0)))))
+          (decide (d ∣ 0) :: output)))
         hthroughStart
-        (by simpa [encodeBool, dvdSetResult] using hfinish)
+        (by simpa [dvdSetResult] using hfinish)
       have hbound :
           (d + 4) + (1 + (d + 2)) ≤
             6 * (UnaryNatPair.encode (0, d)).length + 16 := by
         simp [UnaryNatPair.encode]
         omega
-      have hmono := evalsToInTimeMono hall hbound
-      rw [TM2OutputsInTime, dvd_initList_eq_cfg]
-      simp only [Option.map_some]
-      rw [dvd_haltList_eq_cfg]
-      exact hmono
+      exact evalsToInTimeMono hall hbound
   | succ n =>
       cases d with
       | zero =>
           let parsedState :=
             dvdObserved (dvdObserved dvdInitialState (some false)) none
           have hstart := dvdEvalsToInTimeOne
-            (dvd_step_start_positive_zero (List.replicate n true) [] []
-              parsedState)
+            (dvd_step_start_positive_zero (List.replicate n true) []
+              output parsedState)
           have hfinish := dvd_finish_evals
-            (List.replicate (n + 1) true) [] [] []
+            (List.replicate (n + 1) true) [] [] output
             (dvdSetResult false parsedState)
           have hthroughStart := EvalsToInTime.trans unaryDvdComputer.step
             (n + 1 + 0 + 2) 1
             (dvdCfg (some .scanDividend) dvdInitialState
-              (UnaryNatPair.encode (n + 1, 0)) [] [] [] [])
+              (UnaryNatPair.encode (n + 1, 0)) [] [] [] output)
             (dvdCfg (some .start) parsedState []
-              (List.replicate (n + 1) true) [] [] [])
+              (List.replicate (n + 1) true) [] [] output)
             (some (dvdCfg (some .finish) (dvdSetResult false parsedState)
-              [] (List.replicate (n + 1) true) [] [] []))
+              [] (List.replicate (n + 1) true) [] [] output))
             (by simpa [parsedState] using hparse)
             (by simpa [List.replicate_succ] using hstart)
           have hall := EvalsToInTime.trans unaryDvdComputer.step
             (1 + (n + 1 + 0 + 2)) (n + 1 + 4)
             (dvdCfg (some .scanDividend) dvdInitialState
-              (UnaryNatPair.encode (n + 1, 0)) [] [] [] [])
+              (UnaryNatPair.encode (n + 1, 0)) [] [] [] output)
             (dvdCfg (some .finish) (dvdSetResult false parsedState)
-              [] (List.replicate (n + 1) true) [] [] [])
+              [] (List.replicate (n + 1) true) [] [] output)
             (some (dvdCfg none dvdInitialState [] [] [] []
-              (encodeBool (decide (0 ∣ n + 1)))))
+              (decide (0 ∣ n + 1) :: output)))
             hthroughStart
-            (by simpa [encodeBool, dvdSetResult] using hfinish)
+            (by simpa [dvdSetResult] using hfinish)
           have hbound :
               (n + 1 + 4) + (1 + (n + 1 + 0 + 2)) ≤
                 6 * (UnaryNatPair.encode (n + 1, 0)).length + 16 := by
             simp [UnaryNatPair.encode]
             omega
-          have hmono := evalsToInTimeMono hall hbound
-          rw [TM2OutputsInTime, dvd_initList_eq_cfg]
-          simp only [Option.map_some]
-          rw [dvd_haltList_eq_cfg]
-          exact hmono
+          exact evalsToInTimeMono hall hbound
       | succ d =>
           let parsedState :=
             dvdObserved (dvdObserved dvdInitialState (some false)) none
@@ -5794,45 +5788,53 @@ noncomputable def unaryDvd_outputsInTime (pair : ℕ × ℕ) :
             dvdObserved (dvdObserved parsedState (some true)) (some true)
           have hstart := dvdEvalsToInTimeOne
             (dvd_step_start_positive_positive
-              (List.replicate n true) (List.replicate d true) [] []
+              (List.replicate n true) (List.replicate d true) [] output
               parsedState)
           have hconsume := dvd_consume_evals (n + 1) (d + 1)
-            (Nat.succ_pos n) (Nat.succ_pos d) [] consumeState
+            (Nat.succ_pos n) (Nat.succ_pos d) output consumeState
           have hthroughStart := EvalsToInTime.trans unaryDvdComputer.step
             (n + 1 + (d + 1) + 2) 1
             (dvdCfg (some .scanDividend) dvdInitialState
-              (UnaryNatPair.encode (n + 1, d + 1)) [] [] [] [])
+              (UnaryNatPair.encode (n + 1, d + 1)) [] [] [] output)
             (dvdCfg (some .start) parsedState []
               (List.replicate (n + 1) true)
-              (List.replicate (d + 1) true) [] [])
+              (List.replicate (d + 1) true) [] output)
             (some (dvdCfg (some .consume) consumeState []
               (List.replicate (n + 1) true)
-              (List.replicate (d + 1) true) [] []))
+              (List.replicate (d + 1) true) [] output))
             (by simpa [parsedState] using hparse)
             (by simpa [consumeState, List.replicate_succ] using hstart)
           have hall := EvalsToInTime.trans unaryDvdComputer.step
             (1 + (n + 1 + (d + 1) + 2))
             (4 * (n + 1) + (d + 1) + 8)
             (dvdCfg (some .scanDividend) dvdInitialState
-              (UnaryNatPair.encode (n + 1, d + 1)) [] [] [] [])
+              (UnaryNatPair.encode (n + 1, d + 1)) [] [] [] output)
             (dvdCfg (some .consume) consumeState []
               (List.replicate (n + 1) true)
-              (List.replicate (d + 1) true) [] [])
+              (List.replicate (d + 1) true) [] output)
             (some (dvdCfg none dvdInitialState [] [] [] []
-              (encodeBool (decide (d + 1 ∣ n + 1)))))
+              (decide (d + 1 ∣ n + 1) :: output)))
             hthroughStart
-            (by simpa [encodeBool] using hconsume)
+            (by simpa using hconsume)
           have hbound :
               (4 * (n + 1) + (d + 1) + 8) +
                   (1 + (n + 1 + (d + 1) + 2)) ≤
                 6 * (UnaryNatPair.encode (n + 1, d + 1)).length + 16 := by
             simp [UnaryNatPair.encode]
             omega
-          have hmono := evalsToInTimeMono hall hbound
-          rw [TM2OutputsInTime, dvd_initList_eq_cfg]
-          simp only [Option.map_some]
-          rw [dvd_haltList_eq_cfg]
-          exact hmono
+          exact evalsToInTimeMono hall hbound
+
+/-- The unary-padded checker decides natural-number divisibility in at most
+`6s + 16` steps, where `s = n + d + 1` is its actual encoded input length. -/
+noncomputable def unaryDvd_outputsInTime (pair : ℕ × ℕ) :
+    TM2OutputsInTime unaryDvdComputer (UnaryNatPair.encode pair)
+      (some (encodeBool (decide (pair.2 ∣ pair.1))))
+      (6 * (UnaryNatPair.encode pair).length + 16) := by
+  have hrun := unaryDvd_evals_with_output pair []
+  rw [TM2OutputsInTime, dvd_initList_eq_cfg]
+  simp only [Option.map_some, encodeBool, List.pure_def]
+  rw [dvd_haltList_eq_cfg]
+  simpa using hrun
 
 /-- Genuine polynomial-time divisibility on the unary-padded interface used
 by the future bounded prime scan. -/
@@ -7133,6 +7135,563 @@ theorem encode_eq (results : List Bool) :
 
 end RawBoolList
 
+/-! ## Repeated padded divisibility
+
+The pair generator emits a stack-oriented list of complete unary-pair fields.
+The driver below restores one field at a time on the existing divisibility
+machine's input stack, runs that checked program, and resumes scanning after
+the component halt.  Processing the reversed field stream while pushing each
+Boolean result restores the source pair order on the output stack.
+-/
+
+/-- Apply the divisibility predicate to every pair in source order. -/
+def pairDivisionResults (pairs : List (ℕ × ℕ)) : List Bool :=
+  pairs.map fun pair => decide (pair.2 ∣ pair.1)
+
+/-- The raw outer input plus every stack of the existing divisibility
+machine. -/
+abbrev PairDvdStack := Unit ⊕ DvdStack
+
+/-- Outer field scanning or execution of one divisibility-machine label. -/
+inductive PairDvdLabel
+  | scan
+  | dvd (label : DvdLabel)
+  deriving DecidableEq, Fintype
+
+/-- The outer scanner remembers its last pop; the component state is kept
+unchanged while a raw field is restored. -/
+structure PairDvdState where
+  observed : Option (Option Bool)
+  dvd : DvdState
+  deriving DecidableEq, Fintype
+
+private def pairDvdInitialState : PairDvdState :=
+  ⟨none, dvdInitialState⟩
+
+private def pairDvdObserve
+    (state : PairDvdState) (observed : Option (Option Bool)) : PairDvdState :=
+  { state with observed := observed }
+
+private def pairDvdResetObserved (state : PairDvdState) : PairDvdState :=
+  { state with observed := none }
+
+private def pairDvdSetComponent
+    (state : PairDvdState) (dvd : DvdState) : PairDvdState :=
+  { state with dvd := dvd }
+
+private def pairDvdObservedPresent : PairDvdState → Bool
+  | ⟨some _, _⟩ => true
+  | _ => false
+
+private def pairDvdObservedSymbol : PairDvdState → Bool
+  | ⟨some (some _), _⟩ => true
+  | _ => false
+
+private def pairDvdObservedBit : PairDvdState → Bool
+  | ⟨some (some bit), _⟩ => bit
+  | _ => false
+
+private def PairDvdAlphabet : PairDvdStack → Type
+  | .inl _ => Option Bool
+  | .inr index => DvdAlphabet index
+
+/-- Lift a statement of the checked divisibility machine.  Reaching its halt
+resets the outer observation and returns to the raw-field scanner. -/
+private def liftDvdStmt :
+    TM2.Stmt DvdAlphabet DvdLabel DvdState →
+      TM2.Stmt PairDvdAlphabet PairDvdLabel PairDvdState
+  | .push index write next =>
+      .push (.inr index) (fun state => write state.dvd) (liftDvdStmt next)
+  | .peek index read next =>
+      .peek (.inr index)
+        (fun state observed => pairDvdSetComponent state (read state.dvd observed))
+        (liftDvdStmt next)
+  | .pop index read next =>
+      .pop (.inr index)
+        (fun state observed => pairDvdSetComponent state (read state.dvd observed))
+        (liftDvdStmt next)
+  | .load update next =>
+      .load (fun state => pairDvdSetComponent state (update state.dvd))
+        (liftDvdStmt next)
+  | .branch test yes no =>
+      .branch (fun state => test state.dvd) (liftDvdStmt yes) (liftDvdStmt no)
+  | .goto next => .goto (fun state => .dvd (next state.dvd))
+  | .halt =>
+      .load pairDvdResetObserved (.goto fun _ => .scan)
+
+/-- Scan one reversed raw field into the component input stack, or halt when
+the complete outer stream is exhausted. -/
+def pairDvdProgram :
+    PairDvdLabel → TM2.Stmt PairDvdAlphabet PairDvdLabel PairDvdState
+  | .scan =>
+      .pop (.inl ()) pairDvdObserve <|
+        .branch pairDvdObservedPresent
+          (.branch pairDvdObservedSymbol
+            (.push (.inr .input) pairDvdObservedBit <|
+              .load pairDvdResetObserved <|
+                .goto fun _ => .scan)
+            (.load pairDvdResetObserved <|
+              .goto fun _ => .dvd .scanDividend))
+          .halt
+  | .dvd label => liftDvdStmt (unaryDvdProgram label)
+
+/-- Concrete finite machine mapping a padded pair stream to its divisibility
+result stream. -/
+def pairDvdComputer : FinTM2 where
+  K := PairDvdStack
+  k₀ := .inl ()
+  k₁ := .inr .output
+  Γ := PairDvdAlphabet
+  Λ := PairDvdLabel
+  main := .scan
+  σ := PairDvdState
+  initialState := pairDvdInitialState
+  Γk₀Fin := inferInstanceAs (Fintype (Option Bool))
+  m := pairDvdProgram
+
+private def pairDvdStackContents
+    (input : List (Option Bool))
+    (contents : (index : DvdStack) → List (DvdAlphabet index)) :
+    (index : PairDvdStack) → List (PairDvdAlphabet index)
+  | .inl _ => input
+  | .inr index => contents index
+
+/-- Embed a component configuration while fixing the unconsumed raw stream.
+A component halt is represented by the outer scan label. -/
+private def pairDvdLiftCfg (input : List (Option Bool))
+    (cfg : unaryDvdComputer.Cfg) : pairDvdComputer.Cfg where
+  l := match cfg.l with
+    | none => some .scan
+    | some label => some (.dvd label)
+  var := ⟨none, cfg.var⟩
+  stk := pairDvdStackContents input cfg.stk
+
+private theorem pairDvdStackContents_update
+    (input : List (Option Bool))
+    (contents : (index : DvdStack) → List (DvdAlphabet index))
+    (index : DvdStack) (value : List (DvdAlphabet index)) :
+    Function.update (pairDvdStackContents input contents) (.inr index) value =
+      pairDvdStackContents input (Function.update contents index value) := by
+  funext target
+  cases target with
+  | inl _ =>
+      simp [pairDvdStackContents, Function.update]
+  | inr other =>
+      by_cases h : other = index
+      · subst other
+        simp [pairDvdStackContents, Function.update]
+      · simp [pairDvdStackContents, Function.update, h]
+
+private theorem liftDvd_stepAux
+    (stmt : TM2.Stmt DvdAlphabet DvdLabel DvdState)
+    (state : DvdState)
+    (contents : (index : DvdStack) → List (DvdAlphabet index))
+    (input : List (Option Bool)) :
+    TM2.stepAux (liftDvdStmt stmt) ⟨none, state⟩
+        (pairDvdStackContents input contents) =
+      pairDvdLiftCfg input (TM2.stepAux stmt state contents) := by
+  induction stmt generalizing state contents with
+  | push index write next ih =>
+      simp only [liftDvdStmt, TM2.stepAux]
+      rw [pairDvdStackContents_update]
+      exact ih _ _
+  | peek index read next ih =>
+      simpa only [liftDvdStmt, TM2.stepAux, pairDvdStackContents,
+        pairDvdSetComponent] using
+          ih (read state (contents index).head?) contents
+  | pop index read next ih =>
+      simp only [liftDvdStmt, TM2.stepAux, pairDvdStackContents,
+        pairDvdSetComponent]
+      rw [pairDvdStackContents_update]
+      exact ih _ _
+  | load update next ih =>
+      simpa only [liftDvdStmt, TM2.stepAux, pairDvdSetComponent] using
+        ih (update state) contents
+  | branch test yes no ihYes ihNo =>
+      by_cases h : test state
+      · simpa only [liftDvdStmt, TM2.stepAux, h, cond_true] using
+          ihYes state contents
+      · simpa only [liftDvdStmt, TM2.stepAux, h, cond_false] using
+          ihNo state contents
+  | goto next =>
+      rfl
+  | halt =>
+      rfl
+
+private theorem pairDvd_lift_step
+    (input : List (Option Bool)) (label : DvdLabel) (state : DvdState)
+    (contents : (index : DvdStack) → List (DvdAlphabet index)) :
+    pairDvdComputer.step
+        (pairDvdLiftCfg input ⟨some label, state, contents⟩) =
+      some (pairDvdLiftCfg input
+        (TM2.stepAux (unaryDvdProgram label) state contents)) := by
+  simp only [pairDvdComputer, FinTM2.step, pairDvdLiftCfg,
+    pairDvdProgram, unaryDvdComputer, TM2.step]
+  exact congrArg some (liftDvd_stepAux _ _ _ _)
+
+private theorem unaryDvd_iterate_none (steps : ℕ) :
+    (flip Option.bind unaryDvdComputer.step)^[steps]
+        (none : Option unaryDvdComputer.Cfg) = none := by
+  induction steps with
+  | zero => rfl
+  | succ steps ih =>
+      rw [Function.iterate_succ_apply']
+      rw [ih]
+      rfl
+
+private theorem pairDvd_iterate_lift
+    (steps : ℕ) (input : List (Option Bool))
+    (start finish : unaryDvdComputer.Cfg)
+    (hrun :
+      (flip Option.bind unaryDvdComputer.step)^[steps] (some start) =
+        some finish) :
+    (flip Option.bind pairDvdComputer.step)^[steps]
+        (some (pairDvdLiftCfg input start)) =
+      some (pairDvdLiftCfg input finish) := by
+  induction steps generalizing start with
+  | zero =>
+      simpa using congrArg (Option.map (pairDvdLiftCfg input)) hrun
+  | succ steps ih =>
+      rw [Function.iterate_succ_apply] at hrun ⊢
+      change (flip Option.bind unaryDvdComputer.step)^[steps]
+          (unaryDvdComputer.step start) = some finish at hrun
+      change (flip Option.bind pairDvdComputer.step)^[steps]
+          (pairDvdComputer.step (pairDvdLiftCfg input start)) =
+        some (pairDvdLiftCfg input finish)
+      cases hlabel : start.l with
+      | none =>
+          have hnone : unaryDvdComputer.step start = none := by
+            rcases start with ⟨current, state, contents⟩
+            change current = none at hlabel
+            subst current
+            rfl
+          rw [hnone] at hrun
+          rw [unaryDvd_iterate_none] at hrun
+          contradiction
+      | some label =>
+          let middle := TM2.stepAux (unaryDvdProgram label) start.var start.stk
+          have hstep : unaryDvdComputer.step start = some middle := by
+            rcases start with ⟨current, state, contents⟩
+            simp [unaryDvdComputer, FinTM2.step] at hlabel ⊢
+            subst current
+            rfl
+          rw [hstep] at hrun
+          have hcfg :
+              start = ⟨some label, start.var, start.stk⟩ := by
+            rcases start with ⟨current, state, contents⟩
+            change current = some label at hlabel
+            subst current
+            rfl
+          rw [show pairDvdComputer.step (pairDvdLiftCfg input start) =
+              some (pairDvdLiftCfg input middle) by
+            rw [hcfg]
+            simpa [middle] using
+              pairDvd_lift_step input label start.var start.stk]
+          exact ih middle hrun
+
+private def pairDvd_lift_evals
+    (input : List (Option Bool)) {start finish : unaryDvdComputer.Cfg}
+    {bound : ℕ}
+    (hrun : EvalsToInTime unaryDvdComputer.step start (some finish) bound) :
+    EvalsToInTime pairDvdComputer.step
+      (pairDvdLiftCfg input start) (some (pairDvdLiftCfg input finish)) bound where
+  steps := hrun.steps
+  evals_in_steps := pairDvd_iterate_lift hrun.steps input start finish
+    hrun.evals_in_steps
+  steps_le_m := hrun.steps_le_m
+
+private def pairDvdEvalsToInTimeOne
+    {start finish : pairDvdComputer.Cfg}
+    (hstep : pairDvdComputer.step start = some finish) :
+    EvalsToInTime pairDvdComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private theorem pairDvd_step_scan_some
+    (bit : Bool) (input : List (Option Bool)) (field output : List Bool) :
+    pairDvdComputer.step
+        (pairDvdLiftCfg (some bit :: input)
+          (dvdCfg none dvdInitialState field [] [] [] output)) =
+      some (pairDvdLiftCfg input
+        (dvdCfg none dvdInitialState (bit :: field) [] [] [] output)) := by
+  simp [pairDvdComputer, FinTM2.step, pairDvdLiftCfg, pairDvdProgram,
+    pairDvdStackContents, dvdCfg, dvdStackContents, PairDvdAlphabet,
+    pairDvdInitialState, pairDvdObserve, pairDvdObservedPresent,
+    pairDvdObservedSymbol, pairDvdObservedBit, pairDvdResetObserved,
+    Function.update]
+  funext index
+  cases index with
+  | inl _ => rfl
+  | inr index =>
+      cases index <;> rfl
+
+private theorem pairDvd_step_scan_separator
+    (input : List (Option Bool)) (field output : List Bool) :
+    pairDvdComputer.step
+        (pairDvdLiftCfg (none :: input)
+          (dvdCfg none dvdInitialState field [] [] [] output)) =
+      some (pairDvdLiftCfg input
+        (dvdCfg (some .scanDividend) dvdInitialState
+          field [] [] [] output)) := by
+  simp [pairDvdComputer, FinTM2.step, pairDvdLiftCfg, pairDvdProgram,
+    pairDvdStackContents, dvdCfg, dvdStackContents, PairDvdAlphabet,
+    pairDvdInitialState, pairDvdObserve, pairDvdObservedPresent,
+    pairDvdObservedSymbol, pairDvdResetObserved, Function.update]
+  funext index
+  cases index with
+  | inl _ => rfl
+  | inr index =>
+      cases index <;> rfl
+
+private def pairDvd_scan_bits_evals
+    (bits : List Bool) (input : List (Option Bool))
+    (field output : List Bool) :
+    EvalsToInTime pairDvdComputer.step
+      (pairDvdLiftCfg (bits.map some ++ input)
+        (dvdCfg none dvdInitialState field [] [] [] output))
+      (some (pairDvdLiftCfg input
+        (dvdCfg none dvdInitialState
+          (bits.reverse ++ field) [] [] [] output)))
+      bits.length := by
+  induction bits generalizing field with
+  | nil =>
+      exact
+        { steps := 0
+          evals_in_steps := rfl
+          steps_le_m := Nat.le_refl 0 }
+  | cons bit bits ih =>
+      let middle := pairDvdLiftCfg (bits.map some ++ input)
+        (dvdCfg none dvdInitialState (bit :: field) [] [] [] output)
+      have hone : EvalsToInTime pairDvdComputer.step
+          (pairDvdLiftCfg ((bit :: bits).map some ++ input)
+            (dvdCfg none dvdInitialState field [] [] [] output))
+          (some middle) 1 :=
+        pairDvdEvalsToInTimeOne (by
+          simpa [middle] using pairDvd_step_scan_some bit
+            (bits.map some ++ input) field output)
+      have hrest := ih (bit :: field)
+      have htrans := EvalsToInTime.trans pairDvdComputer.step
+        1 bits.length
+        (pairDvdLiftCfg ((bit :: bits).map some ++ input)
+          (dvdCfg none dvdInitialState field [] [] [] output))
+        middle
+        (some (pairDvdLiftCfg input
+          (dvdCfg none dvdInitialState
+            ((bit :: bits).reverse ++ field) [] [] [] output)))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_comm] using htrans
+
+private def pairDvd_parse_segment_evals
+    (bits : List Bool) (input : List (Option Bool)) (output : List Bool) :
+    EvalsToInTime pairDvdComputer.step
+      (pairDvdLiftCfg (RawNatList.segment bits ++ input)
+        (dvdCfg none dvdInitialState [] [] [] [] output))
+      (some (pairDvdLiftCfg input
+        (dvdCfg (some .scanDividend) dvdInitialState
+          bits [] [] [] output)))
+      (bits.length + 1) := by
+  let middle := pairDvdLiftCfg (none :: input)
+    (dvdCfg none dvdInitialState bits [] [] [] output)
+  have hbits := pairDvd_scan_bits_evals bits.reverse (none :: input) [] output
+  have hseparator := pairDvdEvalsToInTimeOne
+    (pairDvd_step_scan_separator input bits output)
+  have htrans := EvalsToInTime.trans pairDvdComputer.step
+    bits.length 1
+    (pairDvdLiftCfg (RawNatList.segment bits ++ input)
+      (dvdCfg none dvdInitialState [] [] [] [] output))
+    middle
+    (some (pairDvdLiftCfg input
+      (dvdCfg (some .scanDividend) dvdInitialState
+        bits [] [] [] output)))
+    (by simpa [middle, RawNatList.segment] using hbits)
+    (by simpa [middle] using hseparator)
+  exact evalsToInTimeMono htrans (by omega)
+
+private noncomputable def pairDvd_pair_evals
+    (pair : ℕ × ℕ) (input : List (Option Bool)) (output : List Bool) :
+    EvalsToInTime pairDvdComputer.step
+      (pairDvdLiftCfg
+        (RawNatList.segment (UnaryNatPair.encode pair) ++ input)
+        (dvdCfg none dvdInitialState [] [] [] [] output))
+      (some (pairDvdLiftCfg input
+        (dvdCfg none dvdInitialState [] [] [] []
+          (decide (pair.2 ∣ pair.1) :: output))))
+      (7 * (UnaryNatPair.encode pair).length + 17) := by
+  have hparse := pairDvd_parse_segment_evals
+    (UnaryNatPair.encode pair) input output
+  have hcomponent := pairDvd_lift_evals input
+    (unaryDvd_evals_with_output pair output)
+  have htrans := EvalsToInTime.trans pairDvdComputer.step
+    ((UnaryNatPair.encode pair).length + 1)
+    (6 * (UnaryNatPair.encode pair).length + 16)
+    (pairDvdLiftCfg
+      (RawNatList.segment (UnaryNatPair.encode pair) ++ input)
+      (dvdCfg none dvdInitialState [] [] [] [] output))
+    (pairDvdLiftCfg input
+      (dvdCfg (some .scanDividend) dvdInitialState
+        (UnaryNatPair.encode pair) [] [] [] output))
+    (some (pairDvdLiftCfg input
+      (dvdCfg none dvdInitialState [] [] [] []
+        (decide (pair.2 ∣ pair.1) :: output))))
+    hparse hcomponent
+  exact evalsToInTimeMono htrans (by omega)
+
+@[simp]
+theorem RawUnaryPairList.encode_cons
+    (pair : ℕ × ℕ) (pairs : List (ℕ × ℕ)) :
+    RawUnaryPairList.encode (pair :: pairs) =
+      RawUnaryPairList.encode pairs ++
+        RawNatList.segment (UnaryNatPair.encode pair) := by
+  simp [RawUnaryPairList.encode, List.reverse_cons, List.flatMap_append]
+
+@[simp]
+theorem RawUnaryPairList.encode_length (pairs : List (ℕ × ℕ)) :
+    (RawUnaryPairList.encode pairs).length =
+      ((pairs.map fun pair => (UnaryNatPair.encode pair).length).sum +
+        pairs.length) := by
+  induction pairs with
+  | nil => simp [RawUnaryPairList.encode]
+  | cons pair pairs ih =>
+      rw [RawUnaryPairList.encode_cons, List.length_append, ih]
+      simp [RawNatList.segment]
+      omega
+
+/-- Including one separator per pair, the complete driver input for candidate
+`n` remains quadratic in the padded candidate. -/
+theorem trialDivisionPairStream_length_le (n : ℕ) :
+    (RawUnaryPairList.encode (trialDivisionPairs n)).length ≤
+      (2 * n + 1) * (n - 2) := by
+  rw [RawUnaryPairList.encode_length, trialDivisionPairs_length]
+  calc
+    ((trialDivisionPairs n).map fun pair =>
+        (UnaryNatPair.encode pair).length).sum + (n - 2) =
+        trialDivisionInputSize n + (n - 2) := by
+          rfl
+    _ ≤ 2 * n * (n - 2) + (n - 2) :=
+      Nat.add_le_add_right (trialDivisionInputSize_le n) (n - 2)
+    _ = (2 * n + 1) * (n - 2) := by ring
+
+private noncomputable def pairDvd_pairs_evals
+    (pairs : List (ℕ × ℕ)) (input : List (Option Bool))
+    (output : List Bool) :
+    EvalsToInTime pairDvdComputer.step
+      (pairDvdLiftCfg (RawUnaryPairList.encode pairs ++ input)
+        (dvdCfg none dvdInitialState [] [] [] [] output))
+      (some (pairDvdLiftCfg input
+        (dvdCfg none dvdInitialState [] [] [] []
+          (pairDivisionResults pairs ++ output))))
+      (17 * (RawUnaryPairList.encode pairs).length) := by
+  induction pairs generalizing input output with
+  | nil =>
+      exact
+        { steps := 0
+          evals_in_steps := rfl
+          steps_le_m := Nat.le_refl 0 }
+  | cons pair pairs ih =>
+      let middle := pairDvdLiftCfg
+        (RawNatList.segment (UnaryNatPair.encode pair) ++ input)
+        (dvdCfg none dvdInitialState [] [] [] []
+          (pairDivisionResults pairs ++ output))
+      have hfirst : EvalsToInTime pairDvdComputer.step
+          (pairDvdLiftCfg
+            (RawUnaryPairList.encode (pair :: pairs) ++ input)
+            (dvdCfg none dvdInitialState [] [] [] [] output))
+          (some middle)
+          (17 * (RawUnaryPairList.encode pairs).length) := by
+        simpa [middle, RawUnaryPairList.encode_cons, List.append_assoc] using
+          ih (RawNatList.segment (UnaryNatPair.encode pair) ++ input) output
+      have hsecond : EvalsToInTime pairDvdComputer.step middle
+          (some (pairDvdLiftCfg input
+            (dvdCfg none dvdInitialState [] [] [] []
+              (pairDivisionResults (pair :: pairs) ++ output))))
+          (7 * (UnaryNatPair.encode pair).length + 17) := by
+        simpa [middle, pairDivisionResults, List.append_assoc] using
+          pairDvd_pair_evals pair input
+            (pairDivisionResults pairs ++ output)
+      have htrans := EvalsToInTime.trans pairDvdComputer.step
+        (17 * (RawUnaryPairList.encode pairs).length)
+        (7 * (UnaryNatPair.encode pair).length + 17)
+        (pairDvdLiftCfg
+          (RawUnaryPairList.encode (pair :: pairs) ++ input)
+          (dvdCfg none dvdInitialState [] [] [] [] output))
+        middle
+        (some (pairDvdLiftCfg input
+          (dvdCfg none dvdInitialState [] [] [] []
+            (pairDivisionResults (pair :: pairs) ++ output))))
+        hfirst hsecond
+      apply evalsToInTimeMono htrans
+      simp [RawUnaryPairList.encode_cons, RawNatList.segment]
+      omega
+
+private theorem pairDvd_step_scan_nil (output : List Bool) :
+    pairDvdComputer.step
+        (pairDvdLiftCfg []
+          (dvdCfg none dvdInitialState [] [] [] [] output)) =
+      some (haltList pairDvdComputer output) := by
+  simp [pairDvdComputer, FinTM2.step, pairDvdLiftCfg, pairDvdProgram,
+    pairDvdStackContents, dvdCfg, dvdStackContents, PairDvdAlphabet,
+    pairDvdInitialState, pairDvdObserve, pairDvdObservedPresent,
+    haltList, Function.update]
+  funext index
+  cases index with
+  | inl _ => rfl
+  | inr index =>
+      cases index <;> rfl
+
+private theorem pairDvd_initList_eq_cfg (input : List (Option Bool)) :
+    initList pairDvdComputer input =
+      pairDvdLiftCfg input
+        (dvdCfg none dvdInitialState [] [] [] [] []) := by
+  unfold initList pairDvdLiftCfg pairDvdComputer pairDvdInitialState dvdCfg
+  congr
+  funext index
+  cases index with
+  | inl _ => rfl
+  | inr index =>
+      cases index <;> rfl
+
+/-- The repeated driver maps every padded pair field to its divisibility bit
+in at most `17s + 1` steps for actual stream length `s`. -/
+noncomputable def pairDvd_outputsInTime (pairs : List (ℕ × ℕ)) :
+    TM2OutputsInTime pairDvdComputer (RawUnaryPairList.encode pairs)
+      (some (pairDivisionResults pairs))
+      (17 * (RawUnaryPairList.encode pairs).length + 1) := by
+  have hpairs := pairDvd_pairs_evals pairs [] []
+  have hfinal := pairDvdEvalsToInTimeOne
+    (pairDvd_step_scan_nil (pairDivisionResults pairs))
+  have htrans := EvalsToInTime.trans pairDvdComputer.step
+    (17 * (RawUnaryPairList.encode pairs).length) 1
+    (pairDvdLiftCfg (RawUnaryPairList.encode pairs)
+      (dvdCfg none dvdInitialState [] [] [] [] []))
+    (pairDvdLiftCfg []
+      (dvdCfg none dvdInitialState [] [] [] []
+        (pairDivisionResults pairs)))
+    (some (haltList pairDvdComputer (pairDivisionResults pairs)))
+    (by simpa using hpairs) hfinal
+  rw [TM2OutputsInTime, pairDvd_initList_eq_cfg]
+  simp only [Option.map_some]
+  exact evalsToInTimeMono htrans (by omega)
+
+/-- Genuine linear time in the padded pair-stream representation.  Combined
+with the separate quadratic stream-size bound, this is the repeated
+divisibility stage needed by bounded trial division. -/
+noncomputable def pairDivisionResultsComputableInPolyTime :
+    @TM2ComputableInPolyTime (List (ℕ × ℕ)) (List Bool)
+      RawUnaryPairList.finEncoding RawBoolList.finEncoding
+      pairDivisionResults where
+  tm := pairDvdComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl Bool
+  time := 17 * Polynomial.X + 1
+  outputsFun pairs := by
+    simpa [RawUnaryPairList.finEncoding, RawBoolList.finEncoding, Equiv.refl,
+      Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_one,
+      Polynomial.eval_natCast, Polynomial.eval_X] using
+        pairDvd_outputsInTime pairs
+
 /-- Fold a stream of divisibility results into the assertion that every result
 is false.  The accumulator form matches the finite-machine invariant. -/
 def allFalseFrom : Bool → List Bool → Bool
@@ -7155,6 +7714,11 @@ theorem allFalseFrom_false (results : List Bool) :
 padded trial pair for `n`. -/
 def trialDivisionResults (n : ℕ) : List Bool :=
   (trialDivisionPairs n).map fun pair => decide (pair.2 ∣ pair.1)
+
+@[simp]
+theorem pairDivisionResults_trialDivisionPairs (n : ℕ) :
+    pairDivisionResults (trialDivisionPairs n) = trialDivisionResults n :=
+  rfl
 
 private theorem allFalse_map_dvd (n : ℕ) (divisors : List ℕ) :
     allFalse (divisors.map fun d => decide (d ∣ n)) =
@@ -7409,6 +7973,10 @@ noncomputable def allFalseComputableInPolyTime :
 #print axioms trialPairsFrom_sub_two
 #print axioms trialDivisionPairs_outputsInTime
 #print axioms trialDivisionPairsComputableInPolyTime
+#print axioms RawUnaryPairList.encode_length
+#print axioms trialDivisionPairStream_length_le
+#print axioms pairDvd_outputsInTime
+#print axioms pairDivisionResultsComputableInPolyTime
 #print axioms allFalse_trialDivisionResults_eq_true_iff
 #print axioms allFalse_outputsInTime
 #print axioms allFalseComputableInPolyTime
