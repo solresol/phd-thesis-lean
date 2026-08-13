@@ -48,10 +48,15 @@ runs the divisibility program on every field, and emits the exact result stream
 in at most `17s + 1` steps for encoded stream length `s`; the concrete trial
 stream is quadratically bounded. A checked linear-time Boolean fold accepts
 exactly when none of those results is true, and its trial-result bridge is
-equivalent to primality for `n ≥ 2`. The remaining work is to construct CSP
-structural compilation and unary bounds, compose pair generation, repeated
-division, and the fold, implement candidate filtering and selection, and
-assemble the full compiler's genuine polynomial-runtime theorem.
+equivalent to primality for `n ≥ 2`. The fused
+`allFalseDivisibilityResultsComputableInPolyTime` machine consumes the padded
+pair stream directly, invokes divisibility for every field, keeps the fold in
+finite control, and emits the exact no-divisor bit in at most `18s + 1` steps;
+on `trialDivisionPairs n` that bit accepts exactly the primes for `n ≥ 2`.
+The remaining work is to construct CSP structural compilation and unary
+bounds, compose pair generation with this fused pass, implement candidate
+filtering and selection, and assemble the full compiler's genuine
+polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

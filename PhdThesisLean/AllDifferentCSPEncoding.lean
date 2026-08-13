@@ -37,8 +37,11 @@ the complete stack-oriented padded pair list in quadratic time. The checked
 repeated-divisibility driver consumes that exact encoding in linear time in
 its padded length, whose concrete trial-list instance is quadratically bounded,
 and a checked linear-time Boolean fold accepts exactly when every divisibility
-result is false. Composition of those stages and candidate filtering still
-remain separate from these encoding and size results.
+result is false. A fused checked machine consumes the padded stream directly,
+runs divisibility on every field, and retains only that Boolean fold in finite
+control in at most `18s + 1` steps. Composition with padded-pair generation and
+candidate filtering still remain separate from these encoding and size
+results.
 -/
 
 namespace BinaryNatLists

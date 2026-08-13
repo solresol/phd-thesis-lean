@@ -184,10 +184,14 @@ length `s`; `trialDivisionPairStream_length_le` bounds the concrete stream by
 `(2n+1)(n-2)`. `allFalseComputableInPolyTime` folds a literal Boolean result
 stream in at most `s + 1` steps, and
 `allFalse_trialDivisionResults_eq_true_iff` proves that for `n ≥ 2` it accepts
-the complete trial-result stream exactly when `n` is prime. CSP structural
-compilation, production of the unary bound, composition of pair generation,
-repeated division and the Boolean fold, finite-machine candidate
-filtering/selection, and final whole-compiler composition remain.
+the complete trial-result stream exactly when `n` is prime.
+`allFalseDivisibilityResultsComputableInPolyTime` fuses repeated divisibility
+with that fold, consumes the checked padded-pair stream directly, and emits the
+exact no-divisor bit in at most `18s + 1` steps; on
+`trialDivisionPairs n`, that bit is true exactly for primes when `n ≥ 2`. CSP
+structural compilation, production of the unary bound, composition of pair
+generation with the fused pass, finite-machine candidate filtering/selection,
+and final whole-compiler composition remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -340,13 +344,14 @@ The copied statements are grouped by mathematical contribution:
   in quadratic time, `pairDivisionResultsComputableInPolyTime` maps that exact
   stream encoding to all divisibility results in linear time in its padded
   length, `allFalseComputableInPolyTime` aggregates the Boolean result list in
-  linear time with a checked exact bridge to the trial-prime predicate, and
+  linear time with a checked exact bridge to the trial-prime predicate, while
+  `allFalseDivisibilityResultsComputableInPolyTime` fuses those two passes into
+  a direct linear-time padded-stream-to-primality-bit computation, and
   `firstBertrandPrime_eq_selectPrimeAbove` proves that filtering the enumerated
   interval and taking its first survivor agrees with the semantic compiler's
   selected prime. The complete compiler machine and its structural production
-  of unary bounds, composition of pair generation, repeated division and the
-  Boolean fold, finite-machine filtering/selection, and final composition
-  remain open;
+  of unary bounds, composition of pair generation with the fused primality
+  pass, finite-machine filtering/selection, and final composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

@@ -30,18 +30,21 @@ CSP invariant that the explicit input length is at least `q`. An eighth finite
 machine decides divisibility on delimiter-separated unary-padded pairs in
 linear time, including zero dividend and divisor cases. A ninth finite machine
 emits the exact stack-oriented list of every padded pair `(n,d)` with
-`2 ≤ d < n` in quadratic time. A tenth finite machine folds a Boolean result
-stream in linear time and accepts exactly when none of the proposed divisors
-divided the candidate. The executable trial-division specification below
+`2 ≤ d < n` in quadratic time. A tenth finite machine repeatedly applies the
+divisibility program to a padded pair stream. An eleventh finite machine folds
+a Boolean result stream in linear time and accepts exactly when none of the
+proposed divisors divided the candidate. A fused twelfth machine performs both
+passes with the Boolean fold kept in finite control, avoiding an intermediate
+result stream in the eventual prime filter. The executable trial-division
+specification below
 enumerates exactly the proper divisors, filters the checked Bertrand candidates,
 and proves that its first survivor is the prime already selected by the
 semantic compiler.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, production of the
-unary distinct-symbol bound, repeated divisibility invocation across the padded
-pair stream, composition with the checked Boolean fold, finite-machine
-candidate filtering and selection, or final compiler assembly.
+unary distinct-symbol bound, composition with padded-pair generation,
+finite-machine candidate filtering and selection, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -7940,6 +7943,604 @@ noncomputable def allFalseComputableInPolyTime :
       Polynomial.eval_add, Polynomial.eval_one, Polynomial.eval_X] using
         allFalse_outputsInTime results
 
+/-! ## Fused repeated divisibility and Boolean aggregation
+
+The standalone repeated-divisibility and Boolean-fold machines expose useful
+component contracts. For the prime filter it is cheaper to fuse them: after
+each invocation of `unaryDvdComputer`, consume its one-bit output immediately
+and retain only the running conjunction in finite control. This avoids an
+intermediate result list while preserving the exact padded-pair input syntax.
+-/
+
+/-- The Boolean accepted by the fused padded-pair divisibility pass. -/
+def allFalseDivisibilityResults (pairs : List (ℕ × ℕ)) : Bool :=
+  allFalse (pairDivisionResults pairs)
+
+/-- On the exact trial-pair stream for a candidate at least two, the fused
+pass accepts exactly the natural primes. -/
+theorem allFalseDivisibilityResults_trialDivisionPairs_eq_true_iff
+    {n : ℕ} (hn : 2 ≤ n) :
+    allFalseDivisibilityResults (trialDivisionPairs n) = true ↔ n.Prime := by
+  simpa [allFalseDivisibilityResults,
+    pairDivisionResults_trialDivisionPairs] using
+      allFalse_trialDivisionResults_eq_true_iff hn
+
+/-- The fused machine uses the repeated driver's raw input and divisibility
+stacks. The divisibility output stack is reused as the final Boolean output
+after every intermediate result has been consumed. -/
+abbrev PairAllFalseStack := PairDvdStack
+
+/-- Raw-field scanning, one divisibility invocation, and result aggregation. -/
+inductive PairAllFalseLabel
+  | scan
+  | dvd (label : DvdLabel)
+  | aggregate
+  deriving DecidableEq, Fintype
+
+/-- Finite control combines the outer raw-field observation, the component
+state, and the running assertion that no processed divisor succeeded. -/
+structure PairAllFalseState where
+  observed : Option (Option Bool)
+  dvd : DvdState
+  aggregate : Bool
+  deriving DecidableEq, Fintype
+
+private def pairAllFalseInitialState : PairAllFalseState :=
+  ⟨none, dvdInitialState, true⟩
+
+private def pairAllFalseObserve
+    (state : PairAllFalseState)
+    (observed : Option (Option Bool)) : PairAllFalseState :=
+  { state with observed := observed }
+
+private def pairAllFalseResetObserved
+    (state : PairAllFalseState) : PairAllFalseState :=
+  { state with observed := none }
+
+private def pairAllFalseSetComponent
+    (state : PairAllFalseState) (dvd : DvdState) : PairAllFalseState :=
+  { state with dvd := dvd }
+
+private def pairAllFalseObserveResult
+    (state : PairAllFalseState) : Option Bool → PairAllFalseState
+  | some result =>
+      { state with
+        observed := none
+        aggregate := state.aggregate && !result }
+  | none => { state with observed := none }
+
+private def pairAllFalseObservedPresent : PairAllFalseState → Bool
+  | ⟨some _, _, _⟩ => true
+  | _ => false
+
+private def pairAllFalseObservedSymbol : PairAllFalseState → Bool
+  | ⟨some (some _), _, _⟩ => true
+  | _ => false
+
+private def pairAllFalseObservedBit : PairAllFalseState → Bool
+  | ⟨some (some bit), _, _⟩ => bit
+  | _ => false
+
+private def pairAllFalseAggregate (state : PairAllFalseState) : Bool :=
+  state.aggregate
+
+private def PairAllFalseAlphabet : PairAllFalseStack → Type :=
+  PairDvdAlphabet
+
+/-- Lift the checked unary divisibility program, redirecting its halt to the
+one-step aggregate phase rather than accumulating a result list. -/
+private def liftDvdAllFalseStmt :
+    TM2.Stmt DvdAlphabet DvdLabel DvdState →
+      TM2.Stmt PairAllFalseAlphabet PairAllFalseLabel PairAllFalseState
+  | .push index write next =>
+      .push (.inr index) (fun state => write state.dvd)
+        (liftDvdAllFalseStmt next)
+  | .peek index read next =>
+      .peek (.inr index)
+        (fun state observed =>
+          pairAllFalseSetComponent state (read state.dvd observed))
+        (liftDvdAllFalseStmt next)
+  | .pop index read next =>
+      .pop (.inr index)
+        (fun state observed =>
+          pairAllFalseSetComponent state (read state.dvd observed))
+        (liftDvdAllFalseStmt next)
+  | .load update next =>
+      .load (fun state =>
+        pairAllFalseSetComponent state (update state.dvd))
+        (liftDvdAllFalseStmt next)
+  | .branch test yes no =>
+      .branch (fun state => test state.dvd)
+        (liftDvdAllFalseStmt yes) (liftDvdAllFalseStmt no)
+  | .goto next => .goto (fun state => .dvd (next state.dvd))
+  | .halt => .goto fun _ => .aggregate
+
+/-- Repeatedly restore one padded pair, run divisibility, fold its output bit,
+and finally emit the single aggregate Boolean. -/
+def pairAllFalseProgram :
+    PairAllFalseLabel →
+      TM2.Stmt PairAllFalseAlphabet PairAllFalseLabel PairAllFalseState
+  | .scan =>
+      .pop (.inl ()) pairAllFalseObserve <|
+        .branch pairAllFalseObservedPresent
+          (.branch pairAllFalseObservedSymbol
+            (.push (.inr .input) pairAllFalseObservedBit <|
+              .load pairAllFalseResetObserved <|
+                .goto fun _ => .scan)
+            (.load pairAllFalseResetObserved <|
+              .goto fun _ => .dvd .scanDividend))
+          (.push (.inr .output) pairAllFalseAggregate <|
+            .load (fun _ => pairAllFalseInitialState) .halt)
+  | .dvd label => liftDvdAllFalseStmt (unaryDvdProgram label)
+  | .aggregate =>
+      .pop (.inr .output) pairAllFalseObserveResult <|
+        .goto fun _ => .scan
+
+/-- Concrete finite machine fusing repeated padded divisibility with the
+Boolean no-divisor fold. -/
+def pairAllFalseComputer : FinTM2 where
+  K := PairAllFalseStack
+  k₀ := .inl ()
+  k₁ := .inr .output
+  Γ := PairAllFalseAlphabet
+  Λ := PairAllFalseLabel
+  main := .scan
+  σ := PairAllFalseState
+  initialState := pairAllFalseInitialState
+  Γk₀Fin := inferInstanceAs (Fintype (Option Bool))
+  m := pairAllFalseProgram
+
+private def pairAllFalseStackContents
+    (input : List (Option Bool))
+    (contents : (index : DvdStack) → List (DvdAlphabet index)) :
+    (index : PairAllFalseStack) → List (PairAllFalseAlphabet index) :=
+  pairDvdStackContents input contents
+
+private def pairAllFalseCfg (label : Option PairAllFalseLabel)
+    (state : PairAllFalseState) (input : List (Option Bool))
+    (contents : (index : DvdStack) → List (DvdAlphabet index)) :
+    pairAllFalseComputer.Cfg where
+  l := label
+  var := state
+  stk := pairAllFalseStackContents input contents
+
+private def pairAllFalseScanCfg
+    (input : List (Option Bool)) (aggregate : Bool)
+    (field output : List Bool) : pairAllFalseComputer.Cfg :=
+  pairAllFalseCfg (some .scan) ⟨none, dvdInitialState, aggregate⟩ input
+    (dvdStackContents field [] [] [] output)
+
+/-- Embed a divisibility configuration while fixing the raw stream and the
+running aggregate. A component halt enters the aggregate phase. -/
+private def pairAllFalseLiftCfg (input : List (Option Bool))
+    (aggregate : Bool) (cfg : unaryDvdComputer.Cfg) :
+    pairAllFalseComputer.Cfg where
+  l := match cfg.l with
+    | none => some .aggregate
+    | some label => some (.dvd label)
+  var := ⟨none, cfg.var, aggregate⟩
+  stk := pairAllFalseStackContents input cfg.stk
+
+private theorem pairAllFalseStackContents_update
+    (input : List (Option Bool))
+    (contents : (index : DvdStack) → List (DvdAlphabet index))
+    (index : DvdStack) (value : List (DvdAlphabet index)) :
+    Function.update (pairAllFalseStackContents input contents)
+        (.inr index) value =
+      pairAllFalseStackContents input
+        (Function.update contents index value) := by
+  exact pairDvdStackContents_update input contents index value
+
+private theorem liftDvdAllFalse_stepAux
+    (stmt : TM2.Stmt DvdAlphabet DvdLabel DvdState)
+    (state : DvdState)
+    (contents : (index : DvdStack) → List (DvdAlphabet index))
+    (input : List (Option Bool)) (aggregate : Bool) :
+    TM2.stepAux (liftDvdAllFalseStmt stmt) ⟨none, state, aggregate⟩
+        (pairAllFalseStackContents input contents) =
+      pairAllFalseLiftCfg input aggregate
+        (TM2.stepAux stmt state contents) := by
+  induction stmt generalizing state contents with
+  | push index write next ih =>
+      simp only [liftDvdAllFalseStmt, TM2.stepAux]
+      rw [pairAllFalseStackContents_update]
+      exact ih _ _
+  | peek index read next ih =>
+      simpa only [liftDvdAllFalseStmt, TM2.stepAux,
+        pairAllFalseStackContents, pairDvdStackContents,
+        pairAllFalseSetComponent] using
+          ih (read state (contents index).head?) contents
+  | pop index read next ih =>
+      simp only [liftDvdAllFalseStmt, TM2.stepAux,
+        pairAllFalseStackContents, pairDvdStackContents,
+        pairAllFalseSetComponent]
+      rw [pairDvdStackContents_update]
+      simpa only [pairAllFalseStackContents] using ih _ _
+  | load update next ih =>
+      simpa only [liftDvdAllFalseStmt, TM2.stepAux,
+        pairAllFalseSetComponent] using ih (update state) contents
+  | branch test yes no ihYes ihNo =>
+      by_cases h : test state
+      · simpa only [liftDvdAllFalseStmt, TM2.stepAux, h, cond_true] using
+          ihYes state contents
+      · simpa only [liftDvdAllFalseStmt, TM2.stepAux, h, cond_false] using
+          ihNo state contents
+  | goto next => rfl
+  | halt => rfl
+
+private theorem pairAllFalse_lift_step
+    (input : List (Option Bool)) (aggregate : Bool)
+    (label : DvdLabel) (state : DvdState)
+    (contents : (index : DvdStack) → List (DvdAlphabet index)) :
+    pairAllFalseComputer.step
+        (pairAllFalseLiftCfg input aggregate
+          ⟨some label, state, contents⟩) =
+      some (pairAllFalseLiftCfg input aggregate
+        (TM2.stepAux (unaryDvdProgram label) state contents)) := by
+  simp only [pairAllFalseComputer, FinTM2.step, pairAllFalseLiftCfg,
+    pairAllFalseProgram, unaryDvdComputer, TM2.step]
+  exact congrArg some (liftDvdAllFalse_stepAux _ _ _ _ _)
+
+private theorem pairAllFalse_iterate_lift
+    (steps : ℕ) (input : List (Option Bool)) (aggregate : Bool)
+    (start finish : unaryDvdComputer.Cfg)
+    (hrun :
+      (flip Option.bind unaryDvdComputer.step)^[steps] (some start) =
+        some finish) :
+    (flip Option.bind pairAllFalseComputer.step)^[steps]
+        (some (pairAllFalseLiftCfg input aggregate start)) =
+      some (pairAllFalseLiftCfg input aggregate finish) := by
+  induction steps generalizing start with
+  | zero =>
+      simpa using congrArg
+        (Option.map (pairAllFalseLiftCfg input aggregate)) hrun
+  | succ steps ih =>
+      rw [Function.iterate_succ_apply] at hrun ⊢
+      change (flip Option.bind unaryDvdComputer.step)^[steps]
+          (unaryDvdComputer.step start) = some finish at hrun
+      change (flip Option.bind pairAllFalseComputer.step)^[steps]
+          (pairAllFalseComputer.step
+            (pairAllFalseLiftCfg input aggregate start)) =
+        some (pairAllFalseLiftCfg input aggregate finish)
+      cases hlabel : start.l with
+      | none =>
+          have hnone : unaryDvdComputer.step start = none := by
+            rcases start with ⟨current, state, contents⟩
+            change current = none at hlabel
+            subst current
+            rfl
+          rw [hnone] at hrun
+          rw [unaryDvd_iterate_none] at hrun
+          contradiction
+      | some label =>
+          let middle :=
+            TM2.stepAux (unaryDvdProgram label) start.var start.stk
+          have hstep : unaryDvdComputer.step start = some middle := by
+            rcases start with ⟨current, state, contents⟩
+            simp [unaryDvdComputer, FinTM2.step] at hlabel ⊢
+            subst current
+            rfl
+          rw [hstep] at hrun
+          have hcfg :
+              start = ⟨some label, start.var, start.stk⟩ := by
+            rcases start with ⟨current, state, contents⟩
+            change current = some label at hlabel
+            subst current
+            rfl
+          rw [show pairAllFalseComputer.step
+              (pairAllFalseLiftCfg input aggregate start) =
+                some (pairAllFalseLiftCfg input aggregate middle) by
+            rw [hcfg]
+            simpa [middle] using pairAllFalse_lift_step input aggregate
+              label start.var start.stk]
+          exact ih middle hrun
+
+private def pairAllFalse_lift_evals
+    (input : List (Option Bool)) (aggregate : Bool)
+    {start finish : unaryDvdComputer.Cfg} {bound : ℕ}
+    (hrun : EvalsToInTime unaryDvdComputer.step start
+      (some finish) bound) :
+    EvalsToInTime pairAllFalseComputer.step
+      (pairAllFalseLiftCfg input aggregate start)
+      (some (pairAllFalseLiftCfg input aggregate finish)) bound where
+  steps := hrun.steps
+  evals_in_steps := pairAllFalse_iterate_lift hrun.steps input aggregate
+    start finish hrun.evals_in_steps
+  steps_le_m := hrun.steps_le_m
+
+private def pairAllFalseEvalsToInTimeOne
+    {start finish : pairAllFalseComputer.Cfg}
+    (hstep : pairAllFalseComputer.step start = some finish) :
+    EvalsToInTime pairAllFalseComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private theorem pairAllFalse_step_scan_some
+    (bit : Bool) (input : List (Option Bool))
+    (aggregate : Bool) (field output : List Bool) :
+    pairAllFalseComputer.step
+        (pairAllFalseScanCfg (some bit :: input) aggregate field output) =
+      some (pairAllFalseScanCfg input aggregate (bit :: field) output) := by
+  simp [pairAllFalseComputer, FinTM2.step, pairAllFalseScanCfg,
+    pairAllFalseCfg, pairAllFalseProgram, pairAllFalseStackContents,
+    pairDvdStackContents, dvdStackContents, PairAllFalseAlphabet,
+    PairDvdAlphabet, pairAllFalseObserve, pairAllFalseObservedPresent,
+    pairAllFalseObservedSymbol, pairAllFalseObservedBit,
+    pairAllFalseResetObserved, Function.update]
+  funext index
+  cases index with
+  | inl _ => rfl
+  | inr index => cases index <;> rfl
+
+private theorem pairAllFalse_step_scan_separator
+    (input : List (Option Bool)) (aggregate : Bool)
+    (field output : List Bool) :
+    pairAllFalseComputer.step
+        (pairAllFalseScanCfg (none :: input) aggregate field output) =
+      some (pairAllFalseLiftCfg input aggregate
+        (dvdCfg (some .scanDividend) dvdInitialState
+          field [] [] [] output)) := by
+  simp [pairAllFalseComputer, FinTM2.step, pairAllFalseScanCfg,
+    pairAllFalseCfg, pairAllFalseLiftCfg, pairAllFalseProgram,
+    pairAllFalseStackContents, pairDvdStackContents, dvdCfg,
+    dvdStackContents, PairAllFalseAlphabet, PairDvdAlphabet,
+    pairAllFalseObserve, pairAllFalseObservedPresent,
+    pairAllFalseObservedSymbol, pairAllFalseResetObserved, Function.update]
+  funext index
+  cases index with
+  | inl _ => rfl
+  | inr index => cases index <;> rfl
+
+private def pairAllFalse_scan_bits_evals
+    (bits : List Bool) (input : List (Option Bool))
+    (aggregate : Bool) (field output : List Bool) :
+    EvalsToInTime pairAllFalseComputer.step
+      (pairAllFalseScanCfg (bits.map some ++ input) aggregate field output)
+      (some (pairAllFalseScanCfg input aggregate
+        (bits.reverse ++ field) output)) bits.length := by
+  induction bits generalizing field with
+  | nil => exact EvalsToInTime.refl _ _
+  | cons bit bits ih =>
+      let middle := pairAllFalseScanCfg (bits.map some ++ input)
+        aggregate (bit :: field) output
+      have hone : EvalsToInTime pairAllFalseComputer.step
+          (pairAllFalseScanCfg ((bit :: bits).map some ++ input)
+            aggregate field output)
+          (some middle) 1 :=
+        pairAllFalseEvalsToInTimeOne (by
+          simpa [middle] using pairAllFalse_step_scan_some bit
+            (bits.map some ++ input) aggregate field output)
+      have hrest := ih (bit :: field)
+      have htrans := EvalsToInTime.trans pairAllFalseComputer.step
+        1 bits.length
+        (pairAllFalseScanCfg ((bit :: bits).map some ++ input)
+          aggregate field output)
+        middle
+        (some (pairAllFalseScanCfg input aggregate
+          ((bit :: bits).reverse ++ field) output))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_comm] using htrans
+
+private def pairAllFalse_parse_segment_evals
+    (bits : List Bool) (input : List (Option Bool))
+    (aggregate : Bool) (output : List Bool) :
+    EvalsToInTime pairAllFalseComputer.step
+      (pairAllFalseScanCfg (RawNatList.segment bits ++ input)
+        aggregate [] output)
+      (some (pairAllFalseLiftCfg input aggregate
+        (dvdCfg (some .scanDividend) dvdInitialState
+          bits [] [] [] output)))
+      (bits.length + 1) := by
+  let middle := pairAllFalseScanCfg (none :: input) aggregate bits output
+  have hbits := pairAllFalse_scan_bits_evals bits.reverse (none :: input)
+    aggregate [] output
+  have hseparator := pairAllFalseEvalsToInTimeOne
+    (pairAllFalse_step_scan_separator input aggregate bits output)
+  have htrans := EvalsToInTime.trans pairAllFalseComputer.step
+    bits.length 1
+    (pairAllFalseScanCfg (RawNatList.segment bits ++ input)
+      aggregate [] output)
+    middle
+    (some (pairAllFalseLiftCfg input aggregate
+      (dvdCfg (some .scanDividend) dvdInitialState
+        bits [] [] [] output)))
+    (by simpa [middle, RawNatList.segment] using hbits)
+    (by simpa [middle] using hseparator)
+  exact evalsToInTimeMono htrans (by omega)
+
+private theorem pairAllFalse_step_aggregate
+    (input : List (Option Bool)) (aggregate result : Bool) :
+    pairAllFalseComputer.step
+        (pairAllFalseLiftCfg input aggregate
+          (dvdCfg none dvdInitialState [] [] [] [] [result])) =
+      some (pairAllFalseScanCfg input (aggregate && !result) [] []) := by
+  simp [pairAllFalseComputer, FinTM2.step, pairAllFalseLiftCfg,
+    pairAllFalseScanCfg, pairAllFalseCfg, pairAllFalseProgram,
+    pairAllFalseStackContents, pairDvdStackContents, dvdCfg,
+    dvdStackContents, PairAllFalseAlphabet, PairDvdAlphabet,
+    pairAllFalseObserveResult]
+  funext index
+  cases index with
+  | inl _ => rfl
+  | inr index => cases index <;> rfl
+
+private noncomputable def pairAllFalse_pair_evals
+    (pair : ℕ × ℕ) (input : List (Option Bool)) (aggregate : Bool) :
+    EvalsToInTime pairAllFalseComputer.step
+      (pairAllFalseScanCfg
+        (RawNatList.segment (UnaryNatPair.encode pair) ++ input)
+        aggregate [] [])
+      (some (pairAllFalseScanCfg input
+        (aggregate && !decide (pair.2 ∣ pair.1)) [] []))
+      (7 * (UnaryNatPair.encode pair).length + 18) := by
+  let componentStart := pairAllFalseLiftCfg input aggregate
+    (dvdCfg (some .scanDividend) dvdInitialState
+      (UnaryNatPair.encode pair) [] [] [] [])
+  let componentFinish := pairAllFalseLiftCfg input aggregate
+    (dvdCfg none dvdInitialState [] [] [] []
+      [decide (pair.2 ∣ pair.1)])
+  have hparse := pairAllFalse_parse_segment_evals
+    (UnaryNatPair.encode pair) input aggregate []
+  have hcomponent := pairAllFalse_lift_evals input aggregate
+    (unaryDvd_evals_with_output pair [])
+  have haggregate := pairAllFalseEvalsToInTimeOne
+    (pairAllFalse_step_aggregate input aggregate
+      (decide (pair.2 ∣ pair.1)))
+  have hfirst := EvalsToInTime.trans pairAllFalseComputer.step
+    ((UnaryNatPair.encode pair).length + 1)
+    (6 * (UnaryNatPair.encode pair).length + 16)
+    (pairAllFalseScanCfg
+      (RawNatList.segment (UnaryNatPair.encode pair) ++ input)
+      aggregate [] [])
+    componentStart (some componentFinish)
+    (by simpa [componentStart] using hparse)
+    (by simpa [componentStart, componentFinish] using hcomponent)
+  have htrans := EvalsToInTime.trans pairAllFalseComputer.step
+    (7 * (UnaryNatPair.encode pair).length + 17) 1
+    (pairAllFalseScanCfg
+      (RawNatList.segment (UnaryNatPair.encode pair) ++ input)
+      aggregate [] [])
+    componentFinish
+    (some (pairAllFalseScanCfg input
+      (aggregate && !decide (pair.2 ∣ pair.1)) [] []))
+    (evalsToInTimeMono hfirst (by omega))
+    (by simpa [componentFinish] using haggregate)
+  exact evalsToInTimeMono htrans (by omega)
+
+private theorem allFalseFrom_eq_and_allFalse
+    (aggregate : Bool) (results : List Bool) :
+    allFalseFrom aggregate results =
+      (aggregate && allFalse results) := by
+  cases aggregate with
+  | false => exact allFalseFrom_false results
+  | true => rfl
+
+private theorem allFalse_cons (result : Bool) (results : List Bool) :
+    allFalse (result :: results) = (!result && allFalse results) := by
+  simpa [allFalse, allFalseFrom] using
+    allFalseFrom_eq_and_allFalse (!result) results
+
+private noncomputable def pairAllFalse_pairs_evals
+    (pairs : List (ℕ × ℕ)) (input : List (Option Bool))
+    (aggregate : Bool) :
+    EvalsToInTime pairAllFalseComputer.step
+      (pairAllFalseScanCfg (RawUnaryPairList.encode pairs ++ input)
+        aggregate [] [])
+      (some (pairAllFalseScanCfg input
+        (aggregate && allFalse (pairDivisionResults pairs)) [] []))
+      (18 * (RawUnaryPairList.encode pairs).length) := by
+  induction pairs generalizing input aggregate with
+  | nil =>
+      simpa [RawUnaryPairList.encode, pairDivisionResults,
+        allFalse, allFalseFrom] using
+        (EvalsToInTime.refl pairAllFalseComputer.step
+          (pairAllFalseScanCfg input aggregate [] []))
+  | cons pair pairs ih =>
+      let tailAggregate :=
+        aggregate && allFalse (pairDivisionResults pairs)
+      let middle := pairAllFalseScanCfg
+        (RawNatList.segment (UnaryNatPair.encode pair) ++ input)
+        tailAggregate [] []
+      have hfirst : EvalsToInTime pairAllFalseComputer.step
+          (pairAllFalseScanCfg
+            (RawUnaryPairList.encode (pair :: pairs) ++ input)
+            aggregate [] [])
+          (some middle)
+          (18 * (RawUnaryPairList.encode pairs).length) := by
+        simpa [middle, tailAggregate, RawUnaryPairList.encode_cons,
+          List.append_assoc] using
+            ih (RawNatList.segment (UnaryNatPair.encode pair) ++ input)
+              aggregate
+      have hsecond : EvalsToInTime pairAllFalseComputer.step middle
+          (some (pairAllFalseScanCfg input
+            (aggregate && allFalse
+              (pairDivisionResults (pair :: pairs))) [] []))
+          (7 * (UnaryNatPair.encode pair).length + 18) := by
+        have hpair := pairAllFalse_pair_evals pair input tailAggregate
+        simpa [middle, tailAggregate, pairDivisionResults, allFalse_cons,
+          Bool.and_assoc, Bool.and_comm, Bool.and_left_comm] using hpair
+      have htrans := EvalsToInTime.trans pairAllFalseComputer.step
+        (18 * (RawUnaryPairList.encode pairs).length)
+        (7 * (UnaryNatPair.encode pair).length + 18)
+        (pairAllFalseScanCfg
+          (RawUnaryPairList.encode (pair :: pairs) ++ input)
+          aggregate [] [])
+        middle
+        (some (pairAllFalseScanCfg input
+          (aggregate && allFalse
+            (pairDivisionResults (pair :: pairs))) [] []))
+        hfirst hsecond
+      apply evalsToInTimeMono htrans
+      simp [RawUnaryPairList.encode_cons, RawNatList.segment]
+      omega
+
+private theorem pairAllFalse_step_scan_nil (aggregate : Bool) :
+    pairAllFalseComputer.step
+        (pairAllFalseScanCfg [] aggregate [] []) =
+      some (haltList pairAllFalseComputer [aggregate]) := by
+  simp [pairAllFalseComputer, FinTM2.step, pairAllFalseScanCfg,
+    pairAllFalseCfg, pairAllFalseProgram, pairAllFalseStackContents,
+    pairDvdStackContents, dvdStackContents, PairAllFalseAlphabet,
+    PairDvdAlphabet, pairAllFalseObserve, pairAllFalseObservedPresent,
+    pairAllFalseAggregate, pairAllFalseInitialState, haltList,
+    Function.update]
+  funext index
+  cases index with
+  | inl _ => rfl
+  | inr index => cases index <;> rfl
+
+private theorem pairAllFalse_initList_eq_cfg
+    (input : List (Option Bool)) :
+    initList pairAllFalseComputer input =
+      pairAllFalseScanCfg input true [] [] := by
+  unfold initList pairAllFalseScanCfg pairAllFalseCfg
+    pairAllFalseComputer pairAllFalseInitialState
+  congr
+  funext index
+  cases index with
+  | inl _ => rfl
+  | inr index => cases index <;> rfl
+
+/-- The fused machine decides whether every padded pair is nondividing in at
+most `18s + 1` steps for actual raw stream length `s`. -/
+noncomputable def pairAllFalse_outputsInTime
+    (pairs : List (ℕ × ℕ)) :
+    TM2OutputsInTime pairAllFalseComputer (RawUnaryPairList.encode pairs)
+      (some (encodeBool (allFalseDivisibilityResults pairs)))
+      (18 * (RawUnaryPairList.encode pairs).length + 1) := by
+  have hpairs := pairAllFalse_pairs_evals pairs [] true
+  have hfinal := pairAllFalseEvalsToInTimeOne
+    (pairAllFalse_step_scan_nil (allFalse (pairDivisionResults pairs)))
+  have htrans := EvalsToInTime.trans pairAllFalseComputer.step
+    (18 * (RawUnaryPairList.encode pairs).length) 1
+    (pairAllFalseScanCfg (RawUnaryPairList.encode pairs) true [] [])
+    (pairAllFalseScanCfg []
+      (allFalse (pairDivisionResults pairs)) [] [])
+    (some (haltList pairAllFalseComputer
+      [allFalse (pairDivisionResults pairs)]))
+    (by simpa using hpairs) hfinal
+  rw [TM2OutputsInTime, pairAllFalse_initList_eq_cfg]
+  simp only [Option.map_some, encodeBool, List.pure_def]
+  simpa [allFalseDivisibilityResults, Nat.add_comm] using htrans
+
+/-- Genuine linear time for the fused repeated-divisibility/no-divisor pass. -/
+noncomputable def allFalseDivisibilityResultsComputableInPolyTime :
+    @TM2ComputableInPolyTime (List (ℕ × ℕ)) Bool
+      RawUnaryPairList.finEncoding finEncodingBoolBool
+      allFalseDivisibilityResults where
+  tm := pairAllFalseComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl Bool
+  time := 18 * Polynomial.X + 1
+  outputsFun pairs := by
+    simpa [RawUnaryPairList.finEncoding, finEncodingBoolBool, Equiv.refl,
+      Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_one,
+      Polynomial.eval_natCast, Polynomial.eval_X] using
+        pairAllFalse_outputsInTime pairs
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
@@ -7980,5 +8581,8 @@ noncomputable def allFalseComputableInPolyTime :
 #print axioms allFalse_trialDivisionResults_eq_true_iff
 #print axioms allFalse_outputsInTime
 #print axioms allFalseComputableInPolyTime
+#print axioms allFalseDivisibilityResults_trialDivisionPairs_eq_true_iff
+#print axioms pairAllFalse_outputsInTime
+#print axioms allFalseDivisibilityResultsComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine

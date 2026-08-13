@@ -1133,3 +1133,70 @@
   its `n < 2` guard), then use it to filter the ordered Bertrand candidate
   stream and emit the first survivor. Keep CSP structural unary-bound
   production and final whole-compiler assembly as later obligations.
+
+## 2026-08-14 05:32 AEST
+
+- Starting repository commit:
+  `59178b816c524eb9f9f4c788d18587d39bd20b74` on `main`. The automation began
+  with a clean working tree; `git fetch origin` confirmed divergence count
+  `0 0`, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `5294a3754f4987514ed9f03e73658df37a684156`. Its unrelated modifications to
+  `.gitignore` and `todo.md` were preserved. The proof still claims a genuine
+  polynomial-time compiler-owned prime scan and whole compiler, so
+  `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized at
+  `7e59f0b`. Its generic composition development now lifts a complete exact
+  first-machine run to the transfer entry, but still has no checked complete
+  transfer-plus-second-machine computation or polynomial-runtime theorem. This
+  increment therefore used a concrete fused driver without editing or
+  importing the sibling.
+- Chosen increment: fuse repeated padded divisibility with the Boolean
+  no-divisor fold. `pairAllFalseComputer` restores each reversed pair field,
+  executes the existing checked `unaryDvdProgram`, immediately consumes its
+  one-bit result, and keeps only the conjunction of negated results in finite
+  control; the divisibility output stack is empty between fields and is reused
+  for the final Boolean.
+- Headline declarations:
+  `pairAllFalse_outputsInTime` proves exact output
+  `allFalseDivisibilityResults pairs` in at most `18s + 1` steps for actual
+  `RawUnaryPairList` encoded length `s`, and
+  `allFalseDivisibilityResultsComputableInPolyTime` packages the concrete
+  machine as a genuine linear `TM2ComputableInPolyTime` witness. The empty
+  input returns `true`, as required for candidate `n = 2`.
+  `allFalseDivisibilityResults_trialDivisionPairs_eq_true_iff` proves that on
+  the exact checked stream `trialDivisionPairs n`, the emitted bit is true
+  exactly when `n.Prime` for `n ≥ 2`.
+- Files changed: `PhdThesisLean/AllDifferentCSPMachine.lean` adds the fused
+  finite machine, component simulation, exact execution/runtime theorem,
+  polynomial witness, semantic bridge, and axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record this completed stage while retaining the
+  corollary's Partial status.
+- Failed proof shapes supplied useful corrections. Unfolding the fused stack
+  wrapper too early prevented the stack-update rewrite, so the proof reused
+  the already checked underlying `pairDvdStackContents_update` identity. The
+  first Boolean helper again omitted parentheses around a Boolean conjunction,
+  causing Lean to elaborate a proposition-valued expression; explicit
+  parentheses restored the intended equality and eliminated temporary
+  `sorryAx` dependencies. The final time proof initially asked `omega` to
+  compare separately simplified raw-stream sums; normalizing the transitive
+  bound by addition commutativity avoided that irrelevant arithmetic goal.
+- Verification succeeded: targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3114 jobs);
+  `git diff --check`; and a project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  `allFalseDivisibilityResults_trialDivisionPairs_eq_true_iff`,
+  `pairAllFalse_outputsInTime`, and
+  `allFalseDivisibilityResultsComputableInPolyTime` report only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- Ending state before commit: one coherent verified source/status/log
+  increment, with no unrelated user changes present in this repository.
+- Best next step: compose `trialDivisionPairsComputableInPolyTime` with the
+  fused `allFalseDivisibilityResultsComputableInPolyTime` pass to obtain the
+  checked unary-candidate primality machine, then filter the ordered Bertrand
+  candidate stream and emit its first survivor. Keep CSP structural unary-bound
+  production and final whole-compiler assembly as later obligations.
