@@ -1,4 +1,5 @@
 import PhdThesisLean.AllDifferentCSPEncoding
+import LeanNPHardness.MachineCompositionExecution
 import Mathlib.Computability.TMComputable
 
 namespace PhdThesisLean.AllDifferentCSPMachine
@@ -7,6 +8,7 @@ open Computability
 open Turing
 open PhdThesisLean.AllDifferentCSPEncoding
 open PhdThesisLean.AllDifferentCSP.ExplicitSystem
+open LeanNPHardness.MachineComposition
 
 /-!
 # Finite-machine encoding components for the all-different compiler
@@ -35,16 +37,17 @@ divisibility program to a padded pair stream. An eleventh finite machine folds
 a Boolean result stream in linear time and accepts exactly when none of the
 proposed divisors divided the candidate. A fused twelfth machine performs both
 passes with the Boolean fold kept in finite control, avoiding an intermediate
-result stream in the eventual prime filter. The executable trial-division
-specification below
-enumerates exactly the proper divisors, filters the checked Bertrand candidates,
-and proves that its first survivor is the prime already selected by the
-semantic compiler.
+result stream in the eventual prime filter. A thirteenth machine composes the
+quadratic pair generator with that fused pass and computes the candidate-only
+primality bit in at most `64(n+1)^2` steps on unary input. The executable
+trial-division specification below enumerates exactly the proper divisors,
+filters the checked Bertrand candidates, and proves that its first survivor is
+the prime already selected by the semantic compiler.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, production of the
-unary distinct-symbol bound, composition with padded-pair generation,
-finite-machine candidate filtering and selection, or final compiler assembly.
+unary distinct-symbol bound, the lower-bound guard and finite-machine candidate
+filtering and selection, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -8541,6 +8544,423 @@ noncomputable def allFalseDivisibilityResultsComputableInPolyTime :
       Polynomial.eval_natCast, Polynomial.eval_X] using
         pairAllFalse_outputsInTime pairs
 
+/-! ## Unary candidate primality composition
+
+The checked generic control and order-preserving transfer machinery from
+`lean-np-hardness` composes the trial-pair generator with the fused
+no-divisor pass.  The concrete machine below chooses the second component's
+reset state as its external halt state.  Its first generator statement
+immediately installs the generator's initial state, so this state choice does
+not alter the component execution and makes the final configuration satisfy
+mathlib's `haltList` convention.
+-/
+
+private def trialDivisionPairsAux :
+    TM2ComputableAux Bool (Option Bool) where
+  tm := trialDivisionPairComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl (Option Bool)
+
+private def pairAllFalseAux :
+    TM2ComputableAux (Option Bool) Bool where
+  tm := pairAllFalseComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl Bool
+
+/-- Concrete sequential machine for generating every padded divisor test and
+then accepting exactly when none of them divides the candidate. -/
+def unaryCandidatePrimeComputer : FinTM2 :=
+  { compositionMachine trialDivisionPairsAux pairAllFalseAux with
+      initialState := rightState trialDivisionPairsAux pairAllFalseAux
+        pairAllFalseAux.tm.initialState }
+
+private def unaryCandidatePrimeStartCfg
+    (state : ControlState trialDivisionPairsAux pairAllFalseAux)
+    (input : List Bool) : unaryCandidatePrimeComputer.Cfg where
+  l := some (leftLabel trialDivisionPairsAux pairAllFalseAux .scan)
+  var := state
+  stk := transferLeftStacks trialDivisionPairsAux pairAllFalseAux
+    (trialPairStackContents input [] [] [] [] [])
+
+private theorem unaryCandidatePrime_initList_eq_cfg (input : List Bool) :
+    initList unaryCandidatePrimeComputer input =
+      unaryCandidatePrimeStartCfg
+        (rightState trialDivisionPairsAux pairAllFalseAux
+          pairAllFalseAux.tm.initialState) input := by
+  unfold initList unaryCandidatePrimeComputer compositionMachine
+    unaryCandidatePrimeStartCfg trialDivisionPairsAux pairAllFalseAux
+    trialDivisionPairComputer pairAllFalseComputer transferLeftStacks
+    trialPairStackContents extendStacks leftStacks transferLeftIndex
+  congr 2
+  funext index
+  rcases index with (index | index)
+  · rcases index with (index | index)
+    · cases index <;> rfl
+    · rfl
+  · cases index
+    rfl
+
+private theorem unaryCandidatePrime_left_init_eq_cfg (input : List Bool) :
+    liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+        (liftLeftControlCfg trialDivisionPairsAux pairAllFalseAux
+          (initList trialDivisionPairsAux.tm input)) =
+      unaryCandidatePrimeStartCfg
+        (leftState trialDivisionPairsAux pairAllFalseAux
+          trialDivisionPairsAux.tm.initialState) input := by
+  simp only [trialDivisionPairsAux]
+  rw [trialPair_initList_eq_cfg]
+  rfl
+
+private theorem unaryCandidatePrime_start_step (input : List Bool) :
+    unaryCandidatePrimeComputer.step
+        (unaryCandidatePrimeStartCfg
+          (rightState trialDivisionPairsAux pairAllFalseAux
+            pairAllFalseAux.tm.initialState) input) =
+      unaryCandidatePrimeComputer.step
+        (unaryCandidatePrimeStartCfg
+          (leftState trialDivisionPairsAux pairAllFalseAux
+            trialDivisionPairsAux.tm.initialState) input) := by
+  cases input with
+  | nil =>
+      rfl
+  | cons bit input =>
+      rfl
+
+private theorem unaryCandidatePrime_init_step (input : List Bool) :
+    unaryCandidatePrimeComputer.step
+        (initList unaryCandidatePrimeComputer input) =
+      unaryCandidatePrimeComputer.step
+        (liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+          (liftLeftControlCfg trialDivisionPairsAux pairAllFalseAux
+            (initList trialDivisionPairsAux.tm input))) := by
+  rw [unaryCandidatePrime_initList_eq_cfg,
+    unaryCandidatePrime_left_init_eq_cfg]
+  exact unaryCandidatePrime_start_step input
+
+private theorem unaryCandidatePrime_haltList_eq (result : Bool) :
+    haltList unaryCandidatePrimeComputer [result] =
+      rightPhaseCfg trialDivisionPairsAux pairAllFalseAux (fun _ => []) []
+        (haltList pairAllFalseAux.tm [result]) := by
+  unfold unaryCandidatePrimeComputer compositionMachine haltList rightPhaseCfg
+    trialDivisionPairsAux pairAllFalseAux pairAllFalseComputer
+  congr 2
+  funext index
+  rcases index with (index | index)
+  · rcases index with (index | index)
+    · cases index <;> simp [extendStacks, rightPhaseStacks,
+        transferRightIndex]
+      all_goals
+        intro h
+        cases h
+    · rcases index with (index | index)
+      · cases index
+        simp [extendStacks, rightPhaseStacks, transferRightIndex]
+        intro h
+        cases h
+      · cases index <;> simp [extendStacks, rightPhaseStacks,
+          transferRightIndex]
+        all_goals
+          intro h
+          cases h
+  · cases index
+    simp [extendStacks, transferRightIndex]
+
+private theorem unaryCandidatePrime_iterate_init
+    (steps : ℕ) (hsteps : 0 < steps) (input : List Bool) :
+    (flip Option.bind unaryCandidatePrimeComputer.step)^[steps]
+        (some (initList unaryCandidatePrimeComputer input)) =
+      (flip Option.bind unaryCandidatePrimeComputer.step)^[steps]
+        (some (liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+          (liftLeftControlCfg trialDivisionPairsAux pairAllFalseAux
+            (initList trialDivisionPairsAux.tm input)))) := by
+  obtain ⟨remaining, rfl⟩ := Nat.exists_eq_succ_of_ne_zero
+    (Nat.ne_of_gt hsteps)
+  rw [Function.iterate_succ_apply]
+  change
+    (flip Option.bind unaryCandidatePrimeComputer.step)^[remaining]
+        (unaryCandidatePrimeComputer.step
+          (initList unaryCandidatePrimeComputer input)) =
+      (flip Option.bind unaryCandidatePrimeComputer.step)^[remaining]
+        (unaryCandidatePrimeComputer.step
+          (liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+            (liftLeftControlCfg trialDivisionPairsAux pairAllFalseAux
+              (initList trialDivisionPairsAux.tm input))))
+  rw [unaryCandidatePrime_init_step]
+
+private noncomputable def unaryCandidatePrime_generator_evals (n : ℕ) :
+    EvalsToInTime unaryCandidatePrimeComputer.step
+      (initList unaryCandidatePrimeComputer (unaryEncodeNat n))
+      (some (liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+        (leftTransferEntryCfg trialDivisionPairsAux pairAllFalseAux
+          (haltList trialDivisionPairsAux.tm
+            (RawUnaryPairList.encode (trialDivisionPairs n))).var
+          (haltList trialDivisionPairsAux.tm
+            (RawUnaryPairList.encode (trialDivisionPairs n))).stk)))
+      (8 * (n + 1) ^ 2) := by
+  let output := RawUnaryPairList.encode (trialDivisionPairs n)
+  have hgenerator :
+      EvalsToInTime trialDivisionPairsAux.tm.step
+        (initList trialDivisionPairsAux.tm (unaryEncodeNat n))
+        (some (haltList trialDivisionPairsAux.tm output))
+        (8 * (n + 1) ^ 2) := by
+    simpa [trialDivisionPairsAux, output] using
+      trialDivisionPairs_outputsInTime n
+  have hpositive : 0 < hgenerator.steps := by
+    apply Nat.pos_of_ne_zero
+    intro hzero
+    have heq := hgenerator.evals_in_steps
+    rw [hzero, Function.iterate_zero_apply] at heq
+    injection heq with hcfg
+    have hlabels := congrArg
+      (fun cfg : trialDivisionPairsAux.tm.Cfg => cfg.l) hcfg
+    simp [initList, haltList] at hlabels
+  have hleftRun := compositionProgram_left_run_to_transfer
+    trialDivisionPairsAux pairAllFalseAux hgenerator.steps
+    (initList trialDivisionPairsAux.tm (unaryEncodeNat n))
+    (haltList trialDivisionPairsAux.tm output)
+    trialDivisionPairsAux.tm.main [] rfl hgenerator.evals_in_steps rfl
+  refine
+    { steps := hgenerator.steps
+      evals_in_steps := ?_
+      steps_le_m := hgenerator.steps_le_m }
+  rw [show unaryCandidatePrimeComputer.step =
+      TM2.step (compositionProgram trialDivisionPairsAux pairAllFalseAux) by
+    rfl]
+  calc
+    (flip Option.bind
+        (TM2.step (compositionProgram trialDivisionPairsAux pairAllFalseAux)))^[
+          hgenerator.steps]
+        (some (initList unaryCandidatePrimeComputer (unaryEncodeNat n))) =
+      (flip Option.bind unaryCandidatePrimeComputer.step)^[hgenerator.steps]
+        (some (liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+          (liftLeftControlCfg trialDivisionPairsAux pairAllFalseAux
+            (initList trialDivisionPairsAux.tm (unaryEncodeNat n))))) := by
+        exact unaryCandidatePrime_iterate_init hgenerator.steps hpositive _
+    _ = some (liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+        (leftTransferEntryCfg trialDivisionPairsAux pairAllFalseAux
+          (haltList trialDivisionPairsAux.tm output).var
+          (haltList trialDivisionPairsAux.tm output).stk)) :=
+      hleftRun
+
+private def unaryCandidatePrimeRightContents
+    (input : List (Option Bool)) :
+    (index : StackIndex trialDivisionPairsAux.tm pairAllFalseAux.tm) →
+      List (StackAlphabet trialDivisionPairsAux.tm pairAllFalseAux.tm index) :=
+  rightStacks trialDivisionPairsAux.tm pairAllFalseAux.tm
+    (initList pairAllFalseAux.tm input).stk
+
+private theorem unaryCandidatePrime_rightEntryMachineCfg
+    (input : List (Option Bool)) :
+    rightEntryMachineCfg trialDivisionPairsAux pairAllFalseAux
+        (unaryCandidatePrimeRightContents input) =
+      initList pairAllFalseAux.tm input := by
+  rfl
+
+private theorem unaryCandidatePrime_transferStart_eq
+    (output : List (Option Bool)) :
+    liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+        (leftTransferEntryCfg trialDivisionPairsAux pairAllFalseAux
+          (haltList trialDivisionPairsAux.tm output).var
+          (haltList trialDivisionPairsAux.tm output).stk) =
+      transferActionCfg trialDivisionPairsAux pairAllFalseAux
+        (.phase .reverseOutput)
+        (leftState trialDivisionPairsAux pairAllFalseAux
+          trialDivisionPairsAux.tm.initialState)
+        (Function.update
+          (Function.update (fun _ => []) (Sum.inr pairAllFalseAux.tm.k₀) [])
+          (Sum.inl trialDivisionPairsAux.tm.k₁) output) [] := by
+  simp only [trialDivisionPairsAux]
+  rw [trialPair_haltList_eq_cfg]
+  unfold liftScratchCfg leftTransferEntryCfg transferActionCfg trialPairCfg
+    trialPairStackContents pairAllFalseAux pairAllFalseComputer leftStacks
+    extendStacks
+  congr 2
+  funext index
+  rcases index with (index | index)
+  · rcases index with (index | index)
+    · cases index <;> rfl
+    · rcases index with (index | index)
+      · cases index
+        rfl
+      · cases index <;> rfl
+  · cases index
+    rfl
+
+private theorem unaryCandidatePrime_transferFinish_eq
+    (output : List (Option Bool)) :
+    rightEntryCfg trialDivisionPairsAux pairAllFalseAux
+        (unaryCandidatePrimeRightContents output) [] =
+      rightEntryCfg trialDivisionPairsAux pairAllFalseAux
+        (Function.update
+          (Function.update (fun _ => []) (Sum.inl trialDivisionPairsAux.tm.k₁) [])
+          (Sum.inr pairAllFalseAux.tm.k₀)
+          (output.map (middleAlphabetEquiv trialDivisionPairsAux
+            pairAllFalseAux) ++ [])) [] := by
+  congr 2
+  unfold unaryCandidatePrimeRightContents
+  simp only [pairAllFalseAux]
+  rw [pairAllFalse_initList_eq_cfg]
+  unfold pairAllFalseScanCfg pairAllFalseCfg pairAllFalseStackContents
+    pairDvdStackContents dvdStackContents rightStacks middleAlphabetEquiv
+    trialDivisionPairsAux pairAllFalseComputer trialDivisionPairComputer
+  funext index
+  rcases index with (index | index)
+  · cases index <;> rfl
+  · rcases index with (index | index)
+    · cases index
+      simp [Function.update]
+      change output = output.map id
+      simp
+    · cases index <;> rfl
+
+private def unaryCandidatePrime_transfer_evals (n : ℕ) :
+    EvalsToInTime unaryCandidatePrimeComputer.step
+      (liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+        (leftTransferEntryCfg trialDivisionPairsAux pairAllFalseAux
+          (haltList trialDivisionPairsAux.tm
+            (RawUnaryPairList.encode (trialDivisionPairs n))).var
+          (haltList trialDivisionPairsAux.tm
+            (RawUnaryPairList.encode (trialDivisionPairs n))).stk))
+      (some (rightEntryCfg trialDivisionPairsAux pairAllFalseAux
+        (unaryCandidatePrimeRightContents
+          (RawUnaryPairList.encode (trialDivisionPairs n))) []))
+      (4 * (RawUnaryPairList.encode (trialDivisionPairs n)).length + 4) := by
+  let output := RawUnaryPairList.encode (trialDivisionPairs n)
+  refine
+    { steps := 4 * output.length + 4
+      evals_in_steps := ?_
+      steps_le_m := Nat.le_refl _ }
+  rw [unaryCandidatePrime_transferStart_eq output,
+    unaryCandidatePrime_transferFinish_eq output]
+  exact compositionProgram_transfer_whole_list trialDivisionPairsAux
+      pairAllFalseAux
+      (leftState trialDivisionPairsAux pairAllFalseAux
+        trialDivisionPairsAux.tm.initialState)
+      (fun _ => []) output []
+
+/-- Candidate-only primality bit.  This omits the lower-bound guard because
+every generated Bertrand candidate is at least two. -/
+def unaryCandidatePrime (n : ℕ) : Bool :=
+  allFalseDivisibilityResults (trialDivisionPairs n)
+
+theorem unaryCandidatePrime_eq_true_iff
+    {n : ℕ} (hn : 2 ≤ n) :
+    unaryCandidatePrime n = true ↔ n.Prime := by
+  exact allFalseDivisibilityResults_trialDivisionPairs_eq_true_iff hn
+
+private theorem unaryCandidatePrime_rightEntry_eq
+    (input : List (Option Bool)) :
+    rightEntryCfg trialDivisionPairsAux pairAllFalseAux
+        (unaryCandidatePrimeRightContents input) [] =
+      rightPhaseCfg trialDivisionPairsAux pairAllFalseAux (fun _ => []) []
+        (initList pairAllFalseAux.tm input) := by
+  rw [rightEntryCfg_eq_rightPhaseCfg,
+    unaryCandidatePrime_rightEntryMachineCfg]
+  congr 1
+
+private noncomputable def unaryCandidatePrime_second_evals (n : ℕ) :
+    EvalsToInTime unaryCandidatePrimeComputer.step
+      (rightEntryCfg trialDivisionPairsAux pairAllFalseAux
+        (unaryCandidatePrimeRightContents
+          (RawUnaryPairList.encode (trialDivisionPairs n))) [])
+      (some (haltList unaryCandidatePrimeComputer
+        (encodeBool (unaryCandidatePrime n))))
+      (18 * (RawUnaryPairList.encode (trialDivisionPairs n)).length + 1) := by
+  let input := RawUnaryPairList.encode (trialDivisionPairs n)
+  let result := unaryCandidatePrime n
+  have hsecond : EvalsToInTime pairAllFalseAux.tm.step
+      (initList pairAllFalseAux.tm input)
+      (some (haltList pairAllFalseAux.tm (encodeBool result)))
+      (18 * input.length + 1) := by
+    simpa [pairAllFalseAux, input, result, unaryCandidatePrime] using
+      pairAllFalse_outputsInTime (trialDivisionPairs n)
+  have hrightRun := compositionProgram_right_run trialDivisionPairsAux
+    pairAllFalseAux hsecond.steps
+    (initList pairAllFalseAux.tm input)
+    (haltList pairAllFalseAux.tm (encodeBool result))
+    (fun _ => []) [] hsecond.evals_in_steps
+  refine
+    { steps := hsecond.steps
+      evals_in_steps := ?_
+      steps_le_m := hsecond.steps_le_m }
+  rw [unaryCandidatePrime_rightEntry_eq]
+  change (flip Option.bind unaryCandidatePrimeComputer.step)^[hsecond.steps]
+      (some (rightPhaseCfg trialDivisionPairsAux pairAllFalseAux
+        (fun _ => []) [] (initList pairAllFalseAux.tm input))) =
+    some (haltList unaryCandidatePrimeComputer [result])
+  rw [unaryCandidatePrime_haltList_eq]
+  exact hrightRun
+
+/-- The composed machine generates the complete padded trial stream, transfers
+it in source order, and runs the fused no-divisor pass in quadratic time in
+the unary candidate length. -/
+noncomputable def unaryCandidatePrime_outputsInTime (n : ℕ) :
+    TM2OutputsInTime unaryCandidatePrimeComputer (unaryEncodeNat n)
+      (some (encodeBool (unaryCandidatePrime n)))
+      (64 * (n + 1) ^ 2) := by
+  let stream := RawUnaryPairList.encode (trialDivisionPairs n)
+  have hgenerator := unaryCandidatePrime_generator_evals n
+  have htransfer := unaryCandidatePrime_transfer_evals n
+  have hsecond := unaryCandidatePrime_second_evals n
+  have hfirst := EvalsToInTime.trans unaryCandidatePrimeComputer.step
+    (8 * (n + 1) ^ 2) (4 * stream.length + 4)
+    (initList unaryCandidatePrimeComputer (unaryEncodeNat n))
+    (liftScratchCfg trialDivisionPairsAux pairAllFalseAux []
+      (leftTransferEntryCfg trialDivisionPairsAux pairAllFalseAux
+        (haltList trialDivisionPairsAux.tm stream).var
+        (haltList trialDivisionPairsAux.tm stream).stk))
+    (some (rightEntryCfg trialDivisionPairsAux pairAllFalseAux
+      (unaryCandidatePrimeRightContents stream) []))
+    (by simpa [stream] using hgenerator)
+    (by simpa [stream] using htransfer)
+  have hall := EvalsToInTime.trans unaryCandidatePrimeComputer.step
+    (4 * stream.length + 4 + 8 * (n + 1) ^ 2)
+    (18 * stream.length + 1)
+    (initList unaryCandidatePrimeComputer (unaryEncodeNat n))
+    (rightEntryCfg trialDivisionPairsAux pairAllFalseAux
+      (unaryCandidatePrimeRightContents stream) [])
+    (some (haltList unaryCandidatePrimeComputer
+      (encodeBool (unaryCandidatePrime n))))
+    (by simpa [Nat.add_comm] using hfirst)
+    (by simpa [stream] using hsecond)
+  have hstream := trialDivisionPairStream_length_le n
+  have hbound :
+      (18 * stream.length + 1) +
+          (4 * stream.length + 4 + 8 * (n + 1) ^ 2) ≤
+        64 * (n + 1) ^ 2 := by
+    cases n with
+    | zero =>
+        norm_num [stream, trialDivisionPairs, trialDivisors,
+          RawUnaryPairList.encode]
+    | succ n =>
+        cases n with
+        | zero =>
+            norm_num [stream, trialDivisionPairs, trialDivisors,
+              RawUnaryPairList.encode]
+        | succ k =>
+            simp only [stream] at hstream ⊢
+            have hsub : k + 1 + 1 - 2 = k := by omega
+            rw [hsub] at hstream
+            nlinarith
+  exact evalsToInTimeMono hall hbound
+
+/-- Genuine polynomial-time finite-machine computation of the candidate-only
+primality bit on unary input.  The lower-bound guard remains a separate stage;
+on every Bertrand candidate, `unaryCandidatePrime_eq_true_iff` supplies exact
+primality semantics. -/
+noncomputable def unaryCandidatePrimeComputableInPolyTime :
+    @TM2ComputableInPolyTime ℕ Bool unaryFinEncodingNat
+      finEncodingBoolBool unaryCandidatePrime where
+  tm := unaryCandidatePrimeComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := 64 * (Polynomial.X + 1) ^ 2
+  outputsFun n := by
+    simpa [unaryFinEncodingNat, finEncodingBoolBool, Equiv.refl,
+      Polynomial.eval_mul, Polynomial.eval_pow, Polynomial.eval_add,
+      Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
+        unaryCandidatePrime_outputsInTime n
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
@@ -8584,5 +9004,8 @@ noncomputable def allFalseDivisibilityResultsComputableInPolyTime :
 #print axioms allFalseDivisibilityResults_trialDivisionPairs_eq_true_iff
 #print axioms pairAllFalse_outputsInTime
 #print axioms allFalseDivisibilityResultsComputableInPolyTime
+#print axioms unaryCandidatePrime_eq_true_iff
+#print axioms unaryCandidatePrime_outputsInTime
+#print axioms unaryCandidatePrimeComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine

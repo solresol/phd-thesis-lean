@@ -188,10 +188,14 @@ the complete trial-result stream exactly when `n` is prime.
 `allFalseDivisibilityResultsComputableInPolyTime` fuses repeated divisibility
 with that fold, consumes the checked padded-pair stream directly, and emits the
 exact no-divisor bit in at most `18s + 1` steps; on
-`trialDivisionPairs n`, that bit is true exactly for primes when `n ≥ 2`. CSP
-structural compilation, production of the unary bound, composition of pair
-generation with the fused pass, finite-machine candidate filtering/selection,
-and final whole-compiler composition remain.
+`trialDivisionPairs n`, that bit is true exactly for primes when `n ≥ 2`.
+`unaryCandidatePrimeComputableInPolyTime`, using the checked sequential-machine
+composition API pinned from `lean-np-hardness`, composes pair generation with
+the fused pass and emits that candidate-only bit in at most `64(n+1)^2` steps
+on unary `n`; `unaryCandidatePrime_eq_true_iff` gives exact primality semantics
+for every generated candidate (`n ≥ 2`). CSP structural compilation,
+production of the unary bound, the lower-bound guard, finite-machine candidate
+filtering/selection, and final whole-compiler composition remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -347,11 +351,14 @@ The copied statements are grouped by mathematical contribution:
   linear time with a checked exact bridge to the trial-prime predicate, while
   `allFalseDivisibilityResultsComputableInPolyTime` fuses those two passes into
   a direct linear-time padded-stream-to-primality-bit computation, and
+  `unaryCandidatePrimeComputableInPolyTime` composes the quadratic pair
+  generator with that fused pass to compute the candidate-only bit in at most
+  `64(n+1)^2` steps on unary input, while
   `firstBertrandPrime_eq_selectPrimeAbove` proves that filtering the enumerated
   interval and taking its first survivor agrees with the semantic compiler's
   selected prime. The complete compiler machine and its structural production
-  of unary bounds, composition of pair generation with the fused primality
-  pass, finite-machine filtering/selection, and final composition remain open;
+  of unary bounds, lower-bound guard, finite-machine filtering/selection, and
+  final composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

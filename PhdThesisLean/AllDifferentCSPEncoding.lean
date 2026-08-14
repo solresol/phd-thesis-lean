@@ -39,9 +39,11 @@ its padded length, whose concrete trial-list instance is quadratically bounded,
 and a checked linear-time Boolean fold accepts exactly when every divisibility
 result is false. A fused checked machine consumes the padded stream directly,
 runs divisibility on every field, and retains only that Boolean fold in finite
-control in at most `18s + 1` steps. Composition with padded-pair generation and
-candidate filtering still remain separate from these encoding and size
-results.
+control in at most `18s + 1` steps. A checked composition with the padded-pair
+generator computes the candidate-only primality bit in at most
+`64(n+1)^2` steps on unary `n`, with exact primality semantics for `n ≥ 2`.
+The lower-bound guard and candidate filtering still remain separate from these
+encoding and size results.
 -/
 
 namespace BinaryNatLists

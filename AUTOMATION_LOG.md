@@ -1200,3 +1200,74 @@
   checked unary-candidate primality machine, then filter the ordered Bertrand
   candidate stream and emit its first survivor. Keep CSP structural unary-bound
   production and final whole-compiler assembly as later obligations.
+
+## 2026-08-15 05:58 AEST
+
+- Starting repository commit:
+  `ba6032f109fa73b6ab4d5ed5cdcaf7d5f18570e4` on `main`. The automation began
+  with a clean working tree; local `HEAD`, `origin/main`, and the live remote
+  ref agreed, so no fast-forward was needed.
+- Active thesis proof reviewed at
+  `../phd-thesis/sudoku-via-padic-regression/body.tex` in thesis checkout
+  `5294a3754f4987514ed9f03e73658df37a684156`. Its unrelated modifications to
+  `.gitignore` and `todo.md` were preserved. The proof still claims a genuine
+  polynomial-time compiler-owned prime scan and whole compiler, so
+  `cor:all-different-csp` remains **Partial**.
+- Read-only sibling review:
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized at
+  `367ff9dac248488d7a7f454d41c36c0b02a7f6c6`. Its checked composition API now
+  covers exact left-component execution, order-preserving transfer, and exact
+  right-component execution. This repository now pins that exact commit as a
+  Lake dependency instead of duplicating the generic composition foundations;
+  the sibling repository was not edited.
+- Chosen increment: compose `trialDivisionPairComputer` with
+  `pairAllFalseComputer`. `unaryCandidatePrimeComputer` generates the complete
+  padded trial-pair stream, transfers it in source order with the checked
+  generic machinery, and runs the fused divisibility/no-divisor component.
+  `unaryCandidatePrime_outputsInTime` proves exact output in at most
+  `64 * (n + 1)^2` steps on unary `n`, and
+  `unaryCandidatePrimeComputableInPolyTime` packages the construction as a
+  genuine `TM2ComputableInPolyTime` witness.
+- Semantic boundary: `unaryCandidatePrime_eq_true_iff` proves the emitted bit
+  is true exactly when `n.Prime` under `2 <= n`. The machine is deliberately
+  candidate-only: its empty divisor list accepts `n = 0, 1`, while every
+  actual Bertrand candidate used by the next stage is at least two. The
+  lower-bound guard is therefore still listed explicitly as unfinished rather
+  than being silently assumed in a full primality claim.
+- Composition detail: the generic `compositionMachine` exposes the left
+  component's initial state, whereas its completed right phase remains tagged
+  with the right component's state and therefore does not directly match
+  mathlib's `haltList` state convention. The concrete machine selects the
+  right component's reset state externally and proves that the generator's
+  first scan step immediately installs the correct left state. Separate exact
+  execution lemmas then compose generator, transfer, and right phase without
+  changing either component's semantics.
+- Failed proof/API shapes supplied useful corrections. Direct use of the
+  generic machine's default initial state could not prove equality with the
+  final `haltList`; the concrete reset-state alignment and first-step lemma
+  resolved that mismatch. The transfer configuration proof also exposed the
+  middle-alphabet identity map explicitly before simplification. The runtime
+  inequality required separate `n = 0`, `n = 1`, and `n >= 2` cases before the
+  checked stream-length bound closed the quadratic estimate.
+- Files changed: `lakefile.lean` and `lake-manifest.json` add the exact pinned
+  `lean-np-hardness` dependency; `PhdThesisLean/AllDifferentCSPMachine.lean`
+  adds the composed machine, exact simulations, semantics, runtime theorem,
+  polynomial witness, and axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the completed candidate-only composition while
+  retaining the corollary's Partial status.
+- Verification succeeded: full `lake build` (3121 jobs), including the new
+  dependency and machine module; `git diff --check`; and the project
+  Lean-source scan for `sorry`, `admit`, project `axiom`, `unsafe`, and
+  `proof_wanted`. New `#print axioms` audits for
+  `unaryCandidatePrime_eq_true_iff`, `unaryCandidatePrime_outputsInTime`, and
+  `unaryCandidatePrimeComputableInPolyTime` report only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- Ending state before commit: one coherent verified source, dependency,
+  status, and log increment, with no unrelated user changes present in this
+  repository.
+- Best next step: add the checked `n < 2` guard (or prove and use the generated
+  Bertrand-candidate invariant at the machine boundary), then filter the
+  ordered candidate stream and emit the first survivor, including the
+  `q = 0, 1` cases. CSP structural unary-bound production and final
+  whole-compiler assembly remain later obligations.

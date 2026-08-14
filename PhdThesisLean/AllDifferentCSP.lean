@@ -53,8 +53,11 @@ equivalent to primality for `n ≥ 2`. The fused
 pair stream directly, invokes divisibility for every field, keeps the fold in
 finite control, and emits the exact no-divisor bit in at most `18s + 1` steps;
 on `trialDivisionPairs n` that bit accepts exactly the primes for `n ≥ 2`.
-The remaining work is to construct CSP structural compilation and unary
-bounds, compose pair generation with this fused pass, implement candidate
+The composed `unaryCandidatePrimeComputableInPolyTime` machine now generates
+that pair stream and runs the fused pass, computing the candidate-only bit in
+at most `64(n+1)^2` steps on unary `n`; for `n ≥ 2`, the bit is true exactly
+when `n` is prime. The remaining work is to construct CSP structural
+compilation and unary bounds, implement the lower-bound guard and candidate
 filtering and selection, and assemble the full compiler's genuine
 polynomial-runtime theorem.
 -/
