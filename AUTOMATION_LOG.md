@@ -1271,3 +1271,60 @@
   ordered candidate stream and emit the first survivor, including the
   `q = 0, 1` cases. CSP structural unary-bound production and final
   whole-compiler assembly remain later obligations.
+
+## 2026-08-16 05:23:21 AEST — discharge the generated-candidate lower bound
+
+- **Starting commit:** `26b2b5ced081673c42753e27a6085e340551846c`;
+  the checkout was clean and synchronized with `origin/main`, and a fetch
+  confirmed that no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  all-different correspondence in `README.md`, the relevant correctness
+  declarations in `AllDifferent.lean` and `FiniteDomainCompiler.lean`, the
+  active proof of `cor:all-different-csp`, this journal, and the existing
+  candidate/primality machine boundary.
+- **Read-only reusable-API review:** sibling `lean-np-hardness` was clean and
+  synchronized at `d867de1e06290dc42d8c38f4134e8eb58a774efa`. Its new
+  `compositionProgram_complete_run` checks the exact three-phase execution,
+  but canonical composed-machine output normalization and the generic
+  polynomial-runtime composition theorem remain pending. The pinned dependency
+  was therefore left unchanged, and the sibling repository was not edited.
+- **Chosen increment:** proved
+  `two_le_of_mem_bertrandCandidates`, including the impossible `q = 0` stream
+  and the `q = 1` singleton candidate `2`; proved
+  `unaryCandidatePrime_eq_trialPrime_of_mem_bertrandCandidates`; and proved
+  `filter_unaryCandidatePrime_bertrandCandidates`, which identifies filtering
+  the exact enumerator output with the existing guarded semantic prime list.
+  The lower-bound guard is now an established producer invariant rather than
+  an unimplemented machine stage.
+- **Semantic boundary:** this increment does not claim a stream-processing
+  filter machine. It proves that the already checked candidate-primality
+  machine supplies the correct predicate at every position of the already
+  checked Bertrand enumeration, so the next pass may filter and stop at the
+  first accepted value without rechecking `2 <= n`.
+- **Failed approaches/blockers:** no Lean proof route failed. A separate
+  lower-bound machine was rejected as unnecessary after the interval bounds
+  discharged the precondition with `omega`; `Bool.eq_iff_iff` and
+  `List.filter_congr` then connected the Boolean predicates directly. The
+  remaining blocker is the concrete finite-machine candidate filter and
+  first-survivor selection, followed by structural unary-bound production and
+  whole-compiler composition.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the three
+  checked bridge declarations and their axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record that the separate lower-bound guard is no longer
+  open while retaining `cor:all-different-csp` as **Partial**; this journal
+  records the run.
+- **Verification succeeded:** direct checking with
+  `lake env lean PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build`
+  (3121 jobs); `git diff --check`; and the project Lean-source scan for
+  `sorry`, `admit`, project `axiom`, `unsafe`, and `proof_wanted`. The new
+  `#print axioms` audits report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- **Ending state before commit:** one coherent verified source, status, and log
+  increment, with no unrelated user changes present in this repository.
+- **Best next step:** implement a finite-machine pass over the ordered
+  `RawNatList` Bertrand stream that invokes `unaryCandidatePrimeComputer`,
+  discards rejected candidates, and emits the first survivor; its semantics
+  can now use `filter_unaryCandidatePrime_bertrandCandidates` directly,
+  including the explicit `q = 0, 1` conventions.

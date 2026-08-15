@@ -42,8 +42,10 @@ runs divisibility on every field, and retains only that Boolean fold in finite
 control in at most `18s + 1` steps. A checked composition with the padded-pair
 generator computes the candidate-only primality bit in at most
 `64(n+1)^2` steps on unary `n`, with exact primality semantics for `n ≥ 2`.
-The lower-bound guard and candidate filtering still remain separate from these
-encoding and size results.
+The generated Bertrand-stream invariant supplies that lower bound and proves
+the machine predicate induces exactly the guarded semantic filter. The
+finite-machine candidate filtering pass remains separate from these encoding
+and size results.
 -/
 
 namespace BinaryNatLists

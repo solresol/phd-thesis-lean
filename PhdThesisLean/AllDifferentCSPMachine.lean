@@ -39,15 +39,17 @@ proposed divisors divided the candidate. A fused twelfth machine performs both
 passes with the Boolean fold kept in finite control, avoiding an intermediate
 result stream in the eventual prime filter. A thirteenth machine composes the
 quadratic pair generator with that fused pass and computes the candidate-only
-primality bit in at most `64(n+1)^2` steps on unary input. The executable
-trial-division specification below enumerates exactly the proper divisors,
-filters the checked Bertrand candidates, and proves that its first survivor is
+primality bit in at most `64(n+1)^2` steps on unary input. The generated-stream
+invariant proves that every emitted candidate is at least two and that
+filtering with this machine predicate yields exactly the guarded semantic
+prime-candidate list. The executable trial-division specification below
+enumerates exactly the proper divisors and proves that its first survivor is
 the prime already selected by the semantic compiler.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, production of the
-unary distinct-symbol bound, the lower-bound guard and finite-machine candidate
-filtering and selection, or final compiler assembly.
+unary distinct-symbol bound, finite-machine candidate filtering and selection,
+or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -8848,6 +8850,36 @@ theorem unaryCandidatePrime_eq_true_iff
     unaryCandidatePrime n = true ↔ n.Prime := by
   exact allFalseDivisibilityResults_trialDivisionPairs_eq_true_iff hn
 
+/-- Every value emitted by the Bertrand enumerator is a valid input for the
+candidate-only primality machine.  This includes the edge cases: the interval
+is empty at `q = 0`, while its sole value at `q = 1` is `2`. -/
+theorem two_le_of_mem_bertrandCandidates
+    {q n : ℕ} (hn : n ∈ bertrandCandidates q) :
+    2 ≤ n := by
+  have hbounds := (mem_bertrandCandidates_iff q n).mp hn
+  omega
+
+/-- On the generated candidate stream, the composed machine predicate agrees
+exactly with the guarded trial-division specification.  Thus the lower-bound
+guard is supplied by the enumerator invariant rather than by another machine
+pass. -/
+theorem unaryCandidatePrime_eq_trialPrime_of_mem_bertrandCandidates
+    {q n : ℕ} (hn : n ∈ bertrandCandidates q) :
+    unaryCandidatePrime n = trialPrime n := by
+  rw [Bool.eq_iff_iff,
+    unaryCandidatePrime_eq_true_iff
+      (two_le_of_mem_bertrandCandidates hn),
+    trialPrime_eq_true_iff]
+
+/-- Filtering the checked Bertrand enumeration with the composed machine's
+candidate predicate yields exactly the semantic prime-candidate list. -/
+theorem filter_unaryCandidatePrime_bertrandCandidates (q : ℕ) :
+    (bertrandCandidates q).filter unaryCandidatePrime =
+      bertrandPrimeCandidates q := by
+  rw [bertrandPrimeCandidates]
+  exact List.filter_congr fun _ hn =>
+    unaryCandidatePrime_eq_trialPrime_of_mem_bertrandCandidates hn
+
 private theorem unaryCandidatePrime_rightEntry_eq
     (input : List (Option Bool)) :
     rightEntryCfg trialDivisionPairsAux pairAllFalseAux
@@ -8945,9 +8977,9 @@ noncomputable def unaryCandidatePrime_outputsInTime (n : ℕ) :
   exact evalsToInTimeMono hall hbound
 
 /-- Genuine polynomial-time finite-machine computation of the candidate-only
-primality bit on unary input.  The lower-bound guard remains a separate stage;
-on every Bertrand candidate, `unaryCandidatePrime_eq_true_iff` supplies exact
-primality semantics. -/
+primality bit on unary input.  The enumerator supplies the lower-bound
+invariant, so `filter_unaryCandidatePrime_bertrandCandidates` connects this
+predicate directly to the guarded semantic filter. -/
 noncomputable def unaryCandidatePrimeComputableInPolyTime :
     @TM2ComputableInPolyTime ℕ Bool unaryFinEncodingNat
       finEncodingBoolBool unaryCandidatePrime where
@@ -9005,6 +9037,9 @@ noncomputable def unaryCandidatePrimeComputableInPolyTime :
 #print axioms pairAllFalse_outputsInTime
 #print axioms allFalseDivisibilityResultsComputableInPolyTime
 #print axioms unaryCandidatePrime_eq_true_iff
+#print axioms two_le_of_mem_bertrandCandidates
+#print axioms unaryCandidatePrime_eq_trialPrime_of_mem_bertrandCandidates
+#print axioms filter_unaryCandidatePrime_bertrandCandidates
 #print axioms unaryCandidatePrime_outputsInTime
 #print axioms unaryCandidatePrimeComputableInPolyTime
 

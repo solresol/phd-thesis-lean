@@ -56,9 +56,11 @@ on `trialDivisionPairs n` that bit accepts exactly the primes for `n ≥ 2`.
 The composed `unaryCandidatePrimeComputableInPolyTime` machine now generates
 that pair stream and runs the fused pass, computing the candidate-only bit in
 at most `64(n+1)^2` steps on unary `n`; for `n ≥ 2`, the bit is true exactly
-when `n` is prime. The remaining work is to construct CSP structural
-compilation and unary bounds, implement the lower-bound guard and candidate
-filtering and selection, and assemble the full compiler's genuine
+when `n` is prime. The generated-stream invariant proves every Bertrand
+candidate is at least two and that filtering with this machine predicate gives
+exactly the guarded semantic prime-candidate list. The remaining work is to
+construct CSP structural compilation and unary bounds, implement finite-machine
+candidate filtering and selection, and assemble the full compiler's genuine
 polynomial-runtime theorem.
 -/
 

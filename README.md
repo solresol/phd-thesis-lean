@@ -193,9 +193,13 @@ exact no-divisor bit in at most `18s + 1` steps; on
 composition API pinned from `lean-np-hardness`, composes pair generation with
 the fused pass and emits that candidate-only bit in at most `64(n+1)^2` steps
 on unary `n`; `unaryCandidatePrime_eq_true_iff` gives exact primality semantics
-for every generated candidate (`n ≥ 2`). CSP structural compilation,
-production of the unary bound, the lower-bound guard, finite-machine candidate
-filtering/selection, and final whole-compiler composition remain.
+for `n ≥ 2`. `two_le_of_mem_bertrandCandidates` checks that every enumerated
+candidate meets this precondition, and
+`filter_unaryCandidatePrime_bertrandCandidates` proves that filtering the
+generated stream with the machine predicate yields exactly the guarded
+semantic prime-candidate list. CSP structural compilation, production of the
+unary bound, finite-machine candidate filtering/selection, and final
+whole-compiler composition remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -353,12 +357,14 @@ The copied statements are grouped by mathematical contribution:
   a direct linear-time padded-stream-to-primality-bit computation, and
   `unaryCandidatePrimeComputableInPolyTime` composes the quadratic pair
   generator with that fused pass to compute the candidate-only bit in at most
-  `64(n+1)^2` steps on unary input, while
+  `64(n+1)^2` steps on unary input;
+  `filter_unaryCandidatePrime_bertrandCandidates` proves that this predicate
+  induces exactly the guarded semantic filter on the enumerated stream, while
   `firstBertrandPrime_eq_selectPrimeAbove` proves that filtering the enumerated
   interval and taking its first survivor agrees with the semantic compiler's
   selected prime. The complete compiler machine and its structural production
-  of unary bounds, lower-bound guard, finite-machine filtering/selection, and
-  final composition remain open;
+  of unary bounds, finite-machine filtering/selection, and final composition
+  remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of
