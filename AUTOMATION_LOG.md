@@ -1328,3 +1328,72 @@
   discards rejected candidates, and emits the first survivor; its semantics
   can now use `filter_unaryCandidatePrime_bertrandCandidates` directly,
   including the explicit `q = 0, 1` conventions.
+
+## 2026-08-17 05:31:45 AEST — generate the native unary candidate stream
+
+- **Starting commit:** `48f79963e763b0f6b9009a3527f235f2feb518db` on
+  `main`. The checkout was clean and synchronized with `origin/main`; a fetch
+  confirmed divergence count `0 0`, so no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of `cor:all-different-csp`,
+  this journal, and the current candidate/primality machine boundary. The
+  thesis checkout remains at `5294a3754f4987514ed9f03e73658df37a684156` with
+  unrelated user modifications to `.gitignore` and `todo.md`; neither was
+  changed. The proof still claims compiler-owned prime selection and a genuine
+  polynomial-time whole compiler, so the corollary remains **Partial**.
+- **Read-only reusable-API review:** sibling `lean-np-hardness` was clean and
+  synchronized with its live remote at
+  `ed4478c09fa26c1146b648e0ab4d32c08bc1d41b`. It now proves canonical
+  list-output correctness for `compositionMachine`, but generic polynomial
+  runtime composition remains pending. The pinned dependency was left
+  unchanged, and the sibling repository was not edited.
+- **Chosen increment:** added `RawUnaryNatList.finEncoding`, a checked
+  length-prefixed unary-delimited list representation, and the concrete
+  `unaryBertrandCandidateComputer`. The producer copies unary `q` into an
+  iteration counter and current value, emits the count field, then emits the
+  exact ordered semantic list `[q+1, ..., 2q]` in the stack orientation needed
+  by a subsequent field driver. This avoids converting the existing binary
+  `RawNatList` fields back to unary before invoking
+  `unaryCandidatePrimeComputer`; the binary enumerator remains available for
+  final objective serialization.
+- **Headline declarations:** `unaryBertrandCandidate_outputsInTime` proves
+  exact output in at most `6 * (q + 1)^2` steps, including `q = 0` and `q = 1`;
+  `unaryBertrandCandidatesComputableInPolyTime` packages the machine as a
+  genuine `TM2ComputableInPolyTime` witness; and
+  `unaryBertrandCandidateStream_length_le` bounds the complete encoded stream
+  by `2 * q^2 + 2 * q + 1` cells. `RawUnaryNatList.encode_length` records its
+  exact size as `xs.sum + 2 * xs.length + 1`.
+- **Failed proof shapes supplied useful corrections:** the unary parser's
+  accumulator proof needed both associativity and commutativity to normalize
+  successor addition. Exact `EvalsToInTime.trans` witnesses expose their time
+  sums in the library's opposite addition order, so the final composition
+  required explicit addition normalization. The stream-size proof initially
+  passed the `List.sum_le_card_nsmul` result directly to `nlinarith`; first
+  normalizing natural scalar multiplication to `2 * q^2` supplied the needed
+  arithmetic fact. No placeholder or project axiom was retained.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the unary
+  encoding, concrete finite machine, exact simulations, runtime and size
+  theorems, polynomial witness, and axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the checked native candidate-stream stage while
+  retaining `cor:all-different-csp` as **Partial**; this journal records the
+  run.
+- **Verification succeeded:** targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3121 jobs);
+  `git diff --check`; and a project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  `RawUnaryNatList.decode_encode`, `RawUnaryNatList.encode_length`,
+  `unaryBertrandCandidate_outputsInTime`,
+  `unaryBertrandCandidatesComputableInPolyTime`, and
+  `unaryBertrandCandidateStream_length_le` report only `propext`,
+  `Classical.choice`, and `Quot.sound`; the decoder omits the latter two.
+- **Ending state before commit:** one coherent verified source, status, and log
+  increment, with no unrelated user changes present in this repository.
+- **Best next step:** implement a finite-machine driver over
+  `RawUnaryNatList` that restores one unary candidate field, invokes
+  `unaryCandidatePrimeComputer`, stops at the first accepted field, and emits
+  it. Then compose that driver with `unaryBertrandCandidateComputer` and use
+  `filter_unaryCandidatePrime_bertrandCandidates` plus
+  `firstBertrandPrime_eq_selectPrimeAbove` for exact selected-prime semantics.

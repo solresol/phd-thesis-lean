@@ -29,8 +29,11 @@ this module's standard nested-list encoding to an explicit raw-field stream,
 plus linear-time successor and less-than-or-equal passes on canonical binary
 naturals, a linear-time ripple-carry addition pass on aligned pairs, and a
 quadratic-time unary-bound enumerator for the complete Bertrand interval. Its
-delimiter-separated unary-pair encoding and divisibility machine also supply a
-linear-time padded trial-division primitive. Its executable trial specification
+checked unary-list encoding and companion enumerator emit the same interval in
+at most `6(q+1)^2` steps and bound the resulting stream by `2q^2+2q+1` cells,
+so the primality machine consumes candidates without a binary-to-unary adapter.
+Its delimiter-separated unary-pair encoding and divisibility machine also
+supply a linear-time padded trial-division primitive. Its executable trial specification
 enumerates exactly `[2, n)`, filters the Bertrand candidates, and returns the
 same prime as the semantic compiler. A separate checked finite machine emits
 the complete stack-oriented padded pair list in quadratic time. The checked

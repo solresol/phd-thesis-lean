@@ -28,7 +28,10 @@ naturals in linear time. A sixth finite machine adds the same aligned binary
 naturals by ripple carry in linear time. A seventh finite machine consumes a
 unary scan bound and emits every natural in the Bertrand interval
 `[q + 1, 2q]` in quadratic time; the unary interface records the eventual full
-CSP invariant that the explicit input length is at least `q`. An eighth finite
+CSP invariant that the explicit input length is at least `q`. A companion
+producer emits the same candidates in a checked unary-delimited stream in at
+most `6(q+1)^2` steps, with stream length at most `2q^2+2q+1`, so the later
+candidate-primality pass needs no binary-to-unary expansion. An eighth finite
 machine decides divisibility on delimiter-separated unary-padded pairs in
 linear time, including zero dividend and divisor cases. A ninth finite machine
 emits the exact stack-oriented list of every padded pair `(n,d)` with
@@ -198,6 +201,108 @@ def finEncoding : FinEncoding (List ℕ) where
   ΓFin := inferInstance
 
 end RawNatList
+
+namespace RawUnaryNatList
+
+/-- One unary natural followed by a false field delimiter. -/
+def segment (n : ℕ) : List Bool :=
+  List.replicate n true ++ [false]
+
+/-- The unary length field followed by the unary value fields. -/
+def payloads (xs : List ℕ) : List ℕ :=
+  xs.length :: xs
+
+/-- A stack-oriented unary natural-list representation. Fields occur in
+reverse order so a producer can prepend each successive field to its output
+stack. -/
+def encode (xs : List ℕ) : List Bool :=
+  (payloads xs).reverse.flatMap segment
+
+/-- Parse unary fields, accumulating the current field length and consing each
+completed field so that the outer reversal is restored. -/
+def parseAux : List Bool → ℕ → List ℕ → Option (List ℕ)
+  | [], 0, fields => some fields
+  | [], _ + 1, _ => none
+  | false :: input, current, fields =>
+      parseAux input 0 (current :: fields)
+  | true :: input, current, fields =>
+      parseAux input (current + 1) fields
+
+def parse (input : List Bool) : Option (List ℕ) :=
+  parseAux input 0 []
+
+private theorem parseAux_replicate_true
+    (n : ℕ) (input : List Bool) (current : ℕ) (fields : List ℕ) :
+    parseAux (List.replicate n true ++ input) current fields =
+      parseAux input (current + n) fields := by
+  induction n generalizing current with
+  | zero => simp
+  | succ n ih =>
+      rw [List.replicate_succ]
+      simp only [List.cons_append, parseAux]
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+        ih (current := current + 1)
+
+private theorem parseAux_segments
+    (segments : List ℕ) (fields : List ℕ) :
+    parseAux (segments.flatMap segment) 0 fields =
+      some (segments.reverse ++ fields) := by
+  induction segments generalizing fields with
+  | nil => simp [parseAux]
+  | cons n segments ih =>
+      rw [List.flatMap_cons]
+      simp only [segment, List.append_assoc]
+      rw [parseAux_replicate_true]
+      simp only [List.singleton_append, parseAux, Nat.zero_add]
+      rw [ih]
+      simp [List.reverse_cons, List.append_assoc]
+
+@[simp]
+theorem parse_encode (xs : List ℕ) :
+    parse (encode xs) = some (payloads xs) := by
+  rw [parse, encode, parseAux_segments]
+  simp
+
+/-- Decode the unary field stream, checking its explicit field count. -/
+def decode (input : List Bool) : Option (List ℕ) := do
+  let fields ← parse input
+  match fields with
+  | [] => none
+  | count :: values =>
+      if count = values.length then some values else none
+
+@[simp]
+theorem decode_encode (xs : List ℕ) : decode (encode xs) = some xs := by
+  simp [decode, payloads]
+
+/-- Checked finite encoding for a stack-oriented unary natural list. -/
+def finEncoding : FinEncoding (List ℕ) where
+  Γ := Bool
+  encode := encode
+  decode := decode
+  decode_encode := decode_encode
+  ΓFin := Bool.fintype
+
+@[simp]
+theorem segment_length (n : ℕ) : (segment n).length = n + 1 := by
+  simp [segment]
+
+private theorem segments_length (ns : List ℕ) :
+    (ns.flatMap segment).length = ns.sum + ns.length := by
+  induction ns with
+  | nil => simp
+  | cons n ns ih =>
+      simp [segment, ih]
+      omega
+
+@[simp]
+theorem encode_length (xs : List ℕ) :
+    (encode xs).length = xs.sum + 2 * xs.length + 1 := by
+  rw [encode, segments_length]
+  simp [payloads]
+  omega
+
+end RawUnaryNatList
 
 namespace RawNatLists
 
@@ -4311,6 +4416,702 @@ noncomputable def bertrandCandidatesComputableInPolyTime :
       Polynomial.eval_mul, Polynomial.eval_pow, Polynomial.eval_add,
       Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
         bertrandCandidate_outputsInTime q
+
+/-! ## Unary Bertrand-candidate stream
+
+The candidate-primality machine below consumes unary naturals.  Converting the
+binary fields emitted by `bertrandCandidateComputer` back to unary would add an
+unnecessary adapter.  This companion producer keeps the original binary
+enumerator intact for serialization while emitting the same semantic list in
+`RawUnaryNatList.finEncoding` for the internal prime scan.
+-/
+
+/-- Unary input, a decreasing iteration counter, the current unary value,
+scratch storage used to preserve that value while emitting it, and output. -/
+inductive UnaryBertrandStack
+  | input
+  | remaining
+  | current
+  | work
+  | output
+  deriving DecidableEq, Fintype
+
+/-- Copy the input twice, emit the count field, emit each larger candidate,
+and erase all non-output stacks. -/
+inductive UnaryBertrandLabel
+  | count
+  | emitStart
+  | emitCopy
+  | emitRestore
+  | candidates
+  | cleanup
+  deriving DecidableEq, Fintype
+
+abbrev UnaryBertrandState := Option Bool
+
+private def unaryBertrandObserved
+    (_state : UnaryBertrandState) (bit : Option Bool) :
+    UnaryBertrandState :=
+  bit
+
+private def unaryBertrandMarkerPresent : UnaryBertrandState → Bool
+  | some _ => true
+  | none => false
+
+private def unaryBertrandHeldBit : UnaryBertrandState → Bool
+  | some bit => bit
+  | none => false
+
+private def UnaryBertrandAlphabet (_ : UnaryBertrandStack) : Type := Bool
+
+/-- Generate the unary length field `q`, followed by the candidates
+`q+1, ..., 2q`, in stack-oriented reverse-field order. -/
+def unaryBertrandCandidateProgram :
+    UnaryBertrandLabel →
+      TM2.Stmt UnaryBertrandAlphabet UnaryBertrandLabel UnaryBertrandState
+  | .count =>
+      .pop .input unaryBertrandObserved <|
+        .branch unaryBertrandMarkerPresent
+          (.push .remaining unaryBertrandHeldBit <|
+            .push .current unaryBertrandHeldBit <|
+              .goto (fun _ => .count))
+          (.goto (fun _ => .emitStart))
+  | .emitStart =>
+      .push .output (fun _ => false) <|
+        .goto (fun _ => .emitCopy)
+  | .emitCopy =>
+      .pop .current unaryBertrandObserved <|
+        .branch unaryBertrandMarkerPresent
+          (.push .work unaryBertrandHeldBit <|
+            .push .output unaryBertrandHeldBit <|
+              .goto (fun _ => .emitCopy))
+          (.goto (fun _ => .emitRestore))
+  | .emitRestore =>
+      .pop .work unaryBertrandObserved <|
+        .branch unaryBertrandMarkerPresent
+          (.push .current unaryBertrandHeldBit <|
+            .goto (fun _ => .emitRestore))
+          (.goto (fun _ => .candidates))
+  | .candidates =>
+      .pop .remaining unaryBertrandObserved <|
+        .branch unaryBertrandMarkerPresent
+          (.push .current unaryBertrandHeldBit <|
+            .goto (fun _ => .emitStart))
+          (.goto (fun _ => .cleanup))
+  | .cleanup =>
+      .pop .current unaryBertrandObserved <|
+        .branch unaryBertrandMarkerPresent
+          (.goto (fun _ => .cleanup))
+          (.load (fun _ => none) .halt)
+
+/-- Concrete producer for the unary-delimited Bertrand candidate stream. -/
+def unaryBertrandCandidateComputer : FinTM2 where
+  K := UnaryBertrandStack
+  k₀ := .input
+  k₁ := .output
+  Γ := UnaryBertrandAlphabet
+  Λ := UnaryBertrandLabel
+  main := .count
+  σ := UnaryBertrandState
+  initialState := none
+  Γk₀Fin := Bool.fintype
+  m := unaryBertrandCandidateProgram
+
+private def unaryBertrandStackContents
+    (input remaining current work output : List Bool) :
+    (index : UnaryBertrandStack) → List (UnaryBertrandAlphabet index)
+  | .input => input
+  | .remaining => remaining
+  | .current => current
+  | .work => work
+  | .output => output
+
+private def unaryBertrandCfg
+    (label : Option UnaryBertrandLabel) (state : UnaryBertrandState)
+    (input remaining current work output : List Bool) :
+    unaryBertrandCandidateComputer.Cfg where
+  l := label
+  var := state
+  stk := unaryBertrandStackContents input remaining current work output
+
+private theorem unaryBertrand_step_count_cons
+    (bit : Bool) (input remaining current work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .count) state (bit :: input) remaining
+          current work output) =
+      some (unaryBertrandCfg (some .count) (some bit) input
+        (bit :: remaining) (bit :: current) work output) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent, unaryBertrandHeldBit, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem unaryBertrand_step_count_nil
+    (remaining current work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .count) state [] remaining current work
+          output) =
+      some (unaryBertrandCfg (some .emitStart) none [] remaining current work
+        output) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent]
+
+private theorem unaryBertrand_step_emitStart
+    (input remaining current work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .emitStart) state input remaining current work
+          output) =
+      some (unaryBertrandCfg (some .emitCopy) state input remaining current
+        work (false :: output)) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet]
+  funext index
+  cases index <;> rfl
+
+private theorem unaryBertrand_step_emitCopy_cons
+    (bit : Bool) (input remaining current work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .emitCopy) state input remaining
+          (bit :: current) work output) =
+      some (unaryBertrandCfg (some .emitCopy) (some bit) input remaining
+        current (bit :: work) (bit :: output)) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent, unaryBertrandHeldBit, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem unaryBertrand_step_emitCopy_nil
+    (input remaining work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .emitCopy) state input remaining [] work
+          output) =
+      some (unaryBertrandCfg (some .emitRestore) none input remaining [] work
+        output) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent]
+
+private theorem unaryBertrand_step_emitRestore_cons
+    (bit : Bool) (input remaining current work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .emitRestore) state input remaining current
+          (bit :: work) output) =
+      some (unaryBertrandCfg (some .emitRestore) (some bit) input remaining
+        (bit :: current) work output) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent, unaryBertrandHeldBit, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem unaryBertrand_step_emitRestore_nil
+    (input remaining current output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .emitRestore) state input remaining current []
+          output) =
+      some (unaryBertrandCfg (some .candidates) none input remaining current
+        [] output) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent]
+
+private theorem unaryBertrand_step_candidates_cons
+    (bit : Bool) (input remaining current work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .candidates) state input (bit :: remaining)
+          current work output) =
+      some (unaryBertrandCfg (some .emitStart) (some bit) input remaining
+        (bit :: current) work output) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent, unaryBertrandHeldBit, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem unaryBertrand_step_candidates_nil
+    (input current work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .candidates) state input [] current work
+          output) =
+      some (unaryBertrandCfg (some .cleanup) none input [] current work
+        output) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent]
+
+private theorem unaryBertrand_step_cleanup_cons
+    (bit : Bool) (input remaining current work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .cleanup) state input remaining
+          (bit :: current) work output) =
+      some (unaryBertrandCfg (some .cleanup) (some bit) input remaining
+        current work output) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem unaryBertrand_step_cleanup_nil
+    (input remaining work output : List Bool)
+    (state : UnaryBertrandState) :
+    unaryBertrandCandidateComputer.step
+        (unaryBertrandCfg (some .cleanup) state input remaining [] work
+          output) =
+      some (unaryBertrandCfg none none input remaining [] work output) := by
+  simp [unaryBertrandCandidateComputer, FinTM2.step, unaryBertrandCfg,
+    unaryBertrandCandidateProgram, unaryBertrandStackContents,
+    UnaryBertrandAlphabet, unaryBertrandObserved,
+    unaryBertrandMarkerPresent]
+
+private def unaryBertrandEvalsToInTimeOne
+    {start finish : unaryBertrandCandidateComputer.Cfg}
+    (hstep : unaryBertrandCandidateComputer.step start = some finish) :
+    EvalsToInTime unaryBertrandCandidateComputer.step start (some finish) 1
+    where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def unaryBertrand_count_evals
+    (input remaining current work output : List Bool)
+    (state : UnaryBertrandState) :
+    EvalsToInTime unaryBertrandCandidateComputer.step
+      (unaryBertrandCfg (some .count) state input remaining current work output)
+      (some (unaryBertrandCfg (some .emitStart) none []
+        (input.reverse ++ remaining) (input.reverse ++ current) work output))
+      (input.length + 1) := by
+  induction input generalizing remaining current state with
+  | nil =>
+      simpa using unaryBertrandEvalsToInTimeOne
+        (unaryBertrand_step_count_nil remaining current work output state)
+  | cons bit input ih =>
+      let middle := unaryBertrandCfg (some .count) (some bit) input
+        (bit :: remaining) (bit :: current) work output
+      have hone : EvalsToInTime unaryBertrandCandidateComputer.step
+          (unaryBertrandCfg (some .count) state (bit :: input) remaining
+            current work output)
+          (some middle) 1 :=
+        unaryBertrandEvalsToInTimeOne (by
+          simpa [middle] using unaryBertrand_step_count_cons bit input
+            remaining current work output state)
+      have hrest := ih (bit :: remaining) (bit :: current) (some bit)
+      have hall := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+        1 (input.length + 1)
+        (unaryBertrandCfg (some .count) state (bit :: input) remaining
+          current work output)
+        middle
+        (some (unaryBertrandCfg (some .emitStart) none []
+          ((bit :: input).reverse ++ remaining)
+          ((bit :: input).reverse ++ current) work output))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def unaryBertrand_emitCopy_evals
+    (bits input remaining work output : List Bool)
+    (state : UnaryBertrandState) :
+    EvalsToInTime unaryBertrandCandidateComputer.step
+      (unaryBertrandCfg (some .emitCopy) state input remaining bits work output)
+      (some (unaryBertrandCfg (some .emitRestore) none input remaining []
+        (bits.reverse ++ work) (bits.reverse ++ output)))
+      (bits.length + 1) := by
+  induction bits generalizing work output state with
+  | nil =>
+      simpa using unaryBertrandEvalsToInTimeOne
+        (unaryBertrand_step_emitCopy_nil input remaining work output state)
+  | cons bit bits ih =>
+      let middle := unaryBertrandCfg (some .emitCopy) (some bit) input
+        remaining bits (bit :: work) (bit :: output)
+      have hone : EvalsToInTime unaryBertrandCandidateComputer.step
+          (unaryBertrandCfg (some .emitCopy) state input remaining
+            (bit :: bits) work output)
+          (some middle) 1 :=
+        unaryBertrandEvalsToInTimeOne (by
+          simpa [middle] using unaryBertrand_step_emitCopy_cons bit input
+            remaining bits work output state)
+      have hrest := ih (bit :: work) (bit :: output) (some bit)
+      have hall := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+        1 (bits.length + 1)
+        (unaryBertrandCfg (some .emitCopy) state input remaining
+          (bit :: bits) work output)
+        middle
+        (some (unaryBertrandCfg (some .emitRestore) none input remaining []
+          ((bit :: bits).reverse ++ work)
+          ((bit :: bits).reverse ++ output)))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def unaryBertrand_emitRestore_evals
+    (work input remaining current output : List Bool)
+    (state : UnaryBertrandState) :
+    EvalsToInTime unaryBertrandCandidateComputer.step
+      (unaryBertrandCfg (some .emitRestore) state input remaining current work
+        output)
+      (some (unaryBertrandCfg (some .candidates) none input remaining
+        (work.reverse ++ current) [] output))
+      (work.length + 1) := by
+  induction work generalizing current state with
+  | nil =>
+      simpa using unaryBertrandEvalsToInTimeOne
+        (unaryBertrand_step_emitRestore_nil input remaining current output state)
+  | cons bit work ih =>
+      let middle := unaryBertrandCfg (some .emitRestore) (some bit) input
+        remaining (bit :: current) work output
+      have hone : EvalsToInTime unaryBertrandCandidateComputer.step
+          (unaryBertrandCfg (some .emitRestore) state input remaining current
+            (bit :: work) output)
+          (some middle) 1 :=
+        unaryBertrandEvalsToInTimeOne (by
+          simpa [middle] using unaryBertrand_step_emitRestore_cons bit input
+            remaining current work output state)
+      have hrest := ih (bit :: current) (some bit)
+      have hall := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+        1 (work.length + 1)
+        (unaryBertrandCfg (some .emitRestore) state input remaining current
+          (bit :: work) output)
+        middle
+        (some (unaryBertrandCfg (some .candidates) none input remaining
+          ((bit :: work).reverse ++ current) [] output))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def unaryBertrand_emit_evals
+    (bits remaining output : List Bool) (state : UnaryBertrandState) :
+    EvalsToInTime unaryBertrandCandidateComputer.step
+      (unaryBertrandCfg (some .emitStart) state [] remaining bits [] output)
+      (some (unaryBertrandCfg (some .candidates) none [] remaining bits []
+        (bits.reverse ++ false :: output)))
+      (2 * bits.length + 3) := by
+  let afterStart := unaryBertrandCfg (some .emitCopy) state [] remaining bits []
+    (false :: output)
+  have hstart : EvalsToInTime unaryBertrandCandidateComputer.step
+      (unaryBertrandCfg (some .emitStart) state [] remaining bits [] output)
+      (some afterStart) 1 :=
+    unaryBertrandEvalsToInTimeOne (by
+      simpa [afterStart] using unaryBertrand_step_emitStart [] remaining bits
+        [] output state)
+  have hcopy := unaryBertrand_emitCopy_evals bits [] remaining []
+    (false :: output) state
+  let afterCopy := unaryBertrandCfg (some .emitRestore) none [] remaining []
+    bits.reverse (bits.reverse ++ false :: output)
+  have hfirst := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+    1 (bits.length + 1)
+    (unaryBertrandCfg (some .emitStart) state [] remaining bits [] output)
+    afterStart
+    (some afterCopy)
+    hstart
+    (by simpa [afterStart, afterCopy] using hcopy)
+  have hrestore := unaryBertrand_emitRestore_evals bits.reverse [] remaining []
+    (bits.reverse ++ false :: output) none
+  have hall := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+    (1 + (bits.length + 1)) (bits.reverse.length + 1)
+    (unaryBertrandCfg (some .emitStart) state [] remaining bits [] output)
+    afterCopy
+    (some (unaryBertrandCfg (some .candidates) none [] remaining bits []
+      (bits.reverse ++ false :: output)))
+    (by simpa [Nat.add_comm] using hfirst)
+    (by simpa [afterCopy] using hrestore)
+  simpa [two_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def unaryBertrand_cleanup_evals
+    (current input remaining work output : List Bool)
+    (state : UnaryBertrandState) :
+    EvalsToInTime unaryBertrandCandidateComputer.step
+      (unaryBertrandCfg (some .cleanup) state input remaining current work
+        output)
+      (some (unaryBertrandCfg none none input remaining [] work output))
+      (current.length + 1) := by
+  induction current generalizing state with
+  | nil =>
+      simpa using unaryBertrandEvalsToInTimeOne
+        (unaryBertrand_step_cleanup_nil input remaining work output state)
+  | cons bit current ih =>
+      let middle := unaryBertrandCfg (some .cleanup) (some bit) input remaining
+        current work output
+      have hone : EvalsToInTime unaryBertrandCandidateComputer.step
+          (unaryBertrandCfg (some .cleanup) state input remaining
+            (bit :: current) work output)
+          (some middle) 1 :=
+        unaryBertrandEvalsToInTimeOne (by
+          simpa [middle] using unaryBertrand_step_cleanup_cons bit input
+            remaining current work output state)
+      have hrest := ih (some bit)
+      have hall := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+        1 (current.length + 1)
+        (unaryBertrandCfg (some .cleanup) state input remaining
+          (bit :: current) work output)
+        middle
+        (some (unaryBertrandCfg none none input remaining [] work output))
+        hone
+        (by simpa [middle] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem unaryEncodeNat_eq_replicate_true (n : ℕ) :
+    unaryEncodeNat n = List.replicate n true := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      rw [unaryEncodeNat, List.replicate_succ, ih]
+
+private theorem unaryEncodeNat_reverse_eq (n : ℕ) :
+    (unaryEncodeNat n).reverse = unaryEncodeNat n := by
+  rw [unaryEncodeNat_eq_replicate_true, List.reverse_replicate]
+
+private theorem unaryBertrand_segment_append (n : ℕ)
+    (output : List Bool) :
+    (unaryEncodeNat n).reverse ++ false :: output =
+      RawUnaryNatList.segment n ++ output := by
+  simp [RawUnaryNatList.segment, unaryEncodeNat_eq_replicate_true,
+    List.append_assoc]
+
+private def encodedUnaryIntervalSuffix (count current : ℕ) : List Bool :=
+  (intervalFrom count current).reverse.flatMap RawUnaryNatList.segment
+
+private theorem encodedUnaryIntervalSuffix_succ (count current : ℕ) :
+    encodedUnaryIntervalSuffix (count + 1) current =
+      encodedUnaryIntervalSuffix count (current + 1) ++
+        RawUnaryNatList.segment (current + 1) := by
+  simp [encodedUnaryIntervalSuffix, intervalFrom, List.reverse_cons,
+    List.flatMap_append]
+
+private def unaryBertrandLoopTime : ℕ → ℕ → ℕ
+  | 0, current => current + 2
+  | count + 1, current =>
+      1 + (2 * (current + 1) + 3) +
+        unaryBertrandLoopTime count (current + 1)
+
+private def unaryBertrand_candidates_evals
+    (count current : ℕ) (output : List Bool)
+    (state : UnaryBertrandState) :
+    EvalsToInTime unaryBertrandCandidateComputer.step
+      (unaryBertrandCfg (some .candidates) state [] (unaryEncodeNat count)
+        (unaryEncodeNat current) [] output)
+      (some (unaryBertrandCfg none none [] [] [] []
+        (encodedUnaryIntervalSuffix count current ++ output)))
+      (unaryBertrandLoopTime count current) := by
+  induction count generalizing current output state with
+  | zero =>
+      let afterCandidates := unaryBertrandCfg (some .cleanup) none [] []
+        (unaryEncodeNat current) [] output
+      have hcandidates : EvalsToInTime unaryBertrandCandidateComputer.step
+          (unaryBertrandCfg (some .candidates) state [] []
+            (unaryEncodeNat current) [] output)
+          (some afterCandidates) 1 :=
+        unaryBertrandEvalsToInTimeOne (by
+          simpa [afterCandidates] using unaryBertrand_step_candidates_nil []
+            (unaryEncodeNat current) [] output state)
+      have hcleanup := unaryBertrand_cleanup_evals
+        (unaryEncodeNat current) [] [] [] output none
+      have hall := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+        1 ((unaryEncodeNat current).length + 1)
+        (unaryBertrandCfg (some .candidates) state [] []
+          (unaryEncodeNat current) [] output)
+        afterCandidates
+        (some (unaryBertrandCfg none none [] [] [] [] output))
+        hcandidates
+        (by simpa [afterCandidates] using hcleanup)
+      simpa [unaryBertrandLoopTime, encodedUnaryIntervalSuffix,
+        unaryEncodeNat_length, Nat.add_assoc, Nat.add_comm,
+        Nat.add_left_comm] using hall
+  | succ count ih =>
+      let afterCandidates := unaryBertrandCfg (some .emitStart) (some true) []
+        (unaryEncodeNat count) (unaryEncodeNat (current + 1)) [] output
+      have hcandidates : EvalsToInTime unaryBertrandCandidateComputer.step
+          (unaryBertrandCfg (some .candidates) state []
+            (unaryEncodeNat (count + 1)) (unaryEncodeNat current) [] output)
+          (some afterCandidates) 1 :=
+        unaryBertrandEvalsToInTimeOne (by
+          simpa [afterCandidates, unaryEncodeNat] using
+            unaryBertrand_step_candidates_cons true []
+              (unaryEncodeNat count) (unaryEncodeNat current) [] output state)
+      have hemit := unaryBertrand_emit_evals
+        (unaryEncodeNat (current + 1)) (unaryEncodeNat count) output
+        (some true)
+      let afterEmit := unaryBertrandCfg (some .candidates) none []
+        (unaryEncodeNat count) (unaryEncodeNat (current + 1)) []
+        (RawUnaryNatList.segment (current + 1) ++ output)
+      have hfirst := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+        1 (2 * (unaryEncodeNat (current + 1)).length + 3)
+        (unaryBertrandCfg (some .candidates) state []
+          (unaryEncodeNat (count + 1)) (unaryEncodeNat current) [] output)
+        afterCandidates
+        (some afterEmit)
+        hcandidates
+        (by
+          simpa [afterCandidates, afterEmit, unaryBertrand_segment_append]
+            using hemit)
+      have hrest := ih (current + 1)
+        (RawUnaryNatList.segment (current + 1) ++ output) none
+      have hall := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+        (1 + (2 * (unaryEncodeNat (current + 1)).length + 3))
+        (unaryBertrandLoopTime count (current + 1))
+        (unaryBertrandCfg (some .candidates) state []
+          (unaryEncodeNat (count + 1)) (unaryEncodeNat current) [] output)
+        afterEmit
+        (some (unaryBertrandCfg none none [] [] [] []
+          (encodedUnaryIntervalSuffix (count + 1) current ++ output)))
+        (by simpa [Nat.add_comm] using hfirst)
+        (by
+          rw [encodedUnaryIntervalSuffix_succ]
+          simpa [afterEmit, List.append_assoc] using hrest)
+      simpa [unaryBertrandLoopTime, unaryEncodeNat_length, Nat.add_assoc,
+        Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem unaryBertrandLoopTime_eq (count current : ℕ) :
+    unaryBertrandLoopTime count current =
+      2 * count * current + count ^ 2 + 6 * count + current + 2 := by
+  induction count generalizing current with
+  | zero => simp [unaryBertrandLoopTime]
+  | succ count ih =>
+      rw [unaryBertrandLoopTime, ih (current + 1)]
+      ring
+
+private def unaryBertrandTotalTime (q : ℕ) : ℕ :=
+  (q + 1) + (2 * q + 3) + unaryBertrandLoopTime q q
+
+private theorem unaryBertrandTotalTime_le (q : ℕ) :
+    unaryBertrandTotalTime q ≤ 6 * (q + 1) ^ 2 := by
+  rw [unaryBertrandTotalTime, unaryBertrandLoopTime_eq]
+  nlinarith
+
+private theorem rawUnaryNatList_encode_bertrandCandidates (q : ℕ) :
+    RawUnaryNatList.encode (bertrandCandidates q) =
+      encodedUnaryIntervalSuffix q q ++ RawUnaryNatList.segment q := by
+  simp [RawUnaryNatList.encode, RawUnaryNatList.payloads,
+    bertrandCandidates, encodedUnaryIntervalSuffix, List.reverse_cons,
+    List.flatMap_append]
+
+private theorem unaryBertrand_initList_eq_cfg (input : List Bool) :
+    initList unaryBertrandCandidateComputer input =
+      unaryBertrandCfg (some .count) none input [] [] [] [] := by
+  unfold initList unaryBertrandCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem unaryBertrand_haltList_eq_cfg (output : List Bool) :
+    haltList unaryBertrandCandidateComputer output =
+      unaryBertrandCfg none none [] [] [] [] output := by
+  unfold haltList unaryBertrandCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- The unary-stream producer emits exactly `[q+1, ..., 2q]` in at most
+`6(q+1)^2` steps, including the empty `q = 0` stream. -/
+def unaryBertrandCandidate_outputsInTime (q : ℕ) :
+    TM2OutputsInTime unaryBertrandCandidateComputer (unaryEncodeNat q)
+      (some (RawUnaryNatList.encode (bertrandCandidates q)))
+      (6 * (q + 1) ^ 2) := by
+  have hcount := unaryBertrand_count_evals (unaryEncodeNat q) [] [] [] [] none
+  let afterCount := unaryBertrandCfg (some .emitStart) none []
+    (unaryEncodeNat q) (unaryEncodeNat q) [] []
+  have hcount' : EvalsToInTime unaryBertrandCandidateComputer.step
+      (unaryBertrandCfg (some .count) none (unaryEncodeNat q) [] [] [] [])
+      (some afterCount) (q + 1) := by
+    simpa [afterCount, unaryEncodeNat_length, unaryEncodeNat_reverse_eq] using
+      hcount
+  have hemit := unaryBertrand_emit_evals (unaryEncodeNat q)
+    (unaryEncodeNat q) [] none
+  let afterEmit := unaryBertrandCfg (some .candidates) none []
+    (unaryEncodeNat q) (unaryEncodeNat q) []
+    (RawUnaryNatList.segment q)
+  have hemit' : EvalsToInTime unaryBertrandCandidateComputer.step
+      afterCount (some afterEmit) (2 * q + 3) := by
+    simpa [afterCount, afterEmit, unaryEncodeNat_length,
+      unaryBertrand_segment_append] using hemit
+  have hfirst := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+    (q + 1) (2 * q + 3)
+    (unaryBertrandCfg (some .count) none (unaryEncodeNat q) [] [] [] [])
+    afterCount
+    (some afterEmit)
+    hcount' hemit'
+  have hcandidates := unaryBertrand_candidates_evals q q
+    (RawUnaryNatList.segment q) none
+  have hall := EvalsToInTime.trans unaryBertrandCandidateComputer.step
+    ((q + 1) + (2 * q + 3)) (unaryBertrandLoopTime q q)
+    (unaryBertrandCfg (some .count) none (unaryEncodeNat q) [] [] [] [])
+    afterEmit
+    (some (unaryBertrandCfg none none [] [] [] []
+      (RawUnaryNatList.encode (bertrandCandidates q))))
+    (by
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hfirst)
+    (by
+      rw [rawUnaryNatList_encode_bertrandCandidates]
+      simpa [afterEmit] using hcandidates)
+  have hmono : EvalsToInTime unaryBertrandCandidateComputer.step
+      (unaryBertrandCfg (some .count) none (unaryEncodeNat q) [] [] [] [])
+      (some (unaryBertrandCfg none none [] [] [] []
+        (RawUnaryNatList.encode (bertrandCandidates q))))
+      (6 * (q + 1) ^ 2) :=
+    evalsToInTimeMono
+      (by
+        simpa [unaryBertrandTotalTime, Nat.add_assoc, Nat.add_comm,
+          Nat.add_left_comm] using hall)
+      (unaryBertrandTotalTime_le q)
+  rw [TM2OutputsInTime, unaryBertrand_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [unaryBertrand_haltList_eq_cfg]
+  exact hmono
+
+/-- Genuine quadratic-time generation of the internal unary candidate stream
+from the unary full-input bound. -/
+noncomputable def unaryBertrandCandidatesComputableInPolyTime :
+    @TM2ComputableInPolyTime ℕ (List ℕ) unaryFinEncodingNat
+      RawUnaryNatList.finEncoding bertrandCandidates where
+  tm := unaryBertrandCandidateComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := 6 * (Polynomial.X + 1) ^ 2
+  outputsFun q := by
+    simpa [unaryFinEncodingNat, RawUnaryNatList.finEncoding, Equiv.refl,
+      Polynomial.eval_mul, Polynomial.eval_pow, Polynomial.eval_add,
+      Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
+        unaryBertrandCandidate_outputsInTime q
+
+/-- The complete unary candidate stream remains quadratic in the unary scan
+bound. -/
+theorem unaryBertrandCandidateStream_length_le (q : ℕ) :
+    (RawUnaryNatList.encode (bertrandCandidates q)).length ≤
+      2 * q ^ 2 + 2 * q + 1 := by
+  have hsum := List.sum_le_card_nsmul (bertrandCandidates q) (2 * q) (by
+    intro value hvalue
+    exact (mem_bertrandCandidates_iff q value).mp hvalue |>.2)
+  have hsum' : (bertrandCandidates q).sum ≤ 2 * q ^ 2 := by
+    simpa [bertrandCandidates_length, Nat.mul_assoc, Nat.mul_comm,
+      Nat.mul_left_comm, pow_two] using hsum
+  rw [RawUnaryNatList.encode_length, bertrandCandidates_length]
+  nlinarith [hsum']
 
 /-! ## Unary-padded divisibility
 
@@ -9015,6 +9816,11 @@ noncomputable def unaryCandidatePrimeComputableInPolyTime :
 #print axioms mem_bertrandCandidates_iff
 #print axioms bertrandCandidate_outputsInTime
 #print axioms bertrandCandidatesComputableInPolyTime
+#print axioms RawUnaryNatList.decode_encode
+#print axioms RawUnaryNatList.encode_length
+#print axioms unaryBertrandCandidate_outputsInTime
+#print axioms unaryBertrandCandidatesComputableInPolyTime
+#print axioms unaryBertrandCandidateStream_length_le
 #print axioms UnaryNatPair.decode_encode
 #print axioms trialPrime_eq_true_iff
 #print axioms trialDivisionInputSize_le

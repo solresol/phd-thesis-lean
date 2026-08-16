@@ -36,7 +36,10 @@ explicit delimited raw-field stream, and supplies linear-time successor and
 less-than-or-equal machines on canonical binary naturals, plus a linear-time
 ripple-carry adder on their aligned-pair encoding. Its unary-bound Bertrand
 enumerator emits exactly `[q + 1, ..., 2q]` in quadratic time, making explicit
-the eventual full-input invariant `q ≤ input length`; its checked unary-padded
+the eventual full-input invariant `q ≤ input length`. Its companion unary
+producer emits that same candidate list in a checked delimiter encoding in at
+most `6(q+1)^2` steps and bounds the stream by `2q^2+2q+1` cells, matching the
+native input of the candidate-primality pass. Its checked unary-padded
 divisibility machine handles every natural pair in time linear in the padded
 pair length. Its executable trial-division specification tests exactly the
 divisors in `[2, n)`, filters the enumerated Bertrand candidates, and proves

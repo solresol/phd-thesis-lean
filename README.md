@@ -162,7 +162,12 @@ including zero operands and a final carry bit.
 deliberate: the final structural pass must establish it while scanning the
 explicit CSP input, whose length is at least the distinct-symbol count `q`;
 the theorem does not misstate enumeration as polynomial in standalone binary
-`q`. `unaryDvdComputableInPolyTime` similarly decides `d ∣ n` in at most
+`q`. `unaryBertrandCandidatesComputableInPolyTime` emits the same semantic
+candidate list in the checked `RawUnaryNatList` delimiter encoding in at most
+`6(q + 1)^2` steps; `unaryBertrandCandidateStream_length_le` bounds that native
+candidate-primality stream by `2q^2 + 2q + 1` cells. This avoids an unjustified
+binary-to-unary expansion between enumeration and candidate testing.
+`unaryDvdComputableInPolyTime` similarly decides `d ∣ n` in at most
 `6s + 16` steps on a checked delimiter-separated unary-pair encoding of length
 `s = n + d + 1`, including all zero cases. This padded interface is the one
 needed by bounded trial division after the full compiler has established
@@ -345,6 +350,9 @@ The copied statements are grouped by mathematical contribution:
   canonical binary naturals; `binaryAddComputableInPolyTime` proves
   linear-time addition; and `bertrandCandidatesComputableInPolyTime` proves
   quadratic-time enumeration of `[q + 1, 2q]` from a unary bound;
+  `unaryBertrandCandidatesComputableInPolyTime` emits that same interval in a
+  checked unary-delimited stream in at most `6(q+1)^2` steps, and
+  `unaryBertrandCandidateStream_length_le` bounds its length quadratically;
   `unaryDvdComputableInPolyTime` decides divisibility in linear time on
   unary-padded pairs. `trialPrime_eq_true_iff` proves the exact bounded
   trial-division specification,
