@@ -9794,6 +9794,1415 @@ noncomputable def unaryCandidatePrimeComputableInPolyTime :
       Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
         unaryCandidatePrime_outputsInTime n
 
+/-! ## First-prime selection from the unary candidate stream
+
+The outer driver below scans the stack-oriented candidate fields from largest
+to smallest.  Whenever the checked candidate-primality component accepts, the
+driver overwrites its saved value.  The last accepted value is therefore the
+first accepted value in the source-order list.  The trailing length field is
+recognized by one-symbol lookahead and discarded without a primality test.
+-/
+
+/-- The first candidate accepted by the checked candidate-primality predicate. -/
+def firstUnaryCandidatePrime? : List ℕ → Option ℕ
+  | [] => none
+  | candidate :: candidates =>
+      if unaryCandidatePrime candidate then some candidate
+      else firstUnaryCandidatePrime? candidates
+
+/-- The selected candidate, using the compiler's explicit empty-list
+convention `2`. -/
+def selectUnaryCandidatePrime (candidates : List ℕ) : ℕ :=
+  (firstUnaryCandidatePrime? candidates).getD 2
+
+@[simp]
+theorem firstUnaryCandidatePrime?_eq_head?_filter (candidates : List ℕ) :
+    firstUnaryCandidatePrime? candidates =
+      (candidates.filter unaryCandidatePrime).head? := by
+  induction candidates with
+  | nil => rfl
+  | cons candidate candidates ih =>
+      by_cases hprime : unaryCandidatePrime candidate
+      · simp [firstUnaryCandidatePrime?, hprime]
+      · simp [firstUnaryCandidatePrime?, hprime, ih]
+
+theorem firstUnaryCandidatePrime?_mem {candidates : List ℕ} {candidate : ℕ}
+    (hselected : firstUnaryCandidatePrime? candidates = some candidate) :
+    candidate ∈ candidates := by
+  induction candidates with
+  | nil => simp [firstUnaryCandidatePrime?] at hselected
+  | cons head tail ih =>
+      by_cases hprime : unaryCandidatePrime head
+      · simp [firstUnaryCandidatePrime?, hprime] at hselected
+        simpa [hselected]
+      · simp only [firstUnaryCandidatePrime?, hprime, ↓reduceIte] at hselected
+        exact List.mem_cons_of_mem head (ih hselected)
+
+private theorem head?_getD_eq_head {candidates : List ℕ}
+    (hne : candidates ≠ []) (fallback : ℕ) :
+    candidates.head?.getD fallback = candidates.head hne := by
+  cases candidates with
+  | nil => contradiction
+  | cons candidate candidates => rfl
+
+/-- The native unary scan selects the semantic first Bertrand prime. -/
+theorem selectUnaryCandidatePrime_bertrandCandidates (q : ℕ) :
+    selectUnaryCandidatePrime (bertrandCandidates q) = firstBertrandPrime q := by
+  rw [selectUnaryCandidatePrime, firstUnaryCandidatePrime?_eq_head?_filter,
+    filter_unaryCandidatePrime_bertrandCandidates]
+  by_cases hq : q = 0
+  · subst q
+    simp [firstBertrandPrime, bertrandPrimeCandidates,
+      bertrandCandidates, intervalFrom]
+  · rw [firstBertrandPrime, dif_neg hq]
+    exact head?_getD_eq_head (bertrandPrimeCandidates_ne_nil hq) 2
+
+private instance primeSelectorComponentKDecidableEq :
+    DecidableEq unaryCandidatePrimeComputer.K :=
+  unaryCandidatePrimeComputer.kDecidableEq
+
+private instance primeSelectorComponentKFintype :
+    Fintype unaryCandidatePrimeComputer.K :=
+  unaryCandidatePrimeComputer.kFin
+
+private instance primeSelectorComponentLabelFintype :
+    Fintype unaryCandidatePrimeComputer.Λ :=
+  unaryCandidatePrimeComputer.ΛFin
+
+private instance primeSelectorComponentStateFintype :
+    Fintype unaryCandidatePrimeComputer.σ :=
+  unaryCandidatePrimeComputer.σFin
+
+/-- Driver-owned stacks plus all stacks of the checked candidate-primality
+component. -/
+inductive PrimeSelectorOuterStack
+  | input
+  | candidate
+  | output
+  deriving DecidableEq, Fintype
+
+abbrev PrimeSelectorStack :=
+  PrimeSelectorOuterStack ⊕ unaryCandidatePrimeComputer.K
+
+/-- Outer parsing, component execution, result handling, and final cleanup. -/
+inductive PrimeSelectorLabel
+  | scan
+  | lookahead
+  | prime (label : unaryCandidatePrimeComputer.Λ)
+  | result
+  | clearCandidate
+  | clearSelected
+  | moveCandidate
+  | discardCount
+  | finalize
+  deriving Fintype
+
+/-- Finite control remembers the most recent outer pop, the component state,
+and whether an accepted candidate has been saved. -/
+structure PrimeSelectorState where
+  observed : Option Bool
+  prime : unaryCandidatePrimeComputer.σ
+  found : Bool
+  deriving Fintype
+
+private def primeSelectorInitialState : PrimeSelectorState :=
+  ⟨none, unaryCandidatePrimeComputer.initialState, false⟩
+
+private def primeSelectorObserve
+    (state : PrimeSelectorState) (observed : Option Bool) :
+    PrimeSelectorState :=
+  { state with observed := observed }
+
+private def primeSelectorResetObserved
+    (state : PrimeSelectorState) : PrimeSelectorState :=
+  { state with observed := none }
+
+private def primeSelectorSetComponent
+    (state : PrimeSelectorState) (prime : unaryCandidatePrimeComputer.σ) :
+    PrimeSelectorState :=
+  { state with prime := prime }
+
+private def primeSelectorSetFound
+    (state : PrimeSelectorState) : PrimeSelectorState :=
+  { state with observed := none, found := true }
+
+private def primeSelectorObservedPresent : PrimeSelectorState → Bool
+  | ⟨some _, _, _⟩ => true
+  | _ => false
+
+private def primeSelectorObservedBit : PrimeSelectorState → Bool
+  | ⟨some bit, _, _⟩ => bit
+  | _ => false
+
+private def PrimeSelectorAlphabet : PrimeSelectorStack → Type
+  | .inl _ => Bool
+  | .inr index => unaryCandidatePrimeComputer.Γ index
+
+/-- Lift one statement of the checked candidate-primality component.  Its halt
+is redirected to the outer result handler. -/
+private def liftCandidatePrimeStmt :
+    TM2.Stmt unaryCandidatePrimeComputer.Γ
+      unaryCandidatePrimeComputer.Λ unaryCandidatePrimeComputer.σ →
+      TM2.Stmt PrimeSelectorAlphabet PrimeSelectorLabel PrimeSelectorState
+  | .push index write next =>
+      .push (.inr index) (fun state => write state.prime)
+        (liftCandidatePrimeStmt next)
+  | .peek index read next =>
+      .peek (.inr index)
+        (fun state observed =>
+          primeSelectorSetComponent state (read state.prime observed))
+        (liftCandidatePrimeStmt next)
+  | .pop index read next =>
+      .pop (.inr index)
+        (fun state observed =>
+          primeSelectorSetComponent state (read state.prime observed))
+        (liftCandidatePrimeStmt next)
+  | .load update next =>
+      .load (fun state => primeSelectorSetComponent state (update state.prime))
+        (liftCandidatePrimeStmt next)
+  | .branch test yes no =>
+      .branch (fun state => test state.prime)
+        (liftCandidatePrimeStmt yes) (liftCandidatePrimeStmt no)
+  | .goto next => .goto (fun state => .prime (next state.prime))
+  | .halt => .goto (fun _ => .result)
+
+/-- Scan unary fields, invoke candidate primality once per value field, keep
+the first source-order survivor, discard the trailing count, and emit a unary
+natural. -/
+def primeSelectorProgram :
+    PrimeSelectorLabel →
+      TM2.Stmt PrimeSelectorAlphabet PrimeSelectorLabel PrimeSelectorState
+  | .scan =>
+      .pop (.inl .input) primeSelectorObserve <|
+        .branch primeSelectorObservedPresent
+          (.branch primeSelectorObservedBit
+            (.push (.inl .candidate) (fun _ => true) <|
+              .push (.inr unaryCandidatePrimeComputer.k₀) (fun _ => true) <|
+                .load primeSelectorResetObserved <|
+                  .goto fun _ => .scan)
+            (.load primeSelectorResetObserved <|
+              .goto fun _ => .lookahead))
+          (.load primeSelectorResetObserved <|
+            .goto fun _ => .discardCount)
+  | .lookahead =>
+      .pop (.inl .input) primeSelectorObserve <|
+        .branch primeSelectorObservedPresent
+          (.push (.inl .input) primeSelectorObservedBit <|
+            .load primeSelectorResetObserved <|
+              .goto fun _ => .prime unaryCandidatePrimeComputer.main)
+          (.load primeSelectorResetObserved <|
+            .goto fun _ => .discardCount)
+  | .prime label =>
+      liftCandidatePrimeStmt (unaryCandidatePrimeComputer.m label)
+  | .result =>
+      .pop (.inr unaryCandidatePrimeComputer.k₁) primeSelectorObserve <|
+        .branch primeSelectorObservedBit
+          (.load primeSelectorSetFound <| .goto fun _ => .clearSelected)
+          (.load primeSelectorResetObserved <|
+            .goto fun _ => .clearCandidate)
+  | .clearCandidate =>
+      .pop (.inl .candidate) primeSelectorObserve <|
+        .branch primeSelectorObservedPresent
+          (.load primeSelectorResetObserved <|
+            .goto fun _ => .clearCandidate)
+          (.load primeSelectorResetObserved <| .goto fun _ => .scan)
+  | .clearSelected =>
+      .pop (.inl .output) primeSelectorObserve <|
+        .branch primeSelectorObservedPresent
+          (.load primeSelectorResetObserved <|
+            .goto fun _ => .clearSelected)
+          (.load primeSelectorResetObserved <|
+            .goto fun _ => .moveCandidate)
+  | .moveCandidate =>
+      .pop (.inl .candidate) primeSelectorObserve <|
+        .branch primeSelectorObservedPresent
+          (.push (.inl .output) primeSelectorObservedBit <|
+            .load primeSelectorResetObserved <|
+              .goto fun _ => .moveCandidate)
+          (.load primeSelectorResetObserved <| .goto fun _ => .scan)
+  | .discardCount =>
+      .pop (.inl .candidate) primeSelectorObserve <|
+        .branch primeSelectorObservedPresent
+          (.pop (.inr unaryCandidatePrimeComputer.k₀)
+            (fun state _ => primeSelectorResetObserved state) <|
+              .goto fun _ => .discardCount)
+          (.load primeSelectorResetObserved <| .goto fun _ => .finalize)
+  | .finalize =>
+      .branch (fun state => state.found)
+        (.load (fun _ => primeSelectorInitialState) .halt)
+        (.push (.inl .output) (fun _ => true) <|
+          .push (.inl .output) (fun _ => true) <|
+            .load (fun _ => primeSelectorInitialState) .halt)
+
+/-- Concrete finite machine selecting the first accepted candidate from a
+checked `RawUnaryNatList` stream. -/
+def primeSelectorComputer : FinTM2 where
+  K := PrimeSelectorStack
+  k₀ := .inl .input
+  k₁ := .inl .output
+  Γ := PrimeSelectorAlphabet
+  Λ := PrimeSelectorLabel
+  main := .scan
+  σ := PrimeSelectorState
+  initialState := primeSelectorInitialState
+  Γk₀Fin := Bool.fintype
+  m := primeSelectorProgram
+
+private def primeSelectorStackContents
+    (input candidate output : List Bool)
+    (contents : (index : unaryCandidatePrimeComputer.K) →
+      List (unaryCandidatePrimeComputer.Γ index)) :
+    (index : PrimeSelectorStack) → List (PrimeSelectorAlphabet index)
+  | .inl .input => input
+  | .inl .candidate => candidate
+  | .inl .output => output
+  | .inr index => contents index
+
+private def primeSelectorCfg (label : Option PrimeSelectorLabel)
+    (state : PrimeSelectorState) (input candidate output : List Bool)
+    (contents : (index : unaryCandidatePrimeComputer.K) →
+      List (unaryCandidatePrimeComputer.Γ index)) :
+    primeSelectorComputer.Cfg where
+  l := label
+  var := state
+  stk := primeSelectorStackContents input candidate output contents
+
+private def primeSelectorIdleCfg (label : PrimeSelectorLabel)
+    (input candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.Cfg :=
+  primeSelectorCfg (some label)
+    ⟨none, unaryCandidatePrimeComputer.initialState, found⟩
+    input candidate output (fun _ => [])
+
+private def primeSelectorScanCfg
+    (input candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.Cfg :=
+  primeSelectorCfg (some .scan)
+    ⟨none, unaryCandidatePrimeComputer.initialState, found⟩
+    input candidate output (initList unaryCandidatePrimeComputer candidate).stk
+
+private def primeSelectorLookaheadCfg
+    (input candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.Cfg :=
+  primeSelectorCfg (some .lookahead)
+    ⟨none, unaryCandidatePrimeComputer.initialState, found⟩
+    input candidate output (initList unaryCandidatePrimeComputer candidate).stk
+
+private def primeSelectorDiscardCfg
+    (candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.Cfg :=
+  primeSelectorCfg (some .discardCount)
+    ⟨none, unaryCandidatePrimeComputer.initialState, found⟩
+    [] candidate output (initList unaryCandidatePrimeComputer candidate).stk
+
+private def primeSelectorLiftCfg (input candidate output : List Bool)
+    (found : Bool) (cfg : unaryCandidatePrimeComputer.Cfg) :
+    primeSelectorComputer.Cfg :=
+  primeSelectorCfg
+    (match cfg.l with
+      | none => some .result
+      | some label => some (.prime label))
+    ⟨none, cfg.var, found⟩ input candidate output cfg.stk
+
+@[simp]
+private theorem primeSelectorStackContents_update
+    (input candidate output : List Bool)
+    (contents : (index : unaryCandidatePrimeComputer.K) →
+      List (unaryCandidatePrimeComputer.Γ index))
+    (index : unaryCandidatePrimeComputer.K)
+    (value : List (unaryCandidatePrimeComputer.Γ index)) :
+    Function.update
+        (primeSelectorStackContents input candidate output contents)
+        (.inr index) value =
+      primeSelectorStackContents input candidate output
+        (Function.update contents index value) := by
+  funext target
+  cases target with
+  | inl outer =>
+      cases outer <;> simp [primeSelectorStackContents, Function.update]
+  | inr other =>
+      by_cases h : other = index
+      · subst other
+        simp [primeSelectorStackContents, Function.update]
+      · simp [primeSelectorStackContents, Function.update, h]
+
+@[simp]
+private theorem primeSelectorStackContents_update_input
+    (input candidate output value : List Bool)
+    (contents : (index : unaryCandidatePrimeComputer.K) →
+      List (unaryCandidatePrimeComputer.Γ index)) :
+    Function.update
+        (primeSelectorStackContents input candidate output contents)
+        (.inl .input) value =
+      primeSelectorStackContents value candidate output contents := by
+  funext target
+  rcases target with outer | index
+  · cases outer <;> simp [primeSelectorStackContents, Function.update]
+  · simp [primeSelectorStackContents, Function.update]
+
+@[simp]
+private theorem primeSelectorStackContents_update_candidate
+    (input candidate output value : List Bool)
+    (contents : (index : unaryCandidatePrimeComputer.K) →
+      List (unaryCandidatePrimeComputer.Γ index)) :
+    Function.update
+        (primeSelectorStackContents input candidate output contents)
+        (.inl .candidate) value =
+      primeSelectorStackContents input value output contents := by
+  funext target
+  rcases target with outer | index
+  · cases outer <;> simp [primeSelectorStackContents, Function.update]
+  · simp [primeSelectorStackContents, Function.update]
+
+@[simp]
+private theorem primeSelectorStackContents_update_output
+    (input candidate output value : List Bool)
+    (contents : (index : unaryCandidatePrimeComputer.K) →
+      List (unaryCandidatePrimeComputer.Γ index)) :
+    Function.update
+        (primeSelectorStackContents input candidate output contents)
+        (.inl .output) value =
+      primeSelectorStackContents input candidate value contents := by
+  funext target
+  rcases target with outer | index
+  · cases outer <;> simp [primeSelectorStackContents, Function.update]
+  · simp [primeSelectorStackContents, Function.update]
+
+private theorem liftCandidatePrime_stepAux
+    (stmt : TM2.Stmt unaryCandidatePrimeComputer.Γ
+      unaryCandidatePrimeComputer.Λ unaryCandidatePrimeComputer.σ)
+    (state : unaryCandidatePrimeComputer.σ)
+    (contents : (index : unaryCandidatePrimeComputer.K) →
+      List (unaryCandidatePrimeComputer.Γ index))
+    (input candidate output : List Bool) (found : Bool) :
+    TM2.stepAux (liftCandidatePrimeStmt stmt) ⟨none, state, found⟩
+        (primeSelectorStackContents input candidate output contents) =
+      primeSelectorLiftCfg input candidate output found
+        (TM2.stepAux stmt state contents) := by
+  induction stmt generalizing state contents with
+  | push index write next ih =>
+      simp only [liftCandidatePrimeStmt, TM2.stepAux]
+      rw [primeSelectorStackContents_update]
+      exact ih _ _
+  | peek index read next ih =>
+      simpa only [liftCandidatePrimeStmt, TM2.stepAux,
+        primeSelectorStackContents, primeSelectorSetComponent] using
+          ih (read state (contents index).head?) contents
+  | pop index read next ih =>
+      simp only [liftCandidatePrimeStmt, TM2.stepAux,
+        primeSelectorStackContents, primeSelectorSetComponent]
+      rw [primeSelectorStackContents_update]
+      exact ih _ _
+  | load update next ih =>
+      simpa only [liftCandidatePrimeStmt, TM2.stepAux,
+        primeSelectorSetComponent] using ih (update state) contents
+  | branch test yes no ihYes ihNo =>
+      by_cases h : test state
+      · simpa only [liftCandidatePrimeStmt, TM2.stepAux, h, cond_true] using
+          ihYes state contents
+      · simpa only [liftCandidatePrimeStmt, TM2.stepAux, h, cond_false] using
+          ihNo state contents
+  | goto next => rfl
+  | halt => rfl
+
+private theorem primeSelector_lift_step
+    (input candidate output : List Bool) (found : Bool)
+    (label : unaryCandidatePrimeComputer.Λ)
+    (state : unaryCandidatePrimeComputer.σ)
+    (contents : (index : unaryCandidatePrimeComputer.K) →
+      List (unaryCandidatePrimeComputer.Γ index)) :
+    primeSelectorComputer.step
+        (primeSelectorLiftCfg input candidate output found
+          ⟨some label, state, contents⟩) =
+      some (primeSelectorLiftCfg input candidate output found
+        (TM2.stepAux (unaryCandidatePrimeComputer.m label) state contents)) := by
+  simp only [primeSelectorComputer, FinTM2.step, primeSelectorLiftCfg,
+    primeSelectorProgram, TM2.step]
+  exact congrArg some
+    (liftCandidatePrime_stepAux _ _ _ _ _ _ _)
+
+private theorem candidatePrime_iterate_none (steps : ℕ) :
+    (flip Option.bind unaryCandidatePrimeComputer.step)^[steps]
+        (none : Option unaryCandidatePrimeComputer.Cfg) = none := by
+  induction steps with
+  | zero => rfl
+  | succ steps ih =>
+      rw [Function.iterate_succ_apply']
+      rw [ih]
+      rfl
+
+private theorem primeSelector_iterate_lift
+    (steps : ℕ) (input candidate output : List Bool) (found : Bool)
+    (start finish : unaryCandidatePrimeComputer.Cfg)
+    (hrun :
+      (flip Option.bind unaryCandidatePrimeComputer.step)^[steps]
+          (some start) = some finish) :
+    (flip Option.bind primeSelectorComputer.step)^[steps]
+        (some (primeSelectorLiftCfg input candidate output found start)) =
+      some (primeSelectorLiftCfg input candidate output found finish) := by
+  induction steps generalizing start with
+  | zero =>
+      simpa using congrArg
+        (Option.map (primeSelectorLiftCfg input candidate output found)) hrun
+  | succ steps ih =>
+      rw [Function.iterate_succ_apply] at hrun ⊢
+      change (flip Option.bind unaryCandidatePrimeComputer.step)^[steps]
+          (unaryCandidatePrimeComputer.step start) = some finish at hrun
+      change (flip Option.bind primeSelectorComputer.step)^[steps]
+          (primeSelectorComputer.step
+            (primeSelectorLiftCfg input candidate output found start)) =
+        some (primeSelectorLiftCfg input candidate output found finish)
+      cases hlabel : start.l with
+      | none =>
+          have hnone : unaryCandidatePrimeComputer.step start = none := by
+            rcases start with ⟨current, state, contents⟩
+            change current = none at hlabel
+            subst current
+            rfl
+          rw [hnone] at hrun
+          rw [candidatePrime_iterate_none] at hrun
+          contradiction
+      | some label =>
+          let middle := TM2.stepAux
+            (unaryCandidatePrimeComputer.m label) start.var start.stk
+          have hstep : unaryCandidatePrimeComputer.step start = some middle := by
+            rcases start with ⟨current, state, contents⟩
+            simp [unaryCandidatePrimeComputer, FinTM2.step] at hlabel ⊢
+            subst current
+            rfl
+          rw [hstep] at hrun
+          have hcfg : start = ⟨some label, start.var, start.stk⟩ := by
+            rcases start with ⟨current, state, contents⟩
+            change current = some label at hlabel
+            subst current
+            rfl
+          rw [show primeSelectorComputer.step
+              (primeSelectorLiftCfg input candidate output found start) =
+                some (primeSelectorLiftCfg input candidate output found middle) by
+            rw [hcfg]
+            simpa [middle] using primeSelector_lift_step input candidate output
+              found label start.var start.stk]
+          exact ih middle hrun
+
+private def primeSelector_lift_evals
+    (input candidate output : List Bool) (found : Bool)
+    {start finish : unaryCandidatePrimeComputer.Cfg} {bound : ℕ}
+    (hrun : EvalsToInTime unaryCandidatePrimeComputer.step start
+      (some finish) bound) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorLiftCfg input candidate output found start)
+      (some (primeSelectorLiftCfg input candidate output found finish))
+      bound where
+  steps := hrun.steps
+  evals_in_steps := primeSelector_iterate_lift hrun.steps input candidate
+    output found start finish hrun.evals_in_steps
+  steps_le_m := hrun.steps_le_m
+
+private def primeSelectorEvalsToInTimeOne
+    {start finish : primeSelectorComputer.Cfg}
+    (hstep : primeSelectorComputer.step start = some finish) :
+    EvalsToInTime primeSelectorComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private theorem primeSelector_step_scan_true
+    (input candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorScanCfg (true :: input) candidate output found) =
+      some (primeSelectorScanCfg input (true :: candidate) output found) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorScanCfg,
+    primeSelectorCfg, primeSelectorProgram, primeSelectorStackContents,
+    primeSelectorObserve, primeSelectorObservedPresent,
+    primeSelectorObservedBit, primeSelectorResetObserved,
+    initList, haltList, Function.update]
+  funext index
+  rcases index with outer | index
+  · cases outer <;> simp [primeSelectorStackContents, Function.update]
+  · by_cases h : index = unaryCandidatePrimeComputer.k₀
+    · subst index
+      simp [primeSelectorStackContents, Function.update]
+    · simp [primeSelectorStackContents, Function.update, h]
+
+private theorem primeSelector_step_scan_false
+    (input candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorScanCfg (false :: input) candidate output found) =
+      some (primeSelectorLookaheadCfg input candidate output found) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorScanCfg,
+    primeSelectorLookaheadCfg, primeSelectorCfg, primeSelectorProgram,
+    primeSelectorStackContents, primeSelectorObserve,
+    primeSelectorObservedPresent, primeSelectorObservedBit,
+    primeSelectorResetObserved, initList, haltList, Function.update]
+
+private theorem primeSelector_step_lookahead_present
+    (bit : Bool) (input candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorLookaheadCfg (bit :: input) candidate output found) =
+      some (primeSelectorLiftCfg (bit :: input) candidate output found
+        (initList unaryCandidatePrimeComputer candidate)) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorLookaheadCfg,
+    primeSelectorLiftCfg, primeSelectorCfg, primeSelectorProgram,
+    primeSelectorStackContents, primeSelectorObserve,
+    primeSelectorObservedPresent, primeSelectorObservedBit,
+    primeSelectorResetObserved, initList, Function.update]
+
+private theorem primeSelector_step_lookahead_nil
+    (candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorLookaheadCfg [] candidate output found) =
+      some (primeSelectorDiscardCfg candidate output found) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorLookaheadCfg,
+    primeSelectorDiscardCfg, primeSelectorCfg, primeSelectorProgram,
+    primeSelectorStackContents, primeSelectorObserve,
+    primeSelectorObservedPresent, primeSelectorResetObserved,
+    initList, haltList, Function.update]
+
+private def encodePrimeSelection : Option ℕ → List Bool
+  | none => []
+  | some candidate => unaryEncodeNat candidate
+
+private def primeSelectionFound : Option ℕ → Bool
+  | none => false
+  | some _ => true
+
+@[simp]
+private theorem candidatePrime_initList_empty_stacks :
+    (initList unaryCandidatePrimeComputer []).stk = (fun _ => []) := by
+  funext index
+  by_cases h : index = unaryCandidatePrimeComputer.k₀
+  · subst index
+    simp [initList]
+  · simp [initList, h]
+
+@[simp]
+private theorem candidatePrime_initList_pop_input
+    (bit : Bool) (input : List Bool) :
+    Function.update (initList unaryCandidatePrimeComputer (bit :: input)).stk
+        unaryCandidatePrimeComputer.k₀ input =
+      (initList unaryCandidatePrimeComputer input).stk := by
+  funext index
+  by_cases h : index = unaryCandidatePrimeComputer.k₀
+  · subst index
+    simp [initList, Function.update]
+  · simp [initList, Function.update, h]
+
+@[simp]
+private theorem candidatePrime_haltList_pop_result (result : Bool) :
+    Function.update (haltList unaryCandidatePrimeComputer [result]).stk
+        unaryCandidatePrimeComputer.k₁ [] = (fun _ => []) := by
+  funext index
+  by_cases h : index = unaryCandidatePrimeComputer.k₁
+  · subst index
+    simp [haltList, Function.update]
+  · simp [haltList, Function.update, h]
+
+private theorem primeSelector_haltList_eq_cfg (output : List Bool) :
+    haltList primeSelectorComputer output =
+      primeSelectorCfg none primeSelectorInitialState [] [] output
+        (fun _ => []) := by
+  unfold haltList primeSelectorCfg primeSelectorComputer
+  congr 2
+  funext index
+  rcases index with outer | index
+  · cases outer <;> simp [primeSelectorStackContents]
+  · simp [primeSelectorStackContents]
+
+private theorem primeSelector_step_result_true
+    (input candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorLiftCfg input candidate output found
+          (haltList unaryCandidatePrimeComputer [true])) =
+      some (primeSelectorIdleCfg .clearSelected input candidate output true) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorLiftCfg,
+    primeSelectorIdleCfg, primeSelectorCfg, primeSelectorProgram,
+    primeSelectorStackContents, primeSelectorObserve,
+    primeSelectorObservedBit, primeSelectorSetFound, haltList,
+    Function.update]
+  funext index
+  rcases index with outer | index
+  · cases outer <;> simp [primeSelectorStackContents, Function.update]
+  · by_cases h : index = unaryCandidatePrimeComputer.k₁
+    · subst index
+      simp [primeSelectorStackContents, Function.update]
+    · simp [primeSelectorStackContents, Function.update, h]
+
+private theorem primeSelector_step_result_false
+    (input candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorLiftCfg input candidate output found
+          (haltList unaryCandidatePrimeComputer [false])) =
+      some (primeSelectorIdleCfg .clearCandidate input candidate output found) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorLiftCfg,
+    primeSelectorIdleCfg, primeSelectorCfg, primeSelectorProgram,
+    primeSelectorStackContents, primeSelectorObserve,
+    primeSelectorObservedBit, primeSelectorResetObserved, haltList,
+    Function.update]
+  funext index
+  rcases index with outer | index
+  · cases outer <;> simp [primeSelectorStackContents, Function.update]
+  · by_cases h : index = unaryCandidatePrimeComputer.k₁
+    · subst index
+      simp [primeSelectorStackContents, Function.update]
+    · simp [primeSelectorStackContents, Function.update, h]
+
+private theorem primeSelector_step_clearCandidate_cons
+    (bit : Bool) (input candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorIdleCfg .clearCandidate input (bit :: candidate)
+          output found) =
+      some (primeSelectorIdleCfg .clearCandidate input candidate output found) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorIdleCfg,
+    primeSelectorCfg, primeSelectorProgram, primeSelectorStackContents,
+    primeSelectorObserve, primeSelectorObservedPresent,
+    primeSelectorResetObserved, haltList, Function.update]
+
+private theorem primeSelector_step_clearCandidate_nil
+    (input output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorIdleCfg .clearCandidate input [] output found) =
+      some (primeSelectorScanCfg input [] output found) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorIdleCfg,
+    primeSelectorScanCfg, primeSelectorCfg, primeSelectorProgram,
+    primeSelectorStackContents, primeSelectorObserve,
+    primeSelectorObservedPresent, primeSelectorResetObserved,
+    Function.update]
+  rw [candidatePrime_initList_empty_stacks]
+
+private theorem primeSelector_step_clearSelected_cons
+    (bit : Bool) (input candidate output : List Bool) :
+    primeSelectorComputer.step
+        (primeSelectorIdleCfg .clearSelected input candidate (bit :: output)
+          true) =
+      some (primeSelectorIdleCfg .clearSelected input candidate output true) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorIdleCfg,
+    primeSelectorCfg, primeSelectorProgram, primeSelectorStackContents,
+    primeSelectorObserve, primeSelectorObservedPresent,
+    primeSelectorResetObserved, haltList, Function.update]
+
+private theorem primeSelector_step_clearSelected_nil
+    (input candidate : List Bool) :
+    primeSelectorComputer.step
+        (primeSelectorIdleCfg .clearSelected input candidate [] true) =
+      some (primeSelectorIdleCfg .moveCandidate input candidate [] true) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorIdleCfg,
+    primeSelectorCfg, primeSelectorProgram, primeSelectorStackContents,
+    primeSelectorObserve, primeSelectorObservedPresent,
+    primeSelectorResetObserved, haltList, Function.update]
+
+private theorem primeSelector_step_moveCandidate_cons
+    (bit : Bool) (input candidate output : List Bool) :
+    primeSelectorComputer.step
+        (primeSelectorIdleCfg .moveCandidate input (bit :: candidate)
+          output true) =
+      some (primeSelectorIdleCfg .moveCandidate input candidate
+        (bit :: output) true) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorIdleCfg,
+    primeSelectorCfg, primeSelectorProgram, primeSelectorStackContents,
+    primeSelectorObserve, primeSelectorObservedPresent,
+    primeSelectorObservedBit, primeSelectorResetObserved, haltList,
+    Function.update]
+
+private theorem primeSelector_step_moveCandidate_nil
+    (input output : List Bool) :
+    primeSelectorComputer.step
+        (primeSelectorIdleCfg .moveCandidate input [] output true) =
+      some (primeSelectorScanCfg input [] output true) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorIdleCfg,
+    primeSelectorScanCfg, primeSelectorCfg, primeSelectorProgram,
+    primeSelectorStackContents, primeSelectorObserve,
+    primeSelectorObservedPresent, primeSelectorResetObserved,
+    Function.update]
+  rw [candidatePrime_initList_empty_stacks]
+
+private theorem primeSelector_step_discardCount_cons
+    (bit : Bool) (candidate output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorDiscardCfg (bit :: candidate) output found) =
+      some (primeSelectorDiscardCfg candidate output found) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorDiscardCfg,
+    primeSelectorCfg, primeSelectorProgram, primeSelectorStackContents,
+    primeSelectorObserve, primeSelectorObservedPresent,
+    primeSelectorResetObserved, Function.update]
+  rw [show ((initList unaryCandidatePrimeComputer
+      (bit :: candidate)).stk unaryCandidatePrimeComputer.k₀).tail =
+        candidate by simp [initList]]
+  rw [candidatePrime_initList_pop_input]
+
+private theorem primeSelector_step_discardCount_nil
+    (output : List Bool) (found : Bool) :
+    primeSelectorComputer.step
+        (primeSelectorDiscardCfg [] output found) =
+      some (primeSelectorIdleCfg .finalize [] [] output found) := by
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorDiscardCfg,
+    primeSelectorIdleCfg, primeSelectorCfg, primeSelectorProgram,
+    primeSelectorStackContents, primeSelectorObserve,
+    primeSelectorObservedPresent, primeSelectorResetObserved,
+    Function.update]
+  rw [candidatePrime_initList_empty_stacks]
+
+private theorem primeSelector_step_finalize_found (output : List Bool) :
+    primeSelectorComputer.step
+        (primeSelectorIdleCfg .finalize [] [] output true) =
+      some (haltList primeSelectorComputer output) := by
+  rw [primeSelector_haltList_eq_cfg]
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorIdleCfg,
+    primeSelectorCfg, primeSelectorProgram, primeSelectorStackContents,
+    primeSelectorInitialState, Function.update]
+
+private theorem primeSelector_step_finalize_none :
+    primeSelectorComputer.step
+        (primeSelectorIdleCfg .finalize [] [] [] false) =
+      some (haltList primeSelectorComputer (unaryEncodeNat 2)) := by
+  rw [primeSelector_haltList_eq_cfg]
+  simp [primeSelectorComputer, FinTM2.step, primeSelectorIdleCfg,
+    primeSelectorCfg, primeSelectorProgram, primeSelectorStackContents,
+    primeSelectorInitialState, unaryEncodeNat, Function.update]
+
+private def primeSelector_scan_unary_evals
+    (n : ℕ) (input candidate output : List Bool) (found : Bool) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg
+        (List.replicate n true ++ input) candidate output found)
+      (some (primeSelectorScanCfg input
+        (List.replicate n true ++ candidate) output found)) n := by
+  induction n generalizing candidate with
+  | zero =>
+      exact EvalsToInTime.refl primeSelectorComputer.step _
+  | succ n ih =>
+      let middle := primeSelectorScanCfg
+        (List.replicate n true ++ input) (true :: candidate) output found
+      have hone : EvalsToInTime primeSelectorComputer.step
+          (primeSelectorScanCfg
+            (List.replicate (n + 1) true ++ input) candidate output found)
+          (some middle) 1 :=
+        primeSelectorEvalsToInTimeOne (by
+          simpa [middle, List.replicate_succ] using
+            primeSelector_step_scan_true
+              (List.replicate n true ++ input) candidate output found)
+      have hrest := ih (true :: candidate)
+      have htrans := EvalsToInTime.trans primeSelectorComputer.step
+        1 n
+        (primeSelectorScanCfg
+          (List.replicate (n + 1) true ++ input) candidate output found)
+        middle
+        (some (primeSelectorScanCfg input
+          (List.replicate (n + 1) true ++ candidate) output found))
+        hone
+        (by
+          simpa [middle, List.replicate_succ', List.replicate_add,
+            List.append_assoc] using hrest)
+      simpa [Nat.add_comm] using htrans
+
+private def primeSelector_clearCandidate_evals
+    (candidate input output : List Bool) (found : Bool) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorIdleCfg .clearCandidate input candidate output found)
+      (some (primeSelectorScanCfg input [] output found))
+      (candidate.length + 1) := by
+  induction candidate with
+  | nil =>
+      exact primeSelectorEvalsToInTimeOne
+        (primeSelector_step_clearCandidate_nil input output found)
+  | cons bit candidate ih =>
+      let middle := primeSelectorIdleCfg .clearCandidate input candidate
+        output found
+      have hone := primeSelectorEvalsToInTimeOne
+        (primeSelector_step_clearCandidate_cons bit input candidate output found)
+      have htrans := EvalsToInTime.trans primeSelectorComputer.step
+        1 (candidate.length + 1)
+        (primeSelectorIdleCfg .clearCandidate input (bit :: candidate)
+          output found)
+        middle
+        (some (primeSelectorScanCfg input [] output found))
+        (by simpa [middle] using hone)
+        (by simpa [middle] using ih)
+      simpa [Nat.add_assoc, Nat.add_comm] using htrans
+
+private def primeSelector_clearSelected_evals
+    (output input candidate : List Bool) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorIdleCfg .clearSelected input candidate output true)
+      (some (primeSelectorIdleCfg .moveCandidate input candidate [] true))
+      (output.length + 1) := by
+  induction output with
+  | nil =>
+      exact primeSelectorEvalsToInTimeOne
+        (primeSelector_step_clearSelected_nil input candidate)
+  | cons bit output ih =>
+      let middle := primeSelectorIdleCfg .clearSelected input candidate
+        output true
+      have hone := primeSelectorEvalsToInTimeOne
+        (primeSelector_step_clearSelected_cons bit input candidate output)
+      have htrans := EvalsToInTime.trans primeSelectorComputer.step
+        1 (output.length + 1)
+        (primeSelectorIdleCfg .clearSelected input candidate (bit :: output)
+          true)
+        middle
+        (some (primeSelectorIdleCfg .moveCandidate input candidate [] true))
+        (by simpa [middle] using hone)
+        (by simpa [middle] using ih)
+      simpa [Nat.add_assoc, Nat.add_comm] using htrans
+
+private def primeSelector_moveCandidate_evals
+    (candidate input output : List Bool) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorIdleCfg .moveCandidate input candidate output true)
+      (some (primeSelectorScanCfg input [] (candidate.reverse ++ output) true))
+      (candidate.length + 1) := by
+  induction candidate generalizing output with
+  | nil =>
+      simpa using primeSelectorEvalsToInTimeOne
+        (primeSelector_step_moveCandidate_nil input output)
+  | cons bit candidate ih =>
+      let middle := primeSelectorIdleCfg .moveCandidate input candidate
+        (bit :: output) true
+      have hone := primeSelectorEvalsToInTimeOne
+        (primeSelector_step_moveCandidate_cons bit input candidate output)
+      have hrest := ih (bit :: output)
+      have htrans := EvalsToInTime.trans primeSelectorComputer.step
+        1 (candidate.length + 1)
+        (primeSelectorIdleCfg .moveCandidate input (bit :: candidate)
+          output true)
+        middle
+        (some (primeSelectorScanCfg input []
+          ((bit :: candidate).reverse ++ output) true))
+        (by simpa [middle] using hone)
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm] using htrans
+
+private def primeSelector_discardCount_evals
+    (candidate output : List Bool) (found : Bool) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorDiscardCfg candidate output found)
+      (some (primeSelectorIdleCfg .finalize [] [] output found))
+      (candidate.length + 1) := by
+  induction candidate with
+  | nil =>
+      exact primeSelectorEvalsToInTimeOne
+        (primeSelector_step_discardCount_nil output found)
+  | cons bit candidate ih =>
+      let middle := primeSelectorDiscardCfg candidate output found
+      have hone := primeSelectorEvalsToInTimeOne
+        (primeSelector_step_discardCount_cons bit candidate output found)
+      have htrans := EvalsToInTime.trans primeSelectorComputer.step
+        1 (candidate.length + 1)
+        (primeSelectorDiscardCfg (bit :: candidate) output found)
+        middle
+        (some (primeSelectorIdleCfg .finalize [] [] output found))
+        (by simpa [middle] using hone)
+        (by simpa [middle] using ih)
+      simpa [Nat.add_assoc, Nat.add_comm] using htrans
+
+private def primeSelectorFinalizeEvals (selection : Option ℕ) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorIdleCfg .finalize [] []
+        (encodePrimeSelection selection) (primeSelectionFound selection))
+      (some (haltList primeSelectorComputer
+        (unaryEncodeNat (selection.getD 2)))) 1 := by
+  cases selection with
+  | none =>
+      simpa [encodePrimeSelection, primeSelectionFound] using
+        primeSelectorEvalsToInTimeOne primeSelector_step_finalize_none
+  | some candidate =>
+      simpa [encodePrimeSelection, primeSelectionFound] using
+        primeSelectorEvalsToInTimeOne
+          (primeSelector_step_finalize_found (unaryEncodeNat candidate))
+
+/-- A coarse exact stage budget.  The old selected value is included because
+an accepted candidate first erases that output before installing itself. -/
+private def primeSelectorCandidateTime
+    (candidate : ℕ) (selection : Option ℕ) : ℕ :=
+  64 * (candidate + 1) ^ 2 + 2 * candidate +
+    (encodePrimeSelection selection).length + 5
+
+private noncomputable def primeSelector_candidate_evals
+    (candidate : ℕ) (input : List Bool) (hinput : input ≠ [])
+    (selection : Option ℕ) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg
+        (RawUnaryNatList.segment candidate ++ input) []
+        (encodePrimeSelection selection) (primeSelectionFound selection))
+      (some (primeSelectorScanCfg input []
+        (encodePrimeSelection
+          (if unaryCandidatePrime candidate then some candidate else selection))
+        (primeSelectionFound
+          (if unaryCandidatePrime candidate then some candidate else selection))))
+      (primeSelectorCandidateTime candidate selection) := by
+  rcases input with _ | ⟨bit, input⟩
+  · contradiction
+  let output := encodePrimeSelection selection
+  let found := primeSelectionFound selection
+  have hscan := primeSelector_scan_unary_evals candidate
+    (false :: bit :: input) [] output found
+  let afterScan := primeSelectorScanCfg (false :: bit :: input)
+    (unaryEncodeNat candidate) output found
+  have hscan' : EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg
+        (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+      (some afterScan) candidate := by
+    simpa [afterScan, RawUnaryNatList.segment,
+      unaryEncodeNat_eq_replicate_true] using hscan
+  have hseparator := primeSelectorEvalsToInTimeOne
+    (primeSelector_step_scan_false (bit :: input)
+      (unaryEncodeNat candidate) output found)
+  let afterSeparator := primeSelectorLookaheadCfg (bit :: input)
+    (unaryEncodeNat candidate) output found
+  have hlookahead := primeSelectorEvalsToInTimeOne
+    (primeSelector_step_lookahead_present bit input
+      (unaryEncodeNat candidate) output found)
+  let componentStart := primeSelectorLiftCfg (bit :: input)
+    (unaryEncodeNat candidate) output found
+    (initList unaryCandidatePrimeComputer (unaryEncodeNat candidate))
+  have hparseFirst := EvalsToInTime.trans primeSelectorComputer.step
+    candidate 1
+    (primeSelectorScanCfg
+      (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+    afterScan (some afterSeparator)
+    hscan' (by simpa [afterScan, afterSeparator] using hseparator)
+  have hparseFirst' : EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg
+        (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+      (some afterSeparator) (candidate + 1) :=
+    evalsToInTimeMono hparseFirst (by omega)
+  have hparse := EvalsToInTime.trans primeSelectorComputer.step
+    (candidate + 1) 1
+    (primeSelectorScanCfg
+      (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+    afterSeparator (some componentStart)
+    hparseFirst'
+    (by simpa [afterSeparator, componentStart] using hlookahead)
+  have hparse' : EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg
+        (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+      (some componentStart) (candidate + 2) :=
+    evalsToInTimeMono hparse (by omega)
+  have hcomponentBase : EvalsToInTime unaryCandidatePrimeComputer.step
+      (initList unaryCandidatePrimeComputer (unaryEncodeNat candidate))
+      (some (haltList unaryCandidatePrimeComputer
+        [unaryCandidatePrime candidate]))
+      (64 * (candidate + 1) ^ 2) := by
+    simpa [TM2OutputsInTime, encodeBool, List.pure_def] using
+      unaryCandidatePrime_outputsInTime candidate
+  have hcomponent := primeSelector_lift_evals
+    (bit :: input) (unaryEncodeNat candidate) output found hcomponentBase
+  have hfirst := EvalsToInTime.trans primeSelectorComputer.step
+    (candidate + 2) (64 * (candidate + 1) ^ 2)
+    (primeSelectorScanCfg
+      (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+    componentStart
+    (some (primeSelectorLiftCfg (bit :: input)
+      (unaryEncodeNat candidate) output found
+      (haltList unaryCandidatePrimeComputer [unaryCandidatePrime candidate])))
+    hparse'
+    (by simpa [componentStart] using hcomponent)
+  by_cases hprime : unaryCandidatePrime candidate
+  · have hfirstTrue : EvalsToInTime primeSelectorComputer.step
+        (primeSelectorScanCfg
+          (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+        (some (primeSelectorLiftCfg (bit :: input)
+          (unaryEncodeNat candidate) output found
+          (haltList unaryCandidatePrimeComputer [true])))
+        (64 * (candidate + 1) ^ 2 + (candidate + 2)) := by
+      simpa [hprime] using hfirst
+    have hresult := primeSelectorEvalsToInTimeOne
+      (primeSelector_step_result_true (bit :: input)
+        (unaryEncodeNat candidate) output found)
+    have hclear := primeSelector_clearSelected_evals output
+      (bit :: input) (unaryEncodeNat candidate)
+    have hmove := primeSelector_moveCandidate_evals
+      (unaryEncodeNat candidate) (bit :: input) []
+    have hsecond := EvalsToInTime.trans primeSelectorComputer.step
+      1 (output.length + 1)
+      (primeSelectorLiftCfg (bit :: input) (unaryEncodeNat candidate)
+        output found (haltList unaryCandidatePrimeComputer [true]))
+      (primeSelectorIdleCfg .clearSelected (bit :: input)
+        (unaryEncodeNat candidate) output true)
+      (some (primeSelectorIdleCfg .moveCandidate (bit :: input)
+        (unaryEncodeNat candidate) [] true))
+      (by simpa using hresult) (by simpa using hclear)
+    have hsecond' : EvalsToInTime primeSelectorComputer.step
+        (primeSelectorLiftCfg (bit :: input) (unaryEncodeNat candidate)
+          output found (haltList unaryCandidatePrimeComputer [true]))
+        (some (primeSelectorIdleCfg .moveCandidate (bit :: input)
+          (unaryEncodeNat candidate) [] true))
+        (output.length + 2) :=
+      evalsToInTimeMono hsecond (by omega)
+    have hcleanup := EvalsToInTime.trans primeSelectorComputer.step
+      (output.length + 2) (candidate + 1)
+      (primeSelectorLiftCfg (bit :: input) (unaryEncodeNat candidate)
+        output found (haltList unaryCandidatePrimeComputer [true]))
+      (primeSelectorIdleCfg .moveCandidate (bit :: input)
+        (unaryEncodeNat candidate) [] true)
+      (some (primeSelectorScanCfg (bit :: input) []
+        (unaryEncodeNat candidate) true))
+      hsecond'
+      (by simpa [unaryEncodeNat_length, unaryEncodeNat_reverse] using hmove)
+    have hcleanup' : EvalsToInTime primeSelectorComputer.step
+        (primeSelectorLiftCfg (bit :: input) (unaryEncodeNat candidate)
+          output found (haltList unaryCandidatePrimeComputer [true]))
+        (some (primeSelectorScanCfg (bit :: input) []
+          (unaryEncodeNat candidate) true))
+        (candidate + output.length + 3) :=
+      evalsToInTimeMono hcleanup (by omega)
+    have hall := EvalsToInTime.trans primeSelectorComputer.step
+      (64 * (candidate + 1) ^ 2 + (candidate + 2))
+      (candidate + output.length + 3)
+      (primeSelectorScanCfg
+        (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+      (primeSelectorLiftCfg (bit :: input) (unaryEncodeNat candidate)
+        output found (haltList unaryCandidatePrimeComputer [true]))
+      (some (primeSelectorScanCfg (bit :: input) []
+        (unaryEncodeNat candidate) true))
+      hfirstTrue hcleanup'
+    have hmono : EvalsToInTime primeSelectorComputer.step
+        (primeSelectorScanCfg
+          (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+        (some (primeSelectorScanCfg (bit :: input) []
+          (unaryEncodeNat candidate) true))
+        (primeSelectorCandidateTime candidate selection) :=
+      evalsToInTimeMono hall (by
+        unfold primeSelectorCandidateTime
+        simp only [output]
+        omega)
+    simpa [output, found, hprime, encodePrimeSelection,
+      primeSelectionFound] using hmono
+  · have hfirstFalse : EvalsToInTime primeSelectorComputer.step
+        (primeSelectorScanCfg
+          (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+        (some (primeSelectorLiftCfg (bit :: input)
+          (unaryEncodeNat candidate) output found
+          (haltList unaryCandidatePrimeComputer [false])))
+        (64 * (candidate + 1) ^ 2 + (candidate + 2)) := by
+      simpa [hprime] using hfirst
+    have hresult := primeSelectorEvalsToInTimeOne
+      (primeSelector_step_result_false (bit :: input)
+        (unaryEncodeNat candidate) output found)
+    have hclear := primeSelector_clearCandidate_evals
+      (unaryEncodeNat candidate) (bit :: input) output found
+    have hcleanup := EvalsToInTime.trans primeSelectorComputer.step
+      1 (candidate + 1)
+      (primeSelectorLiftCfg (bit :: input) (unaryEncodeNat candidate)
+        output found (haltList unaryCandidatePrimeComputer [false]))
+      (primeSelectorIdleCfg .clearCandidate (bit :: input)
+        (unaryEncodeNat candidate) output found)
+      (some (primeSelectorScanCfg (bit :: input) [] output found))
+      (by simpa using hresult)
+      (by simpa [unaryEncodeNat_length] using hclear)
+    have hcleanup' : EvalsToInTime primeSelectorComputer.step
+        (primeSelectorLiftCfg (bit :: input) (unaryEncodeNat candidate)
+          output found (haltList unaryCandidatePrimeComputer [false]))
+        (some (primeSelectorScanCfg (bit :: input) [] output found))
+        (candidate + 2) :=
+      evalsToInTimeMono hcleanup (by omega)
+    have hall := EvalsToInTime.trans primeSelectorComputer.step
+      (64 * (candidate + 1) ^ 2 + (candidate + 2))
+      (candidate + 2)
+      (primeSelectorScanCfg
+        (RawUnaryNatList.segment candidate ++ bit :: input) [] output found)
+      (primeSelectorLiftCfg (bit :: input) (unaryEncodeNat candidate)
+        output found (haltList unaryCandidatePrimeComputer [false]))
+      (some (primeSelectorScanCfg (bit :: input) [] output found))
+      hfirstFalse hcleanup'
+    exact evalsToInTimeMono
+      (by simpa [output, found, hprime] using hall)
+      (by simp [primeSelectorCandidateTime]; omega)
+
+private def encodedUnaryCandidateFields (candidates : List ℕ) : List Bool :=
+  candidates.reverse.flatMap RawUnaryNatList.segment
+
+@[simp]
+private theorem encodedUnaryCandidateFields_cons
+    (candidate : ℕ) (candidates : List ℕ) :
+    encodedUnaryCandidateFields (candidate :: candidates) =
+      encodedUnaryCandidateFields candidates ++
+        RawUnaryNatList.segment candidate := by
+  simp [encodedUnaryCandidateFields, List.reverse_cons, List.flatMap_append]
+
+private def primeSelectorCandidatesTime : List ℕ → ℕ
+  | [] => 0
+  | candidate :: candidates =>
+      primeSelectorCandidateTime candidate
+          (firstUnaryCandidatePrime? candidates) +
+        primeSelectorCandidatesTime candidates
+
+private noncomputable def primeSelector_candidates_evals
+    (candidates : List ℕ) (input : List Bool) (hinput : input ≠ []) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg
+        (encodedUnaryCandidateFields candidates ++ input) [] [] false)
+      (some (primeSelectorScanCfg input []
+        (encodePrimeSelection (firstUnaryCandidatePrime? candidates))
+        (primeSelectionFound (firstUnaryCandidatePrime? candidates))))
+      (primeSelectorCandidatesTime candidates) := by
+  induction candidates generalizing input with
+  | nil =>
+      exact EvalsToInTime.refl primeSelectorComputer.step _
+  | cons candidate candidates ih =>
+      let fieldInput := RawUnaryNatList.segment candidate ++ input
+      have hfieldInput : fieldInput ≠ [] := by
+        simp [fieldInput, RawUnaryNatList.segment]
+      have hrest := ih fieldInput hfieldInput
+      let selection := firstUnaryCandidatePrime? candidates
+      let middle := primeSelectorScanCfg fieldInput []
+        (encodePrimeSelection selection) (primeSelectionFound selection)
+      have hcandidate := primeSelector_candidate_evals
+        candidate input hinput selection
+      have htrans := EvalsToInTime.trans primeSelectorComputer.step
+        (primeSelectorCandidatesTime candidates)
+        (primeSelectorCandidateTime candidate selection)
+        (primeSelectorScanCfg
+          (encodedUnaryCandidateFields (candidate :: candidates) ++ input)
+          [] [] false)
+        middle
+        (some (primeSelectorScanCfg input []
+          (encodePrimeSelection
+            (firstUnaryCandidatePrime? (candidate :: candidates)))
+          (primeSelectionFound
+            (firstUnaryCandidatePrime? (candidate :: candidates)))))
+        (by
+          simpa [middle, fieldInput, encodedUnaryCandidateFields_cons,
+            List.append_assoc, selection] using hrest)
+        (by
+          by_cases hprime : unaryCandidatePrime candidate
+          · simpa [middle, fieldInput, selection, firstUnaryCandidatePrime?,
+              hprime] using hcandidate
+          · simpa [middle, fieldInput, selection, firstUnaryCandidatePrime?,
+              hprime] using hcandidate)
+      simpa [primeSelectorCandidatesTime, selection, Nat.add_comm] using htrans
+
+private noncomputable def primeSelector_count_evals
+    (count : ℕ) (selection : Option ℕ) :
+    EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg (RawUnaryNatList.segment count) []
+        (encodePrimeSelection selection) (primeSelectionFound selection))
+      (some (haltList primeSelectorComputer
+        (unaryEncodeNat (selection.getD 2))))
+      (2 * count + 4) := by
+  let output := encodePrimeSelection selection
+  let found := primeSelectionFound selection
+  have hscan := primeSelector_scan_unary_evals count [false] [] output found
+  let afterScan := primeSelectorScanCfg [false]
+    (unaryEncodeNat count) output found
+  have hscan' : EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg (RawUnaryNatList.segment count) [] output found)
+      (some afterScan) count := by
+    simpa [afterScan, RawUnaryNatList.segment,
+      unaryEncodeNat_eq_replicate_true] using hscan
+  have hseparator := primeSelectorEvalsToInTimeOne
+    (primeSelector_step_scan_false [] (unaryEncodeNat count) output found)
+  let afterSeparator := primeSelectorLookaheadCfg []
+    (unaryEncodeNat count) output found
+  have hlookahead := primeSelectorEvalsToInTimeOne
+    (primeSelector_step_lookahead_nil (unaryEncodeNat count) output found)
+  let afterLookahead := primeSelectorDiscardCfg (unaryEncodeNat count)
+    output found
+  have hdiscard := primeSelector_discardCount_evals
+    (unaryEncodeNat count) output found
+  let beforeFinalize := primeSelectorIdleCfg .finalize [] [] output found
+  have hfinal := primeSelectorFinalizeEvals selection
+  have hfirst := EvalsToInTime.trans primeSelectorComputer.step
+    count 1
+    (primeSelectorScanCfg (RawUnaryNatList.segment count) [] output found)
+    afterScan (some afterSeparator)
+    hscan' (by simpa [afterScan, afterSeparator] using hseparator)
+  have hfirst' : EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg (RawUnaryNatList.segment count) [] output found)
+      (some afterSeparator) (count + 1) :=
+    evalsToInTimeMono hfirst (by omega)
+  have hsecond := EvalsToInTime.trans primeSelectorComputer.step
+    (count + 1) 1
+    (primeSelectorScanCfg (RawUnaryNatList.segment count) [] output found)
+    afterSeparator (some afterLookahead)
+    hfirst' (by simpa [afterSeparator, afterLookahead] using hlookahead)
+  have hsecond' : EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg (RawUnaryNatList.segment count) [] output found)
+      (some afterLookahead) (count + 2) :=
+    evalsToInTimeMono hsecond (by omega)
+  have hthird := EvalsToInTime.trans primeSelectorComputer.step
+    (count + 2) (count + 1)
+    (primeSelectorScanCfg (RawUnaryNatList.segment count) [] output found)
+    afterLookahead (some beforeFinalize)
+    (by simpa [afterLookahead] using hsecond')
+    (by simpa [afterLookahead, beforeFinalize, unaryEncodeNat_length] using
+      hdiscard)
+  have hthird' : EvalsToInTime primeSelectorComputer.step
+      (primeSelectorScanCfg (RawUnaryNatList.segment count) [] output found)
+      (some beforeFinalize) (2 * count + 3) :=
+    evalsToInTimeMono hthird (by omega)
+  have hall := EvalsToInTime.trans primeSelectorComputer.step
+    (2 * count + 3) 1
+    (primeSelectorScanCfg (RawUnaryNatList.segment count) [] output found)
+    beforeFinalize
+    (some (haltList primeSelectorComputer
+      (unaryEncodeNat (selection.getD 2))))
+    (by simpa [beforeFinalize] using hthird')
+    (by simpa [beforeFinalize, output, found] using hfinal)
+  exact evalsToInTimeMono
+    (by simpa [output, found] using hall) (by omega)
+
+private theorem rawUnaryNatList_encode_eq_fields (candidates : List ℕ) :
+    RawUnaryNatList.encode candidates =
+      encodedUnaryCandidateFields candidates ++
+        RawUnaryNatList.segment candidates.length := by
+  simp [RawUnaryNatList.encode, RawUnaryNatList.payloads,
+    encodedUnaryCandidateFields, List.reverse_cons, List.flatMap_append]
+
+private theorem primeSelector_initList_eq_scanCfg (input : List Bool) :
+    initList primeSelectorComputer input =
+      primeSelectorScanCfg input [] [] false := by
+  unfold initList primeSelectorScanCfg primeSelectorCfg
+    primeSelectorComputer primeSelectorInitialState
+  congr 2
+  funext index
+  rcases index with outer | index
+  · cases outer <;> rfl
+  · rw [primeSelectorStackContents, candidatePrime_initList_empty_stacks]
+    rfl
+
+/-- The driver computes the first accepted unary candidate with a concrete
+stage-sensitive runtime bound. -/
+noncomputable def primeSelector_outputsInTime (candidates : List ℕ) :
+    TM2OutputsInTime primeSelectorComputer
+      (RawUnaryNatList.encode candidates)
+      (some (unaryEncodeNat (selectUnaryCandidatePrime candidates)))
+      (primeSelectorCandidatesTime candidates + 2 * candidates.length + 4) := by
+  let countInput := RawUnaryNatList.segment candidates.length
+  have hcountInput : countInput ≠ [] := by
+    simp [countInput, RawUnaryNatList.segment]
+  have hcandidates := primeSelector_candidates_evals
+    candidates countInput hcountInput
+  let selection := firstUnaryCandidatePrime? candidates
+  have hcount := primeSelector_count_evals candidates.length selection
+  have htrans := EvalsToInTime.trans primeSelectorComputer.step
+    (primeSelectorCandidatesTime candidates) (2 * candidates.length + 4)
+    (primeSelectorScanCfg (RawUnaryNatList.encode candidates) [] [] false)
+    (primeSelectorScanCfg countInput []
+      (encodePrimeSelection selection) (primeSelectionFound selection))
+    (some (haltList primeSelectorComputer
+      (unaryEncodeNat (selectUnaryCandidatePrime candidates))))
+    (by
+      rw [rawUnaryNatList_encode_eq_fields]
+      simpa [countInput, selection] using hcandidates)
+    (by simpa [countInput, selection, selectUnaryCandidatePrime] using hcount)
+  rw [TM2OutputsInTime, primeSelector_initList_eq_scanCfg]
+  simp only [Option.map_some]
+  exact evalsToInTimeMono htrans (by omega)
+
+private theorem nat_le_list_sum_of_mem {value : ℕ} {values : List ℕ}
+    (hvalue : value ∈ values) : value ≤ values.sum := by
+  induction values with
+  | nil => simp at hvalue
+  | cons head tail ih =>
+      rcases List.mem_cons.mp hvalue with rfl | htail
+      · simp
+      · have hle := ih htail
+        simp only [List.sum_cons]
+        omega
+
+private theorem encodePrimeSelection_firstUnaryCandidatePrime?_length_le
+    (candidates : List ℕ) (bound : ℕ)
+    (hbound : ∀ candidate ∈ candidates, candidate ≤ bound) :
+    (encodePrimeSelection
+      (firstUnaryCandidatePrime? candidates)).length ≤ bound := by
+  cases hselection : firstUnaryCandidatePrime? candidates with
+  | none => simp [encodePrimeSelection]
+  | some candidate =>
+      have hmem := firstUnaryCandidatePrime?_mem hselection
+      simpa [encodePrimeSelection, unaryEncodeNat_length] using
+        hbound candidate hmem
+
+private theorem primeSelectorCandidateTime_le
+    (candidate bound : ℕ) (selection : Option ℕ)
+    (hcandidate : candidate ≤ bound)
+    (hselection : (encodePrimeSelection selection).length ≤ bound) :
+    primeSelectorCandidateTime candidate selection ≤
+      70 * (bound + 1) ^ 2 := by
+  have hpow : (candidate + 1) ^ 2 ≤ (bound + 1) ^ 2 :=
+    Nat.pow_le_pow_left (by omega) 2
+  unfold primeSelectorCandidateTime
+  nlinarith
+
+private theorem primeSelectorCandidatesTime_le
+    (candidates : List ℕ) (bound : ℕ)
+    (hbound : ∀ candidate ∈ candidates, candidate ≤ bound) :
+    primeSelectorCandidatesTime candidates ≤
+      candidates.length * (70 * (bound + 1) ^ 2) := by
+  induction candidates with
+  | nil => simp [primeSelectorCandidatesTime]
+  | cons candidate candidates ih =>
+      have hcandidate : candidate ≤ bound :=
+        hbound candidate (List.mem_cons_self)
+      have htail : ∀ value ∈ candidates, value ≤ bound := by
+        intro value hvalue
+        exact hbound value (List.mem_cons_of_mem candidate hvalue)
+      have hselection :=
+        encodePrimeSelection_firstUnaryCandidatePrime?_length_le
+          candidates bound htail
+      have hstep := primeSelectorCandidateTime_le candidate bound
+        (firstUnaryCandidatePrime? candidates) hcandidate hselection
+      have hrest := ih htail
+      simp only [primeSelectorCandidatesTime, List.length_cons]
+      nlinarith
+
+private theorem primeSelectorTime_le_cubic (candidates : List ℕ) :
+    primeSelectorCandidatesTime candidates + 2 * candidates.length + 4 ≤
+      80 * ((RawUnaryNatList.encode candidates).length + 1) ^ 3 := by
+  let size := (RawUnaryNatList.encode candidates).length
+  have hsum : candidates.sum ≤ size := by
+    simp only [size, RawUnaryNatList.encode_length]
+    omega
+  have hlength : candidates.length ≤ size := by
+    simp only [size, RawUnaryNatList.encode_length]
+    omega
+  have hvalues : ∀ candidate ∈ candidates, candidate ≤ size := by
+    intro candidate hcandidate
+    exact (nat_le_list_sum_of_mem hcandidate).trans hsum
+  have hfields := primeSelectorCandidatesTime_le candidates size hvalues
+  have hfields' : primeSelectorCandidatesTime candidates ≤
+      size * (70 * (size + 1) ^ 2) :=
+    hfields.trans (Nat.mul_le_mul_right (70 * (size + 1) ^ 2) hlength)
+  have hone : 1 ≤ (size + 1) ^ 2 := by
+    exact Nat.one_le_pow' 2 size
+  calc
+    primeSelectorCandidatesTime candidates + 2 * candidates.length + 4
+        ≤ size * (70 * (size + 1) ^ 2) + 2 * size + 4 := by omega
+    _ ≤ 80 * (size + 1) ^ 3 := by
+      rw [show (size + 1) ^ 3 = (size + 1) * (size + 1) ^ 2 by ring]
+      nlinarith
+
+/-- Genuine polynomial time in the complete unary-list wire length for the
+first-survivor driver.  This is independent of the separate producer/runtime
+composition still needed by the full compiler. -/
+noncomputable def primeSelectorComputableInPolyTime :
+    @TM2ComputableInPolyTime (List ℕ) ℕ RawUnaryNatList.finEncoding
+      unaryFinEncodingNat selectUnaryCandidatePrime where
+  tm := primeSelectorComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := 80 * (Polynomial.X + 1) ^ 3
+  outputsFun candidates := by
+    have hrun := primeSelector_outputsInTime candidates
+    have hmono := evalsToInTimeMono hrun
+      (primeSelectorTime_le_cubic candidates)
+    simpa [RawUnaryNatList.finEncoding, unaryFinEncodingNat, Equiv.refl,
+      Polynomial.eval_mul, Polynomial.eval_pow, Polynomial.eval_add,
+      Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
+        hmono
+
+/-- On the checked Bertrand stream, the driver emits exactly the selected
+compiler prime. -/
+theorem primeSelector_selects_firstBertrandPrime (q : ℕ) :
+    selectUnaryCandidatePrime (bertrandCandidates q) =
+      firstBertrandPrime q :=
+  selectUnaryCandidatePrime_bertrandCandidates q
+
+
+
+
+
+
+
 #print axioms FramedNat.decode_encode
 #print axioms frame_outputsInTime
 #print axioms framedNatComputableInPolyTime
@@ -9848,5 +11257,9 @@ noncomputable def unaryCandidatePrimeComputableInPolyTime :
 #print axioms filter_unaryCandidatePrime_bertrandCandidates
 #print axioms unaryCandidatePrime_outputsInTime
 #print axioms unaryCandidatePrimeComputableInPolyTime
+#print axioms selectUnaryCandidatePrime_bertrandCandidates
+#print axioms primeSelector_outputsInTime
+#print axioms primeSelectorComputableInPolyTime
+#print axioms primeSelector_selects_firstBertrandPrime
 
 end PhdThesisLean.AllDifferentCSPMachine

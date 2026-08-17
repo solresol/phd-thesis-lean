@@ -46,9 +46,13 @@ control in at most `18s + 1` steps. A checked composition with the padded-pair
 generator computes the candidate-only primality bit in at most
 `64(n+1)^2` steps on unary `n`, with exact primality semantics for `n ≥ 2`.
 The generated Bertrand-stream invariant supplies that lower bound and proves
-the machine predicate induces exactly the guarded semantic filter. The
-finite-machine candidate filtering pass remains separate from these encoding
-and size results.
+the machine predicate induces exactly the guarded semantic filter. The checked
+`primeSelectorComputableInPolyTime` driver consumes the resulting
+`RawUnaryNatList`, tests each value field, and emits the first source-order
+survivor in polynomial time in the complete encoded stream length, with exact
+agreement with the semantic compiler prime on Bertrand inputs. Structural CSP
+production of the unary bound and whole-compiler composition remain separate
+from these encoding and size results.
 -/
 
 namespace BinaryNatLists

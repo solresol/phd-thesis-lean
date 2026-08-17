@@ -202,9 +202,15 @@ for `n ≥ 2`. `two_le_of_mem_bertrandCandidates` checks that every enumerated
 candidate meets this precondition, and
 `filter_unaryCandidatePrime_bertrandCandidates` proves that filtering the
 generated stream with the machine predicate yields exactly the guarded
-semantic prime-candidate list. CSP structural compilation, production of the
-unary bound, finite-machine candidate filtering/selection, and final
-whole-compiler composition remain.
+semantic prime-candidate list. `primeSelectorComputableInPolyTime` consumes
+any checked `RawUnaryNatList`, scans its reversed stack fields while
+overwriting on accepted candidates, and therefore emits the first accepted
+source-order value in at most `80(s+1)^3` steps for complete encoded stream
+length `s`. `primeSelector_selects_firstBertrandPrime` proves that on the
+generated Bertrand list this output is exactly `firstBertrandPrime`, hence
+`selectPrimeAbove`, including `q = 0,1`. CSP structural compilation,
+production of the unary bound, producer-selector runtime composition, and
+final whole-compiler assembly remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -368,11 +374,15 @@ The copied statements are grouped by mathematical contribution:
   `64(n+1)^2` steps on unary input;
   `filter_unaryCandidatePrime_bertrandCandidates` proves that this predicate
   induces exactly the guarded semantic filter on the enumerated stream, while
+  `primeSelectorComputableInPolyTime` selects the first source-order survivor
+  from the checked unary list in at most `80(s+1)^3` steps, and
+  `primeSelector_selects_firstBertrandPrime` identifies that output with
+  `firstBertrandPrime`;
   `firstBertrandPrime_eq_selectPrimeAbove` proves that filtering the enumerated
   interval and taking its first survivor agrees with the semantic compiler's
   selected prime. The complete compiler machine and its structural production
-  of unary bounds, finite-machine filtering/selection, and final composition
-  remain open;
+  of unary bounds, producer-selector runtime composition, and final
+  composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

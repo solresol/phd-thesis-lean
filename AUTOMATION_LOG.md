@@ -1397,3 +1397,75 @@
   it. Then compose that driver with `unaryBertrandCandidateComputer` and use
   `filter_unaryCandidatePrime_bertrandCandidates` plus
   `firstBertrandPrime_eq_selectPrimeAbove` for exact selected-prime semantics.
+
+## 2026-08-18 05:51:21 AEST — select the first prime from the unary stream
+
+- **Starting commit:** `1ba0e353b14547e7de2c568bda83f9060d858122` on
+  `main`. The checkout was clean; `git fetch --prune origin` confirmed
+  divergence count `0 0`, and local `HEAD`, `origin/main`, and the live remote
+  ref agreed, so no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of `cor:all-different-csp`,
+  this journal, and the existing unary producer/candidate-primality boundary.
+  The thesis checkout remains at
+  `5294a3754f4987514ed9f03e73658df37a684156` with unrelated user changes to
+  `.gitignore` and `todo.md`; neither was modified. The thesis proof still
+  requires a compiler-owned whole polynomial-time construction, so the
+  corollary remains **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  with its live remote at
+  `6a40461ad2c84a907d3d3bfd9e0324d30813b1c4`. It now has checked
+  function-level composition correctness, but still no generic polynomial
+  runtime composition theorem. The pinned dependency was therefore left
+  unchanged and the sibling repository was not edited.
+- **Chosen increment:** added the concrete `primeSelectorComputer`. The raw
+  unary encoding exposes value fields in reverse source order, so stopping at
+  the first physically encountered prime would select the wrong endpoint.
+  Instead, the driver tests every value with `unaryCandidatePrimeComputer` and
+  overwrites its saved unary value on acceptance; scanning largest to smallest
+  therefore leaves the first accepted source-order value. One-symbol
+  lookahead distinguishes the trailing count field, which is erased from both
+  the outer candidate stack and the embedded component input before the
+  canonical halt.
+- **Headline declarations:** `primeSelector_outputsInTime` proves exact output
+  for every checked `RawUnaryNatList`; `primeSelectorComputableInPolyTime`
+  packages the driver as a genuine `TM2ComputableInPolyTime` witness with
+  bound `80 * (s + 1)^3` in complete encoded stream length `s`.
+  `selectUnaryCandidatePrime_bertrandCandidates` and
+  `primeSelector_selects_firstBertrandPrime` identify the output on the
+  generated Bertrand list with `firstBertrandPrime`, hence with the already
+  checked semantic `selectPrimeAbove`, including `q = 0` and `q = 1`.
+- **Proof/API corrections:** the first control sketch attempted to halt on the
+  first physically read survivor, but inspection of
+  `RawUnaryNatList.encode` showed that stack order is reversed; overwrite-on-
+  acceptance restored the required least-prime semantics. The count cleanup
+  initially erased only the outer copy and could not reach `haltList`; the
+  final program erases the duplicated component input in lockstep. Dependent
+  stack updates required explicit extensional lemmas, and
+  `EvalsToInTime.trans` exposes bounds as `m₂ + m₁`, so intermediate runtime
+  witnesses were normalized with checked monotonicity lemmas. No placeholder
+  or project axiom remains.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  semantic selector, concrete finite machine, component lift, exact execution
+  proofs, cubic wire-length bound, polynomial witness, Bertrand bridge, and
+  axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the completed selector stage while retaining the
+  corollary's **Partial** status; this entry records the run.
+- **Verification succeeded:** targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3121 jobs);
+  `git diff --check`; and a project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  `selectUnaryCandidatePrime_bertrandCandidates`,
+  `primeSelector_outputsInTime`, `primeSelectorComputableInPolyTime`, and
+  `primeSelector_selects_firstBertrandPrime` report only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one source/status/log increment in this
+  repository, with the thesis checkout's unrelated work preserved.
+- **Best next step:** compose `unaryBertrandCandidateComputer` with
+  `primeSelectorComputer` and prove the combined unary-`q` machine emits
+  `selectPrimeAbove q` in polynomial time; then construct the structural CSP
+  pass that produces the unary distinct-symbol bound and assemble the full
+  compiler.
