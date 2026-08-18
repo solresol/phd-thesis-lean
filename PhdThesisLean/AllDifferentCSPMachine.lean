@@ -45,14 +45,15 @@ quadratic pair generator with that fused pass and computes the candidate-only
 primality bit in at most `64(n+1)^2` steps on unary input. The generated-stream
 invariant proves that every emitted candidate is at least two and that
 filtering with this machine predicate yields exactly the guarded semantic
-prime-candidate list. The executable trial-division specification below
-enumerates exactly the proper divisors and proves that its first survivor is
-the prime already selected by the semantic compiler.
+prime-candidate list. A first-survivor driver selects from the checked unary
+candidate stream, and a fourteenth machine composes that driver with the
+Bertrand producer. It emits `selectPrimeAbove q` from unary `q` in at most
+`1000(q+1)^6` steps, including the `q = 0,1` conventions.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, production of the
-unary distinct-symbol bound, finite-machine candidate filtering and selection,
-or final compiler assembly.
+unary distinct-symbol bound, objective-row emission, or final compiler
+assembly.
 -/
 
 namespace FramedNat
@@ -11197,6 +11198,432 @@ theorem primeSelector_selects_firstBertrandPrime (q : ℕ) :
       firstBertrandPrime q :=
   selectUnaryCandidatePrime_bertrandCandidates q
 
+/-! ## Compiler-selected prime composition
+
+The final prime-selection pass composes the native unary Bertrand producer
+with the checked first-survivor selector.  The intermediate stream is
+quadratic in the unary bound, so the selector's cubic wire-length bound gives
+a degree-six bound in that bound.  This remains separate from the structural
+CSP pass that must produce the unary distinct-symbol count.
+-/
+
+private def unaryBertrandCandidateAux :
+    TM2ComputableAux Bool Bool where
+  tm := unaryBertrandCandidateComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+
+private def primeSelectorAux :
+    TM2ComputableAux Bool Bool where
+  tm := primeSelectorComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+
+/-- Concrete sequential machine that chooses the compiler prime from a unary
+distinct-symbol bound. -/
+def selectedPrimeComputer : FinTM2 :=
+  { compositionMachine unaryBertrandCandidateAux primeSelectorAux with
+      initialState := rightState unaryBertrandCandidateAux primeSelectorAux
+        primeSelectorAux.tm.initialState }
+
+private def selectedPrimeStartCfg
+    (state : ControlState unaryBertrandCandidateAux primeSelectorAux)
+    (input : List Bool) : selectedPrimeComputer.Cfg where
+  l := some (leftLabel unaryBertrandCandidateAux primeSelectorAux .count)
+  var := state
+  stk := transferLeftStacks unaryBertrandCandidateAux primeSelectorAux
+    (unaryBertrandStackContents input [] [] [] [])
+
+private theorem selectedPrime_initList_eq_cfg (input : List Bool) :
+    initList selectedPrimeComputer input =
+      selectedPrimeStartCfg
+        (rightState unaryBertrandCandidateAux primeSelectorAux
+          primeSelectorAux.tm.initialState) input := by
+  unfold initList selectedPrimeComputer compositionMachine
+    selectedPrimeStartCfg unaryBertrandCandidateAux primeSelectorAux
+    unaryBertrandCandidateComputer primeSelectorComputer transferLeftStacks
+    unaryBertrandStackContents extendStacks leftStacks transferLeftIndex
+  congr 2
+  funext index
+  rcases index with (index | index)
+  · rcases index with (index | index)
+    · cases index <;> rfl
+    · rfl
+  · cases index
+    rfl
+
+private theorem selectedPrime_left_init_eq_cfg (input : List Bool) :
+    liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+        (liftLeftControlCfg unaryBertrandCandidateAux primeSelectorAux
+          (initList unaryBertrandCandidateAux.tm input)) =
+      selectedPrimeStartCfg
+        (leftState unaryBertrandCandidateAux primeSelectorAux
+          unaryBertrandCandidateAux.tm.initialState) input := by
+  simp only [unaryBertrandCandidateAux]
+  rw [unaryBertrand_initList_eq_cfg]
+  rfl
+
+private theorem selectedPrime_start_step (input : List Bool) :
+    selectedPrimeComputer.step
+        (selectedPrimeStartCfg
+          (rightState unaryBertrandCandidateAux primeSelectorAux
+            primeSelectorAux.tm.initialState) input) =
+      selectedPrimeComputer.step
+        (selectedPrimeStartCfg
+          (leftState unaryBertrandCandidateAux primeSelectorAux
+            unaryBertrandCandidateAux.tm.initialState) input) := by
+  cases input <;> rfl
+
+private theorem selectedPrime_init_step (input : List Bool) :
+    selectedPrimeComputer.step (initList selectedPrimeComputer input) =
+      selectedPrimeComputer.step
+        (liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+          (liftLeftControlCfg unaryBertrandCandidateAux primeSelectorAux
+            (initList unaryBertrandCandidateAux.tm input))) := by
+  rw [selectedPrime_initList_eq_cfg, selectedPrime_left_init_eq_cfg]
+  exact selectedPrime_start_step input
+
+private theorem selectedPrime_haltList_eq (output : List Bool) :
+    haltList selectedPrimeComputer output =
+      rightPhaseCfg unaryBertrandCandidateAux primeSelectorAux (fun _ => []) []
+        (haltList primeSelectorAux.tm output) := by
+  unfold selectedPrimeComputer compositionMachine haltList rightPhaseCfg
+    unaryBertrandCandidateAux primeSelectorAux unaryBertrandCandidateComputer
+    primeSelectorComputer
+  congr 2
+  funext index
+  rcases index with (index | index)
+  · rcases index with (index | index)
+    · cases index <;> simp [extendStacks, rightPhaseStacks,
+        transferRightIndex]
+      all_goals
+        intro h
+        cases h
+    · rcases index with (outer | component)
+      · cases outer <;> simp [extendStacks, rightPhaseStacks,
+          transferRightIndex]
+        all_goals
+          intro h
+          cases h
+      · simp [extendStacks, rightPhaseStacks, transferRightIndex]
+        intro h
+        cases h
+  · cases index
+    simp [extendStacks, transferRightIndex]
+
+private theorem selectedPrime_iterate_init
+    (steps : ℕ) (hsteps : 0 < steps) (input : List Bool) :
+    (flip Option.bind selectedPrimeComputer.step)^[steps]
+        (some (initList selectedPrimeComputer input)) =
+      (flip Option.bind selectedPrimeComputer.step)^[steps]
+        (some (liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+          (liftLeftControlCfg unaryBertrandCandidateAux primeSelectorAux
+            (initList unaryBertrandCandidateAux.tm input)))) := by
+  obtain ⟨remaining, rfl⟩ := Nat.exists_eq_succ_of_ne_zero
+    (Nat.ne_of_gt hsteps)
+  rw [Function.iterate_succ_apply]
+  change
+    (flip Option.bind selectedPrimeComputer.step)^[remaining]
+        (selectedPrimeComputer.step (initList selectedPrimeComputer input)) =
+      (flip Option.bind selectedPrimeComputer.step)^[remaining]
+        (selectedPrimeComputer.step
+          (liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+            (liftLeftControlCfg unaryBertrandCandidateAux primeSelectorAux
+              (initList unaryBertrandCandidateAux.tm input))))
+  rw [selectedPrime_init_step]
+
+private noncomputable def selectedPrime_generator_evals (q : ℕ) :
+    EvalsToInTime selectedPrimeComputer.step
+      (initList selectedPrimeComputer (unaryEncodeNat q))
+      (some (liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+        (leftTransferEntryCfg unaryBertrandCandidateAux primeSelectorAux
+          (haltList unaryBertrandCandidateAux.tm
+            (RawUnaryNatList.encode (bertrandCandidates q))).var
+          (haltList unaryBertrandCandidateAux.tm
+            (RawUnaryNatList.encode (bertrandCandidates q))).stk)))
+      (6 * (q + 1) ^ 2) := by
+  let output := RawUnaryNatList.encode (bertrandCandidates q)
+  have hgenerator : EvalsToInTime unaryBertrandCandidateAux.tm.step
+      (initList unaryBertrandCandidateAux.tm (unaryEncodeNat q))
+      (some (haltList unaryBertrandCandidateAux.tm output))
+      (6 * (q + 1) ^ 2) := by
+    simpa [unaryBertrandCandidateAux, output] using
+      unaryBertrandCandidate_outputsInTime q
+  have hpositive : 0 < hgenerator.steps := by
+    apply Nat.pos_of_ne_zero
+    intro hzero
+    have heq := hgenerator.evals_in_steps
+    rw [hzero, Function.iterate_zero_apply] at heq
+    injection heq with hcfg
+    have hlabels := congrArg
+      (fun cfg : unaryBertrandCandidateAux.tm.Cfg => cfg.l) hcfg
+    simp [initList, haltList] at hlabels
+  have hleftRun := compositionProgram_left_run_to_transfer
+    unaryBertrandCandidateAux primeSelectorAux hgenerator.steps
+    (initList unaryBertrandCandidateAux.tm (unaryEncodeNat q))
+    (haltList unaryBertrandCandidateAux.tm output)
+    unaryBertrandCandidateAux.tm.main [] rfl hgenerator.evals_in_steps rfl
+  refine
+    { steps := hgenerator.steps
+      evals_in_steps := ?_
+      steps_le_m := hgenerator.steps_le_m }
+  rw [show selectedPrimeComputer.step =
+      TM2.step (compositionProgram unaryBertrandCandidateAux primeSelectorAux) by
+    rfl]
+  calc
+    (flip Option.bind
+        (TM2.step
+          (compositionProgram unaryBertrandCandidateAux primeSelectorAux)))^[
+            hgenerator.steps]
+        (some (initList selectedPrimeComputer (unaryEncodeNat q))) =
+      (flip Option.bind selectedPrimeComputer.step)^[hgenerator.steps]
+        (some (liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+          (liftLeftControlCfg unaryBertrandCandidateAux primeSelectorAux
+            (initList unaryBertrandCandidateAux.tm
+              (unaryEncodeNat q))))) := by
+        exact selectedPrime_iterate_init hgenerator.steps hpositive _
+    _ = some (liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+        (leftTransferEntryCfg unaryBertrandCandidateAux primeSelectorAux
+          (haltList unaryBertrandCandidateAux.tm output).var
+          (haltList unaryBertrandCandidateAux.tm output).stk)) := hleftRun
+
+private def selectedPrimeRightContents (input : List Bool) :
+    (index : StackIndex unaryBertrandCandidateAux.tm primeSelectorAux.tm) →
+      List (StackAlphabet unaryBertrandCandidateAux.tm primeSelectorAux.tm
+        index) :=
+  rightStacks unaryBertrandCandidateAux.tm primeSelectorAux.tm
+    (initList primeSelectorAux.tm input).stk
+
+private theorem selectedPrime_rightEntryMachineCfg (input : List Bool) :
+    rightEntryMachineCfg unaryBertrandCandidateAux primeSelectorAux
+        (selectedPrimeRightContents input) =
+      initList primeSelectorAux.tm input := by
+  rfl
+
+private theorem selectedPrime_transferStart_eq (output : List Bool) :
+    liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+        (leftTransferEntryCfg unaryBertrandCandidateAux primeSelectorAux
+          (haltList unaryBertrandCandidateAux.tm output).var
+          (haltList unaryBertrandCandidateAux.tm output).stk) =
+      transferActionCfg unaryBertrandCandidateAux primeSelectorAux
+        (.phase .reverseOutput)
+        (leftState unaryBertrandCandidateAux primeSelectorAux
+          unaryBertrandCandidateAux.tm.initialState)
+        (Function.update
+          (Function.update (fun _ => []) (Sum.inr primeSelectorAux.tm.k₀) [])
+          (Sum.inl unaryBertrandCandidateAux.tm.k₁) output) [] := by
+  simp only [unaryBertrandCandidateAux]
+  rw [unaryBertrand_haltList_eq_cfg]
+  unfold liftScratchCfg leftTransferEntryCfg transferActionCfg
+    unaryBertrandCfg unaryBertrandStackContents primeSelectorAux
+    primeSelectorComputer leftStacks extendStacks
+  congr 2
+  funext index
+  rcases index with (index | index)
+  · rcases index with (index | index)
+    · cases index <;> rfl
+    · rcases index with (outer | component)
+      · cases outer <;> rfl
+      · rfl
+  · cases index
+    rfl
+
+private theorem selectedPrime_transferFinish_eq (output : List Bool) :
+    rightEntryCfg unaryBertrandCandidateAux primeSelectorAux
+        (selectedPrimeRightContents output) [] =
+      rightEntryCfg unaryBertrandCandidateAux primeSelectorAux
+        (Function.update
+          (Function.update (fun _ => [])
+            (Sum.inl unaryBertrandCandidateAux.tm.k₁) [])
+          (Sum.inr primeSelectorAux.tm.k₀)
+          (output.map (middleAlphabetEquiv unaryBertrandCandidateAux
+            primeSelectorAux) ++ [])) [] := by
+  congr 2
+  unfold selectedPrimeRightContents
+  unfold rightStacks middleAlphabetEquiv unaryBertrandCandidateAux
+    unaryBertrandCandidateComputer primeSelectorAux primeSelectorComputer
+  funext index
+  rcases index with (index | index)
+  · simp [Function.update]
+    intro h
+    cases h
+    rfl
+  · by_cases hindex : index = (Sum.inl PrimeSelectorOuterStack.input)
+    · subst index
+      simp [initList, Function.update]
+      induction output with
+      | nil => rfl
+      | cons head tail ih =>
+          simp only [List.map_cons]
+          exact congrArg (fun xs : List Bool => head :: xs) ih
+    · simp [initList, Function.update, hindex]
+      intro h
+      exact (hindex (Sum.inr.inj h)).elim
+
+private def selectedPrime_transfer_evals (q : ℕ) :
+    EvalsToInTime selectedPrimeComputer.step
+      (liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+        (leftTransferEntryCfg unaryBertrandCandidateAux primeSelectorAux
+          (haltList unaryBertrandCandidateAux.tm
+            (RawUnaryNatList.encode (bertrandCandidates q))).var
+          (haltList unaryBertrandCandidateAux.tm
+            (RawUnaryNatList.encode (bertrandCandidates q))).stk))
+      (some (rightEntryCfg unaryBertrandCandidateAux primeSelectorAux
+        (selectedPrimeRightContents
+          (RawUnaryNatList.encode (bertrandCandidates q))) []))
+      (4 * (RawUnaryNatList.encode (bertrandCandidates q)).length + 4) := by
+  let output := RawUnaryNatList.encode (bertrandCandidates q)
+  refine
+    { steps := 4 * output.length + 4
+      evals_in_steps := ?_
+      steps_le_m := Nat.le_refl _ }
+  rw [selectedPrime_transferStart_eq output,
+    selectedPrime_transferFinish_eq output]
+  exact compositionProgram_transfer_whole_list unaryBertrandCandidateAux
+    primeSelectorAux
+    (leftState unaryBertrandCandidateAux primeSelectorAux
+      unaryBertrandCandidateAux.tm.initialState)
+    (fun _ => []) output []
+
+private theorem selectedPrime_rightEntry_eq (input : List Bool) :
+    rightEntryCfg unaryBertrandCandidateAux primeSelectorAux
+        (selectedPrimeRightContents input) [] =
+      rightPhaseCfg unaryBertrandCandidateAux primeSelectorAux (fun _ => []) []
+        (initList primeSelectorAux.tm input) := by
+  rw [rightEntryCfg_eq_rightPhaseCfg,
+    selectedPrime_rightEntryMachineCfg]
+  congr 1
+
+private noncomputable def selectedPrime_second_evals (q : ℕ) :
+    EvalsToInTime selectedPrimeComputer.step
+      (rightEntryCfg unaryBertrandCandidateAux primeSelectorAux
+        (selectedPrimeRightContents
+          (RawUnaryNatList.encode (bertrandCandidates q))) [])
+      (some (haltList selectedPrimeComputer
+        (unaryEncodeNat (selectPrimeAbove q))))
+      (80 *
+        ((RawUnaryNatList.encode (bertrandCandidates q)).length + 1) ^ 3) := by
+  let input := RawUnaryNatList.encode (bertrandCandidates q)
+  let selected := selectUnaryCandidatePrime (bertrandCandidates q)
+  have hsecondExact : EvalsToInTime primeSelectorAux.tm.step
+      (initList primeSelectorAux.tm input)
+      (some (haltList primeSelectorAux.tm (unaryEncodeNat selected)))
+      (primeSelectorCandidatesTime (bertrandCandidates q) + 2 * q + 4) := by
+    simpa [primeSelectorAux, input, selected, bertrandCandidates_length] using
+      primeSelector_outputsInTime (bertrandCandidates q)
+  have hsecond : EvalsToInTime primeSelectorAux.tm.step
+      (initList primeSelectorAux.tm input)
+      (some (haltList primeSelectorAux.tm (unaryEncodeNat selected)))
+      (80 * (input.length + 1) ^ 3) :=
+    evalsToInTimeMono hsecondExact (by
+      simpa [input, bertrandCandidates_length] using
+        primeSelectorTime_le_cubic (bertrandCandidates q))
+  have hrightRun := compositionProgram_right_run unaryBertrandCandidateAux
+    primeSelectorAux hsecond.steps
+    (initList primeSelectorAux.tm input)
+    (haltList primeSelectorAux.tm (unaryEncodeNat selected))
+    (fun _ => []) [] hsecond.evals_in_steps
+  refine
+    { steps := hsecond.steps
+      evals_in_steps := ?_
+      steps_le_m := hsecond.steps_le_m }
+  rw [selectedPrime_rightEntry_eq]
+  change (flip Option.bind selectedPrimeComputer.step)^[hsecond.steps]
+      (some (rightPhaseCfg unaryBertrandCandidateAux primeSelectorAux
+        (fun _ => []) [] (initList primeSelectorAux.tm input))) =
+    some (haltList selectedPrimeComputer (unaryEncodeNat (selectPrimeAbove q)))
+  rw [selectedPrime_haltList_eq]
+  simpa [input, selected, primeSelector_selects_firstBertrandPrime,
+    firstBertrandPrime_eq_selectPrimeAbove] using hrightRun
+
+private theorem selectedPrimeTime_le_degreeSix (q : ℕ) :
+    (80 * ((RawUnaryNatList.encode (bertrandCandidates q)).length + 1) ^ 3) +
+        (4 * (RawUnaryNatList.encode (bertrandCandidates q)).length + 4 +
+          6 * (q + 1) ^ 2) ≤
+      1000 * (q + 1) ^ 6 := by
+  have hstream := unaryBertrandCandidateStream_length_le q
+  have hstream' :
+      (RawUnaryNatList.encode (bertrandCandidates q)).length + 1 ≤
+        2 * (q + 1) ^ 2 := by
+    nlinarith
+  have hcubic := Nat.pow_le_pow_left hstream' 3
+  have hlinear :
+      (RawUnaryNatList.encode (bertrandCandidates q)).length ≤
+        2 * (q + 1) ^ 2 := by
+    omega
+  calc
+    80 * ((RawUnaryNatList.encode (bertrandCandidates q)).length + 1) ^ 3 +
+          (4 * (RawUnaryNatList.encode (bertrandCandidates q)).length + 4 +
+            6 * (q + 1) ^ 2)
+        ≤ 80 * (2 * (q + 1) ^ 2) ^ 3 +
+          (4 * (2 * (q + 1) ^ 2) + 4 + 6 * (q + 1) ^ 2) := by
+            omega
+    _ ≤ 1000 * (q + 1) ^ 6 := by
+      rw [show (2 * (q + 1) ^ 2) ^ 3 = 8 * (q + 1) ^ 6 by ring]
+      have hqpow : (q + 1) ^ 2 ≤ (q + 1) ^ 6 :=
+        Nat.pow_le_pow_right (by omega) (by omega)
+      have hpone : 1 ≤ (q + 1) ^ 6 := Nat.one_le_pow' 6 q
+      have hrest :
+          4 * (2 * (q + 1) ^ 2) + 4 + 6 * (q + 1) ^ 2 ≤
+            18 * (q + 1) ^ 6 := by
+        calc
+          4 * (2 * (q + 1) ^ 2) + 4 + 6 * (q + 1) ^ 2 =
+              14 * (q + 1) ^ 2 + 4 := by ring
+          _ ≤ 14 * (q + 1) ^ 6 + 4 :=
+            Nat.add_le_add_right (Nat.mul_le_mul_left 14 hqpow) 4
+          _ ≤ 18 * (q + 1) ^ 6 := by omega
+      omega
+
+/-- The composed machine emits the compiler-selected prime in polynomial time
+from the unary distinct-symbol bound, including the explicit `q = 0, 1`
+conventions. -/
+noncomputable def selectedPrime_outputsInTime (q : ℕ) :
+    TM2OutputsInTime selectedPrimeComputer (unaryEncodeNat q)
+      (some (unaryEncodeNat (selectPrimeAbove q)))
+      (1000 * (q + 1) ^ 6) := by
+  let stream := RawUnaryNatList.encode (bertrandCandidates q)
+  have hgenerator := selectedPrime_generator_evals q
+  have htransfer := selectedPrime_transfer_evals q
+  have hsecond := selectedPrime_second_evals q
+  have hfirst := EvalsToInTime.trans selectedPrimeComputer.step
+    (6 * (q + 1) ^ 2) (4 * stream.length + 4)
+    (initList selectedPrimeComputer (unaryEncodeNat q))
+    (liftScratchCfg unaryBertrandCandidateAux primeSelectorAux []
+      (leftTransferEntryCfg unaryBertrandCandidateAux primeSelectorAux
+        (haltList unaryBertrandCandidateAux.tm stream).var
+        (haltList unaryBertrandCandidateAux.tm stream).stk))
+    (some (rightEntryCfg unaryBertrandCandidateAux primeSelectorAux
+      (selectedPrimeRightContents stream) []))
+    (by simpa [stream] using hgenerator)
+    (by simpa [stream] using htransfer)
+  have hall := EvalsToInTime.trans selectedPrimeComputer.step
+    (4 * stream.length + 4 + 6 * (q + 1) ^ 2)
+    (80 * (stream.length + 1) ^ 3)
+    (initList selectedPrimeComputer (unaryEncodeNat q))
+    (rightEntryCfg unaryBertrandCandidateAux primeSelectorAux
+      (selectedPrimeRightContents stream) [])
+    (some (haltList selectedPrimeComputer
+      (unaryEncodeNat (selectPrimeAbove q))))
+    (by simpa [Nat.add_comm] using hfirst)
+    (by simpa [stream] using hsecond)
+  exact evalsToInTimeMono (by simpa [stream] using hall)
+    (selectedPrimeTime_le_degreeSix q)
+
+/-- Genuine polynomial-time compiler-owned selection of the prime used by the
+p-adic objective. -/
+noncomputable def selectedPrimeComputableInPolyTime :
+    @TM2ComputableInPolyTime ℕ ℕ unaryFinEncodingNat
+      unaryFinEncodingNat selectPrimeAbove where
+  tm := selectedPrimeComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := 1000 * (Polynomial.X + 1) ^ 6
+  outputsFun q := by
+    simpa [unaryFinEncodingNat, Equiv.refl,
+      Polynomial.eval_mul, Polynomial.eval_pow, Polynomial.eval_add,
+      Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
+        selectedPrime_outputsInTime q
+
 
 
 
@@ -11261,5 +11688,7 @@ theorem primeSelector_selects_firstBertrandPrime (q : ℕ) :
 #print axioms primeSelector_outputsInTime
 #print axioms primeSelectorComputableInPolyTime
 #print axioms primeSelector_selects_firstBertrandPrime
+#print axioms selectedPrime_outputsInTime
+#print axioms selectedPrimeComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine

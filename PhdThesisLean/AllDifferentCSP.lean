@@ -66,9 +66,11 @@ exactly the guarded semantic prime-candidate list. The checked
 runs the candidate-primality component once per value field, and emits the
 first source-order survivor in polynomial time in the complete stream length;
 on the Bertrand stream it is exactly `selectPrimeAbove`, including the empty
-`q = 0` convention. The remaining work is to construct CSP structural
-compilation and its unary bound, compose the producer and selector runtimes,
-and assemble the full compiler's genuine polynomial-runtime theorem.
+`q = 0` convention. `selectedPrimeComputableInPolyTime` composes the producer
+and selector into one unary-`q` machine for `selectPrimeAbove`, bounded by
+`1000(q+1)^6` steps. The remaining work is to construct CSP structural
+compilation and its unary bound, emit the encoded objective, and assemble the
+full compiler's genuine polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -141,9 +143,9 @@ theorem primeCandidates_nonempty {q : ℕ} (hq : q ≠ 0) :
 /-- The prime selected by the explicit compiler.
 
 At `q = 0` the selector returns `2`. At positive `q` it scans the Bertrand
-interval and returns its least prime. The definition is executable; a
-bit-level polynomial-time theorem for this scan remains a separate compiler
-obligation. -/
+interval and returns its least prime. The separate machine module proves a
+polynomial-time unary-bound implementation; producing that unary bound from
+the explicit CSP remains a compiler obligation. -/
 def selectPrimeAbove (q : ℕ) : ℕ :=
   if hq : q = 0 then
     2
@@ -1135,9 +1137,11 @@ theorem suppliedPrime_allDifferent_correctness
 /-- Exact minimum-conflict semantics after composing the executable
 compiler-selected prime with the supplied-prime p-adic stage.
 
-This closes prime selection for the semantic compiler. Finite output encoding,
-bit-size bounds, and a machine-level polynomial-time theorem remain separate
-obligations before `cor:all-different-csp` is complete. -/
+This closes prime selection for the semantic compiler. The encoding and
+machine modules separately check finite output size and unary-bound prime
+selection; structural CSP compilation, unary-bound production, encoded
+objective emission, and final runtime composition remain before
+`cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness
     {n : ℕ} (C : ExplicitSystem n) (hC : C.WellFormed) :
     letI : Fact C.compilerPrime.Prime := ⟨C.compilerPrime_prime⟩

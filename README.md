@@ -208,9 +208,11 @@ overwriting on accepted candidates, and therefore emits the first accepted
 source-order value in at most `80(s+1)^3` steps for complete encoded stream
 length `s`. `primeSelector_selects_firstBertrandPrime` proves that on the
 generated Bertrand list this output is exactly `firstBertrandPrime`, hence
-`selectPrimeAbove`, including `q = 0,1`. CSP structural compilation,
-production of the unary bound, producer-selector runtime composition, and
-final whole-compiler assembly remain.
+`selectPrimeAbove`, including `q = 0,1`.
+`selectedPrimeComputableInPolyTime` composes the unary Bertrand producer with
+that selector and emits `selectPrimeAbove q` from unary `q` in at most
+`1000(q+1)^6` steps. CSP structural compilation, production of the unary
+bound, encoded objective emission, and final whole-compiler assembly remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -380,9 +382,10 @@ The copied statements are grouped by mathematical contribution:
   `firstBertrandPrime`;
   `firstBertrandPrime_eq_selectPrimeAbove` proves that filtering the enumerated
   interval and taking its first survivor agrees with the semantic compiler's
-  selected prime. The complete compiler machine and its structural production
-  of unary bounds, producer-selector runtime composition, and final
-  composition remain open;
+  selected prime, and `selectedPrimeComputableInPolyTime` composes the unary
+  producer and selector into a degree-six machine for `selectPrimeAbove`. The
+  complete compiler machine and its structural production of the unary bound,
+  encoded objective rows, and final composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

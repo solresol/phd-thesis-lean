@@ -1469,3 +1469,71 @@
   `selectPrimeAbove q` in polynomial time; then construct the structural CSP
   pass that produces the unary distinct-symbol bound and assemble the full
   compiler.
+
+## 2026-08-19 05:32:53 AEST — compose compiler-owned prime selection
+
+- **Starting commit:** `8c4e5b8173ca4cd229883cd8e92c66af396c32bf` on
+  `main`. The checkout was clean; `git fetch --prune origin` confirmed
+  divergence count `0 0`, and local `HEAD`, `origin/main`, and the live remote
+  ref agreed, so no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of `cor:all-different-csp`,
+  this journal, and the unary producer/selector boundary. The thesis checkout
+  remains at `5294a3754f4987514ed9f03e73658df37a684156` with unrelated user
+  changes to `.gitignore` and `todo.md`; neither was modified. The corollary
+  remains **Partial** because no machine yet constructs the structural bound
+  or emits the complete encoded objective from a runtime CSP.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  with its live remote at
+  `020763e0a494befbe2e032580945e31c57c6b6ef`. It now proves an output-length
+  consequence for polynomial-time machines, but still does not supply generic
+  polynomial-runtime composition. The project therefore retained its pinned
+  dependency `367ff9dac248488d7a7f454d41c36c0b02a7f6c6` and reused that version's
+  exact left-run, order-preserving transfer, and right-run APIs; the sibling
+  repository was not edited.
+- **Chosen increment:** added `selectedPrimeComputer`, the concrete sequential
+  composition of `unaryBertrandCandidateComputer` and
+  `primeSelectorComputer`. It consumes unary `q`, generates the complete
+  checked unary Bertrand stream, transfers it in source order, runs the
+  first-survivor selector, and emits exactly `selectPrimeAbove q`, including
+  the explicit `q = 0,1` conventions.
+- **Headline declarations:** `selectedPrime_outputsInTime` proves the exact
+  selected-prime output in at most `1000 * (q + 1)^6` steps. The bound combines
+  the quadratic producer/stream-size theorem with the selector's cubic bound
+  in complete stream length. `selectedPrimeComputableInPolyTime` packages the
+  composed finite machine as a genuine `TM2ComputableInPolyTime` witness from
+  unary naturals to unary naturals.
+- **Failed proof shapes supplied useful corrections:** directly unfolding the
+  selector's nested component stacks left dependent `Function.update` casts;
+  splitting only on the canonical input-stack index and unfolding `initList`
+  resolved them without a component-specific axiom. The first low-order
+  runtime estimate incorrectly tried to bound `14t + 4` by `14t^3`; retaining
+  the constant term gives the checked `18t^3` bound and leaves ample room in
+  the stated coefficient `1000`. Intermediate unresolved goals appeared as
+  `sorryAx` in the audit output, and the final successful audit confirms that
+  dependency is absent.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  component auxiliaries, concrete composed machine, exact three-stage
+  simulations, degree-six runtime proof, polynomial witness, and axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` now record that producer-selector runtime composition is
+  complete while preserving the corollary's **Partial** status; this entry
+  records the run.
+- **Verification succeeded:** targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3121 jobs);
+  `git diff --check`; and a project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  `selectedPrime_outputsInTime` and
+  `selectedPrimeComputableInPolyTime` report only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one coherent verified source, status, and log
+  increment, with no unrelated user changes present in this repository.
+- **Best next step:** define a runtime structural scan bound from the explicit
+  domain occurrence stream, prove `symbolCount` is at most that unary bound
+  and the bound is at most the encoded CSP length, then compose
+  `selectedPrimeComputer` with that producer. This can select a prime above a
+  checked upper bound without requiring the machine to deduplicate symbols;
+  the supplied-prime semantic theorem already needs only `symbolCount < p`.

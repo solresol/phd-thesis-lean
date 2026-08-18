@@ -50,9 +50,11 @@ the machine predicate induces exactly the guarded semantic filter. The checked
 `primeSelectorComputableInPolyTime` driver consumes the resulting
 `RawUnaryNatList`, tests each value field, and emits the first source-order
 survivor in polynomial time in the complete encoded stream length, with exact
-agreement with the semantic compiler prime on Bertrand inputs. Structural CSP
-production of the unary bound and whole-compiler composition remain separate
-from these encoding and size results.
+agreement with the semantic compiler prime on Bertrand inputs. The checked
+`selectedPrimeComputableInPolyTime` composition maps unary `q` directly to
+`selectPrimeAbove q` in at most `1000(q+1)^6` steps. Structural CSP production
+of that unary bound, encoded objective emission, and whole-compiler composition
+remain separate from these encoding and size results.
 -/
 
 namespace BinaryNatLists
