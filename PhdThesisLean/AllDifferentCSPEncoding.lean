@@ -52,9 +52,12 @@ the machine predicate induces exactly the guarded semantic filter. The checked
 survivor in polynomial time in the complete encoded stream length, with exact
 agreement with the semantic compiler prime on Bertrand inputs. The checked
 `selectedPrimeComputableInPolyTime` composition maps unary `q` directly to
-`selectPrimeAbove q` in at most `1000(q+1)^6` steps. Structural CSP production
-of that unary bound, encoded objective emission, and whole-compiler composition
-remain separate from these encoding and size results.
+`selectPrimeAbove q` in at most `1000(q+1)^6` steps. The runtime compiler uses
+the explicit domain-entry count as `q`: it bounds the distinct-symbol count,
+is at most the encoded input length, and yields an objective with the same
+exact minimizer semantics and quartic encoded-size bound. Structural production
+of that unary occurrence count, encoded objective emission, and whole-compiler
+composition remain separate from these encoding and size results.
 -/
 
 namespace BinaryNatLists
@@ -453,6 +456,26 @@ deduplication. -/
 def domainEntryCount (C : RuntimeSystem) : ℕ :=
   (C.domains.map List.length).sum
 
+/-- A compiler-owned prime selected above the number of explicitly supplied
+domain entries.  This count is an input-length-bounded upper bound for the
+number of distinct domain symbols, so the runtime compiler need not
+deduplicate arbitrary symbol values before prime selection. -/
+def domainEntryPrime (C : RuntimeSystem) : ℕ :=
+  ExplicitSystem.selectPrimeAbove C.domainEntryCount
+
+theorem domainEntryPrime_prime (C : RuntimeSystem) :
+    C.domainEntryPrime.Prime :=
+  ExplicitSystem.selectPrimeAbove_prime C.domainEntryCount
+
+theorem domainEntryCount_lt_domainEntryPrime (C : RuntimeSystem) :
+    C.domainEntryCount < C.domainEntryPrime :=
+  ExplicitSystem.lt_selectPrimeAbove C.domainEntryCount
+
+theorem domainEntryPrime_lt_two_mul (C : RuntimeSystem)
+    (hcount : 1 < C.domainEntryCount) :
+    C.domainEntryPrime < 2 * C.domainEntryCount :=
+  ExplicitSystem.selectPrimeAbove_lt_two_mul hcount
+
 /-- Number of explicitly supplied scope entries, before finite-set
 deduplication. -/
 def scopeEntryCount (C : RuntimeSystem) : ℕ :=
@@ -596,6 +619,14 @@ compiler's finite indices after compilation. -/
 def compile (C : RuntimeSystem) : RuntimeObjective :=
   RuntimeObjective.ofCompiled C.toExplicitSystem.compileObjective
 
+/-- Runtime output whose prime is chosen above the explicit domain-entry
+count.  Its sparse residual rows are exactly the canonical relabelled and
+deduplicated rows of `compile`; only the prime header uses the easier
+machine-produced upper bound. -/
+def compileUsingDomainEntryBound (C : RuntimeSystem) : RuntimeObjective :=
+  RuntimeObjective.ofCompiled
+    (C.toExplicitSystem.compileObjectiveAt C.domainEntryPrime)
+
 @[simp]
 theorem compile_variableCount (C : RuntimeSystem) :
     (compile C).variableCount = C.domains.length :=
@@ -604,6 +635,21 @@ theorem compile_variableCount (C : RuntimeSystem) :
 @[simp]
 theorem compile_prime (C : RuntimeSystem) :
     (compile C).prime = C.toExplicitSystem.compilerPrime :=
+  rfl
+
+@[simp]
+theorem compileUsingDomainEntryBound_variableCount (C : RuntimeSystem) :
+    (compileUsingDomainEntryBound C).variableCount = C.domains.length :=
+  rfl
+
+@[simp]
+theorem compileUsingDomainEntryBound_prime (C : RuntimeSystem) :
+    (compileUsingDomainEntryBound C).prime = C.domainEntryPrime :=
+  rfl
+
+@[simp]
+theorem compileUsingDomainEntryBound_rows (C : RuntimeSystem) :
+    (compileUsingDomainEntryBound C).rows = (compile C).rows :=
   rfl
 
 @[simp]
@@ -621,6 +667,63 @@ private theorem sum_toFinset_card_le_sum_length :
       simpa [Fin.sum_univ_succ] using
         Nat.add_le_add (List.toFinset_card_le domain)
           (sum_toFinset_card_le_sum_length domains)
+
+/-- The distinct-symbol count of the dependent semantic system is bounded by
+the number of domain occurrences visible in the runtime input stream. -/
+theorem RuntimeSystem.symbolCount_le_domainEntryCount (C : RuntimeSystem) :
+    C.toExplicitSystem.symbolCount ≤ C.domainEntryCount := by
+  calc
+    C.toExplicitSystem.symbolCount ≤
+        ∑ i, (C.toExplicitSystem.domains i).card :=
+      C.toExplicitSystem.symbolCount_le_sum_domain_card
+    _ ≤ C.domainEntryCount := by
+      simpa [RuntimeSystem.toExplicitSystem,
+        RuntimeSystem.domainEntryCount] using
+        sum_toFinset_card_le_sum_length C.domains
+
+theorem RuntimeSystem.symbolCount_lt_domainEntryPrime (C : RuntimeSystem) :
+    C.toExplicitSystem.symbolCount < C.domainEntryPrime :=
+  C.symbolCount_le_domainEntryCount.trans_lt
+    C.domainEntryCount_lt_domainEntryPrime
+
+/-- Exact minimum-conflict semantics for the runtime compiler's
+domain-entry-bound prime and canonical dependent row list. -/
+theorem compileUsingDomainEntryBound_allDifferent_correctness
+    (C : RuntimeSystem) (hC : C.WellFormed) :
+    letI : Fact C.domainEntryPrime.Prime := ⟨C.domainEntryPrime_prime⟩
+    (∃ z, PhdThesisLean.AllDifferent.IsGlobalMin
+      (ExplicitSystem.rowsLoss (p := C.domainEntryPrime)
+        (C.toExplicitSystem.compileObjectiveAt C.domainEntryPrime).rows) z) ∧
+    ∀ z, PhdThesisLean.AllDifferent.IsGlobalMin
+        (ExplicitSystem.rowsLoss (p := C.domainEntryPrime)
+          (C.toExplicitSystem.compileObjectiveAt C.domainEntryPrime).rows) z ↔
+      ∃ x, C.toExplicitSystem.MinimizesConflicts x ∧
+        C.toExplicitSystem.padicAssignment (p := C.domainEntryPrime) x = z := by
+  letI : Fact C.domainEntryPrime.Prime := ⟨C.domainEntryPrime_prime⟩
+  exact C.toExplicitSystem.compileObjectiveAt_allDifferent_correctness
+    (C.toExplicitSystem_wellFormed hC) C.symbolCount_lt_domainEntryPrime
+
+/-- In the satisfiable case, the same domain-entry-bound output has exactly
+the embedded satisfying assignments as global minimizers. -/
+theorem compileUsingDomainEntryBound_globalMin_iff_satisfies_of_satisfiable
+    (C : RuntimeSystem) (hC : C.WellFormed)
+    (hsat : ∃ x, C.toExplicitSystem.Satisfies x) :
+    letI : Fact C.domainEntryPrime.Prime := ⟨C.domainEntryPrime_prime⟩
+    ∀ z : PhdThesisLean.FiniteDomainCompiler.Parameter
+        C.domainEntryPrime C.domains.length,
+      PhdThesisLean.AllDifferent.IsGlobalMin
+          (ExplicitSystem.rowsLoss (p := C.domainEntryPrime)
+            (C.toExplicitSystem.compileObjectiveAt
+              C.domainEntryPrime).rows) z ↔
+        ∃ x, C.toExplicitSystem.Satisfies x ∧
+          C.toExplicitSystem.padicAssignment
+            (p := C.domainEntryPrime) x = z := by
+  letI : Fact C.domainEntryPrime.Prime := ⟨C.domainEntryPrime_prime⟩
+  intro z
+  exact C.toExplicitSystem
+    |>.compileObjectiveAt_globalMin_iff_satisfies_of_satisfiable
+      (C.toExplicitSystem_wellFormed hC) C.symbolCount_lt_domainEntryPrime
+      hsat z
 
 private theorem pinningRow_fields_le {n : ℕ}
     (C : ExplicitSystem n) (index : Fin n) (target weight : ℕ)
@@ -673,15 +776,8 @@ private theorem compiledRow_fields_le {n : ℕ}
 
 private theorem symbolCount_le_encodedSize (C : RuntimeSystem) :
     C.toExplicitSystem.symbolCount ≤ C.encodedSize := by
-  calc
-    C.toExplicitSystem.symbolCount ≤
-        ∑ i, (C.toExplicitSystem.domains i).card :=
-      C.toExplicitSystem.symbolCount_le_sum_domain_card
-    _ ≤ C.domainEntryCount := by
-      simpa [RuntimeSystem.toExplicitSystem,
-        RuntimeSystem.domainEntryCount] using
-        sum_toFinset_card_le_sum_length C.domains
-    _ ≤ C.encodedSize := C.domainEntryCount_le_encodedSize
+  exact C.symbolCount_le_domainEntryCount.trans
+    C.domainEntryCount_le_encodedSize
 
 private theorem compile_prime_le_fieldBound (C : RuntimeSystem) :
     (compile C).prime ≤ 2 * (C.encodedSize + 1) ^ 2 := by
@@ -846,13 +942,115 @@ theorem compile_encodedSize_le_quartic (C : RuntimeSystem) :
     nlinarith
   simpa [square, ← pow_mul] using hbound
 
+private theorem compileUsingDomainEntryBound_prime_le_fieldBound
+    (C : RuntimeSystem) :
+    (compileUsingDomainEntryBound C).prime ≤
+      2 * (C.encodedSize + 1) ^ 2 := by
+  rw [compileUsingDomainEntryBound_prime]
+  by_cases hcount : C.domainEntryCount = 0
+  · rw [RuntimeSystem.domainEntryPrime, hcount,
+      ExplicitSystem.selectPrimeAbove_zero]
+    have hk2 : 1 ≤ (C.encodedSize + 1) ^ 2 :=
+      Nat.one_le_pow' 2 C.encodedSize
+    simpa using Nat.mul_le_mul_left 2 hk2
+  · calc
+      C.domainEntryPrime =
+          ExplicitSystem.selectPrimeAbove C.domainEntryCount := rfl
+      _ ≤ 2 * C.domainEntryCount :=
+        ExplicitSystem.selectPrimeAbove_le_two_mul hcount
+      _ ≤ 2 * C.encodedSize :=
+        Nat.mul_le_mul_left 2 C.domainEntryCount_le_encodedSize
+      _ ≤ 2 * (C.encodedSize + 1) ^ 2 := by nlinarith
+
+private theorem compileUsingDomainEntryBound_toNatLists_inner_length_le_four
+    (C : RuntimeSystem) (code : List ℕ)
+    (hcode : code ∈ (compileUsingDomainEntryBound C).toNatLists) :
+    code.length ≤ 4 := by
+  simp only [RuntimeObjective.toNatLists, List.mem_cons,
+    List.mem_map] at hcode
+  rcases hcode with rfl | ⟨row, _hrow, rfl⟩
+  · simp
+  · cases row <;> simp [RuntimeResidualRow.toNatList]
+
+private theorem compileUsingDomainEntryBound_toNatLists_entry_le_fieldBound
+    (C : RuntimeSystem) (code : List ℕ)
+    (hcode : code ∈ (compileUsingDomainEntryBound C).toNatLists)
+    (entry : ℕ) (hentry : entry ∈ code) :
+    entry ≤ 2 * (C.encodedSize + 1) ^ 2 := by
+  simp only [RuntimeObjective.toNatLists, List.mem_cons,
+    List.mem_map] at hcode
+  rcases hcode with rfl | ⟨row, hrow, rfl⟩
+  · simp only [List.mem_cons, List.not_mem_nil, or_false] at hentry
+    rcases hentry with rfl | rfl
+    · rw [compileUsingDomainEntryBound_variableCount]
+      have hn := C.variableCount_le_encodedSize
+      nlinarith
+    · exact compileUsingDomainEntryBound_prime_le_fieldBound C
+  · apply compile_row_entry_le_fieldBound C row
+    · simpa only [compileUsingDomainEntryBound_rows] using hrow
+    · exact hentry
+
+private theorem compileUsingDomainEntryBound_toNatLists_length_le
+    (C : RuntimeSystem) :
+    (compileUsingDomainEntryBound C).toNatLists.length ≤
+      (C.encodedSize + 1) ^ 2 := by
+  have hrows := compile_rows_length_le_encodedSize_polynomial C
+  simp only [RuntimeObjective.toNatLists, List.length_cons, List.length_map,
+    compileUsingDomainEntryBound_rows]
+  nlinarith
+
+/-- The domain-entry-bound runtime compiler has the same complete quartic
+encoded-output bound as the exact-distinct-symbol compiler.  The proof counts
+every numeric field and delimiter; it is not a machine-runtime theorem. -/
+theorem compileUsingDomainEntryBound_encodedSize_le_quartic
+    (C : RuntimeSystem) :
+    (compileUsingDomainEntryBound C).encodedSize ≤
+      64 * (C.encodedSize + 1) ^ 4 := by
+  rw [(compileUsingDomainEntryBound C).encodedSize_eq_wireSize]
+  let countBound := (C.encodedSize + 1) ^ 2
+  let fieldBound := 2 * countBound
+  have hwire := BinaryNatLists.wireSize_le
+    (compileUsingDomainEntryBound C).toNatLists fieldBound
+    (compileUsingDomainEntryBound_toNatLists_inner_length_le_four C)
+    (compileUsingDomainEntryBound_toNatLists_entry_le_fieldBound C)
+  have hlength := compileUsingDomainEntryBound_toNatLists_length_le C
+  have hpolynomial :
+      BinaryNatLists.wireSize
+          (compileUsingDomainEntryBound C).toNatLists ≤
+        (2 * countBound + 1) +
+          countBound * (16 * (fieldBound + 1)) := by
+    calc
+      BinaryNatLists.wireSize
+            (compileUsingDomainEntryBound C).toNatLists ≤
+          (2 * (compileUsingDomainEntryBound C).toNatLists.length + 1) +
+            (compileUsingDomainEntryBound C).toNatLists.length *
+              (16 * (fieldBound + 1)) := hwire
+      _ ≤ (2 * countBound + 1) +
+          countBound * (16 * (fieldBound + 1)) := by
+        exact Nat.add_le_add
+          (Nat.add_le_add_right (Nat.mul_le_mul_left 2 hlength) 1)
+          (Nat.mul_le_mul_right (16 * (fieldBound + 1)) hlength)
+  apply hpolynomial.trans
+  let square := (C.encodedSize + 1) ^ 2
+  have hsquare : 1 ≤ square := Nat.one_le_pow' 2 C.encodedSize
+  have hbound :
+      (2 * square + 1) + square * (16 * (2 * square + 1)) ≤
+        64 * square ^ 2 := by
+    nlinarith
+  simpa [countBound, fieldBound, square, ← pow_mul] using hbound
+
 #print axioms BinaryNatLists.decode_encode
 #print axioms RuntimeSystem.toExplicitSystem_wellFormed
 #print axioms RuntimeSystem.ofNatLists_toNatLists
 #print axioms RuntimeSystem.encodedSize_eq_wireSize
+#print axioms RuntimeSystem.symbolCount_le_domainEntryCount
+#print axioms RuntimeSystem.symbolCount_lt_domainEntryPrime
 #print axioms RuntimeObjective.ofNatLists_toNatLists
 #print axioms RuntimeObjective.encodedSize_eq_wireSize
+#print axioms compileUsingDomainEntryBound_allDifferent_correctness
+#print axioms compileUsingDomainEntryBound_globalMin_iff_satisfies_of_satisfiable
 #print axioms compile_rows_length_le_encodedSize_polynomial
 #print axioms compile_encodedSize_le_quartic
+#print axioms compileUsingDomainEntryBound_encodedSize_le_quartic
 
 end PhdThesisLean.AllDifferentCSPEncoding

@@ -1537,3 +1537,77 @@
   `selectedPrimeComputer` with that producer. This can select a prime above a
   checked upper bound without requiring the machine to deduplicate symbols;
   the supplied-prime semantic theorem already needs only `symbolCount < p`.
+
+## 2026-08-20 05:30:24 AEST — select the runtime prime above domain occurrences
+
+- **Starting commit:** `3ac912068688fb3ad70492806875c7229155bc3a` on
+  `main`. The checkout was clean at the start; `git fetch --prune origin`
+  confirmed divergence count `0 0`, and the live remote ref matched, so no
+  fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of
+  `cor:all-different-csp`, this journal, and the current encoding/machine
+  boundary. The thesis checkout remains at
+  `5294a3754f4987514ed9f03e73658df37a684156` with unrelated user changes to
+  `.gitignore` and `todo.md`; neither was changed. The corollary remains
+  **Partial** because structural row emission and a whole-compiler machine are
+  still absent.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  with its live remote at
+  `527e16c1d0b5616a3e388c907a12added116806a`. Its new
+  `MachineComposition.compositionComputableInPolyTime` theorem supplies the
+  generic polynomial-time sequential composition previously missing. This
+  project remains pinned at `367ff9dac248488d7a7f454d41c36c0b02a7f6c6`;
+  the dependency was not changed because this increment did not yet compose a
+  new machine, and the sibling repository was not edited.
+- **Chosen increment:** aligned the semantic runtime compiler with an easily
+  machine-produced upper bound. `RuntimeSystem.domainEntryPrime` selects a
+  prime above the explicit domain-entry count. The checked chain
+  `symbolCount_le_domainEntryCount` and
+  `symbolCount_lt_domainEntryPrime` proves that this prime is large enough for
+  canonical ranks without deduplicating arbitrary input symbols; the existing
+  `domainEntryCount_le_encodedSize` theorem keeps the unary bound within the
+  actual input length, including empty and singleton cases.
+- **Headline declarations:** `ExplicitSystem.compileObjectiveAt` places the
+  prime-independent canonical row list under any checked prime header.
+  `compileObjectiveAt_allDifferent_correctness` and its satisfiable
+  specialization transfer the exact supplied-prime semantics to that finite
+  output. `compileUsingDomainEntryBound` erases the dependent output to the
+  runtime encoding;
+  `compileUsingDomainEntryBound_allDifferent_correctness` and
+  `compileUsingDomainEntryBound_globalMin_iff_satisfies_of_satisfiable` prove
+  exact minimum-conflict and satisfiable-case semantics at the new compiler
+  prime. `compileUsingDomainEntryBound_encodedSize_le_quartic` proves the full
+  encoded output, including its larger prime header and every delimiter,
+  remains at most `64 * (s + 1)^4` bits.
+- **Proof/API corrections:** an initial theorem statement indexed the p-adic
+  parameter type by `(C.compileObjectiveAt p).prime`; elaboration could not
+  synthesize `Fact (C.compileObjectiveAt p).prime.Prime` before reducing that
+  projection. Stating the semantic theorem over `p` and separately proving
+  `compileObjectiveAt_prime` preserves the exact header claim and resolves the
+  typeclass boundary. The first downstream direct-Lean check also saw the old
+  imported `.olean`; rebuilding `PhdThesisLean.AllDifferentCSP` through Lake
+  exposed the new API. No placeholder or project axiom remains.
+- **Files changed:** `PhdThesisLean/AllDifferentCSP.lean` adds the arbitrary-
+  prime finite-output interface and semantic theorems.
+  `PhdThesisLean/AllDifferentCSPEncoding.lean` adds the domain-entry-bound
+  prime, runtime output, exact semantics, and complete quartic bound.
+  `PhdThesisLean/AllDifferentCSPMachine.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the shortened structural target while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** targeted `lake build
+  PhdThesisLean.AllDifferentCSP PhdThesisLean.AllDifferentCSPEncoding`; full
+  `lake build` (3121 jobs); `git diff --check`; and a project Lean-source scan
+  for `sorry`, `admit`, project `axiom`, `unsafe`, and `proof_wanted`. New
+  `#print axioms` audits report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- **Ending state before commit:** one coherent verified source, status, and log
+  increment, with the thesis checkout's unrelated work preserved.
+- **Best next step:** build a finite-machine pass from
+  `RuntimeSystem.finEncoding` to unary `domainEntryCount`, using the existing
+  raw nested-list traversal to count only domain value occurrences. Then pin
+  and use the sibling's checked generic polynomial-time composition API to
+  feed that result to `selectedPrimeComputableInPolyTime`, before implementing
+  canonical row emission.

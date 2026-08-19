@@ -52,7 +52,7 @@ Bertrand producer. It emits `selectPrimeAbove q` from unary `q` in at most
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, production of the
-unary distinct-symbol bound, objective-row emission, or final compiler
+unary domain-entry bound, objective-row emission, or final compiler
 assembly.
 -/
 

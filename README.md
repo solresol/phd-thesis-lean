@@ -138,7 +138,14 @@ literal binary alphabet `Bool`, exact wire-length formulae, and a quadratic
 bound on emitted sparse rows in the actual encoded input length.
 `compile_encodedSize_le_quartic` also bounds the complete encoded output,
 including every binary numeric field and delimiter, by `64 * (s + 1)^4` bits
-for input bit length `s`.
+for input bit length `s`. `compileUsingDomainEntryBound` chooses its prime
+above the number of explicit domain occurrences rather than requiring a
+distinct-symbol pass. `symbolCount_lt_domainEntryPrime` proves that this prime
+is still large enough for the canonical relabelling;
+`compileUsingDomainEntryBound_allDifferent_correctness` and its satisfiable
+specialization give the exact minimizer semantics, while
+`compileUsingDomainEntryBound_encodedSize_le_quartic` preserves the same full
+quartic output bound.
 [`PhdThesisLean/AllDifferentCSPMachine.lean`](PhdThesisLean/AllDifferentCSPMachine.lean)
 begins the genuine finite-machine construction: `framedNatComputableInPolyTime`
 converts mathlib's raw binary natural encoding to the compiler's
@@ -211,8 +218,10 @@ generated Bertrand list this output is exactly `firstBertrandPrime`, hence
 `selectPrimeAbove`, including `q = 0,1`.
 `selectedPrimeComputableInPolyTime` composes the unary Bertrand producer with
 that selector and emits `selectPrimeAbove q` from unary `q` in at most
-`1000(q+1)^6` steps. CSP structural compilation, production of the unary
-bound, encoded objective emission, and final whole-compiler assembly remain.
+`1000(q+1)^6` steps. The remaining structural pass needs only emit the unary
+explicit-domain-entry count, not deduplicate the domain symbols. CSP structural
+compilation, encoded objective emission, and final whole-compiler assembly
+remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It

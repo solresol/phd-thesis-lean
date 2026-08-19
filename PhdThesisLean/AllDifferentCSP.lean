@@ -26,6 +26,9 @@ conflict. After the supplied-prime semantic stage, the remaining compiler work
 uses an executable bounded scan to select a prime, then composes that choice
 with the p-adic correctness theorem. The compiler now emits a finite sparse
 row list and proves that interpreting it is exactly the checked objective.
+`compileObjectiveAt` exposes the same prime-independent rows under any supplied
+prime header, so a runtime front end may select a prime above a checked input-
+length-bounded overestimate of the distinct-symbol count.
 The separate `AllDifferentCSPEncoding` module supplies standard binary
 `FinEncoding`s and a complete polynomial output-size bound.
 `AllDifferentCSPMachine` starts the finite-machine layer with checked linear
@@ -68,9 +71,11 @@ first source-order survivor in polynomial time in the complete stream length;
 on the Bertrand stream it is exactly `selectPrimeAbove`, including the empty
 `q = 0` convention. `selectedPrimeComputableInPolyTime` composes the producer
 and selector into one unary-`q` machine for `selectPrimeAbove`, bounded by
-`1000(q+1)^6` steps. The remaining work is to construct CSP structural
-compilation and its unary bound, emit the encoded objective, and assemble the
-full compiler's genuine polynomial-runtime theorem.
+`1000(q+1)^6` steps. The runtime encoding now selects its prime above the
+explicit domain-entry count, proves this bounds the distinct-symbol count, and
+retains the complete quartic output-size and exact semantic theorems. The
+remaining work is to construct that unary occurrence bound, emit the encoded
+objective, and assemble the full compiler's genuine polynomial-runtime theorem.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -764,6 +769,26 @@ theorem compileObjective_prime {n : ℕ} (C : ExplicitSystem n) :
     C.compileObjective.prime = C.compilerPrime :=
   rfl
 
+/-- The same finite residual-row compiler at an explicitly supplied prime.
+
+The rows do not depend on the prime.  Separating the header choice from row
+construction lets a runtime front end select a prime above any checked upper
+bound for `symbolCount`, rather than first deduplicating all domain symbols. -/
+def compileObjectiveAt {n : ℕ} (C : ExplicitSystem n) (p : ℕ) :
+    CompiledObjective n where
+  prime := p
+  rows := C.compileObjective.rows
+
+@[simp]
+theorem compileObjectiveAt_prime {n : ℕ} (C : ExplicitSystem n) (p : ℕ) :
+    (C.compileObjectiveAt p).prime = p :=
+  rfl
+
+@[simp]
+theorem compileObjectiveAt_rows {n : ℕ} (C : ExplicitSystem n) (p : ℕ) :
+    (C.compileObjectiveAt p).rows = C.compileObjective.rows :=
+  rfl
+
 private theorem sum_map_finset_sort
     {α M : Type*} [AddCommMonoid M] (s : Finset α)
     (r : α → α → Prop) [DecidableRel r] [IsTrans α r]
@@ -1134,6 +1159,28 @@ theorem suppliedPrime_allDifferent_correctness
       C.conflictWeight_padicAssignment hyDomain]
     exact_mod_cast hxy
 
+/-- Exact minimum-conflict semantics for the finite row list with an arbitrary
+checked prime in its header.  This is the semantic interface used by runtime
+front ends that compute a convenient upper bound for the distinct-symbol
+count. -/
+theorem compileObjectiveAt_allDifferent_correctness
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (hC : C.WellFormed) (hp : C.symbolCount < p) :
+    (∃ z, PhdThesisLean.AllDifferent.IsGlobalMin
+      (rowsLoss (p := p)
+        (C.compileObjectiveAt p).rows) z) ∧
+    ∀ z, PhdThesisLean.AllDifferent.IsGlobalMin
+        (rowsLoss (p := p)
+          (C.compileObjectiveAt p).rows) z ↔
+      ∃ x, C.MinimizesConflicts x ∧
+        C.padicAssignment (p := p) x = z := by
+  have hloss :
+      rowsLoss (p := p) (C.compileObjectiveAt p).rows =
+        C.suppliedPrimeLoss (p := p) :=
+    funext C.rowsLoss_compileObjective
+  simpa only [compileObjectiveAt_prime, hloss] using
+    C.suppliedPrime_allDifferent_correctness hC hp
+
 /-- Exact minimum-conflict semantics after composing the executable
 compiler-selected prime with the supplied-prime p-adic stage.
 
@@ -1198,6 +1245,25 @@ theorem suppliedPrime_globalMin_iff_satisfies_of_satisfiable
     exact ⟨x, (C.minimizesConflicts_iff_satisfies_of_satisfiable
       hsat x).mpr hx, rfl⟩
 
+/-- Satisfiable-case specialization for a finite row list whose supplied
+prime is larger than the distinct-symbol count. -/
+theorem compileObjectiveAt_globalMin_iff_satisfies_of_satisfiable
+    {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
+    (hC : C.WellFormed) (hp : C.symbolCount < p)
+    (hsat : ∃ x, C.Satisfies x)
+    (z : PhdThesisLean.FiniteDomainCompiler.Parameter p n) :
+    PhdThesisLean.AllDifferent.IsGlobalMin
+        (rowsLoss (p := p)
+          (C.compileObjectiveAt p).rows) z ↔
+      ∃ x, C.Satisfies x ∧
+        C.padicAssignment (p := p) x = z := by
+  have hloss :
+      rowsLoss (p := p) (C.compileObjectiveAt p).rows =
+        C.suppliedPrimeLoss (p := p) :=
+    funext C.rowsLoss_compileObjective
+  simpa only [compileObjectiveAt_prime, hloss] using
+    C.suppliedPrime_globalMin_iff_satisfies_of_satisfiable hC hp hsat z
+
 /-- Satisfiable-case specialization for the executable compiler-selected
 prime. -/
 theorem compilerPrime_globalMin_iff_satisfies_of_satisfiable
@@ -1247,9 +1313,11 @@ end ExplicitSystem
 #print axioms ExplicitSystem.selectPrimeAbove_lt_two_mul
 #print axioms ExplicitSystem.rowsLoss_compileObjective
 #print axioms ExplicitSystem.suppliedPrime_allDifferent_correctness
+#print axioms ExplicitSystem.compileObjectiveAt_allDifferent_correctness
 #print axioms ExplicitSystem.compilerPrime_allDifferent_correctness
 #print axioms ExplicitSystem.compileObjective_allDifferent_correctness
 #print axioms ExplicitSystem.suppliedPrime_globalMin_iff_satisfies_of_satisfiable
+#print axioms ExplicitSystem.compileObjectiveAt_globalMin_iff_satisfies_of_satisfiable
 #print axioms ExplicitSystem.compilerPrime_globalMin_iff_satisfies_of_satisfiable
 #print axioms ExplicitSystem.compileObjective_globalMin_iff_satisfies_of_satisfiable
 
