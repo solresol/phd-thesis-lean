@@ -1,5 +1,5 @@
 import PhdThesisLean.AllDifferentCSPEncoding
-import LeanNPHardness.MachineCompositionExecution
+import LeanNPHardness.MachineCompositionRuntime
 import Mathlib.Computability.TMComputable
 
 namespace PhdThesisLean.AllDifferentCSPMachine
@@ -49,11 +49,14 @@ prime-candidate list. A first-survivor driver selects from the checked unary
 candidate stream, and a fourteenth machine composes that driver with the
 Bertrand producer. It emits `selectPrimeAbove q` from unary `q` in at most
 `1000(q+1)^6` steps, including the `q = 0,1` conventions.
+The compiler-facing Boolean input adds a decoder-checked unary domain-entry
+header. A fifteenth finite machine extracts that exact count in one more step
+than the complete input length, and the checked generic composition API maps
+the encoded runtime system to its semantic `domainEntryPrime`.
 
 These are checked components of the eventual compiler machine. They do not yet
-establish polynomial time for CSP structural compilation, production of the
-unary domain-entry bound, objective-row emission, or final compiler
-assembly.
+establish polynomial time for CSP structural compilation, objective-row
+emission, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -1729,6 +1732,277 @@ noncomputable def unframedNatListsComputableInPolyTime :
     simpa [BinaryNatLists.finEncoding, RawNatLists.finEncoding, Equiv.refl,
       Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_X] using
         unframe_outputsInTime xss
+
+/-! ## Runtime domain-entry bound
+
+The compiler-facing input encoding carries the explicit domain-entry count as
+a decoder-checked unary header in front of the compact nested-list payload.
+The following two-stack machine copies that header to its output and consumes
+the remaining payload.  Since the decoder checks the header against the
+decoded system, its output is exactly `RuntimeSystem.domainEntryCount`, not an
+untrusted supplied bound.
+-/
+
+inductive DomainCountStack
+  | input
+  | output
+  deriving DecidableEq, Fintype
+
+inductive DomainCountLabel
+  | header
+  | payload
+  deriving DecidableEq, Fintype
+
+abbrev DomainCountState := Option Bool
+
+private def domainCountPopped
+    (_state : DomainCountState) (bit : Option Bool) : DomainCountState :=
+  bit
+
+private def domainCountTrue : DomainCountState → Bool
+  | some true => true
+  | _ => false
+
+private def domainCountPresent : DomainCountState → Bool
+  | some _ => true
+  | none => false
+
+private def DomainCountAlphabet (_ : DomainCountStack) : Type := Bool
+
+/-- Copy the unary header, consume its `false` delimiter, discard the compact
+payload, and halt with only the copied unary count on the output stack. -/
+def domainEntryCountProgram :
+    DomainCountLabel →
+      TM2.Stmt DomainCountAlphabet DomainCountLabel DomainCountState
+  | .header =>
+      .pop .input domainCountPopped <|
+        .branch domainCountTrue
+          (.push .output (fun _ => true) <|
+            .goto (fun _ => .header))
+          (.goto (fun _ => .payload))
+  | .payload =>
+      .pop .input domainCountPopped <|
+        .branch domainCountPresent
+          (.goto (fun _ => .payload))
+          .halt
+
+def domainEntryCountComputer : FinTM2 where
+  K := DomainCountStack
+  k₀ := .input
+  k₁ := .output
+  Γ := DomainCountAlphabet
+  Λ := DomainCountLabel
+  main := .header
+  σ := DomainCountState
+  initialState := none
+  Γk₀Fin := Bool.fintype
+  m := domainEntryCountProgram
+
+private def domainEntryCountStackContents
+    (input output : List Bool) :
+    (index : DomainCountStack) → List (DomainCountAlphabet index)
+  | .input => input
+  | .output => output
+
+private def domainEntryCountCfg (label : Option DomainCountLabel)
+    (state : DomainCountState) (input output : List Bool) :
+    domainEntryCountComputer.Cfg where
+  l := label
+  var := state
+  stk := domainEntryCountStackContents input output
+
+private theorem domainEntryCount_step_header_true
+    (input output : List Bool) (state : DomainCountState) :
+    domainEntryCountComputer.step
+        (domainEntryCountCfg (some .header) state
+          (true :: input) output) =
+      some (domainEntryCountCfg (some .header) (some true)
+        input (true :: output)) := by
+  simp [domainEntryCountComputer, FinTM2.step, domainEntryCountCfg,
+    domainEntryCountProgram, domainEntryCountStackContents,
+    DomainCountAlphabet, domainCountPopped, domainCountTrue,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem domainEntryCount_step_header_false
+    (input output : List Bool) (state : DomainCountState) :
+    domainEntryCountComputer.step
+        (domainEntryCountCfg (some .header) state
+          (false :: input) output) =
+      some (domainEntryCountCfg (some .payload) (some false)
+        input output) := by
+  simp [domainEntryCountComputer, FinTM2.step, domainEntryCountCfg,
+    domainEntryCountProgram, domainEntryCountStackContents,
+    DomainCountAlphabet, domainCountPopped, domainCountTrue,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem domainEntryCount_step_payload_cons
+    (bit : Bool) (input output : List Bool) (state : DomainCountState) :
+    domainEntryCountComputer.step
+        (domainEntryCountCfg (some .payload) state
+          (bit :: input) output) =
+      some (domainEntryCountCfg (some .payload) (some bit)
+        input output) := by
+  simp [domainEntryCountComputer, FinTM2.step, domainEntryCountCfg,
+    domainEntryCountProgram, domainEntryCountStackContents,
+    DomainCountAlphabet, domainCountPopped, domainCountPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem domainEntryCount_step_payload_nil
+    (output : List Bool) (state : DomainCountState) :
+    domainEntryCountComputer.step
+        (domainEntryCountCfg (some .payload) state [] output) =
+      some (domainEntryCountCfg none none [] output) := by
+  simp [domainEntryCountComputer, FinTM2.step, domainEntryCountCfg,
+    domainEntryCountProgram, domainEntryCountStackContents,
+    DomainCountAlphabet, domainCountPopped, domainCountPresent]
+
+private def domainEntryCountEvalsToInTimeOne
+    {start finish : domainEntryCountComputer.Cfg}
+    (hstep : domainEntryCountComputer.step start = some finish) :
+    EvalsToInTime domainEntryCountComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def domainEntryCount_header_evals
+    (count : ℕ) (payload output : List Bool) (state : DomainCountState) :
+    EvalsToInTime domainEntryCountComputer.step
+      (domainEntryCountCfg (some .header) state
+        (List.replicate count true ++ false :: payload) output)
+      (some (domainEntryCountCfg (some .payload) (some false)
+        payload (List.replicate count true ++ output)))
+      (count + 1) := by
+  induction count generalizing output state with
+  | zero =>
+      simpa using domainEntryCountEvalsToInTimeOne
+        (domainEntryCount_step_header_false payload output state)
+  | succ count ih =>
+      let middle := domainEntryCountCfg (some .header) (some true)
+        (List.replicate count true ++ false :: payload) (true :: output)
+      have hone : EvalsToInTime domainEntryCountComputer.step
+          (domainEntryCountCfg (some .header) state
+            (List.replicate (count + 1) true ++ false :: payload) output)
+          (some middle) 1 :=
+        domainEntryCountEvalsToInTimeOne (by
+          simpa [middle, List.replicate_succ] using
+            domainEntryCount_step_header_true
+              (List.replicate count true ++ false :: payload) output state)
+      have hrest := ih (true :: output) (some true)
+      have hall := EvalsToInTime.trans domainEntryCountComputer.step
+        1 (count + 1)
+        (domainEntryCountCfg (some .header) state
+          (List.replicate (count + 1) true ++ false :: payload) output)
+        middle
+        (some (domainEntryCountCfg (some .payload) (some false)
+          payload (List.replicate (count + 1) true ++ output)))
+        hone
+        (by
+          simpa [middle, List.replicate_succ,
+            replicate_true_append_cons] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainEntryCount_payload_evals
+    (payload output : List Bool) (state : DomainCountState) :
+    EvalsToInTime domainEntryCountComputer.step
+      (domainEntryCountCfg (some .payload) state payload output)
+      (some (domainEntryCountCfg none none [] output))
+      (payload.length + 1) := by
+  induction payload generalizing state with
+  | nil =>
+      simpa using domainEntryCountEvalsToInTimeOne
+        (domainEntryCount_step_payload_nil output state)
+  | cons bit payload ih =>
+      let middle := domainEntryCountCfg (some .payload) (some bit)
+        payload output
+      have hone : EvalsToInTime domainEntryCountComputer.step
+          (domainEntryCountCfg (some .payload) state
+            (bit :: payload) output)
+          (some middle) 1 :=
+        domainEntryCountEvalsToInTimeOne (by
+          simpa [middle] using
+            domainEntryCount_step_payload_cons bit payload output state)
+      have hrest := ih (some bit)
+      have hall := EvalsToInTime.trans domainEntryCountComputer.step
+        1 (payload.length + 1)
+        (domainEntryCountCfg (some .payload) state
+          (bit :: payload) output)
+        middle
+        (some (domainEntryCountCfg none none [] output))
+        hone
+        (by simpa [middle] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem domainEntryCount_initList_eq_cfg (input : List Bool) :
+    initList domainEntryCountComputer input =
+      domainEntryCountCfg (some .header) none input [] := by
+  unfold initList domainEntryCountCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem domainEntryCount_haltList_eq_cfg (output : List Bool) :
+    haltList domainEntryCountComputer output =
+      domainEntryCountCfg none none [] output := by
+  unfold haltList domainEntryCountCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem domainEntryCount_unaryEncodeNat_eq (count : ℕ) :
+    unaryEncodeNat count = List.replicate count true := by
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      rw [unaryEncodeNat, List.replicate_succ, ih]
+
+/-- The compiler-input header is extracted exactly in one more step than the
+complete encoded input length. -/
+def domainEntryCount_outputsInTime (C : RuntimeSystem) :
+    TM2OutputsInTime domainEntryCountComputer
+      (RuntimeCompilerInput.encode C)
+      (some (unaryEncodeNat C.domainEntryCount))
+      ((RuntimeCompilerInput.encode C).length + 1) := by
+  let payload := RuntimeSystem.finEncoding.encode C
+  have hheader := domainEntryCount_header_evals
+    C.domainEntryCount payload [] none
+  have hpayload := domainEntryCount_payload_evals payload
+    (List.replicate C.domainEntryCount true) (some false)
+  have hall := EvalsToInTime.trans domainEntryCountComputer.step
+    (C.domainEntryCount + 1) (payload.length + 1)
+    (domainEntryCountCfg (some .header) none
+      (List.replicate C.domainEntryCount true ++ false :: payload) [])
+    (domainEntryCountCfg (some .payload) (some false) payload
+      (List.replicate C.domainEntryCount true))
+    (some (domainEntryCountCfg none none []
+      (List.replicate C.domainEntryCount true)))
+    (by simpa using hheader) hpayload
+  rw [TM2OutputsInTime, domainEntryCount_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [domainEntryCount_unaryEncodeNat_eq,
+    domainEntryCount_haltList_eq_cfg]
+  simpa [RuntimeCompilerInput.encode, payload, Nat.add_assoc,
+    Nat.add_comm, Nat.add_left_comm] using hall
+
+/-- Genuine linear-time production of the explicit domain-occurrence bound
+from the checked compiler input encoding. -/
+noncomputable def domainEntryCountComputableInPolyTime :
+    @TM2ComputableInPolyTime RuntimeSystem ℕ
+      RuntimeCompilerInput.finEncoding unaryFinEncodingNat
+      RuntimeSystem.domainEntryCount where
+  tm := domainEntryCountComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := Polynomial.X + 1
+  outputsFun C := by
+    simpa [RuntimeCompilerInput.finEncoding, unaryFinEncodingNat, Equiv.refl,
+      Polynomial.eval_add, Polynomial.eval_one, Polynomial.eval_X] using
+        domainEntryCount_outputsInTime C
 
 /-! ## Binary successor
 
@@ -9374,9 +9648,7 @@ private def pairAllFalseAux :
 /-- Concrete sequential machine for generating every padded divisor test and
 then accepting exactly when none of them divides the candidate. -/
 def unaryCandidatePrimeComputer : FinTM2 :=
-  { compositionMachine trialDivisionPairsAux pairAllFalseAux with
-      initialState := rightState trialDivisionPairsAux pairAllFalseAux
-        pairAllFalseAux.tm.initialState }
+  compositionMachine trialDivisionPairsAux pairAllFalseAux
 
 private def unaryCandidatePrimeStartCfg
     (state : ControlState trialDivisionPairsAux pairAllFalseAux)
@@ -9389,8 +9661,8 @@ private def unaryCandidatePrimeStartCfg
 private theorem unaryCandidatePrime_initList_eq_cfg (input : List Bool) :
     initList unaryCandidatePrimeComputer input =
       unaryCandidatePrimeStartCfg
-        (rightState trialDivisionPairsAux pairAllFalseAux
-          pairAllFalseAux.tm.initialState) input := by
+        (leftState trialDivisionPairsAux pairAllFalseAux
+          trialDivisionPairsAux.tm.initialState) input := by
   unfold initList unaryCandidatePrimeComputer compositionMachine
     unaryCandidatePrimeStartCfg trialDivisionPairsAux pairAllFalseAux
     trialDivisionPairComputer pairAllFalseComputer transferLeftStacks
@@ -9415,21 +9687,6 @@ private theorem unaryCandidatePrime_left_init_eq_cfg (input : List Bool) :
   rw [trialPair_initList_eq_cfg]
   rfl
 
-private theorem unaryCandidatePrime_start_step (input : List Bool) :
-    unaryCandidatePrimeComputer.step
-        (unaryCandidatePrimeStartCfg
-          (rightState trialDivisionPairsAux pairAllFalseAux
-            pairAllFalseAux.tm.initialState) input) =
-      unaryCandidatePrimeComputer.step
-        (unaryCandidatePrimeStartCfg
-          (leftState trialDivisionPairsAux pairAllFalseAux
-            trialDivisionPairsAux.tm.initialState) input) := by
-  cases input with
-  | nil =>
-      rfl
-  | cons bit input =>
-      rfl
-
 private theorem unaryCandidatePrime_init_step (input : List Bool) :
     unaryCandidatePrimeComputer.step
         (initList unaryCandidatePrimeComputer input) =
@@ -9439,7 +9696,6 @@ private theorem unaryCandidatePrime_init_step (input : List Bool) :
             (initList trialDivisionPairsAux.tm input))) := by
   rw [unaryCandidatePrime_initList_eq_cfg,
     unaryCandidatePrime_left_init_eq_cfg]
-  exact unaryCandidatePrime_start_step input
 
 private theorem unaryCandidatePrime_haltList_eq (result : Bool) :
     haltList unaryCandidatePrimeComputer [result] =
@@ -11222,9 +11478,7 @@ private def primeSelectorAux :
 /-- Concrete sequential machine that chooses the compiler prime from a unary
 distinct-symbol bound. -/
 def selectedPrimeComputer : FinTM2 :=
-  { compositionMachine unaryBertrandCandidateAux primeSelectorAux with
-      initialState := rightState unaryBertrandCandidateAux primeSelectorAux
-        primeSelectorAux.tm.initialState }
+  compositionMachine unaryBertrandCandidateAux primeSelectorAux
 
 private def selectedPrimeStartCfg
     (state : ControlState unaryBertrandCandidateAux primeSelectorAux)
@@ -11237,8 +11491,8 @@ private def selectedPrimeStartCfg
 private theorem selectedPrime_initList_eq_cfg (input : List Bool) :
     initList selectedPrimeComputer input =
       selectedPrimeStartCfg
-        (rightState unaryBertrandCandidateAux primeSelectorAux
-          primeSelectorAux.tm.initialState) input := by
+        (leftState unaryBertrandCandidateAux primeSelectorAux
+          unaryBertrandCandidateAux.tm.initialState) input := by
   unfold initList selectedPrimeComputer compositionMachine
     selectedPrimeStartCfg unaryBertrandCandidateAux primeSelectorAux
     unaryBertrandCandidateComputer primeSelectorComputer transferLeftStacks
@@ -11263,17 +11517,6 @@ private theorem selectedPrime_left_init_eq_cfg (input : List Bool) :
   rw [unaryBertrand_initList_eq_cfg]
   rfl
 
-private theorem selectedPrime_start_step (input : List Bool) :
-    selectedPrimeComputer.step
-        (selectedPrimeStartCfg
-          (rightState unaryBertrandCandidateAux primeSelectorAux
-            primeSelectorAux.tm.initialState) input) =
-      selectedPrimeComputer.step
-        (selectedPrimeStartCfg
-          (leftState unaryBertrandCandidateAux primeSelectorAux
-            unaryBertrandCandidateAux.tm.initialState) input) := by
-  cases input <;> rfl
-
 private theorem selectedPrime_init_step (input : List Bool) :
     selectedPrimeComputer.step (initList selectedPrimeComputer input) =
       selectedPrimeComputer.step
@@ -11281,7 +11524,6 @@ private theorem selectedPrime_init_step (input : List Bool) :
           (liftLeftControlCfg unaryBertrandCandidateAux primeSelectorAux
             (initList unaryBertrandCandidateAux.tm input))) := by
   rw [selectedPrime_initList_eq_cfg, selectedPrime_left_init_eq_cfg]
-  exact selectedPrime_start_step input
 
 private theorem selectedPrime_haltList_eq (output : List Bool) :
     haltList selectedPrimeComputer output =
@@ -11624,6 +11866,33 @@ noncomputable def selectedPrimeComputableInPolyTime :
       Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
         selectedPrime_outputsInTime q
 
+/-! ## Runtime-system prime selection
+
+The generic checked sequential-composition API now connects occurrence-count
+production from the compiler input to the existing selected-prime machine.
+-/
+
+private noncomputable def runtimeDomainEntryPrimeComposition :
+    @TM2ComputableInPolyTime RuntimeSystem ℕ
+      RuntimeCompilerInput.finEncoding unaryFinEncodingNat
+      (selectPrimeAbove ∘ RuntimeSystem.domainEntryCount) :=
+  compositionComputableInPolyTime
+    RuntimeCompilerInput.finEncoding unaryFinEncodingNat unaryFinEncodingNat
+    RuntimeSystem.domainEntryCount selectPrimeAbove
+    domainEntryCountComputableInPolyTime selectedPrimeComputableInPolyTime
+
+/-- A genuine polynomial-time machine from the checked compiler input to the
+same prime used by `compileUsingDomainEntryBound`. -/
+noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
+    @TM2ComputableInPolyTime RuntimeSystem ℕ
+      RuntimeCompilerInput.finEncoding unaryFinEncodingNat
+      RuntimeSystem.domainEntryPrime := by
+  let composed := runtimeDomainEntryPrimeComposition
+  exact { composed with
+    outputsFun := fun C => by
+      simpa [Function.comp_def, RuntimeSystem.domainEntryPrime] using
+        composed.outputsFun C }
+
 
 
 
@@ -11639,6 +11908,9 @@ noncomputable def selectedPrimeComputableInPolyTime :
 #print axioms RawNatLists.decode_encode
 #print axioms unframe_outputsInTime
 #print axioms unframedNatListsComputableInPolyTime
+#print axioms domainEntryCount_outputsInTime
+#print axioms domainEntryCountComputableInPolyTime
+#print axioms runtimeDomainEntryPrimeComputableInPolyTime
 #print axioms binarySuccBits_encodeNat
 #print axioms binarySucc_outputsInTime
 #print axioms binarySuccComputableInPolyTime

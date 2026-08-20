@@ -73,9 +73,12 @@ on the Bertrand stream it is exactly `selectPrimeAbove`, including the empty
 and selector into one unary-`q` machine for `selectPrimeAbove`, bounded by
 `1000(q+1)^6` steps. The runtime encoding now selects its prime above the
 explicit domain-entry count, proves this bounds the distinct-symbol count, and
-retains the complete quartic output-size and exact semantic theorems. The
-remaining work is to construct that unary occurrence bound, emit the encoded
-objective, and assemble the full compiler's genuine polynomial-runtime theorem.
+retains the complete quartic output-size and exact semantic theorems. A
+compiler-facing Boolean encoding now carries that occurrence count in a
+decoder-checked unary header; a linear finite machine extracts it, and checked
+generic composition computes the same runtime prime used by the semantic
+compiler. Encoded objective emission and final whole-compiler composition
+remain.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

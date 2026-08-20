@@ -55,9 +55,12 @@ agreement with the semantic compiler prime on Bertrand inputs. The checked
 `selectPrimeAbove q` in at most `1000(q+1)^6` steps. The runtime compiler uses
 the explicit domain-entry count as `q`: it bounds the distinct-symbol count,
 is at most the encoded input length, and yields an objective with the same
-exact minimizer semantics and quartic encoded-size bound. Structural production
-of that unary occurrence count, encoded objective emission, and whole-compiler
-composition remain separate from these encoding and size results.
+exact minimizer semantics and quartic encoded-size bound.
+`RuntimeCompilerInput.finEncoding` adds that count as a decoder-checked unary
+header with only linear overhead, and the machine layer extracts and composes
+it with selected-prime construction. Encoded objective emission and
+whole-compiler composition remain separate from these encoding and size
+results.
 -/
 
 namespace BinaryNatLists
@@ -515,6 +518,71 @@ theorem scopeEntryCount_le_encodedSize (C : RuntimeSystem) :
       BinaryNatLists.sum_lengths_le_wireSize C.toNatLists
 
 end RuntimeSystem
+
+/-! ## Compiler-oriented runtime input
+
+`RuntimeSystem.finEncoding` remains the compact nested-list representation used
+for the exact input-size and output-size theorems.  The compiler-facing
+encoding below prefixes that payload by the total number of explicit domain
+entries in unary.  The decoder recomputes and checks the count, so the prefix
+is redundant indexing information rather than an additional semantic
+assumption.  Its length is linear in the compact payload length by
+`RuntimeSystem.domainEntryCount_le_encodedSize`.
+
+The unary header gives the finite-machine compiler the input-length-bounded
+prime-selection parameter directly.  It avoids an unrelated distinct-symbol
+deduplication pass while retaining the complete compact payload for later
+structural compilation.
+-/
+
+namespace RuntimeCompilerInput
+
+/-- Prefix the compact runtime-system payload by its explicit domain-entry
+count in unary, terminated by `false`. -/
+def encode (C : RuntimeSystem) : List Bool :=
+  List.replicate C.domainEntryCount true ++
+    false :: RuntimeSystem.finEncoding.encode C
+
+/-- Decode the compiler input and reject a stale or forged occurrence-count
+header. -/
+def decode (input : List Bool) : Option RuntimeSystem := do
+  let (count, payload) ← BinaryNatLists.readUnary input
+  let C ← RuntimeSystem.finEncoding.decode payload
+  if count = C.domainEntryCount then some C else none
+
+@[simp]
+theorem decode_encode (C : RuntimeSystem) :
+    decode (encode C) = some C := by
+  simp [decode, encode, RuntimeSystem.finEncoding]
+
+/-- Checked Boolean encoding used by the finite-machine compiler. -/
+def finEncoding : FinEncoding RuntimeSystem where
+  Γ := Bool
+  encode := encode
+  decode := decode
+  decode_encode := decode_encode
+  ΓFin := Bool.fintype
+
+@[simp]
+theorem encode_length (C : RuntimeSystem) :
+    (encode C).length = C.domainEntryCount + 1 + C.encodedSize := by
+  simp [encode, RuntimeSystem.encodedSize, Nat.add_assoc, Nat.add_comm,
+    Nat.add_left_comm]
+
+theorem compact_encodedSize_le_encode_length (C : RuntimeSystem) :
+    C.encodedSize ≤ (encode C).length := by
+  rw [encode_length]
+  omega
+
+/-- The compiler-facing redundancy costs at most one additional compact input
+length plus its delimiter. -/
+theorem encode_length_le (C : RuntimeSystem) :
+    (encode C).length ≤ 2 * C.encodedSize + 1 := by
+  rw [encode_length]
+  have hcount := C.domainEntryCount_le_encodedSize
+  omega
+
+end RuntimeCompilerInput
 
 /-- Runtime-sized residual-row output, with finite indices erased to natural
 numbers for serialization. -/
@@ -1039,12 +1107,26 @@ theorem compileUsingDomainEntryBound_encodedSize_le_quartic
     nlinarith
   simpa [countBound, fieldBound, square, ← pow_mul] using hbound
 
+/-- The same complete output-size bound measured against the actual
+compiler-facing Boolean input, including its checked unary occurrence-count
+header. -/
+theorem compileUsingDomainEntryBound_encodedSize_le_compilerInput_quartic
+    (C : RuntimeSystem) :
+    (compileUsingDomainEntryBound C).encodedSize ≤
+      64 * ((RuntimeCompilerInput.encode C).length + 1) ^ 4 := by
+  exact (compileUsingDomainEntryBound_encodedSize_le_quartic C).trans
+    (Nat.mul_le_mul_left 64 (Nat.pow_le_pow_left
+      (Nat.add_le_add_right
+        (RuntimeCompilerInput.compact_encodedSize_le_encode_length C) 1) 4))
+
 #print axioms BinaryNatLists.decode_encode
 #print axioms RuntimeSystem.toExplicitSystem_wellFormed
 #print axioms RuntimeSystem.ofNatLists_toNatLists
 #print axioms RuntimeSystem.encodedSize_eq_wireSize
 #print axioms RuntimeSystem.symbolCount_le_domainEntryCount
 #print axioms RuntimeSystem.symbolCount_lt_domainEntryPrime
+#print axioms RuntimeCompilerInput.decode_encode
+#print axioms RuntimeCompilerInput.encode_length_le
 #print axioms RuntimeObjective.ofNatLists_toNatLists
 #print axioms RuntimeObjective.encodedSize_eq_wireSize
 #print axioms compileUsingDomainEntryBound_allDifferent_correctness
@@ -1052,5 +1134,6 @@ theorem compileUsingDomainEntryBound_encodedSize_le_quartic
 #print axioms compile_rows_length_le_encodedSize_polynomial
 #print axioms compile_encodedSize_le_quartic
 #print axioms compileUsingDomainEntryBound_encodedSize_le_quartic
+#print axioms compileUsingDomainEntryBound_encodedSize_le_compilerInput_quartic
 
 end PhdThesisLean.AllDifferentCSPEncoding

@@ -145,7 +145,11 @@ is still large enough for the canonical relabelling;
 `compileUsingDomainEntryBound_allDifferent_correctness` and its satisfiable
 specialization give the exact minimizer semantics, while
 `compileUsingDomainEntryBound_encodedSize_le_quartic` preserves the same full
-quartic output bound.
+quartic output bound. `RuntimeCompilerInput.finEncoding` prefixes the compact
+payload with a decoder-checked unary domain-occurrence count. Its total length
+is at most `2s+1` for compact input length `s`, and
+`compileUsingDomainEntryBound_encodedSize_le_compilerInput_quartic` states the
+complete quartic output bound against this actual compiler-facing bit string.
 [`PhdThesisLean/AllDifferentCSPMachine.lean`](PhdThesisLean/AllDifferentCSPMachine.lean)
 begins the genuine finite-machine construction: `framedNatComputableInPolyTime`
 converts mathlib's raw binary natural encoding to the compiler's
@@ -156,6 +160,9 @@ encoding in at most `3s` steps, including empty fields and lists.
 `unframedNatListsComputableInPolyTime` traverses the standard nested-list
 input in at most `3s` steps and exposes its outer length, inner lengths, and
 values as an explicitly delimited raw-field stack stream.
+`domainEntryCountComputableInPolyTime` extracts the decoder-checked unary
+domain-occurrence header from `RuntimeCompilerInput.finEncoding` in exactly
+`s+1` steps for complete compiler-input length `s`.
 `binarySuccComputableInPolyTime` computes successor on mathlib's canonical
 binary natural encoding in at most `2s + 3` steps, including zero and carry
 growth. `binaryLEComputableInPolyTime` decides less-than-or-equal on a checked
@@ -218,10 +225,14 @@ generated Bertrand list this output is exactly `firstBertrandPrime`, hence
 `selectPrimeAbove`, including `q = 0,1`.
 `selectedPrimeComputableInPolyTime` composes the unary Bertrand producer with
 that selector and emits `selectPrimeAbove q` from unary `q` in at most
-`1000(q+1)^6` steps. The remaining structural pass needs only emit the unary
-explicit-domain-entry count, not deduplicate the domain symbols. CSP structural
-compilation, encoded objective emission, and final whole-compiler assembly
-remain.
+`1000(q+1)^6` steps. The project is now pinned to the checked generic
+polynomial-composition API from `lean-np-hardness`, and
+`runtimeDomainEntryPrimeComputableInPolyTime` composes occurrence extraction
+with that selector to compute exactly the prime used by
+`compileUsingDomainEntryBound`. The unary header is part of the checked
+compiler-facing encoding; a transducer from the smaller header-free encoding
+would be a separate representation theorem. CSP structural compilation,
+encoded objective emission, and final whole-compiler assembly remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -356,7 +367,10 @@ The copied statements are grouped by mathematical contribution:
   and exact minimum-conflict semantics. Runtime-sized binary input/output
   encodings, exact wire sizes, the sparse-row polynomial bound, and the full
   quartic encoded-output bound are in
-  `PhdThesisLean.AllDifferentCSPEncoding`;
+  `PhdThesisLean.AllDifferentCSPEncoding`; its
+  `RuntimeCompilerInput.finEncoding` adds a decoder-checked unary occurrence
+  header with linear overhead and retains the quartic bound against the actual
+  compiler input;
   `PhdThesisLean.AllDifferentCSPMachine.framedNatComputableInPolyTime` and
   `framedNatListComputableInPolyTime` prove the linear-time natural-field and
   natural-list serialization passes, and
@@ -392,9 +406,13 @@ The copied statements are grouped by mathematical contribution:
   `firstBertrandPrime_eq_selectPrimeAbove` proves that filtering the enumerated
   interval and taking its first survivor agrees with the semantic compiler's
   selected prime, and `selectedPrimeComputableInPolyTime` composes the unary
-  producer and selector into a degree-six machine for `selectPrimeAbove`. The
-  complete compiler machine and its structural production of the unary bound,
-  encoded objective rows, and final composition remain open;
+  producer and selector into a degree-six machine for `selectPrimeAbove`;
+  `domainEntryCountComputableInPolyTime` extracts the checked compiler-input
+  header in linear time, and
+  `runtimeDomainEntryPrimeComputableInPolyTime` uses the pinned generic
+  composition theorem to compute the exact runtime compiler prime. The
+  complete compiler machine, encoded objective rows, and final composition
+  remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

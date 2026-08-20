@@ -1611,3 +1611,85 @@
   and use the sibling's checked generic polynomial-time composition API to
   feed that result to `selectedPrimeComputableInPolyTime`, before implementing
   canonical row emission.
+
+## 2026-08-21 05:37:41 AEST — extract and compose the runtime occurrence bound
+
+- **Starting commit:** `ead69c2234feea747dbde7dc2cd36ee159f50bb9` on
+  `main`. The working tree was clean; `git fetch --prune origin` and
+  `git ls-remote` confirmed that local `HEAD`, `origin/main`, and the live
+  remote ref agreed, so no fast-forward was needed. The intervening Palomar
+  README commit was unrelated and preserved.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of
+  `cor:all-different-csp`, this journal, and the current encoding/machine
+  boundary. The thesis checkout remains at
+  `5294a3754f4987514ed9f03e73658df37a684156` with unrelated user changes to
+  `.gitignore` and `todo.md`; neither was changed. The corollary remains
+  **Partial** because no finite machine yet emits the canonical relabelled,
+  deduplicated objective rows or assembles the complete compiler.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  with its live remote at
+  `b28f357bc55b7e822a6585e2cfbe44300872cc09`. Its checked generic
+  `MachineComposition.compositionComputableInPolyTime` theorem was available
+  from commit `527e16c1d0b5616a3e388c907a12added116806a`. This project now pins that
+  exact checked foundation revision; the sibling repository was not edited.
+- **Chosen increment and representation boundary:** added
+  `RuntimeCompilerInput.finEncoding`, a Boolean compiler-facing encoding that
+  prefixes the existing compact nested-list payload with the explicit
+  `domainEntryCount` in unary. `decode` recomputes and checks the count after
+  decoding the payload, so the header is verified redundancy rather than a
+  supplied semantic assumption. `encode_length` and `encode_length_le` prove
+  exact length and at-most-linear overhead, and
+  `compileUsingDomainEntryBound_encodedSize_le_compilerInput_quartic` retains
+  the complete quartic output bound against the actual compiler input. A
+  separate transducer would be needed to transfer the runtime result back to
+  the smaller header-free `RuntimeSystem.finEncoding`; that representation
+  theorem is not claimed here.
+- **Headline machine declarations:** `domainEntryCountComputer` is a concrete
+  two-stack finite machine that copies the checked unary header, consumes the
+  compact payload, and halts with exactly unary `domainEntryCount`.
+  `domainEntryCount_outputsInTime` proves the exact bound `s + 1` for complete
+  compiler-input length `s`, and
+  `domainEntryCountComputableInPolyTime` packages the linear polynomial
+  witness. `runtimeDomainEntryPrimeComputableInPolyTime` uses the newly pinned
+  generic composition theorem with `selectedPrimeComputableInPolyTime` and
+  computes exactly `RuntimeSystem.domainEntryPrime`, the same prime used by
+  `compileUsingDomainEntryBound` and its semantic correctness theorems.
+- **Dependency migration and failed proof shapes:** after repinning, a direct
+  source check first found the new runtime-composition `.olean` absent; a
+  targeted dependency build supplied it. The newer checked composition
+  dispatcher canonicalizes the composed machine's initial state at both entry
+  and halt, so the two older local `initialState := rightState ...`
+  workarounds no longer matched their halt configurations. Removing those
+  overrides and their now-obsolete one-step state bridges restored the
+  existing candidate-prime and selected-prime exact-runtime proofs. The first
+  header-length proof also needed explicit additive normalization and the
+  named `domainEntryCount_le_encodedSize` inequality. All intermediate
+  `sorryAx` dependencies disappeared in the successful build.
+- **Files changed:** `AllDifferentCSPEncoding.lean` adds the compiler input,
+  decoder check, length bounds, and compiler-input quartic theorem;
+  `AllDifferentCSPMachine.lean` adds the exact extractor and composed runtime
+  prime theorem and aligns the older local compositions with the checked
+  dependency semantics; `lakefile.lean` and `lake-manifest.json` update the
+  exact foundation pin. `AllDifferentCSP.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the representation boundary and retain
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** targeted builds of
+  `PhdThesisLean.AllDifferentCSPEncoding` and
+  `PhdThesisLean.AllDifferentCSPMachine`; full `lake build` (3123 jobs);
+  `git diff --check`; and a tracked Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  the compiler-input decoder/size theorem, exact occurrence extractor,
+  polynomial occurrence computation, composed runtime prime, and compiler-
+  input quartic bound report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- **Ending state before commit:** one coherent verified encoding, finite-
+  machine, foundation-pin, status, and log increment; the thesis checkout's
+  unrelated work remains untouched.
+- **Best next step:** construct the first structural emission pass over
+  `RuntimeCompilerInput.finEncoding`: preserve the compact payload after the
+  unary header, emit canonical relabelled pin rows and deduplicated primal
+  edges in the already checked `RuntimeObjective` syntax, and keep its runtime
+  proof separate from the now-complete compiler-input prime-selection pass.
