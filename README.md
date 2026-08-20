@@ -488,6 +488,28 @@ A theorem is complete only when the correspondence is reviewed, the proof has
 no placeholders, the project builds from a clean checkout, and the declaration
 uses only accepted axioms.
 
+### 7. Prepare selected results for Palomar registration
+
+Long-term publication target: register one or more headline results from this
+repository in [Palomar](https://palomar-registry.org/), once their mathematical
+statements, thesis correspondence, and supporting proofs are stable. Palomar
+records an individual result at an immutable public-repository commit rather
+than registering a repository as a whole.
+
+Before submitting a result:
+
+- select a research-level headline theorem with a concise informal account;
+- expose the statement in a small, readable `Challenge.lean` module and the
+  proved declaration in a matching `Solution.lean` module;
+- add the Comparator configuration, `formalization.yaml`, and a root licence,
+  with accurate provenance, automation, review, and limitation disclosures;
+- pass the project build, unfinished-proof scan, axiom audit, and Palomar's
+  Comparator checks; and
+- commit and push the exact public snapshot to be submitted.
+
+This is a future target. No Palomar submission or registration is currently
+claimed.
+
 ## Building
 
 Install Lean with [elan](https://github.com/leanprover/elan), then run:
