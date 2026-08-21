@@ -163,6 +163,12 @@ values as an explicitly delimited raw-field stack stream.
 `domainEntryCountComputableInPolyTime` extracts the decoder-checked unary
 domain-occurrence header from `RuntimeCompilerInput.finEncoding` in exactly
 `s+1` steps for complete compiler-input length `s`.
+`compilerPayloadComputableInPolyTime` independently removes that verified
+header while preserving the compact runtime-system payload byte-for-byte in
+at most `2s+1` steps. `runtimeCompilerRawFieldsComputableInPolyTime` composes
+this pass with the checked unframing traversal and emits the complete outer
+length, inner lengths, and natural value fields of `RuntimeSystem.toNatLists`
+from the actual compiler input in polynomial time.
 `binarySuccComputableInPolyTime` computes successor on mathlib's canonical
 binary natural encoding in at most `2s + 3` steps, including zero and carry
 growth. `binaryLEComputableInPolyTime` decides less-than-or-equal on a checked
@@ -231,8 +237,10 @@ polynomial-composition API from `lean-np-hardness`, and
 with that selector to compute exactly the prime used by
 `compileUsingDomainEntryBound`. The unary header is part of the checked
 compiler-facing encoding; a transducer from the smaller header-free encoding
-would be a separate representation theorem. CSP structural compilation,
-encoded objective emission, and final whole-compiler assembly remain.
+would be a separate representation theorem. The compiler now also has a
+checked header-removal transducer and a composed raw-field view of the compact
+payload. Canonical relabelling, primal-edge deduplication, encoded objective
+emission, and final whole-compiler assembly remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -410,9 +418,12 @@ The copied statements are grouped by mathematical contribution:
   `domainEntryCountComputableInPolyTime` extracts the checked compiler-input
   header in linear time, and
   `runtimeDomainEntryPrimeComputableInPolyTime` uses the pinned generic
-  composition theorem to compute the exact runtime compiler prime. The
-  complete compiler machine, encoded objective rows, and final composition
-  remain open;
+  composition theorem to compute the exact runtime compiler prime;
+  `compilerPayloadComputableInPolyTime` preserves the compact CSP payload
+  after removing the checked unary header, and
+  `runtimeCompilerRawFieldsComputableInPolyTime` exposes its complete raw
+  structural field stream. Canonical relabelling, edge deduplication, encoded
+  objective rows, and final composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

@@ -1693,3 +1693,71 @@
   unary header, emit canonical relabelled pin rows and deduplicated primal
   edges in the already checked `RuntimeObjective` syntax, and keep its runtime
   proof separate from the now-complete compiler-input prime-selection pass.
+
+## 2026-08-22 05:25:06 AEST — preserve and expose the runtime CSP payload
+
+- **Starting commit:** `925cef25ec86143cf5a6738d11853c393f1ad527` on
+  `main`. The working tree was clean; local `HEAD`, `origin/main`, and the live
+  remote ref agreed, so no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of
+  `cor:all-different-csp`, this journal, and the current runtime encoding and
+  machine boundary. The thesis checkout remains at
+  `5294a3754f4987514ed9f03e73658df37a684156` with unrelated user changes to
+  `.gitignore` and `todo.md`; neither was changed. The corollary remains
+  **Partial** because canonical relabelling, primal-edge deduplication, encoded
+  objective emission, and final whole-compiler assembly are still absent.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  with its live remote at
+  `7ede17421d2b7213417187e933dc9e8d8d4fdc96`. Its checked generic
+  `MachineComposition.compositionComputableInPolyTime` API remains the right
+  assembly primitive. This project stays pinned at the already checked
+  foundation revision `527e16c1d0b5616a3e388c907a12added116806a`; the sibling
+  repository was not edited.
+- **Chosen increment:** added `compilerPayloadComputer`, a concrete
+  three-stack finite machine that discards exactly the decoder-checked unary
+  occurrence header, reverses the compact Boolean payload onto scratch, and
+  restores the payload byte-for-byte in its original order. This supplies the
+  previously missing preservation path from the actual compiler input to the
+  compact structural encoding.
+- **Headline declarations:** `compilerPayload_outputsInTime` proves exact
+  compact-payload output in at most `2s+1` steps for complete compiler-input
+  length `s`; `compilerPayloadComputableInPolyTime` packages the pass as a
+  genuine linear-time encoding transducer. The specialization
+  `runtimeSystemUnframedComputableInPolyTime` exposes the semantic
+  `RuntimeSystem.toNatLists` payload through the existing checked raw-field
+  traversal, and `runtimeCompilerRawFieldsComputableInPolyTime` composes both
+  passes using the pinned generic composition theorem. Its exact output is the
+  outer length, every inner length, and every natural value field of the full
+  runtime CSP.
+- **Proof and representation details:** the payload cannot be pushed directly
+  from the input stack to the output stack because that would reverse its bit
+  order. The checked machine therefore uses a scratch-stack reversal followed
+  by restoration. The direct proof compiled without a failed Lean approach;
+  no new encoding header, semantic assumption, placeholder, or project axiom
+  was introduced.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  payload transducer, exact execution proofs, polynomial witnesses,
+  composition, and axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the completed raw-structural-input boundary while
+  retaining **Partial** status; this entry records the run.
+- **Verification succeeded:** targeted `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; full `lake build` (3123 jobs);
+  `git diff --check`; and a project Lean-source scan for `sorry`, `admit`,
+  project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms` audits for
+  `compilerPayload_outputsInTime`,
+  `compilerPayloadComputableInPolyTime`,
+  `runtimeSystemUnframedComputableInPolyTime`, and
+  `runtimeCompilerRawFieldsComputableInPolyTime` report only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one coherent verified finite-machine,
+  documentation, status, and log increment, with unrelated work in the thesis
+  checkout preserved.
+- **Best next step:** consume the checked raw `RuntimeSystem.toNatLists` field
+  stream to emit the variable-count header and a tagged domain-occurrence
+  stream while preserving the scope fields. That provides the concrete input
+  for canonical equality-preserving relabelling before pin-row emission and
+  primal-edge deduplication.

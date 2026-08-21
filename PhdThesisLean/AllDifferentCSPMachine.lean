@@ -52,7 +52,10 @@ Bertrand producer. It emits `selectPrimeAbove q` from unary `q` in at most
 The compiler-facing Boolean input adds a decoder-checked unary domain-entry
 header. A fifteenth finite machine extracts that exact count in one more step
 than the complete input length, and the checked generic composition API maps
-the encoded runtime system to its semantic `domainEntryPrime`.
+the encoded runtime system to its semantic `domainEntryPrime`. A sixteenth
+finite machine removes that checked header in linear time while preserving the
+compact nested-list payload byte-for-byte; composing it with the existing
+unframing traversal exposes the complete runtime CSP as raw structural fields.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for CSP structural compilation, objective-row
@@ -2003,6 +2006,406 @@ noncomputable def domainEntryCountComputableInPolyTime :
     simpa [RuntimeCompilerInput.finEncoding, unaryFinEncodingNat, Equiv.refl,
       Polynomial.eval_add, Polynomial.eval_one, Polynomial.eval_X] using
         domainEntryCount_outputsInTime C
+
+/-! ## Runtime structural payload
+
+The prime-selection pass consumes the checked unary header, but structural row
+construction needs the compact nested-list payload that follows it.  The
+machine below discards exactly that header and its delimiter, reverses the
+remaining payload onto a scratch stack, and restores it byte-for-byte on the
+output stack.  Composing this pass with `unframeComputer` exposes all of the
+runtime system's raw length and value fields to later compiler passes.
+-/
+
+inductive CompilerPayloadStack
+  | input
+  | scratch
+  | output
+  deriving DecidableEq, Fintype
+
+inductive CompilerPayloadLabel
+  | header
+  | stash
+  | restore
+  deriving DecidableEq, Fintype
+
+abbrev CompilerPayloadState := Option Bool
+
+private def compilerPayloadPopped
+    (_state : CompilerPayloadState) (bit : Option Bool) :
+    CompilerPayloadState :=
+  bit
+
+private def compilerPayloadTrue : CompilerPayloadState → Bool
+  | some true => true
+  | _ => false
+
+private def compilerPayloadPresent : CompilerPayloadState → Bool
+  | some _ => true
+  | none => false
+
+private def compilerPayloadHeld : CompilerPayloadState → Bool
+  | some bit => bit
+  | none => false
+
+private def CompilerPayloadAlphabet (_ : CompilerPayloadStack) : Type := Bool
+
+/-- Discard the unary occurrence header, preserve the compact payload on a
+scratch stack, and restore the payload in its original order. -/
+def compilerPayloadProgram :
+    CompilerPayloadLabel →
+      TM2.Stmt CompilerPayloadAlphabet CompilerPayloadLabel
+        CompilerPayloadState
+  | .header =>
+      .pop .input compilerPayloadPopped <|
+        .branch compilerPayloadTrue
+          (.goto (fun _ => .header))
+          (.branch compilerPayloadPresent
+            (.goto (fun _ => .stash))
+            .halt)
+  | .stash =>
+      .pop .input compilerPayloadPopped <|
+        .branch compilerPayloadPresent
+          (.push .scratch compilerPayloadHeld <|
+            .goto (fun _ => .stash))
+          (.goto (fun _ => .restore))
+  | .restore =>
+      .pop .scratch compilerPayloadPopped <|
+        .branch compilerPayloadPresent
+          (.push .output compilerPayloadHeld <|
+            .goto (fun _ => .restore))
+          .halt
+
+def compilerPayloadComputer : FinTM2 where
+  K := CompilerPayloadStack
+  k₀ := .input
+  k₁ := .output
+  Γ := CompilerPayloadAlphabet
+  Λ := CompilerPayloadLabel
+  main := .header
+  σ := CompilerPayloadState
+  initialState := none
+  Γk₀Fin := Bool.fintype
+  m := compilerPayloadProgram
+
+private def compilerPayloadStackContents
+    (input scratch output : List Bool) :
+    (index : CompilerPayloadStack) → List (CompilerPayloadAlphabet index)
+  | .input => input
+  | .scratch => scratch
+  | .output => output
+
+private def compilerPayloadCfg (label : Option CompilerPayloadLabel)
+    (state : CompilerPayloadState) (input scratch output : List Bool) :
+    compilerPayloadComputer.Cfg where
+  l := label
+  var := state
+  stk := compilerPayloadStackContents input scratch output
+
+private theorem compilerPayload_step_header_true
+    (input scratch output : List Bool) (state : CompilerPayloadState) :
+    compilerPayloadComputer.step
+        (compilerPayloadCfg (some .header) state
+          (true :: input) scratch output) =
+      some (compilerPayloadCfg (some .header) (some true)
+        input scratch output) := by
+  simp [compilerPayloadComputer, FinTM2.step, compilerPayloadCfg,
+    compilerPayloadProgram, compilerPayloadStackContents,
+    CompilerPayloadAlphabet, compilerPayloadPopped, compilerPayloadTrue]
+  funext index
+  cases index <;> rfl
+
+private theorem compilerPayload_step_header_false
+    (input scratch output : List Bool) (state : CompilerPayloadState) :
+    compilerPayloadComputer.step
+        (compilerPayloadCfg (some .header) state
+          (false :: input) scratch output) =
+      some (compilerPayloadCfg (some .stash) (some false)
+        input scratch output) := by
+  simp [compilerPayloadComputer, FinTM2.step, compilerPayloadCfg,
+    compilerPayloadProgram, compilerPayloadStackContents,
+    CompilerPayloadAlphabet, compilerPayloadPopped, compilerPayloadTrue,
+    compilerPayloadPresent]
+  funext index
+  cases index <;> rfl
+
+private theorem compilerPayload_step_stash_cons
+    (bit : Bool) (input scratch output : List Bool)
+    (state : CompilerPayloadState) :
+    compilerPayloadComputer.step
+        (compilerPayloadCfg (some .stash) state
+          (bit :: input) scratch output) =
+      some (compilerPayloadCfg (some .stash) (some bit)
+        input (bit :: scratch) output) := by
+  simp [compilerPayloadComputer, FinTM2.step, compilerPayloadCfg,
+    compilerPayloadProgram, compilerPayloadStackContents,
+    CompilerPayloadAlphabet, compilerPayloadPopped,
+    compilerPayloadPresent, compilerPayloadHeld, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem compilerPayload_step_stash_nil
+    (scratch output : List Bool) (state : CompilerPayloadState) :
+    compilerPayloadComputer.step
+        (compilerPayloadCfg (some .stash) state [] scratch output) =
+      some (compilerPayloadCfg (some .restore) none
+        [] scratch output) := by
+  simp [compilerPayloadComputer, FinTM2.step, compilerPayloadCfg,
+    compilerPayloadProgram, compilerPayloadStackContents,
+    CompilerPayloadAlphabet, compilerPayloadPopped,
+    compilerPayloadPresent]
+
+private theorem compilerPayload_step_restore_cons
+    (bit : Bool) (scratch output : List Bool)
+    (state : CompilerPayloadState) :
+    compilerPayloadComputer.step
+        (compilerPayloadCfg (some .restore) state
+          [] (bit :: scratch) output) =
+      some (compilerPayloadCfg (some .restore) (some bit)
+        [] scratch (bit :: output)) := by
+  simp [compilerPayloadComputer, FinTM2.step, compilerPayloadCfg,
+    compilerPayloadProgram, compilerPayloadStackContents,
+    CompilerPayloadAlphabet, compilerPayloadPopped,
+    compilerPayloadPresent, compilerPayloadHeld, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem compilerPayload_step_restore_nil
+    (output : List Bool) (state : CompilerPayloadState) :
+    compilerPayloadComputer.step
+        (compilerPayloadCfg (some .restore) state [] [] output) =
+      some (compilerPayloadCfg none none [] [] output) := by
+  simp [compilerPayloadComputer, FinTM2.step, compilerPayloadCfg,
+    compilerPayloadProgram, compilerPayloadStackContents,
+    CompilerPayloadAlphabet, compilerPayloadPopped,
+    compilerPayloadPresent]
+
+private def compilerPayloadEvalsToInTimeOne
+    {start finish : compilerPayloadComputer.Cfg}
+    (hstep : compilerPayloadComputer.step start = some finish) :
+    EvalsToInTime compilerPayloadComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def compilerPayload_header_evals
+    (count : ℕ) (payload scratch output : List Bool)
+    (state : CompilerPayloadState) :
+    EvalsToInTime compilerPayloadComputer.step
+      (compilerPayloadCfg (some .header) state
+        (List.replicate count true ++ false :: payload) scratch output)
+      (some (compilerPayloadCfg (some .stash) (some false)
+        payload scratch output))
+      (count + 1) := by
+  induction count generalizing state with
+  | zero =>
+      simpa using compilerPayloadEvalsToInTimeOne
+        (compilerPayload_step_header_false payload scratch output state)
+  | succ count ih =>
+      let middle := compilerPayloadCfg (some .header) (some true)
+        (List.replicate count true ++ false :: payload) scratch output
+      have hone : EvalsToInTime compilerPayloadComputer.step
+          (compilerPayloadCfg (some .header) state
+            (List.replicate (count + 1) true ++ false :: payload)
+            scratch output)
+          (some middle) 1 :=
+        compilerPayloadEvalsToInTimeOne (by
+          simpa [middle, List.replicate_succ] using
+            compilerPayload_step_header_true
+              (List.replicate count true ++ false :: payload)
+              scratch output state)
+      have hrest := ih (some true)
+      have hall := EvalsToInTime.trans compilerPayloadComputer.step
+        1 (count + 1)
+        (compilerPayloadCfg (some .header) state
+          (List.replicate (count + 1) true ++ false :: payload)
+          scratch output)
+        middle
+        (some (compilerPayloadCfg (some .stash) (some false)
+          payload scratch output))
+        hone
+        (by simpa [middle, List.replicate_succ] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def compilerPayload_stash_evals
+    (payload scratch output : List Bool) (state : CompilerPayloadState) :
+    EvalsToInTime compilerPayloadComputer.step
+      (compilerPayloadCfg (some .stash) state payload scratch output)
+      (some (compilerPayloadCfg (some .restore) none []
+        (payload.reverse ++ scratch) output))
+      (payload.length + 1) := by
+  induction payload generalizing scratch state with
+  | nil =>
+      simpa using compilerPayloadEvalsToInTimeOne
+        (compilerPayload_step_stash_nil scratch output state)
+  | cons bit payload ih =>
+      let middle := compilerPayloadCfg (some .stash) (some bit)
+        payload (bit :: scratch) output
+      have hone : EvalsToInTime compilerPayloadComputer.step
+          (compilerPayloadCfg (some .stash) state
+            (bit :: payload) scratch output)
+          (some middle) 1 :=
+        compilerPayloadEvalsToInTimeOne (by
+          simpa [middle] using compilerPayload_step_stash_cons
+            bit payload scratch output state)
+      have hrest := ih (bit :: scratch) (some bit)
+      have hall := EvalsToInTime.trans compilerPayloadComputer.step
+        1 (payload.length + 1)
+        (compilerPayloadCfg (some .stash) state
+          (bit :: payload) scratch output)
+        middle
+        (some (compilerPayloadCfg (some .restore) none []
+          ((bit :: payload).reverse ++ scratch) output))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def compilerPayload_restore_evals
+    (scratch output : List Bool) (state : CompilerPayloadState) :
+    EvalsToInTime compilerPayloadComputer.step
+      (compilerPayloadCfg (some .restore) state [] scratch output)
+      (some (compilerPayloadCfg none none [] []
+        (scratch.reverse ++ output)))
+      (scratch.length + 1) := by
+  induction scratch generalizing output state with
+  | nil =>
+      simpa using compilerPayloadEvalsToInTimeOne
+        (compilerPayload_step_restore_nil output state)
+  | cons bit scratch ih =>
+      let middle := compilerPayloadCfg (some .restore) (some bit)
+        [] scratch (bit :: output)
+      have hone : EvalsToInTime compilerPayloadComputer.step
+          (compilerPayloadCfg (some .restore) state
+            [] (bit :: scratch) output)
+          (some middle) 1 :=
+        compilerPayloadEvalsToInTimeOne (by
+          simpa [middle] using compilerPayload_step_restore_cons
+            bit scratch output state)
+      have hrest := ih (bit :: output) (some bit)
+      have hall := EvalsToInTime.trans compilerPayloadComputer.step
+        1 (scratch.length + 1)
+        (compilerPayloadCfg (some .restore) state
+          [] (bit :: scratch) output)
+        middle
+        (some (compilerPayloadCfg none none [] []
+          ((bit :: scratch).reverse ++ output)))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem compilerPayload_initList_eq_cfg (input : List Bool) :
+    initList compilerPayloadComputer input =
+      compilerPayloadCfg (some .header) none input [] [] := by
+  unfold initList compilerPayloadCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem compilerPayload_haltList_eq_cfg (output : List Bool) :
+    haltList compilerPayloadComputer output =
+      compilerPayloadCfg none none [] [] output := by
+  unfold haltList compilerPayloadCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- The header-removal pass emits the compact runtime-system payload unchanged
+in at most twice the complete compiler-input length plus one step. -/
+def compilerPayload_outputsInTime (C : RuntimeSystem) :
+    TM2OutputsInTime compilerPayloadComputer
+      (RuntimeCompilerInput.encode C)
+      (some (RuntimeSystem.finEncoding.encode C))
+      (2 * (RuntimeCompilerInput.encode C).length + 1) := by
+  let payload := RuntimeSystem.finEncoding.encode C
+  have hheader := compilerPayload_header_evals
+    C.domainEntryCount payload [] [] none
+  have hstash := compilerPayload_stash_evals payload [] [] (some false)
+  have hfirst := EvalsToInTime.trans compilerPayloadComputer.step
+    (C.domainEntryCount + 1) (payload.length + 1)
+    (compilerPayloadCfg (some .header) none
+      (List.replicate C.domainEntryCount true ++ false :: payload) [] [])
+    (compilerPayloadCfg (some .stash) (some false) payload [] [])
+    (some (compilerPayloadCfg (some .restore) none [] payload.reverse []))
+    (by simpa using hheader)
+    (by simpa using hstash)
+  have hrestore := compilerPayload_restore_evals payload.reverse [] none
+  have hall := EvalsToInTime.trans compilerPayloadComputer.step
+    ((payload.length + 1) + (C.domainEntryCount + 1))
+    (payload.reverse.length + 1)
+    (compilerPayloadCfg (some .header) none
+      (List.replicate C.domainEntryCount true ++ false :: payload) [] [])
+    (compilerPayloadCfg (some .restore) none [] payload.reverse [])
+    (some (compilerPayloadCfg none none [] [] payload))
+    (by
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hfirst)
+    (by simpa using hrestore)
+  have htime :
+      (payload.reverse.length + 1) +
+          ((payload.length + 1) + (C.domainEntryCount + 1)) ≤
+        2 * (RuntimeCompilerInput.encode C).length + 1 := by
+    simp [RuntimeCompilerInput.encode, payload]
+    omega
+  have hmono := evalsToInTimeMono hall htime
+  rw [TM2OutputsInTime, compilerPayload_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [compilerPayload_haltList_eq_cfg]
+  simpa [RuntimeCompilerInput.encode, payload] using hmono
+
+/-- Genuine linear-time removal of the decoder-checked unary header.  The
+computed runtime system is unchanged; only its finite encoding changes from
+the compiler-facing form to the compact nested-list form. -/
+noncomputable def compilerPayloadComputableInPolyTime :
+    @TM2ComputableInPolyTime RuntimeSystem RuntimeSystem
+      RuntimeCompilerInput.finEncoding RuntimeSystem.finEncoding id where
+  tm := compilerPayloadComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := 2 * Polynomial.X + 1
+  outputsFun C := by
+    simpa [RuntimeCompilerInput.finEncoding, RuntimeSystem.finEncoding,
+      Equiv.refl, Polynomial.eval_add, Polynomial.eval_mul,
+      Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X] using
+        compilerPayload_outputsInTime C
+
+/-- The existing unframing traversal, specialized to the compact runtime-
+system encoding, exposes its exact semantic nested-list representation. -/
+noncomputable def runtimeSystemUnframedComputableInPolyTime :
+    @TM2ComputableInPolyTime RuntimeSystem (List (List ℕ))
+      RuntimeSystem.finEncoding RawNatLists.finEncoding
+      RuntimeSystem.toNatLists where
+  tm := unframeComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := 3 * Polynomial.X
+  outputsFun C := by
+    simpa [RuntimeSystem.finEncoding, RawNatLists.finEncoding, Equiv.refl,
+      Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_X] using
+        unframe_outputsInTime C.toNatLists
+
+private noncomputable def runtimeCompilerRawFieldsComposition :
+    @TM2ComputableInPolyTime RuntimeSystem (List (List ℕ))
+      RuntimeCompilerInput.finEncoding RawNatLists.finEncoding
+      (RuntimeSystem.toNatLists ∘ id) :=
+  compositionComputableInPolyTime
+    RuntimeCompilerInput.finEncoding RuntimeSystem.finEncoding
+    RawNatLists.finEncoding id RuntimeSystem.toNatLists
+    compilerPayloadComputableInPolyTime
+    runtimeSystemUnframedComputableInPolyTime
+
+/-- From the actual checked compiler input, a concrete composed polynomial-
+time machine emits the raw outer length, inner lengths, and value fields of
+the complete runtime CSP payload. -/
+noncomputable def runtimeCompilerRawFieldsComputableInPolyTime :
+    @TM2ComputableInPolyTime RuntimeSystem (List (List ℕ))
+      RuntimeCompilerInput.finEncoding RawNatLists.finEncoding
+      RuntimeSystem.toNatLists := by
+  let composed := runtimeCompilerRawFieldsComposition
+  exact { composed with
+    outputsFun := fun C => by
+      simpa [Function.comp_def] using composed.outputsFun C }
 
 /-! ## Binary successor
 
@@ -11910,6 +12313,10 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms unframedNatListsComputableInPolyTime
 #print axioms domainEntryCount_outputsInTime
 #print axioms domainEntryCountComputableInPolyTime
+#print axioms compilerPayload_outputsInTime
+#print axioms compilerPayloadComputableInPolyTime
+#print axioms runtimeSystemUnframedComputableInPolyTime
+#print axioms runtimeCompilerRawFieldsComputableInPolyTime
 #print axioms runtimeDomainEntryPrimeComputableInPolyTime
 #print axioms binarySuccBits_encodeNat
 #print axioms binarySucc_outputsInTime

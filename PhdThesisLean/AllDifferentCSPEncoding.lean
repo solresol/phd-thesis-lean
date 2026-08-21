@@ -58,9 +58,11 @@ is at most the encoded input length, and yields an objective with the same
 exact minimizer semantics and quartic encoded-size bound.
 `RuntimeCompilerInput.finEncoding` adds that count as a decoder-checked unary
 header with only linear overhead, and the machine layer extracts and composes
-it with selected-prime construction. Encoded objective emission and
-whole-compiler composition remain separate from these encoding and size
-results.
+it with selected-prime construction. A separate checked linear pass removes
+the verified header without changing the compact payload, then composes with
+the raw-field traversal to expose every runtime-system structural field.
+Canonical row construction, encoded objective emission, and whole-compiler
+composition remain separate from these encoding and size results.
 -/
 
 namespace BinaryNatLists

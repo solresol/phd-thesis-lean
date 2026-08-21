@@ -77,8 +77,11 @@ retains the complete quartic output-size and exact semantic theorems. A
 compiler-facing Boolean encoding now carries that occurrence count in a
 decoder-checked unary header; a linear finite machine extracts it, and checked
 generic composition computes the same runtime prime used by the semantic
-compiler. Encoded objective emission and final whole-compiler composition
-remain.
+compiler. A second linear pass removes that checked header while preserving
+the compact payload, and its checked composition with the existing unframing
+machine exposes the complete runtime CSP as raw structural fields. Canonical
+row construction, encoded objective emission, and final whole-compiler
+composition remain.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -1188,10 +1191,10 @@ theorem compileObjectiveAt_allDifferent_correctness
 compiler-selected prime with the supplied-prime p-adic stage.
 
 This closes prime selection for the semantic compiler. The encoding and
-machine modules separately check finite output size and unary-bound prime
-selection; structural CSP compilation, unary-bound production, encoded
-objective emission, and final runtime composition remain before
-`cor:all-different-csp` is complete. -/
+machine modules separately check finite output size, selected-prime
+construction, and raw structural-payload extraction; canonical relabelling,
+edge deduplication, encoded objective emission, and final runtime composition
+remain before `cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness
     {n : ℕ} (C : ExplicitSystem n) (hC : C.WellFormed) :
     letI : Fact C.compilerPrime.Prime := ⟨C.compilerPrime_prime⟩
