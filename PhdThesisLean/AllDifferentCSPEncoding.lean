@@ -61,8 +61,12 @@ header with only linear overhead, and the machine layer extracts and composes
 it with selected-prime construction. A separate checked linear pass removes
 the verified header without changing the compact payload, then composes with
 the raw-field traversal to expose every runtime-system structural field.
-Canonical row construction, encoded objective emission, and whole-compiler
-composition remain separate from these encoding and size results.
+`RuntimeStructuralView` supplies the next exact finite target: it retains a
+variable-count header, flattens domains into locally tagged indexed
+occurrences, and preserves every scope as one tagged record. Canonical row
+construction, the machine that emits this structural view, encoded objective
+emission, and whole-compiler composition remain separate from these encoding
+and size results.
 -/
 
 namespace BinaryNatLists
@@ -520,6 +524,252 @@ theorem scopeEntryCount_le_encodedSize (C : RuntimeSystem) :
       BinaryNatLists.sum_lengths_le_wireSize C.toNatLists
 
 end RuntimeSystem
+
+/-! ## Tagged structural compiler view
+
+The compact runtime syntax separates domains from scopes with a single count.
+The next machine-facing representation makes that distinction local: every
+domain value becomes an occurrence tagged by its variable index, while every
+scope remains one intact record.  The variable-count header retains empty
+domains, so this view handles zero variables and empty domain lists without an
+implicit reconstruction convention.
+-/
+
+/-- One record in the structural stream consumed by canonical relabelling and
+primal-edge generation. -/
+inductive RuntimeStructuralRecord where
+  | domainOccurrence (index value : ℕ)
+  | scope (entries : List ℕ)
+  deriving DecidableEq, Repr
+
+namespace RuntimeStructuralRecord
+
+/-- A locally tagged natural-list representation. Tag `0` denotes a domain
+occurrence and tag `1` denotes a complete scope. -/
+def toNatList : RuntimeStructuralRecord → List ℕ
+  | .domainOccurrence index value => [0, index, value]
+  | .scope entries => 1 :: entries
+
+/-- Parse one locally tagged structural record. -/
+def ofNatList : List ℕ → Option RuntimeStructuralRecord
+  | [0, index, value] => some (.domainOccurrence index value)
+  | 1 :: entries => some (.scope entries)
+  | _ => none
+
+@[simp]
+theorem ofNatList_toNatList (record : RuntimeStructuralRecord) :
+    ofNatList record.toNatList = some record := by
+  cases record <;> simp [ofNatList, toNatList]
+
+/-- Project a domain occurrence from a structural record. -/
+def domainOccurrence? : RuntimeStructuralRecord → Option (ℕ × ℕ)
+  | .domainOccurrence index value => some (index, value)
+  | .scope _ => none
+
+/-- Project a scope from a structural record. -/
+def scope? : RuntimeStructuralRecord → Option (List ℕ)
+  | .domainOccurrence _ _ => none
+  | .scope entries => some entries
+
+end RuntimeStructuralRecord
+
+/-- Runtime compiler structure after the domain/scope boundary has been made
+explicit. Domain values are flattened into indexed occurrences; scopes retain
+their original list representation. -/
+structure RuntimeStructuralView where
+  variableCount : ℕ
+  records : List RuntimeStructuralRecord
+  deriving DecidableEq, Repr
+
+namespace RuntimeStructuralView
+
+/-- Flatten explicitly listed domain values from a specified starting index. -/
+def indexedDomainOccurrencesFrom : ℕ → List (List ℕ) → List (ℕ × ℕ)
+  | _, [] => []
+  | index, domain :: domains =>
+      domain.map (fun value => (index, value)) ++
+        indexedDomainOccurrencesFrom (index + 1) domains
+
+/-- Flatten every explicitly listed domain value while attaching its original
+variable index. Repeated values and their order are preserved. -/
+def indexedDomainOccurrences (domains : List (List ℕ)) : List (ℕ × ℕ) :=
+  indexedDomainOccurrencesFrom 0 domains
+
+/-- Turn indexed occurrences into the tagged structural records. -/
+def domainRecords (domains : List (List ℕ)) :
+    List RuntimeStructuralRecord :=
+  (indexedDomainOccurrences domains).map fun occurrence =>
+    .domainOccurrence occurrence.1 occurrence.2
+
+/-- The exact structural view of a runtime CSP. -/
+def ofRuntimeSystem (C : RuntimeSystem) : RuntimeStructuralView where
+  variableCount := C.domains.length
+  records := domainRecords C.domains ++
+    C.scopes.map RuntimeStructuralRecord.scope
+
+/-- Recover the indexed domain-occurrence stream from a structural view. -/
+def domainOccurrences (view : RuntimeStructuralView) : List (ℕ × ℕ) :=
+  view.records.filterMap RuntimeStructuralRecord.domainOccurrence?
+
+/-- Recover the complete scope stream from a structural view. -/
+def scopes (view : RuntimeStructuralView) : List (List ℕ) :=
+  view.records.filterMap RuntimeStructuralRecord.scope?
+
+@[simp]
+theorem ofRuntimeSystem_variableCount (C : RuntimeSystem) :
+    (ofRuntimeSystem C).variableCount = C.domains.length :=
+  rfl
+
+@[simp]
+theorem ofRuntimeSystem_domainOccurrences (C : RuntimeSystem) :
+    (ofRuntimeSystem C).domainOccurrences =
+      indexedDomainOccurrences C.domains := by
+  rw [ofRuntimeSystem, domainOccurrences, List.filterMap_append]
+  simp only [domainRecords]
+  have hdomain :
+      List.filterMap RuntimeStructuralRecord.domainOccurrence?
+          ((indexedDomainOccurrences C.domains).map fun occurrence =>
+            RuntimeStructuralRecord.domainOccurrence
+              occurrence.1 occurrence.2) =
+        indexedDomainOccurrences C.domains := by
+    induction indexedDomainOccurrences C.domains with
+    | nil => rfl
+    | cons occurrence occurrences ih =>
+        rcases occurrence with ⟨index, value⟩
+        simp [RuntimeStructuralRecord.domainOccurrence?, ih]
+  rw [hdomain]
+  simp [RuntimeStructuralRecord.domainOccurrence?]
+
+@[simp]
+theorem ofRuntimeSystem_scopes (C : RuntimeSystem) :
+    (ofRuntimeSystem C).scopes = C.scopes := by
+  rw [ofRuntimeSystem, scopes, List.filterMap_append]
+  simp only [domainRecords]
+  have hdomain :
+      List.filterMap RuntimeStructuralRecord.scope?
+          ((indexedDomainOccurrences C.domains).map fun occurrence =>
+            RuntimeStructuralRecord.domainOccurrence
+              occurrence.1 occurrence.2) = [] := by
+    induction indexedDomainOccurrences C.domains with
+    | nil => rfl
+    | cons occurrence occurrences ih =>
+        rcases occurrence with ⟨index, value⟩
+        simp [RuntimeStructuralRecord.scope?, ih]
+  rw [hdomain]
+  have hscopes :
+      List.filterMap RuntimeStructuralRecord.scope?
+          (C.scopes.map RuntimeStructuralRecord.scope) = C.scopes := by
+    induction C.scopes with
+    | nil => rfl
+    | cons entries scopeTail ih =>
+        simp [RuntimeStructuralRecord.scope?, ih]
+  exact hscopes
+
+private theorem indexedDomainOccurrencesFrom_values
+    (index : ℕ) (domains : List (List ℕ)) :
+    (indexedDomainOccurrencesFrom index domains).map Prod.snd =
+      domains.flatten := by
+  induction domains generalizing index with
+  | nil => simp [indexedDomainOccurrencesFrom]
+  | cons domain domains ih =>
+      simp [indexedDomainOccurrencesFrom, ih]
+
+theorem indexedDomainOccurrences_values (domains : List (List ℕ)) :
+    (indexedDomainOccurrences domains).map Prod.snd = domains.flatten := by
+  exact indexedDomainOccurrencesFrom_values 0 domains
+
+private theorem indexedDomainOccurrencesFrom_length
+    (index : ℕ) (domains : List (List ℕ)) :
+    (indexedDomainOccurrencesFrom index domains).length =
+      (domains.map List.length).sum := by
+  induction domains generalizing index with
+  | nil => simp [indexedDomainOccurrencesFrom]
+  | cons domain domains ih =>
+      simp [indexedDomainOccurrencesFrom, ih]
+
+@[simp]
+theorem indexedDomainOccurrences_length (domains : List (List ℕ)) :
+    (indexedDomainOccurrences domains).length =
+      (domains.map List.length).sum := by
+  exact indexedDomainOccurrencesFrom_length 0 domains
+
+private theorem indexedDomainOccurrencesFrom_index_lt
+    (start : ℕ) (domains : List (List ℕ)) (occurrence : ℕ × ℕ)
+    (hoccurrence :
+      occurrence ∈ indexedDomainOccurrencesFrom start domains) :
+    occurrence.1 < start + domains.length := by
+  induction domains generalizing start with
+  | nil => simp [indexedDomainOccurrencesFrom] at hoccurrence
+  | cons domain domains ih =>
+      simp only [indexedDomainOccurrencesFrom, List.mem_append,
+        List.mem_map] at hoccurrence
+      rcases hoccurrence with ⟨value, _hvalue, rfl⟩ | hrest
+      · simp
+      · have h := ih (start + 1) hrest
+        simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using h
+
+/-- Every occurrence tag is a valid variable index in the source runtime
+system. -/
+theorem indexedDomainOccurrences_variable_lt
+    (domains : List (List ℕ)) (occurrence : ℕ × ℕ)
+    (hoccurrence : occurrence ∈ indexedDomainOccurrences domains) :
+    occurrence.1 < domains.length := by
+  simpa [indexedDomainOccurrences] using
+    indexedDomainOccurrencesFrom_index_lt 0 domains occurrence hoccurrence
+
+@[simp]
+theorem ofRuntimeSystem_domainOccurrences_length (C : RuntimeSystem) :
+    (ofRuntimeSystem C).domainOccurrences.length = C.domainEntryCount := by
+  simp [RuntimeSystem.domainEntryCount]
+
+@[simp]
+theorem ofRuntimeSystem_records_length (C : RuntimeSystem) :
+    (ofRuntimeSystem C).records.length =
+      C.domainEntryCount + C.scopes.length := by
+  simp [ofRuntimeSystem, domainRecords, RuntimeSystem.domainEntryCount]
+
+/-- Natural-list wire form: the singleton variable-count header is followed
+by the locally tagged structural records. -/
+def toNatLists (view : RuntimeStructuralView) : List (List ℕ) :=
+  [view.variableCount] :: view.records.map RuntimeStructuralRecord.toNatList
+
+/-- Parse the complete tagged structural wire form. -/
+def ofNatLists : List (List ℕ) → Option RuntimeStructuralView
+  | [variableCount] :: rows => do
+      let records ← rows.mapM RuntimeStructuralRecord.ofNatList
+      some { variableCount, records }
+  | _ => none
+
+@[simp]
+theorem ofNatLists_toNatLists (view : RuntimeStructuralView) :
+    ofNatLists view.toNatLists = some view := by
+  have hrecords :
+      (view.records.map RuntimeStructuralRecord.toNatList).mapM
+          RuntimeStructuralRecord.ofNatList = some view.records := by
+    induction view.records with
+    | nil => rfl
+    | cons record records ih =>
+        simp [RuntimeStructuralRecord.ofNatList_toNatList, ih]
+  simp [ofNatLists, toNatLists, hrecords]
+
+/-- Checked Boolean encoding for the tagged structural compiler view. -/
+def finEncoding : FinEncoding RuntimeStructuralView where
+  Γ := Bool
+  encode view := BinaryNatLists.encode view.toNatLists
+  decode bits := (BinaryNatLists.decode bits).bind ofNatLists
+  decode_encode view := by simp
+  ΓFin := Bool.fintype
+
+/-- Exact length of the tagged structural view under its checked binary
+encoding. -/
+def encodedSize (view : RuntimeStructuralView) : ℕ :=
+  (finEncoding.toEncoding.encode view).length
+
+theorem encodedSize_eq_wireSize (view : RuntimeStructuralView) :
+    view.encodedSize = BinaryNatLists.wireSize view.toNatLists := by
+  simp [encodedSize, finEncoding]
+
+end RuntimeStructuralView
 
 /-! ## Compiler-oriented runtime input
 
@@ -1127,6 +1377,11 @@ theorem compileUsingDomainEntryBound_encodedSize_le_compilerInput_quartic
 #print axioms RuntimeSystem.encodedSize_eq_wireSize
 #print axioms RuntimeSystem.symbolCount_le_domainEntryCount
 #print axioms RuntimeSystem.symbolCount_lt_domainEntryPrime
+#print axioms RuntimeStructuralView.ofRuntimeSystem_domainOccurrences
+#print axioms RuntimeStructuralView.ofRuntimeSystem_scopes
+#print axioms RuntimeStructuralView.indexedDomainOccurrences_variable_lt
+#print axioms RuntimeStructuralView.ofNatLists_toNatLists
+#print axioms RuntimeStructuralView.encodedSize_eq_wireSize
 #print axioms RuntimeCompilerInput.decode_encode
 #print axioms RuntimeCompilerInput.encode_length_le
 #print axioms RuntimeObjective.ofNatLists_toNatLists

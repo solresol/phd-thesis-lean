@@ -168,7 +168,13 @@ header while preserving the compact runtime-system payload byte-for-byte in
 at most `2s+1` steps. `runtimeCompilerRawFieldsComputableInPolyTime` composes
 this pass with the checked unframing traversal and emits the complete outer
 length, inner lengths, and natural value fields of `RuntimeSystem.toNatLists`
-from the actual compiler input in polynomial time.
+from the actual compiler input in polynomial time. The checked
+`RuntimeStructuralView` is the exact target for the next pass: it retains the
+variable-count header, flattens every explicitly listed domain value to a
+tagged `(variable index, value)` occurrence, preserves duplicates and order,
+and keeps every scope intact under its own tag. Its Boolean `FinEncoding`
+round-trips exactly; range and projection lemmas show that occurrence indices
+are valid, values are unchanged, and the scope stream is recovered verbatim.
 `binarySuccComputableInPolyTime` computes successor on mathlib's canonical
 binary natural encoding in at most `2s + 3` steps, including zero and carry
 growth. `binaryLEComputableInPolyTime` decides less-than-or-equal on a checked

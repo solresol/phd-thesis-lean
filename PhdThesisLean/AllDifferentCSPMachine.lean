@@ -56,10 +56,14 @@ the encoded runtime system to its semantic `domainEntryPrime`. A sixteenth
 finite machine removes that checked header in linear time while preserving the
 compact nested-list payload byte-for-byte; composing it with the existing
 unframing traversal exposes the complete runtime CSP as raw structural fields.
+The encoding layer separately defines `RuntimeStructuralView`, the exact
+tagged target for the next structural transducer: indexed domain occurrences,
+intact scopes, and an explicit variable-count header.
 
 These are checked components of the eventual compiler machine. They do not yet
-establish polynomial time for CSP structural compilation, objective-row
-emission, or final compiler assembly.
+establish polynomial time for emitting the tagged structural view, canonical
+relabelling and edge construction, objective-row emission, or final compiler
+assembly.
 -/
 
 namespace FramedNat

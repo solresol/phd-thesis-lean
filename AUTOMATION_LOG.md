@@ -1761,3 +1761,75 @@
   stream while preserving the scope fields. That provides the concrete input
   for canonical equality-preserving relabelling before pin-row emission and
   primal-edge deduplication.
+
+## 2026-08-23 05:26:18 AEST — specify the tagged structural compiler view
+
+- **Starting commit:** `832eccf126b9c965f22e17848845c77faed45d32` on
+  `main`. The working tree was clean; `git fetch --prune origin` confirmed
+  divergence count `0 0`, and local `HEAD`, `origin/main`, and the live remote
+  ref agreed, so no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of
+  `cor:all-different-csp`, this journal, and the runtime encoding/machine
+  boundary. The thesis checkout remains at
+  `5294a3754f4987514ed9f03e73658df37a684156` with unrelated user changes to
+  `.gitignore` and `todo.md`; neither was changed. The corollary remains
+  **Partial** because no finite machine yet emits the new structural target,
+  and canonical relabelling, primal-edge deduplication, row emission, and final
+  assembly remain.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  with its live remote at
+  `850af1c4024e585c7fa1893c489028cf90219621`. The commits after this project's
+  pinned `527e16c1d0b5616a3e388c907a12added116806a` add general encoded-language,
+  `P`, and verifier-based `NP` declarations, but no structural-stream
+  transducer needed here. The sibling repository and dependency pin were not
+  changed.
+- **Chosen increment:** defined the exact finite target for the next structural
+  machine rather than leaving its output layout informal.
+  `RuntimeStructuralRecord` uses tag `0` for a three-field domain occurrence
+  `(variable index, original value)` and tag `1` for an intact scope.
+  `RuntimeStructuralView` retains a separate variable-count header, so zero
+  variables and empty domains remain explicit even though domain values are
+  flattened.
+- **Checked declarations:** `ofRuntimeSystem_domainOccurrences` proves that
+  every explicitly listed domain entry is emitted once, in original order and
+  without deduplication; `indexedDomainOccurrences_values` proves the value
+  projection is exactly the flattened original domains;
+  `indexedDomainOccurrences_variable_lt` proves every attached variable index
+  is in range; `ofRuntimeSystem_scopes` recovers the scope stream verbatim;
+  the occurrence and record length lemmas give exact counts.
+  `RuntimeStructuralView.finEncoding`, `ofNatLists_toNatLists`, and
+  `encodedSize_eq_wireSize` provide a checked Boolean encoding and exact wire
+  length.
+- **Failed approaches and corrections:** the first direct check exposed that
+  constructor binders named `variable`/`variables` conflict with current Lean
+  parser syntax; they were renamed to `index`/`entries`. A first `zipIdx`-based
+  induction changed the tail's starting index from `0` to `1`, so the induction
+  hypothesis did not apply. Replacing it with the executable
+  `indexedDomainOccurrencesFrom start` definition made index shifts explicit
+  and yielded the range, value-order, and length proofs. The `filterMap` and
+  `mapM` round-trip goals then required direct list inductions rather than
+  relying on broad simplification. No placeholder remains.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPEncoding.lean` adds the
+  tagged structural syntax, executable conversion, projections, correctness
+  lemmas, checked encoding, wire-size identity, and axiom audits.
+  `PhdThesisLean/AllDifferentCSPMachine.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record this exact target while retaining **Partial**
+  status; this entry records the run.
+- **Verification succeeded:** `lake env lean
+  PhdThesisLean/AllDifferentCSPEncoding.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPEncoding
+  PhdThesisLean.AllDifferentCSPMachine` (3100 jobs); full `lake build` (3123
+  jobs); `git diff --check`; and a project Lean-source scan for `sorry`,
+  `admit`, project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms`
+  audits report only `propext`, `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one coherent verified encoding,
+  correspondence, status, and log increment; unrelated thesis work remains
+  untouched.
+- **Best next step:** implement a finite-machine transducer from the checked
+  raw `RuntimeSystem.toNatLists` fields to
+  `RuntimeStructuralView.finEncoding`, with a polynomial bound in the complete
+  compiler-input length. Then canonicalise the occurrence values while
+  retaining their variable tags before emitting pin rows.
