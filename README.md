@@ -175,6 +175,10 @@ tagged `(variable index, value)` occurrence, preserves duplicates and order,
 and keeps every scope intact under its own tag. Its Boolean `FinEncoding`
 round-trips exactly; range and projection lemmas show that occurrence indices
 are valid, values are unchanged, and the scope stream is recovered verbatim.
+`RuntimeStructuralView.rawFinEncoding` gives the next structural transducer a
+checked stack-oriented raw output contract, while
+`runtimeStructuralViewFramingComputableInPolyTime` converts that raw form to
+the exact Boolean encoding in at most three times the raw stream length.
 `binarySuccComputableInPolyTime` computes successor on mathlib's canonical
 binary natural encoding in at most `2s + 3` steps, including zero and carry
 growth. `binaryLEComputableInPolyTime` decides less-than-or-equal on a checked
@@ -245,8 +249,10 @@ with that selector to compute exactly the prime used by
 compiler-facing encoding; a transducer from the smaller header-free encoding
 would be a separate representation theorem. The compiler now also has a
 checked header-removal transducer and a composed raw-field view of the compact
-payload. Canonical relabelling, primal-edge deduplication, encoded objective
-emission, and final whole-compiler assembly remain.
+payload. The tagged structural target also has a checked raw encoding and a
+linear finite-machine bridge to its canonical Boolean encoding. Emission of
+that raw target, canonical relabelling, primal-edge deduplication, encoded
+objective emission, and final whole-compiler assembly remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It

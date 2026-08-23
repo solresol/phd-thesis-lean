@@ -1833,3 +1833,73 @@
   `RuntimeStructuralView.finEncoding`, with a polynomial bound in the complete
   compiler-input length. Then canonicalise the occurrence values while
   retaining their variable tags before emitting pin rows.
+
+## 2026-08-24 05:22:22 AEST — frame the raw tagged structural target
+
+- **Starting commit:** `9ac73e94eca35483d26eb52f60e99171a447a8ce` on
+  `main`. The working tree was clean; `git fetch --prune origin` confirmed
+  divergence count `0 0`, and local `HEAD`, `origin/main`, and the live remote
+  ref agreed, so no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of
+  `cor:all-different-csp`, this journal, and the runtime encoding and machine
+  boundary. The thesis checkout remains at
+  `5294a3754f4987514ed9f03e73658df37a684156` with unrelated user changes to
+  `.gitignore` and `todo.md`; neither was changed. The corollary remains
+  **Partial** because the raw structural producer, canonical relabelling,
+  primal-edge deduplication, objective emission, and final compiler assembly
+  are still absent.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  with its live remote at
+  `e416760763f22b4dba5ef2f6c92b55cd47d7447a`. Its commits after this
+  project's pinned `527e16c1d0b5616a3e388c907a12added116806a` extend the
+  encoded complexity-class layer but add no structural-stream transducer. The
+  sibling repository and dependency pin were not changed.
+- **Chosen increment:** separated structural emission from canonical Boolean
+  serialization. `RuntimeStructuralView.rawFinEncoding` is a checked
+  stack-oriented raw-field encoding of the exact tagged structural target.
+  It covers the variable-count header, every record field, empty lists, and
+  zero-variable views through the general nested-list representation.
+- **Headline finite-machine declarations:**
+  `nestedListFrame_outputsInTime` generalizes the existing serializer proof
+  from one natural list to every raw nested-list field stream and proves exact
+  Boolean output in at most three times the raw input length.
+  `runtimeStructuralViewFramingComputableInPolyTime` packages that same
+  concrete finite machine as a linear-time transducer from the new raw
+  structural encoding to `RuntimeStructuralView.finEncoding`. The next
+  structural producer can therefore target the simpler raw contract and
+  compose with this checked bridge.
+- **Failed approach and correction:** the first decoder definition used an
+  unqualified `ofNatLists` inside the new machine-local
+  `RuntimeStructuralView` namespace. Lean reported `Unknown identifier
+  ofNatLists`, left the round-trip goal unsolved, and the temporary declaration
+  therefore audited with `sorryAx`. Qualifying
+  `AllDifferentCSPEncoding.RuntimeStructuralView.ofNatLists` resolved the
+  namespace boundary; the successful direct check and final audits contain no
+  `sorryAx`.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the raw
+  checked encoding, generalized exact execution theorem, polynomial-time
+  wrapper, and axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` record the new serialization boundary while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine` (3100 jobs); full `lake build` (3123
+  jobs); `git diff --check`; and project Lean-source scans for `sorry`,
+  `admit`, project `axiom`, `unsafe`, and `proof_wanted`. New `#print axioms`
+  audits for `RuntimeStructuralView.rawFinEncoding`,
+  `nestedListFrame_outputsInTime`, and
+  `runtimeStructuralViewFramingComputableInPolyTime` report only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one coherent verified finite-machine,
+  correspondence, status, and log increment; unrelated thesis work remains
+  untouched.
+- **Best next step:** implement a finite-machine pass from
+  `runtimeCompilerRawFieldsComputableInPolyTime` to
+  `RuntimeStructuralView.rawFinEncoding`, proving that it emits exactly
+  `RuntimeStructuralView.ofRuntimeSystem`; then compose it with the new linear
+  framing bridge before canonicalizing occurrence values with their variable
+  tags intact.

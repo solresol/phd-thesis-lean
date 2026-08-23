@@ -58,7 +58,10 @@ compact nested-list payload byte-for-byte; composing it with the existing
 unframing traversal exposes the complete runtime CSP as raw structural fields.
 The encoding layer separately defines `RuntimeStructuralView`, the exact
 tagged target for the next structural transducer: indexed domain occurrences,
-intact scopes, and an explicit variable-count header.
+intact scopes, and an explicit variable-count header. A checked raw-field
+encoding now gives that transducer its direct output contract, and the existing
+finite serializer converts the raw structural view to its exact canonical
+Boolean encoding in linear time.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for emitting the tagged structural view, canonical
@@ -408,6 +411,25 @@ def finEncoding : FinEncoding (List (List ℕ)) where
   ΓFin := inferInstance
 
 end RawNatLists
+
+namespace RuntimeStructuralView
+
+/-- Checked stack-oriented raw-field encoding of the tagged structural view.
+
+This is the natural output interface for the structural scan: the machine can
+emit the outer length and every record field in reverse stack order, without
+also having to construct the canonical self-delimiting Boolean frames.  The
+separate framing machine below converts this representation to
+`RuntimeStructuralView.finEncoding` in linear time. -/
+def rawFinEncoding : FinEncoding RuntimeStructuralView where
+  Γ := Option Bool
+  encode view := RawNatLists.encode view.toNatLists
+  decode bits := (RawNatLists.decode bits).bind
+    AllDifferentCSPEncoding.RuntimeStructuralView.ofNatLists
+  decode_encode view := by simp
+  ΓFin := inferInstance
+
+end RuntimeStructuralView
 
 /-- Four Boolean stacks suffice to preserve the payload while prefixing its
 length: input, reversed payload, unary counter, and output. -/
@@ -1194,6 +1216,58 @@ def listFrame_outputsInTime (xs : List ℕ) :
   simp only [Option.map_some]
   rw [list_haltList_eq_cfg]
   simpa [RawNatList.encode, payloads_frame_eq_encodeNatList] using hmono
+
+/-- The same finite serializer frames every field of a raw nested-list
+stream.  Its proof is representation-generic: the outer length, every inner
+length, and every value are simply raw natural fields to `listFrameComputer`.
+-/
+def nestedListFrame_outputsInTime (xss : List (List ℕ)) :
+    TM2OutputsInTime listFrameComputer (RawNatLists.encode xss)
+      (some (BinaryNatLists.encode xss))
+      (3 * (RawNatLists.encode xss).length) := by
+  have hpayloads : RawNatLists.payloads xss ≠ [] := by
+    simp [RawNatLists.payloads]
+  have hpayloadsReverse : (RawNatLists.payloads xss).reverse ≠ [] := by
+    intro hreverse
+    apply hpayloads
+    have := congrArg List.reverse hreverse
+    simpa using this
+  have hsegments := list_segments_evals
+    (RawNatLists.payloads xss).reverse
+    hpayloadsReverse [] listFrameInitialState
+  have hlength :=
+    segments_length_le_raw_length (RawNatLists.payloads xss).reverse
+  have hbound :
+      2 * (RawNatLists.encode xss).length +
+          (RawNatLists.payloads xss).reverse.length ≤
+        3 * (RawNatLists.encode xss).length := by
+    change (RawNatLists.payloads xss).reverse.length ≤
+      (RawNatLists.encode xss).length at hlength
+    omega
+  have hmono := evalsToInTimeMono hsegments (by
+    simpa [RawNatLists.encode] using hbound)
+  rw [TM2OutputsInTime, list_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [list_haltList_eq_cfg]
+  simpa [RawNatLists.encode, RawNatLists.payloads_frame_eq_encode] using hmono
+
+/-- A genuine linear-time finite-machine bridge from the stack-oriented raw
+structural stream to the exact checked Boolean encoding of that structural
+view.  This keeps structural emission and canonical field framing as separate
+compiler passes. -/
+noncomputable def runtimeStructuralViewFramingComputableInPolyTime :
+    @TM2ComputableInPolyTime RuntimeStructuralView RuntimeStructuralView
+      RuntimeStructuralView.rawFinEncoding
+      RuntimeStructuralView.finEncoding id where
+  tm := listFrameComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl Bool
+  time := 3 * Polynomial.X
+  outputsFun view := by
+    simpa [RuntimeStructuralView.rawFinEncoding,
+      RuntimeStructuralView.finEncoding, Equiv.refl,
+      Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_X] using
+        nestedListFrame_outputsInTime view.toNatLists
 
 /-- A genuine linear-time finite-machine witness converting the natural
 stack-stream representation into the exact framed list encoding used by the
@@ -12311,6 +12385,9 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms framedNatComputableInPolyTime
 #print axioms RawNatList.decode_encode
 #print axioms listFrame_outputsInTime
+#print axioms RuntimeStructuralView.rawFinEncoding
+#print axioms nestedListFrame_outputsInTime
+#print axioms runtimeStructuralViewFramingComputableInPolyTime
 #print axioms framedNatListComputableInPolyTime
 #print axioms RawNatLists.decode_encode
 #print axioms unframe_outputsInTime

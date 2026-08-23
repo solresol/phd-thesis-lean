@@ -79,9 +79,11 @@ decoder-checked unary header; a linear finite machine extracts it, and checked
 generic composition computes the same runtime prime used by the semantic
 compiler. A second linear pass removes that checked header while preserving
 the compact payload, and its checked composition with the existing unframing
-machine exposes the complete runtime CSP as raw structural fields. Canonical
-row construction, encoded objective emission, and final whole-compiler
-composition remain.
+machine exposes the complete runtime CSP as raw structural fields. The tagged
+structural target now also has a checked raw-field encoding and a linear
+finite-machine bridge to its canonical Boolean encoding. Emitting that raw
+structural target, canonical row construction, encoded objective emission, and
+final whole-compiler composition remain.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -1192,9 +1194,10 @@ compiler-selected prime with the supplied-prime p-adic stage.
 
 This closes prime selection for the semantic compiler. The encoding and
 machine modules separately check finite output size, selected-prime
-construction, and raw structural-payload extraction; canonical relabelling,
-edge deduplication, encoded objective emission, and final runtime composition
-remain before `cor:all-different-csp` is complete. -/
+construction, raw structural-payload extraction, and linear framing of the
+tagged structural target; canonical relabelling, edge deduplication, encoded
+objective emission, and final runtime composition remain before
+`cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness
     {n : ℕ} (C : ExplicitSystem n) (hC : C.WellFormed) :
     letI : Fact C.compilerPrime.Prime := ⟨C.compilerPrime_prime⟩

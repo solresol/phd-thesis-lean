@@ -63,10 +63,12 @@ the verified header without changing the compact payload, then composes with
 the raw-field traversal to expose every runtime-system structural field.
 `RuntimeStructuralView` supplies the next exact finite target: it retains a
 variable-count header, flattens domains into locally tagged indexed
-occurrences, and preserves every scope as one tagged record. Canonical row
-construction, the machine that emits this structural view, encoded objective
-emission, and whole-compiler composition remain separate from these encoding
-and size results.
+occurrences, and preserves every scope as one tagged record. The machine layer
+adds a checked stack-oriented raw-field encoding for this view and a linear
+finite-machine bridge to the exact Boolean encoding below. Canonical row
+construction, the machine that emits the raw structural view, encoded
+objective emission, and whole-compiler composition remain separate from these
+encoding and size results.
 -/
 
 namespace BinaryNatLists
