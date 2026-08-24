@@ -61,7 +61,10 @@ tagged target for the next structural transducer: indexed domain occurrences,
 intact scopes, and an explicit variable-count header. A checked raw-field
 encoding now gives that transducer its direct output contract, and the existing
 finite serializer converts the raw structural view to its exact canonical
-Boolean encoding in linear time.
+Boolean encoding in linear time. A further checked linear pass reverses the
+raw compact-system stream into semantic source order, so the outer length and
+domain-count separator precede the domain and scope fields consumed by the
+next structural emitter.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for emitting the tagged structural view, canonical
@@ -411,6 +414,50 @@ def finEncoding : FinEncoding (List (List ℕ)) where
   ΓFin := inferInstance
 
 end RawNatLists
+
+namespace SourceOrderRawNatLists
+
+/-!
+`RawNatLists` is arranged for direct stack consumption, so its fields occur in
+reverse semantic order.  The structural producer needs the compact CSP header
+before its domain and scope fields.  This companion encoding reverses the
+complete raw stream: fields then occur in semantic source order, each with a
+leading delimiter followed by its canonical least-significant-bit-first
+payload.
+-/
+
+/-- The raw nested-list fields in semantic source order. -/
+def encode (xss : List (List ℕ)) : List (Option Bool) :=
+  (RawNatLists.encode xss).reverse
+
+/-- Decode by restoring the checked stack-oriented raw representation. -/
+def decode (input : List (Option Bool)) : Option (List (List ℕ)) :=
+  RawNatLists.decode input.reverse
+
+@[simp]
+theorem decode_encode (xss : List (List ℕ)) :
+    decode (encode xss) = some xss := by
+  simp [decode, encode]
+
+/-- Source-order fields are the semantic payload sequence, with each field
+represented by a leading delimiter and its canonical binary bits. -/
+theorem encode_eq_payloads (xss : List (List ℕ)) :
+    encode xss =
+      (RawNatLists.payloads xss).flatMap
+        (fun bits => none :: bits.map some) := by
+  rw [encode, RawNatLists.encode, List.reverse_flatMap,
+    List.reverse_reverse]
+  simp [RawNatList.segment, Function.comp_def]
+
+/-- Checked finite encoding for source-order raw nested-list fields. -/
+def finEncoding : FinEncoding (List (List ℕ)) where
+  Γ := Option Bool
+  encode := encode
+  decode := decode
+  decode_encode := decode_encode
+  ΓFin := inferInstance
+
+end SourceOrderRawNatLists
 
 namespace RuntimeStructuralView
 
@@ -2481,6 +2528,227 @@ noncomputable def runtimeCompilerRawFieldsComputableInPolyTime :
       RuntimeCompilerInput.finEncoding RawNatLists.finEncoding
       RuntimeSystem.toNatLists := by
   let composed := runtimeCompilerRawFieldsComposition
+  exact { composed with
+    outputsFun := fun C => by
+      simpa [Function.comp_def] using composed.outputsFun C }
+
+/-! ## Source-order runtime fields
+
+The stack-oriented raw encoding above exposes the final CSP field first.  The
+structural producer instead needs the outer length and domain-count separator
+before it sees the domains and scopes.  A single whole-stream reversal changes
+only the raw representation, not the decoded nested lists.  It places fields
+in semantic source order and puts each field delimiter before its canonical
+binary payload.
+-/
+
+inductive SourceOrderRawFieldStack
+  | input
+  | output
+  deriving DecidableEq, Fintype
+
+inductive SourceOrderRawFieldLabel
+  | copy
+  deriving DecidableEq, Fintype
+
+/-- `none` means that the input stack was empty; `some none` is a field
+delimiter and `some (some bit)` is a binary payload symbol. -/
+abbrev SourceOrderRawFieldState := Option (Option Bool)
+
+private def sourceOrderRawFieldPopped
+    (_state : SourceOrderRawFieldState) (symbol : Option (Option Bool)) :
+    SourceOrderRawFieldState :=
+  symbol
+
+private def sourceOrderRawFieldPresent : SourceOrderRawFieldState → Bool
+  | some _ => true
+  | none => false
+
+private def sourceOrderRawFieldHeld : SourceOrderRawFieldState → Option Bool
+  | some symbol => symbol
+  | none => none
+
+private def SourceOrderRawFieldAlphabet
+    (_ : SourceOrderRawFieldStack) : Type :=
+  Option Bool
+
+/-- Reverse every raw input cell onto the output stack.  Because the source
+encoding already reverses field order and field payloads for stack
+consumption, this exposes the exact semantic source order. -/
+def sourceOrderRawFieldProgram :
+    SourceOrderRawFieldLabel →
+      TM2.Stmt SourceOrderRawFieldAlphabet SourceOrderRawFieldLabel
+        SourceOrderRawFieldState
+  | .copy =>
+      .pop .input sourceOrderRawFieldPopped <|
+        .branch sourceOrderRawFieldPresent
+          (.push .output sourceOrderRawFieldHeld <|
+            .goto (fun _ => .copy))
+          .halt
+
+def sourceOrderRawFieldComputer : FinTM2 where
+  K := SourceOrderRawFieldStack
+  k₀ := .input
+  k₁ := .output
+  Γ := SourceOrderRawFieldAlphabet
+  Λ := SourceOrderRawFieldLabel
+  main := .copy
+  σ := SourceOrderRawFieldState
+  initialState := none
+  Γk₀Fin := show Fintype (Option Bool) from inferInstance
+  m := sourceOrderRawFieldProgram
+
+private def sourceOrderRawFieldStackContents
+    (input output : List (Option Bool)) :
+    (index : SourceOrderRawFieldStack) →
+      List (SourceOrderRawFieldAlphabet index)
+  | .input => input
+  | .output => output
+
+private def sourceOrderRawFieldCfg
+    (label : Option SourceOrderRawFieldLabel)
+    (state : SourceOrderRawFieldState)
+    (input output : List (Option Bool)) :
+    sourceOrderRawFieldComputer.Cfg where
+  l := label
+  var := state
+  stk := sourceOrderRawFieldStackContents input output
+
+private theorem sourceOrderRawField_step_cons (symbol : Option Bool)
+    (input output : List (Option Bool))
+    (state : SourceOrderRawFieldState) :
+    sourceOrderRawFieldComputer.step
+        (sourceOrderRawFieldCfg (some .copy) state
+          (symbol :: input) output) =
+      some (sourceOrderRawFieldCfg (some .copy) (some symbol)
+        input (symbol :: output)) := by
+  simp [sourceOrderRawFieldComputer, FinTM2.step,
+    sourceOrderRawFieldCfg, sourceOrderRawFieldProgram,
+    sourceOrderRawFieldStackContents, SourceOrderRawFieldAlphabet,
+    sourceOrderRawFieldPopped, sourceOrderRawFieldPresent,
+    sourceOrderRawFieldHeld, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem sourceOrderRawField_step_nil
+    (output : List (Option Bool)) (state : SourceOrderRawFieldState) :
+    sourceOrderRawFieldComputer.step
+        (sourceOrderRawFieldCfg (some .copy) state [] output) =
+      some (sourceOrderRawFieldCfg none none [] output) := by
+  simp [sourceOrderRawFieldComputer, FinTM2.step,
+    sourceOrderRawFieldCfg, sourceOrderRawFieldProgram,
+    sourceOrderRawFieldStackContents, SourceOrderRawFieldAlphabet,
+    sourceOrderRawFieldPopped, sourceOrderRawFieldPresent]
+
+private def sourceOrderRawFieldEvalsToInTimeOne
+    {start finish : sourceOrderRawFieldComputer.Cfg}
+    (hstep : sourceOrderRawFieldComputer.step start = some finish) :
+    EvalsToInTime sourceOrderRawFieldComputer.step
+      start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def sourceOrderRawField_copy_evals
+    (input output : List (Option Bool))
+    (state : SourceOrderRawFieldState) :
+    EvalsToInTime sourceOrderRawFieldComputer.step
+      (sourceOrderRawFieldCfg (some .copy) state input output)
+      (some (sourceOrderRawFieldCfg none none []
+        (input.reverse ++ output)))
+      (input.length + 1) := by
+  induction input generalizing output state with
+  | nil =>
+      simpa using sourceOrderRawFieldEvalsToInTimeOne
+        (sourceOrderRawField_step_nil output state)
+  | cons symbol input ih =>
+      let middle := sourceOrderRawFieldCfg (some .copy) (some symbol)
+        input (symbol :: output)
+      have hone : EvalsToInTime sourceOrderRawFieldComputer.step
+          (sourceOrderRawFieldCfg (some .copy) state
+            (symbol :: input) output)
+          (some middle) 1 :=
+        sourceOrderRawFieldEvalsToInTimeOne (by
+          simpa [middle] using sourceOrderRawField_step_cons
+            symbol input output state)
+      have hrest := ih (symbol :: output) (some symbol)
+      have hall := EvalsToInTime.trans sourceOrderRawFieldComputer.step
+        1 (input.length + 1)
+        (sourceOrderRawFieldCfg (some .copy) state
+          (symbol :: input) output)
+        middle
+        (some (sourceOrderRawFieldCfg none none []
+          ((symbol :: input).reverse ++ output)))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem sourceOrderRawField_initList_eq_cfg
+    (input : List (Option Bool)) :
+    initList sourceOrderRawFieldComputer input =
+      sourceOrderRawFieldCfg (some .copy) none input [] := by
+  unfold initList sourceOrderRawFieldCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem sourceOrderRawField_haltList_eq_cfg
+    (output : List (Option Bool)) :
+    haltList sourceOrderRawFieldComputer output =
+      sourceOrderRawFieldCfg none none [] output := by
+  unfold haltList sourceOrderRawFieldCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- Whole-stream reversal emits the checked source-order encoding in exactly
+one more step than the raw input length. -/
+def sourceOrderRawFields_outputsInTime (xss : List (List ℕ)) :
+    TM2OutputsInTime sourceOrderRawFieldComputer
+      (RawNatLists.encode xss)
+      (some (SourceOrderRawNatLists.encode xss))
+      ((RawNatLists.encode xss).length + 1) := by
+  have hrun := sourceOrderRawField_copy_evals
+    (RawNatLists.encode xss) [] none
+  rw [TM2OutputsInTime, sourceOrderRawField_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [sourceOrderRawField_haltList_eq_cfg]
+  simpa [SourceOrderRawNatLists.encode] using hrun
+
+/-- A genuine linear-time encoding change from stack-oriented reverse fields
+to semantic source-order fields. -/
+noncomputable def sourceOrderRawFieldsComputableInPolyTime :
+    @TM2ComputableInPolyTime (List (List ℕ)) (List (List ℕ))
+      RawNatLists.finEncoding SourceOrderRawNatLists.finEncoding id where
+  tm := sourceOrderRawFieldComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := Polynomial.X + 1
+  outputsFun xss := by
+    simpa [RawNatLists.finEncoding, SourceOrderRawNatLists.finEncoding,
+      Equiv.refl, Polynomial.eval_add, Polynomial.eval_one,
+      Polynomial.eval_X] using sourceOrderRawFields_outputsInTime xss
+
+private noncomputable def runtimeCompilerSourceOrderFieldsComposition :
+    @TM2ComputableInPolyTime RuntimeSystem (List (List ℕ))
+      RuntimeCompilerInput.finEncoding SourceOrderRawNatLists.finEncoding
+      (id ∘ RuntimeSystem.toNatLists) :=
+  compositionComputableInPolyTime
+    RuntimeCompilerInput.finEncoding RawNatLists.finEncoding
+    SourceOrderRawNatLists.finEncoding RuntimeSystem.toNatLists id
+    runtimeCompilerRawFieldsComputableInPolyTime
+    sourceOrderRawFieldsComputableInPolyTime
+
+/-- From the actual checked compiler input, a composed polynomial-time machine
+emits the outer length and domain-count header before every domain and scope
+field.  This is the input contract for the next tagged structural emitter. -/
+noncomputable def runtimeCompilerSourceOrderFieldsComputableInPolyTime :
+    @TM2ComputableInPolyTime RuntimeSystem (List (List ℕ))
+      RuntimeCompilerInput.finEncoding SourceOrderRawNatLists.finEncoding
+      RuntimeSystem.toNatLists := by
+  let composed := runtimeCompilerSourceOrderFieldsComposition
   exact { composed with
     outputsFun := fun C => by
       simpa [Function.comp_def] using composed.outputsFun C }
@@ -12398,6 +12666,11 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms compilerPayloadComputableInPolyTime
 #print axioms runtimeSystemUnframedComputableInPolyTime
 #print axioms runtimeCompilerRawFieldsComputableInPolyTime
+#print axioms SourceOrderRawNatLists.decode_encode
+#print axioms SourceOrderRawNatLists.encode_eq_payloads
+#print axioms sourceOrderRawFields_outputsInTime
+#print axioms sourceOrderRawFieldsComputableInPolyTime
+#print axioms runtimeCompilerSourceOrderFieldsComputableInPolyTime
 #print axioms runtimeDomainEntryPrimeComputableInPolyTime
 #print axioms binarySuccBits_encodeNat
 #print axioms binarySucc_outputsInTime

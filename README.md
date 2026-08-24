@@ -168,7 +168,14 @@ header while preserving the compact runtime-system payload byte-for-byte in
 at most `2s+1` steps. `runtimeCompilerRawFieldsComputableInPolyTime` composes
 this pass with the checked unframing traversal and emits the complete outer
 length, inner lengths, and natural value fields of `RuntimeSystem.toNatLists`
-from the actual compiler input in polynomial time. The checked
+from the actual compiler input in polynomial time.
+`SourceOrderRawNatLists.finEncoding` is the checked source-order form of that
+raw stream: each delimiter precedes its canonical binary field, and the outer
+length and domain-count header precede all domains and scopes.
+`sourceOrderRawFieldsComputableInPolyTime` constructs it in exactly one more
+step than the raw stream length, while
+`runtimeCompilerSourceOrderFieldsComputableInPolyTime` composes the pass from
+the actual checked compiler input. The checked
 `RuntimeStructuralView` is the exact target for the next pass: it retains the
 variable-count header, flattens every explicitly listed domain value to a
 tagged `(variable index, value)` occurrence, preserves duplicates and order,
@@ -434,8 +441,13 @@ The copied statements are grouped by mathematical contribution:
   `compilerPayloadComputableInPolyTime` preserves the compact CSP payload
   after removing the checked unary header, and
   `runtimeCompilerRawFieldsComputableInPolyTime` exposes its complete raw
-  structural field stream. Canonical relabelling, edge deduplication, encoded
-  objective rows, and final composition remain open;
+  structural field stream;
+  `sourceOrderRawFieldsComputableInPolyTime` reverses that stack-oriented
+  stream in linear time so every field is available in semantic source order,
+  and `runtimeCompilerSourceOrderFieldsComputableInPolyTime` composes this
+  normalization from the checked compiler input. Tagged structural emission,
+  canonical relabelling, edge deduplication, encoded objective rows, and final
+  composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

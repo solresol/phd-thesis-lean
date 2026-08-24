@@ -1903,3 +1903,75 @@
   `RuntimeStructuralView.ofRuntimeSystem`; then compose it with the new linear
   framing bridge before canonicalizing occurrence values with their variable
   tags intact.
+
+## 2026-08-25 05:27:19 AEST — normalize runtime fields to semantic source order
+
+- **Starting commit:** `eb2b43b1bc0a3a90d6db25f4c5c0d0809da39316` on
+  `main`. The working tree was clean; `git fetch --prune origin` and a live
+  `git ls-remote` lookup confirmed that local `HEAD`, `origin/main`, upstream,
+  and the live remote ref agreed, so no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of
+  `cor:all-different-csp`, this journal, and the current encoding/machine
+  boundary. The thesis checkout remains at
+  `5294a3754f4987514ed9f03e73658df37a684156` with unrelated user changes to
+  `.gitignore` and `todo.md`; neither was changed. The corollary remains
+  **Partial** because tagged structural emission, canonical relabelling,
+  primal-edge deduplication, objective-row emission, and final assembly are
+  still absent.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  with its live remote at
+  `744c3b4d001012be016c98f0691468c37ce20b7c`. Its newer encoded-complexity
+  declarations and the pinned generic composition theorem remain available,
+  but it has no checked structural-list transducer to reuse. The sibling
+  repository and this project's existing dependency pin were not changed.
+- **Chosen increment and representation boundary:** added
+  `SourceOrderRawNatLists.finEncoding`, a checked encoding of the same nested
+  natural lists as `RawNatLists`, but with fields in semantic source order.
+  `encode_eq_payloads` proves that the outer length and every inner length/value
+  field occur in the `RawNatLists.payloads` order, with a leading delimiter and
+  canonical least-significant-bit-first payload. This is the order needed to
+  see the compact CSP's outer length and domain-count separator before its
+  domains and scopes.
+- **Headline finite-machine declarations:** `sourceOrderRawFieldComputer` is a
+  concrete two-stack finite machine that reverses the complete stack-oriented
+  stream. `sourceOrderRawFields_outputsInTime` proves exact source-order output
+  in `s+1` steps for raw input length `s`, and
+  `sourceOrderRawFieldsComputableInPolyTime` packages the linear polynomial
+  witness. `runtimeCompilerSourceOrderFieldsComputableInPolyTime` composes this
+  pass with `runtimeCompilerRawFieldsComputableInPolyTime`, so the actual
+  checked compiler input now yields `RuntimeSystem.toNatLists` in this
+  source-order encoding.
+- **Failed proof shapes and corrections:** an exploratory proof named a
+  nonexistent `List.flatMap_congr_left`; after rewriting by
+  `List.reverse_flatMap`, ordinary simplification proved the exact segment
+  identity. Lean also could not infer `Fintype` through the reducible dependent
+  stack-alphabet definition for the machine's input stack; supplying the
+  explicit `show Fintype (Option Bool) from inferInstance` witness resolved the
+  boundary. No placeholder or project axiom remains.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  checked encoding, exact stream identity, finite machine, exact runtime proof,
+  polynomial wrapper, compiler-input composition, and axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the new boundary while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine` (3100 jobs); full `lake build` (3123
+  jobs); `git diff --check`; and a tracked project Lean-source scan for
+  `sorry`, `admit`, project `axiom`, `unsafe`, and `proof_wanted`. New
+  `#print axioms` audits report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- **Ending state before commit:** one coherent verified finite-machine,
+  correspondence, status, and log increment; unrelated thesis work remains
+  untouched.
+- **Best next step:** consume `SourceOrderRawNatLists.finEncoding` with a
+  finite structural emitter. It should stage transformed records while
+  counting them, attach the current domain index to every value occurrence,
+  copy scopes under tag `1`, emit the exact outer record count, and prove the
+  result is `RuntimeStructuralView.ofRuntimeSystem` under
+  `RuntimeStructuralView.rawFinEncoding`; then compose with the checked framing
+  bridge.
