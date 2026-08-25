@@ -175,7 +175,10 @@ length and domain-count header precede all domains and scopes.
 `sourceOrderRawFieldsComputableInPolyTime` constructs it in exactly one more
 step than the raw stream length, while
 `runtimeCompilerSourceOrderFieldsComputableInPolyTime` composes the pass from
-the actual checked compiler input. The checked
+the actual checked compiler input. `binaryPredComputableInPolyTime` supplies
+the structural parser's canonical saturated countdown operation in at most
+`2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
+powers of two, and arbitrary borrow chains. The checked
 `RuntimeStructuralView` is the exact target for the next pass: it retains the
 variable-count header, flattens every explicitly listed domain value to a
 tagged `(variable index, value)` occurrence, preserves duplicates and order,
@@ -258,8 +261,10 @@ would be a separate representation theorem. The compiler now also has a
 checked header-removal transducer and a composed raw-field view of the compact
 payload. The tagged structural target also has a checked raw encoding and a
 linear finite-machine bridge to its canonical Boolean encoding. Emission of
-that raw target, canonical relabelling, primal-edge deduplication, encoded
-objective emission, and final whole-compiler assembly remain.
+that raw target now has checked successor and predecessor primitives for its
+binary indices and countdowns; the record-staging loop, canonical relabelling,
+primal-edge deduplication, encoded objective emission, and final whole-compiler
+assembly remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -445,7 +450,9 @@ The copied statements are grouped by mathematical contribution:
   `sourceOrderRawFieldsComputableInPolyTime` reverses that stack-oriented
   stream in linear time so every field is available in semantic source order,
   and `runtimeCompilerSourceOrderFieldsComputableInPolyTime` composes this
-  normalization from the checked compiler input. Tagged structural emission,
+  normalization from the checked compiler input;
+  `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
+  to parse its domain and row lengths. The structural record-staging loop,
   canonical relabelling, edge deduplication, encoded objective rows, and final
   composition remain open;
   `thm:3sat-clausewise` is

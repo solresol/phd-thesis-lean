@@ -23,7 +23,8 @@ format, also in linear time. A third machine performs the reverse traversal on
 the standard nested-list input encoding, exposing every length and value field
 as an explicitly delimited raw binary stream in linear time. A fourth finite
 machine computes successor on mathlib's canonical binary natural encoding in
-linear time. A fifth finite machine compares two aligned canonical binary
+linear time; its predecessor companion supplies saturated canonical countdown
+in the same bound. A fifth finite machine compares two aligned canonical binary
 naturals in linear time. A sixth finite machine adds the same aligned binary
 naturals by ripple carry in linear time. A seventh finite machine consumes a
 unary scan bound and emits every natural in the Bertrand interval
@@ -64,7 +65,10 @@ finite serializer converts the raw structural view to its exact canonical
 Boolean encoding in linear time. A further checked linear pass reverses the
 raw compact-system stream into semantic source order, so the outer length and
 domain-count separator precede the domain and scope fields consumed by the
-next structural emitter.
+next structural emitter. A checked binary predecessor machine supplies that
+emitter's remaining-domain and remaining-value countdown primitive in at most
+`2s + 3` steps, including zero, one, powers of two, and arbitrary borrow
+chains.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for emitting the tagged structural view, canonical
@@ -3154,6 +3158,505 @@ noncomputable def binarySuccComputableInPolyTime :
     simpa [finEncodingNatBool, Equiv.refl, binarySuccBits_encodeNat,
       Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_natCast,
       Polynomial.eval_X] using binarySucc_outputsInTime (encodeNat n)
+
+/-! ## Binary predecessor
+
+The source-order structural scan must count down both the remaining domain
+lists and the remaining values in the current list.  The following finite
+machine supplies the missing canonical binary predecessor primitive.  It
+propagates a borrow across low zero bits, removes the now-leading zero when a
+power of two is decremented, copies the untouched suffix, and reverses one
+work stack into canonical least-significant-bit-first order.
+-/
+
+/-- Decrement a least-significant-bit-first binary word, saturating at zero.
+On canonical `encodeNat` words the result is again canonical. -/
+def binaryPredBits : List Bool → List Bool
+  | [] => []
+  | false :: bits => true :: binaryPredBits bits
+  | true :: [] => []
+  | true :: bit :: bits => false :: bit :: bits
+
+private theorem binaryPredBits_encodePosNum (n : PosNum) :
+    binaryPredBits (encodePosNum n) = encodeNum n.pred' := by
+  induction n with
+  | one => rfl
+  | bit0 n ih =>
+      simp only [encodePosNum, binaryPredBits, PosNum.pred']
+      rw [ih]
+      cases n.pred' <;> rfl
+  | bit1 n _ih =>
+      cases n <;> rfl
+
+private theorem binaryPredBits_encodeNum (n : Num) :
+    binaryPredBits (encodeNum n) = encodeNum n.pred := by
+  cases n with
+  | zero => rfl
+  | pos n => exact binaryPredBits_encodePosNum n
+
+/-- The bit-level transformation agrees with saturated predecessor on
+mathlib's canonical natural-number encoding, including `0` and `1`. -/
+@[simp]
+theorem binaryPredBits_encodeNat (n : ℕ) :
+    binaryPredBits (encodeNat n) = encodeNat (Nat.pred n) := by
+  unfold encodeNat
+  rw [binaryPredBits_encodeNum]
+  apply congrArg encodeNum
+  exact Num.to_nat_inj.mp (by simp [Num.pred_to_nat])
+
+private theorem binaryPredBits_length_le (bits : List Bool) :
+    (binaryPredBits bits).length ≤ bits.length := by
+  induction bits with
+  | nil => simp [binaryPredBits]
+  | cons bit bits ih =>
+      cases bit with
+      | false => simp [binaryPredBits, ih]
+      | true =>
+          cases bits <;> simp [binaryPredBits]
+
+/-- Input, reversal work, and canonical output stacks for binary
+predecessor. -/
+inductive PredStack
+  | input
+  | work
+  | output
+  deriving DecidableEq, Fintype
+
+/-- Borrow propagation, leading-zero inspection, suffix copy, and output
+reversal phases. -/
+inductive PredLabel
+  | borrow
+  | check
+  | copy
+  | reverse
+  deriving DecidableEq, Fintype
+
+/-- Finite control remembers the most recently popped bit. -/
+structure PredState where
+  bit : Option Bool
+  deriving DecidableEq, Fintype
+
+private def predInitialState : PredState :=
+  ⟨none⟩
+
+private def predPoppedBit (_state : PredState) (bit : Option Bool) : PredState :=
+  ⟨bit⟩
+
+private def predBitPresent : PredState → Bool
+  | ⟨some _⟩ => true
+  | _ => false
+
+private def predBitTrue : PredState → Bool
+  | ⟨some true⟩ => true
+  | _ => false
+
+private def predHeldBit : PredState → Bool
+  | ⟨some bit⟩ => bit
+  | _ => false
+
+private def PredAlphabet (_index : PredStack) : Type := Bool
+
+/-- A finite three-stack predecessor program for least-significant-bit-first
+binary words.  The `check` phase suppresses the high zero that would otherwise
+be emitted when decrementing a power of two. -/
+def binaryPredProgram :
+    PredLabel → TM2.Stmt PredAlphabet PredLabel PredState
+  | .borrow =>
+      .pop .input predPoppedBit <|
+        .branch predBitPresent
+          (.branch predBitTrue
+            (.goto (fun _ => .check))
+            (.push .work (fun _ => true) <|
+              .goto (fun _ => .borrow)))
+          (.goto (fun _ => .reverse))
+  | .check =>
+      .pop .input predPoppedBit <|
+        .branch predBitPresent
+          (.push .work (fun _ => false) <|
+            .push .work predHeldBit <|
+              .goto (fun _ => .copy))
+          (.goto (fun _ => .reverse))
+  | .copy =>
+      .pop .input predPoppedBit <|
+        .branch predBitPresent
+          (.push .work predHeldBit <|
+            .goto (fun _ => .copy))
+          (.goto (fun _ => .reverse))
+  | .reverse =>
+      .pop .work predPoppedBit <|
+        .branch predBitPresent
+          (.push .output predHeldBit <|
+            .goto (fun _ => .reverse))
+          .halt
+
+/-- Concrete finite machine computing saturated binary predecessor. -/
+def binaryPredComputer : FinTM2 where
+  K := PredStack
+  k₀ := .input
+  k₁ := .output
+  Γ := PredAlphabet
+  Λ := PredLabel
+  main := .borrow
+  σ := PredState
+  initialState := predInitialState
+  Γk₀Fin := Bool.fintype
+  m := binaryPredProgram
+
+private def predStackContents
+    (input work output : List Bool) :
+    (index : PredStack) → List (PredAlphabet index)
+  | .input => input
+  | .work => work
+  | .output => output
+
+private def predCfg (label : Option PredLabel) (state : PredState)
+    (input work output : List Bool) : binaryPredComputer.Cfg where
+  l := label
+  var := state
+  stk := predStackContents input work output
+
+private theorem pred_step_borrow_nil (work output : List Bool)
+    (state : PredState) :
+    binaryPredComputer.step
+        (predCfg (some .borrow) state [] work output) =
+      some (predCfg (some .reverse) predInitialState [] work output) := by
+  simp [binaryPredComputer, FinTM2.step, predCfg, binaryPredProgram,
+    predStackContents, PredAlphabet, predPoppedBit, predBitPresent,
+    predInitialState, Function.update]
+
+private theorem pred_step_borrow_false (bits work output : List Bool)
+    (state : PredState) :
+    binaryPredComputer.step
+        (predCfg (some .borrow) state (false :: bits) work output) =
+      some (predCfg (some .borrow) ⟨some false⟩ bits
+        (true :: work) output) := by
+  simp [binaryPredComputer, FinTM2.step, predCfg, binaryPredProgram,
+    predStackContents, PredAlphabet, predPoppedBit, predBitPresent,
+    predBitTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem pred_step_borrow_true (bits work output : List Bool)
+    (state : PredState) :
+    binaryPredComputer.step
+        (predCfg (some .borrow) state (true :: bits) work output) =
+      some (predCfg (some .check) ⟨some true⟩ bits work output) := by
+  simp [binaryPredComputer, FinTM2.step, predCfg, binaryPredProgram,
+    predStackContents, PredAlphabet, predPoppedBit, predBitPresent,
+    predBitTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem pred_step_check_nil (work output : List Bool)
+    (state : PredState) :
+    binaryPredComputer.step
+        (predCfg (some .check) state [] work output) =
+      some (predCfg (some .reverse) predInitialState [] work output) := by
+  simp [binaryPredComputer, FinTM2.step, predCfg, binaryPredProgram,
+    predStackContents, PredAlphabet, predPoppedBit, predBitPresent,
+    predInitialState, Function.update]
+
+private theorem pred_step_check_cons (bit : Bool)
+    (bits work output : List Bool) (state : PredState) :
+    binaryPredComputer.step
+        (predCfg (some .check) state (bit :: bits) work output) =
+      some (predCfg (some .copy) ⟨some bit⟩ bits
+        (bit :: false :: work) output) := by
+  cases bit <;>
+    simp [binaryPredComputer, FinTM2.step, predCfg, binaryPredProgram,
+      predStackContents, PredAlphabet, predPoppedBit, predBitPresent,
+      predHeldBit, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem pred_step_copy_nil (work output : List Bool)
+    (state : PredState) :
+    binaryPredComputer.step
+        (predCfg (some .copy) state [] work output) =
+      some (predCfg (some .reverse) predInitialState [] work output) := by
+  simp [binaryPredComputer, FinTM2.step, predCfg, binaryPredProgram,
+    predStackContents, PredAlphabet, predPoppedBit, predBitPresent,
+    predInitialState, Function.update]
+
+private theorem pred_step_copy_cons (bit : Bool)
+    (bits work output : List Bool) (state : PredState) :
+    binaryPredComputer.step
+        (predCfg (some .copy) state (bit :: bits) work output) =
+      some (predCfg (some .copy) ⟨some bit⟩ bits
+        (bit :: work) output) := by
+  cases bit <;>
+    simp [binaryPredComputer, FinTM2.step, predCfg, binaryPredProgram,
+      predStackContents, PredAlphabet, predPoppedBit, predBitPresent,
+      predHeldBit, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem pred_step_reverse_nil (output : List Bool)
+    (state : PredState) :
+    binaryPredComputer.step
+        (predCfg (some .reverse) state [] [] output) =
+      some (predCfg none predInitialState [] [] output) := by
+  simp [binaryPredComputer, FinTM2.step, predCfg, binaryPredProgram,
+    predStackContents, PredAlphabet, predPoppedBit, predBitPresent,
+    predInitialState, Function.update]
+
+private theorem pred_step_reverse_cons (bit : Bool)
+    (work output : List Bool) (state : PredState) :
+    binaryPredComputer.step
+        (predCfg (some .reverse) state [] (bit :: work) output) =
+      some (predCfg (some .reverse) ⟨some bit⟩ [] work
+        (bit :: output)) := by
+  cases bit <;>
+    simp [binaryPredComputer, FinTM2.step, predCfg, binaryPredProgram,
+      predStackContents, PredAlphabet, predPoppedBit, predBitPresent,
+      predHeldBit, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private def predEvalsToInTimeOne
+    {start finish : binaryPredComputer.Cfg}
+    (hstep : binaryPredComputer.step start = some finish) :
+    EvalsToInTime binaryPredComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def pred_copy_evals (bits work output : List Bool)
+    (state : PredState) :
+    EvalsToInTime binaryPredComputer.step
+      (predCfg (some .copy) state bits work output)
+      (some (predCfg (some .reverse) predInitialState []
+        (bits.reverse ++ work) output))
+      (bits.length + 1) := by
+  induction bits generalizing work state with
+  | nil =>
+      simpa using predEvalsToInTimeOne
+        (pred_step_copy_nil work output state)
+  | cons bit bits ih =>
+      let middle := predCfg (some .copy) ⟨some bit⟩ bits
+        (bit :: work) output
+      have hone : EvalsToInTime binaryPredComputer.step
+          (predCfg (some .copy) state (bit :: bits) work output)
+          (some middle) 1 :=
+        predEvalsToInTimeOne (by
+          simpa [middle] using pred_step_copy_cons bit bits work output state)
+      have hrest := ih (bit :: work) ⟨some bit⟩
+      have hall := EvalsToInTime.trans binaryPredComputer.step
+        1 (bits.length + 1)
+        (predCfg (some .copy) state (bit :: bits) work output)
+        middle
+        (some (predCfg (some .reverse) predInitialState []
+          ((bit :: bits).reverse ++ work) output))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def predPrepareTime : List Bool → ℕ
+  | [] => 1
+  | false :: bits => 1 + predPrepareTime bits
+  | true :: [] => 2
+  | true :: _bit :: bits => 2 + (bits.length + 1)
+
+private def pred_borrow_evals (bits work output : List Bool)
+    (state : PredState) :
+    EvalsToInTime binaryPredComputer.step
+      (predCfg (some .borrow) state bits work output)
+      (some (predCfg (some .reverse) predInitialState []
+        ((binaryPredBits bits).reverse ++ work) output))
+      (predPrepareTime bits) := by
+  induction bits generalizing work state with
+  | nil =>
+      simpa [predPrepareTime, binaryPredBits] using predEvalsToInTimeOne
+        (pred_step_borrow_nil work output state)
+  | cons bit bits ih =>
+      cases bit with
+      | false =>
+          let middle := predCfg (some .borrow) ⟨some false⟩ bits
+            (true :: work) output
+          have hone : EvalsToInTime binaryPredComputer.step
+              (predCfg (some .borrow) state (false :: bits) work output)
+              (some middle) 1 :=
+            predEvalsToInTimeOne (by
+              simpa [middle] using
+                pred_step_borrow_false bits work output state)
+          have hrest := ih (true :: work) ⟨some false⟩
+          have hall := EvalsToInTime.trans binaryPredComputer.step
+            1 (predPrepareTime bits)
+            (predCfg (some .borrow) state (false :: bits) work output)
+            middle
+            (some (predCfg (some .reverse) predInitialState []
+              ((binaryPredBits (false :: bits)).reverse ++ work) output))
+            hone
+            (by
+              simpa [middle, binaryPredBits, List.reverse_cons,
+                List.append_assoc] using hrest)
+          simpa [predPrepareTime, Nat.add_comm] using hall
+      | true =>
+          cases bits with
+          | nil =>
+              let middle := predCfg (some .check) ⟨some true⟩ [] work output
+              have hone : EvalsToInTime binaryPredComputer.step
+                  (predCfg (some .borrow) state [true] work output)
+                  (some middle) 1 :=
+                predEvalsToInTimeOne (by
+                  simpa [middle] using
+                    pred_step_borrow_true [] work output state)
+              have htwo := predEvalsToInTimeOne
+                (pred_step_check_nil work output ⟨some true⟩)
+              have hall := EvalsToInTime.trans binaryPredComputer.step
+                1 1
+                (predCfg (some .borrow) state [true] work output)
+                middle
+                (some (predCfg (some .reverse) predInitialState []
+                  work output))
+                hone
+                (by simpa [middle] using htwo)
+              simpa [predPrepareTime, binaryPredBits] using hall
+          | cons next bits =>
+              let afterBorrow := predCfg (some .check) ⟨some true⟩
+                (next :: bits) work output
+              have hborrow : EvalsToInTime binaryPredComputer.step
+                  (predCfg (some .borrow) state
+                    (true :: next :: bits) work output)
+                  (some afterBorrow) 1 :=
+                predEvalsToInTimeOne (by
+                  simpa [afterBorrow] using
+                    pred_step_borrow_true (next :: bits) work output state)
+              let afterCheck := predCfg (some .copy) ⟨some next⟩ bits
+                (next :: false :: work) output
+              have hcheck : EvalsToInTime binaryPredComputer.step
+                  afterBorrow (some afterCheck) 1 :=
+                predEvalsToInTimeOne (by
+                  simpa [afterBorrow, afterCheck] using
+                    pred_step_check_cons next bits work output ⟨some true⟩)
+              have hfirst := EvalsToInTime.trans binaryPredComputer.step
+                1 1
+                (predCfg (some .borrow) state
+                  (true :: next :: bits) work output)
+                afterBorrow
+                (some afterCheck)
+                hborrow hcheck
+              have hcopy := pred_copy_evals bits
+                (next :: false :: work) output ⟨some next⟩
+              have hall := EvalsToInTime.trans binaryPredComputer.step
+                2 (bits.length + 1)
+                (predCfg (some .borrow) state
+                  (true :: next :: bits) work output)
+                afterCheck
+                (some (predCfg (some .reverse) predInitialState []
+                  ((binaryPredBits (true :: next :: bits)).reverse ++ work)
+                  output))
+                (by simpa using hfirst)
+                (by
+                  simpa [afterCheck, binaryPredBits, List.reverse_cons,
+                    List.append_assoc] using hcopy)
+              simpa [predPrepareTime, Nat.add_assoc, Nat.add_comm,
+                Nat.add_left_comm] using hall
+
+private theorem predPrepareTime_le (bits : List Bool) :
+    predPrepareTime bits ≤ bits.length + 2 := by
+  induction bits with
+  | nil => simp [predPrepareTime]
+  | cons bit bits ih =>
+      cases bit with
+      | false =>
+          simp only [predPrepareTime, List.length_cons]
+          omega
+      | true =>
+          cases bits with
+          | nil => simp [predPrepareTime]
+          | cons head tail =>
+              simp only [predPrepareTime, List.length_cons]
+              omega
+
+private def pred_reverse_evals (work output : List Bool)
+    (state : PredState) :
+    EvalsToInTime binaryPredComputer.step
+      (predCfg (some .reverse) state [] work output)
+      (some (predCfg none predInitialState [] []
+        (work.reverse ++ output)))
+      (work.length + 1) := by
+  induction work generalizing output state with
+  | nil =>
+      simpa using predEvalsToInTimeOne
+        (pred_step_reverse_nil output state)
+  | cons bit work ih =>
+      let middle := predCfg (some .reverse) ⟨some bit⟩ [] work
+        (bit :: output)
+      have hone : EvalsToInTime binaryPredComputer.step
+          (predCfg (some .reverse) state [] (bit :: work) output)
+          (some middle) 1 :=
+        predEvalsToInTimeOne (by
+          simpa [middle] using
+            pred_step_reverse_cons bit work output state)
+      have hrest := ih (bit :: output) ⟨some bit⟩
+      have hall := EvalsToInTime.trans binaryPredComputer.step
+        1 (work.length + 1)
+        (predCfg (some .reverse) state [] (bit :: work) output)
+        middle
+        (some (predCfg none predInitialState [] []
+          ((bit :: work).reverse ++ output)))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem pred_initList_eq_cfg (input : List Bool) :
+    initList binaryPredComputer input =
+      predCfg (some .borrow) predInitialState input [] [] := by
+  unfold initList predCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem pred_haltList_eq_cfg (output : List Bool) :
+    haltList binaryPredComputer output =
+      predCfg none predInitialState [] [] output := by
+  unfold haltList predCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- Binary predecessor runs in at most `2s + 3` steps on an arbitrary bit
+word of length `s` and emits `binaryPredBits` of that word. -/
+def binaryPred_outputsInTime (bits : List Bool) :
+    TM2OutputsInTime binaryPredComputer bits
+      (some (binaryPredBits bits)) (2 * bits.length + 3) := by
+  have hborrow := pred_borrow_evals bits [] [] predInitialState
+  have hreverse := pred_reverse_evals
+    (binaryPredBits bits).reverse [] predInitialState
+  have hall := EvalsToInTime.trans binaryPredComputer.step
+    (predPrepareTime bits) ((binaryPredBits bits).reverse.length + 1)
+    (predCfg (some .borrow) predInitialState bits [] [])
+    (predCfg (some .reverse) predInitialState []
+      (binaryPredBits bits).reverse [])
+    (some (predCfg none predInitialState [] [] (binaryPredBits bits)))
+    (by simpa using hborrow)
+    (by simpa using hreverse)
+  have hprepare := predPrepareTime_le bits
+  have hlength := binaryPredBits_length_le bits
+  have hmono : EvalsToInTime binaryPredComputer.step
+      (predCfg (some .borrow) predInitialState bits [] [])
+      (some (predCfg none predInitialState [] [] (binaryPredBits bits)))
+      (2 * bits.length + 3) :=
+    evalsToInTimeMono hall (by
+      simp only [List.length_reverse]
+      omega)
+  rw [TM2OutputsInTime, pred_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [pred_haltList_eq_cfg]
+  exact hmono
+
+/-- A genuine linear-time finite-machine witness for saturated predecessor on
+mathlib's standard binary natural-number encoding. -/
+noncomputable def binaryPredComputableInPolyTime :
+    @TM2ComputableInPolyTime ℕ ℕ finEncodingNatBool finEncodingNatBool
+      Nat.pred where
+  tm := binaryPredComputer
+  inputAlphabet := Equiv.refl Bool
+  outputAlphabet := Equiv.refl Bool
+  time := 2 * Polynomial.X + 3
+  outputsFun n := by
+    simpa [finEncodingNatBool, Equiv.refl, binaryPredBits_encodeNat,
+      Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_natCast,
+      Polynomial.eval_X] using binaryPred_outputsInTime (encodeNat n)
 
 /-! ## Binary comparison
 
@@ -12675,6 +13178,9 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms binarySuccBits_encodeNat
 #print axioms binarySucc_outputsInTime
 #print axioms binarySuccComputableInPolyTime
+#print axioms binaryPredBits_encodeNat
+#print axioms binaryPred_outputsInTime
+#print axioms binaryPredComputableInPolyTime
 #print axioms BinaryNatPair.decode_encode
 #print axioms binaryLEBitsAux_encodeNat
 #print axioms binaryLE_outputsInTime

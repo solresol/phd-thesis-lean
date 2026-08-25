@@ -84,8 +84,10 @@ structural target now also has a checked raw-field encoding and a linear
 finite-machine bridge to its canonical Boolean encoding. A further linear
 machine reverses the compact raw stream into semantic source order, exposing
 the outer length and domain-count boundary before all domain and scope fields.
-Emitting the tagged structural target, canonical row construction, encoded
-objective emission, and final whole-compiler composition remain.
+A checked canonical binary predecessor now supplies the structural parser's
+remaining-domain and remaining-value countdowns in linear time. Emitting the
+tagged records, canonical row construction, encoded objective emission, and
+final whole-compiler composition remain.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -1198,9 +1200,10 @@ This closes prime selection for the semantic compiler. The encoding and
 machine modules separately check finite output size, selected-prime
 construction, raw structural-payload extraction, and linear framing of the
 tagged structural target. The raw compact payload can also be normalized to
-semantic source order in linear time; tagged structural emission, canonical
-relabelling, edge deduplication, encoded objective emission, and final runtime
-composition remain before `cor:all-different-csp` is complete. -/
+semantic source order in linear time, and canonical binary predecessor supplies
+the parser countdown operation in linear time; the tagged record-staging loop,
+canonical relabelling, edge deduplication, encoded objective emission, and
+final runtime composition remain before `cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness
     {n : ℕ} (C : ExplicitSystem n) (hC : C.WellFormed) :
     letI : Fact C.compilerPrime.Prime := ⟨C.compilerPrime_prime⟩

@@ -38,6 +38,13 @@ that no statement-faithful Lean theorem is currently present.
 | `cor:sudoku-polynomial-dyadic-hardness` | Pending | Formalise the positive multilinear \(p=2\) reduction and its complexity transfer. |
 | `cor:sudoku-special-case` | Pending wrapper | The general all-different theorem supplies the mathematics, but the 81-cell peer graph, degree-20 bound, clue domains, and Sudoku equivalence have not been instantiated in Lean. |
 
+For the partial `cor:all-different-csp` runtime path, the latest checked
+increment is `binaryPredComputableInPolyTime`: saturated predecessor on
+mathlib's canonical binary encoding in at most `2s + 3` steps. It supplies the
+source-order parser's domain-count and row-length countdown operation,
+including the empty and singleton cases; the tagged record-staging loop is
+still absent.
+
 The headline catalogue therefore contains 24 statements: 15 complete, 2
 partial, and 7 pending. The qualified clause theorem is included in the
 complete count because its explicit Lean syntax captures the intended

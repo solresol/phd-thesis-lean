@@ -68,7 +68,9 @@ adds a checked stack-oriented raw-field encoding for this view and a linear
 finite-machine bridge to the exact Boolean encoding below. It also normalizes
 the compact raw input fields into semantic source order in linear time, putting
 the outer length and domain-count separator before every domain and scope.
-Canonical row construction, the machine that emits the raw structural view,
+The machine layer also checks canonical binary predecessor in linear time,
+supplying the countdown primitive for domain and row lengths. Canonical row
+construction, the record-staging machine that emits the raw structural view,
 encoded objective emission, and whole-compiler composition remain separate
 from these encoding and size results.
 -/

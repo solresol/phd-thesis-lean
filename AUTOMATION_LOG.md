@@ -1975,3 +1975,74 @@
   result is `RuntimeStructuralView.ofRuntimeSystem` under
   `RuntimeStructuralView.rawFinEncoding`; then compose with the checked framing
   bridge.
+
+## 2026-08-26 05:31:35 AEST — check canonical binary predecessor
+
+- **Starting state:** clean synchronized `main` at
+  `6d13b55f5bcd7eabe92844788a295828728b7b3f`. A fresh fetch and live
+  `ls-remote` check confirmed that local `HEAD`, `origin/main`, upstream, and
+  the live remote ref agreed, so no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of
+  `cor:all-different-csp`, this journal, and the current encoding/machine
+  boundary. The thesis checkout remains at
+  `5294a3754f4987514ed9f03e73658df37a684156`; its unrelated changes to
+  `.gitignore`, `bibfile.bib`, `sudoku-via-padic-regression/body.tex`,
+  `sudoku-via-padic-regression/integration-notes-2026-07-29.md`, `todo.md`,
+  and two untracked CSP projection images were preserved. The corollary
+  remains **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean, synchronized with
+  its live remote, and had advanced to
+  `1c0b1ce11276cbf9fa4af98b1693aec4db6e32ac`. Its checked composition APIs
+  remain available, but a search of it and mathlib found no finite-machine
+  canonical binary predecessor to reuse. The sibling repository and this
+  project's dependency pin were not changed.
+- **Chosen increment and exact need:** the source-order structural parser must
+  count down both the remaining domain lists and the remaining values in each
+  domain or scope. The repository already checked binary successor,
+  comparison, and addition, but had no canonical predecessor. This run added
+  the missing finite primitive instead of starting the larger record-staging
+  loop with an unproved counter operation.
+- **Headline declarations:** `binaryPredBits_encodeNat` proves that the
+  executable bit transformation sends mathlib's canonical `encodeNat n` to
+  `encodeNat (Nat.pred n)`. `binaryPredComputer` is a concrete three-stack
+  finite machine with borrow, leading-zero inspection, suffix-copy, and
+  reversal phases. `binaryPred_outputsInTime` proves exact output on every bit
+  word in at most `2s + 3` steps, and
+  `binaryPredComputableInPolyTime` packages saturated natural predecessor
+  under mathlib's standard `FinEncoding`. Zero, one, powers of two, arbitrary
+  borrow chains, and malformed all-zero words are covered by the general
+  bit-level machine theorem; canonical inputs produce canonical outputs.
+- **Failed proof shapes and corrections:** the first `borrow` step proof left
+  a dependent-stack `Function.update` equality unresolved; an explicit
+  extensional case split on the three stack indices closed it. The composed
+  true-bit branch initially differed only by reassociation of its exact time
+  expression, and the preparatory-time bound was not discharged by
+  simplification alone; normalizing natural addition and using `omega` after
+  unfolding the cases resolved both. No placeholder or project axiom remains.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  executable predecessor, finite program, exact executions, linear bound,
+  polynomial wrapper, and three axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the new runtime boundary while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine` (3100 jobs); full `lake build` (3123
+  jobs); `git diff --check`; and a tracked project Lean-source scan for
+  `sorry`, `admit`, project `axiom`, `unsafe`, and `proof_wanted`. The new
+  `#print axioms` audits report only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+- **Ending state before commit:** one coherent verified finite-machine,
+  correspondence, status, and log increment; unrelated thesis and sibling
+  work remains untouched.
+- **Best next step:** implement the source-order structural emitter's parser
+  and staging loop using `binaryPredBits` for domain/list countdowns and
+  `binarySuccBits` for current indices and the emitted-record count. It should
+  attach the current domain index to every value occurrence, preserve empty
+  and singleton lists, copy each scope under tag `1`, emit the exact outer
+  record count, prove exact `RuntimeStructuralView.ofRuntimeSystem` output
+  under `RuntimeStructuralView.rawFinEncoding`, and compose with the checked
+  framing bridge.
