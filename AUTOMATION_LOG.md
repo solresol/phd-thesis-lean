@@ -2046,3 +2046,66 @@
   record count, prove exact `RuntimeStructuralView.ofRuntimeSystem` output
   under `RuntimeStructuralView.rawFinEncoding`, and compose with the checked
   framing bridge.
+
+## 2026-08-27 05:35:59 AEST — bound the tagged structural encoding by input bits
+
+- **Starting state:** clean synchronized `main` at
+  `71b61e0991f19a44acf996baa06e73a07f6f7d05`. A fresh fetch and live
+  `ls-remote` check confirmed that local `HEAD`, `origin/main`, upstream, and
+  the live remote ref agreed, so no fast-forward was needed.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of
+  `cor:all-different-csp`, this journal, and the current encoding/machine
+  boundary. The thesis checkout is at
+  `381523a9a4fb2516555c159e17cc92315ab4b29f` with unrelated modified and
+  untracked files; all were preserved. The corollary remains **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean on synchronized
+  `main` at `9ee16bb006e04c1ac049f2a67bff5bb5ce1e6c10`. Its checked composition
+  and pair-splitting APIs remain available, but it has no structural-stream
+  emitter or bit-size theorem that subsumes this target. The sibling repository
+  and this project's dependency pin were not changed.
+- **Chosen increment:** closed the bit-size obligation for the exact tagged
+  structural intermediate before implementing its larger finite-machine
+  emitter. The proof compares every copied domain-value and scope-entry frame
+  with its original compact-input frame, so arbitrary large natural symbols
+  are measured by binary length rather than incorrectly bounded by the input
+  cell count as numeric magnitudes.
+- **Headline declarations:** `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic`
+  proves that the complete canonical tagged Boolean encoding has at most
+  `32 * (s + 1)^2` bits for compact input length `s`.
+  `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_compilerInput_quadratic`
+  transfers the same bound to the complete compiler-facing input, including
+  its decoder-checked unary occurrence header. The general proofs cover zero
+  variables, empty domains and scopes, singleton rows, repeated occurrences,
+  and arbitrarily large symbol values.
+- **Failed proof shape and correction:** an initial experiment discharged the
+  fixed wire sizes for tags and short row lengths with `native_decide`; its
+  axiom audit exposed `Lean.ofReduceBool` and `Lean.trustCompiler`. The final
+  proof instead uses the checked general inequality
+  `natWireSize_le_two_mul_add_one` for those constants. The resulting audits
+  contain only `propext`, `Classical.choice`, and `Quot.sound`.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPEncoding.lean` adds the
+  field-sensitive accounting lemmas, both public quadratic bounds, and axiom
+  audits. `PhdThesisLean/AllDifferentCSP.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the correspondence while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean` checks of
+  `PhdThesisLean/AllDifferentCSP.lean` and
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPEncoding PhdThesisLean.AllDifferentCSPMachine`
+  (3100 jobs); full `lake build` (3123 jobs); `git diff --check`; and tracked
+  project Lean-source scans for `sorry`, `admit`, project `axiom`, `unsafe`,
+  and `proof_wanted` (all empty). The new `#print axioms` audits report only
+  `propext`, `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one coherent verified encoding-size,
+  correspondence, status, and log increment; unrelated thesis and sibling
+  work remains untouched.
+- **Best next step:** implement the source-order structural emitter's parser
+  and record-staging loop. It should use the checked predecessor/successor
+  primitives, attach the current domain index to every value occurrence, copy
+  scopes intact under tag `1`, emit the exact outer record count, prove exact
+  `RuntimeStructuralView.ofRuntimeSystem` raw output, and then compose with the
+  framing bridge; the new quadratic theorem supplies the intermediate
+  bit-size invariant for that composition.

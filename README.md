@@ -185,6 +185,12 @@ tagged `(variable index, value)` occurrence, preserves duplicates and order,
 and keeps every scope intact under its own tag. Its Boolean `FinEncoding`
 round-trips exactly; range and projection lemmas show that occurrence indices
 are valid, values are unchanged, and the scope stream is recovered verbatim.
+`ofRuntimeSystem_encodedSize_le_quadratic` bounds this complete tagged Boolean
+encoding by `32 * (s + 1)^2` bits in the compact input length, while
+`ofRuntimeSystem_encodedSize_le_compilerInput_quadratic` states the same bound
+against the complete compiler-facing input. The proof charges copied domain
+values and scope entries to their original binary fields, so it does not
+replace bit length by numeric magnitude.
 `RuntimeStructuralView.rawFinEncoding` gives the next structural transducer a
 checked stack-oriented raw output contract, while
 `runtimeStructuralViewFramingComputableInPolyTime` converts that raw form to
@@ -452,7 +458,11 @@ The copied statements are grouped by mathematical contribution:
   and `runtimeCompilerSourceOrderFieldsComputableInPolyTime` composes this
   normalization from the checked compiler input;
   `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
-  to parse its domain and row lengths. The structural record-staging loop,
+  to parse its domain and row lengths;
+  `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its
+  compiler-input specialization bound the complete tagged intermediate by
+  `32 * (s + 1)^2` bits without bounding numeric symbol values by `s`. The
+  structural record-staging loop,
   canonical relabelling, edge deduplication, encoded objective rows, and final
   composition remain open;
   `thm:3sat-clausewise` is

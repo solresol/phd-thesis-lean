@@ -68,6 +68,9 @@ adds a checked stack-oriented raw-field encoding for this view and a linear
 finite-machine bridge to the exact Boolean encoding below. It also normalizes
 the compact raw input fields into semantic source order in linear time, putting
 the outer length and domain-count separator before every domain and scope.
+The complete tagged Boolean view is bounded quadratically in the compact and
+compiler-facing input bit lengths; copied domain values and scope entries are
+charged to their original framed fields rather than to their numeric values.
 The machine layer also checks canonical binary predecessor in linear time,
 supplying the countdown primitive for domain and row lengths. Canonical row
 construction, the record-staging machine that emits the raw structural view,
@@ -775,6 +778,226 @@ theorem encodedSize_eq_wireSize (view : RuntimeStructuralView) :
     view.encodedSize = BinaryNatLists.wireSize view.toNatLists := by
   simp [encodedSize, finEncoding]
 
+private theorem domainOccurrence_listWireSize_le
+    (index value : ℕ) :
+    BinaryNatLists.listWireSize
+        (RuntimeStructuralRecord.domainOccurrence index value).toNatList ≤
+      BinaryNatLists.natWireSize index +
+        BinaryNatLists.natWireSize value + 8 := by
+  have hthree := BinaryNatLists.natWireSize_le_two_mul_add_one 3
+  have hzero := BinaryNatLists.natWireSize_le_two_mul_add_one 0
+  simp only [RuntimeStructuralRecord.toNatList,
+    BinaryNatLists.listWireSize, List.length_cons, List.length_nil,
+    List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, add_zero]
+  norm_num at *
+  omega
+
+private theorem scopeRecord_wireSize_le
+    (scope : List ℕ) (bound : ℕ) (hbound : scope.length ≤ bound) :
+    BinaryNatLists.listWireSize
+        (RuntimeStructuralRecord.scope scope).toNatList ≤
+      BinaryNatLists.listWireSize scope + (2 * bound + 6) := by
+  have hlength :=
+    BinaryNatLists.natWireSize_le_two_mul_add_one (scope.length + 1)
+  have hone := BinaryNatLists.natWireSize_le_two_mul_add_one 1
+  simp only [RuntimeStructuralRecord.toNatList,
+    BinaryNatLists.listWireSize, List.length_cons, List.map_cons,
+    List.sum_cons]
+  omega
+
+private theorem domainValueRecords_wireSize_le
+    (domain : List ℕ) (index bound : ℕ) (hindex : index ≤ bound) :
+    ((domain.map fun value => (index, value)).map fun occurrence =>
+        BinaryNatLists.listWireSize
+          (RuntimeStructuralRecord.domainOccurrence
+            occurrence.1 occurrence.2).toNatList).sum ≤
+      (domain.map BinaryNatLists.natWireSize).sum +
+        domain.length * (2 * bound + 9) := by
+  induction domain with
+  | nil => simp
+  | cons value values ih =>
+      simp only [List.map_cons, List.sum_cons, List.length_cons]
+      have hrow := domainOccurrence_listWireSize_le index value
+      have hwire := BinaryNatLists.natWireSize_le_two_mul_add_one index
+      rw [Nat.succ_mul]
+      omega
+
+private theorem domainRecords_wireSize_le
+    (domains : List (List ℕ)) (start bound : ℕ)
+    (hbound : start + domains.length ≤ bound) :
+    ((indexedDomainOccurrencesFrom start domains).map fun occurrence =>
+        BinaryNatLists.listWireSize
+          (RuntimeStructuralRecord.domainOccurrence
+            occurrence.1 occurrence.2).toNatList).sum ≤
+      (domains.map BinaryNatLists.listWireSize).sum +
+        (domains.map List.length).sum * (2 * bound + 9) := by
+  induction domains generalizing start with
+  | nil => simp [indexedDomainOccurrencesFrom]
+  | cons domain domains ih =>
+      simp only [List.length_cons] at hbound
+      have hstart : start ≤ bound := by omega
+      have htail : start + 1 + domains.length ≤ bound := by omega
+      have hindividual :=
+        domainValueRecords_wireSize_le domain start bound hstart
+      have hdomainWire :
+          (domain.map BinaryNatLists.natWireSize).sum ≤
+            BinaryNatLists.listWireSize domain := by
+        simp [BinaryNatLists.listWireSize]
+      simp only [indexedDomainOccurrencesFrom, List.map_append, List.sum_append,
+        List.map_cons, List.sum_cons]
+      have hrest := ih (start + 1) htail
+      calc
+        ((domain.map fun value => (start, value)).map fun occurrence =>
+              BinaryNatLists.listWireSize
+                (RuntimeStructuralRecord.domainOccurrence
+                  occurrence.1 occurrence.2).toNatList).sum +
+            ((indexedDomainOccurrencesFrom (start + 1) domains).map
+              fun occurrence => BinaryNatLists.listWireSize
+                (RuntimeStructuralRecord.domainOccurrence
+                  occurrence.1 occurrence.2).toNatList).sum
+            ≤ ((domain.map BinaryNatLists.natWireSize).sum +
+                domain.length * (2 * bound + 9)) +
+              ((domains.map BinaryNatLists.listWireSize).sum +
+                (domains.map List.length).sum * (2 * bound + 9)) :=
+          Nat.add_le_add hindividual hrest
+        _ ≤ (BinaryNatLists.listWireSize domain +
+                (domains.map BinaryNatLists.listWireSize).sum) +
+              (domain.length + (domains.map List.length).sum) *
+                (2 * bound + 9) := by
+          have := hdomainWire
+          rw [Nat.add_mul]
+          omega
+
+private theorem scopeRecords_wireSize_le
+    (scopes : List (List ℕ)) (bound : ℕ)
+    (hbound : ∀ scope ∈ scopes, scope.length ≤ bound) :
+    ((scopes.map RuntimeStructuralRecord.scope).map fun record =>
+        BinaryNatLists.listWireSize record.toNatList).sum ≤
+      (scopes.map BinaryNatLists.listWireSize).sum +
+        scopes.length * (2 * bound + 6) := by
+  induction scopes with
+  | nil => simp
+  | cons scope scopes ih =>
+      simp only [List.map_cons, List.sum_cons, List.length_cons]
+      have hscope := hbound scope (by simp)
+      have hhead := scopeRecord_wireSize_le scope bound hscope
+      have hrest := ih (fun tail htail => hbound tail (by simp [htail]))
+      rw [Nat.succ_mul]
+      omega
+
+private theorem scope_length_le_encodedSize
+    (C : RuntimeSystem) (scope : List ℕ) (hscope : scope ∈ C.scopes) :
+    scope.length ≤ C.encodedSize := by
+  have hmem : scope.length ∈ C.scopes.map List.length :=
+    List.mem_map.mpr ⟨scope, hscope, rfl⟩
+  exact (List.le_sum_of_mem hmem).trans
+    C.scopeEntryCount_le_encodedSize
+
+private theorem input_record_wireSize_le_encodedSize (C : RuntimeSystem) :
+    (C.domains.map BinaryNatLists.listWireSize).sum +
+        (C.scopes.map BinaryNatLists.listWireSize).sum ≤
+      C.encodedSize := by
+  rw [C.encodedSize_eq_wireSize]
+  simp only [RuntimeSystem.toNatLists, BinaryNatLists.wireSize,
+    List.length_cons, List.length_append, List.map_cons, List.map_append,
+    List.sum_cons, List.sum_append]
+  omega
+
+private theorem ofRuntimeSystem_records_wireSize_le (C : RuntimeSystem) :
+    ((ofRuntimeSystem C).records.map fun record =>
+        BinaryNatLists.listWireSize record.toNatList).sum ≤
+      C.encodedSize + C.domainEntryCount * (2 * C.encodedSize + 9) +
+        C.scopes.length * (2 * C.encodedSize + 6) := by
+  have hdomains :
+      ((domainRecords C.domains).map fun record =>
+          BinaryNatLists.listWireSize record.toNatList).sum ≤
+        (C.domains.map BinaryNatLists.listWireSize).sum +
+          C.domainEntryCount * (2 * C.encodedSize + 9) := by
+    simpa [domainRecords, indexedDomainOccurrences, List.map_map,
+      Function.comp_def, RuntimeSystem.domainEntryCount] using
+      domainRecords_wireSize_le C.domains 0 C.encodedSize
+        (by simpa using C.variableCount_le_encodedSize)
+  have hscopes :
+      ((C.scopes.map RuntimeStructuralRecord.scope).map fun record =>
+          BinaryNatLists.listWireSize record.toNatList).sum ≤
+        (C.scopes.map BinaryNatLists.listWireSize).sum +
+          C.scopes.length * (2 * C.encodedSize + 6) :=
+    scopeRecords_wireSize_le C.scopes C.encodedSize
+      (fun scope hscope => scope_length_le_encodedSize C scope hscope)
+  have hinput := input_record_wireSize_le_encodedSize C
+  simp only [ofRuntimeSystem, List.map_append, List.sum_append]
+  calc
+    ((domainRecords C.domains).map fun record =>
+          BinaryNatLists.listWireSize record.toNatList).sum +
+        ((C.scopes.map RuntimeStructuralRecord.scope).map fun record =>
+          BinaryNatLists.listWireSize record.toNatList).sum ≤
+      ((C.domains.map BinaryNatLists.listWireSize).sum +
+          C.domainEntryCount * (2 * C.encodedSize + 9)) +
+        ((C.scopes.map BinaryNatLists.listWireSize).sum +
+          C.scopes.length * (2 * C.encodedSize + 6)) :=
+      Nat.add_le_add hdomains hscopes
+    _ ≤ C.encodedSize + C.domainEntryCount * (2 * C.encodedSize + 9) +
+        C.scopes.length * (2 * C.encodedSize + 6) := by omega
+
+private theorem ofRuntimeSystem_header_wireSize_le (C : RuntimeSystem) :
+    BinaryNatLists.listWireSize [C.domains.length] ≤
+      2 * C.encodedSize + 4 := by
+  have hone := BinaryNatLists.natWireSize_le_two_mul_add_one 1
+  have hwire :=
+    BinaryNatLists.natWireSize_le_two_mul_add_one C.domains.length
+  have hlength := C.variableCount_le_encodedSize
+  simp only [BinaryNatLists.listWireSize, List.length_cons, List.length_nil,
+    List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, add_zero]
+  norm_num at *
+  omega
+
+private theorem ofRuntimeSystem_toNatLists_length_le (C : RuntimeSystem) :
+    (ofRuntimeSystem C).toNatLists.length ≤ 2 * C.encodedSize + 1 := by
+  simp only [toNatLists, List.length_cons, List.length_map,
+    ofRuntimeSystem_records_length]
+  have hdomain := C.domainEntryCount_le_encodedSize
+  have hscope : C.scopes.length ≤ C.encodedSize := by
+    calc
+      C.scopes.length ≤ C.toNatLists.length := by
+        simp [RuntimeSystem.toNatLists]
+        omega
+      _ ≤ BinaryNatLists.wireSize C.toNatLists :=
+        BinaryNatLists.length_le_wireSize C.toNatLists
+      _ = C.encodedSize := C.encodedSize_eq_wireSize.symm
+  omega
+
+/-- The complete checked tagged structural view has quadratic bit length in
+the compact runtime-system input. Copied domain values and scope entries are
+charged to their original framed fields rather than to their numeric values. -/
+theorem ofRuntimeSystem_encodedSize_le_quadratic (C : RuntimeSystem) :
+    (ofRuntimeSystem C).encodedSize ≤ 32 * (C.encodedSize + 1) ^ 2 := by
+  rw [(ofRuntimeSystem C).encodedSize_eq_wireSize]
+  have hrecords := ofRuntimeSystem_records_wireSize_le C
+  have hheader := ofRuntimeSystem_header_wireSize_le C
+  have hlength := ofRuntimeSystem_toNatLists_length_le C
+  have houter := BinaryNatLists.natWireSize_le_two_mul_add_one
+    (ofRuntimeSystem C).toNatLists.length
+  have hdomain := C.domainEntryCount_le_encodedSize
+  have hscope : C.scopes.length ≤ C.encodedSize := by
+    calc
+      C.scopes.length ≤ C.toNatLists.length := by
+        simp [RuntimeSystem.toNatLists]
+        omega
+      _ ≤ BinaryNatLists.wireSize C.toNatLists :=
+        BinaryNatLists.length_le_wireSize C.toNatLists
+      _ = C.encodedSize := C.encodedSize_eq_wireSize.symm
+  have hrecords' :
+      (List.map (BinaryNatLists.listWireSize ∘
+          RuntimeStructuralRecord.toNatList)
+          (ofRuntimeSystem C).records).sum ≤
+        C.encodedSize + C.domainEntryCount * (2 * C.encodedSize + 9) +
+          C.scopes.length * (2 * C.encodedSize + 6) := by
+    simpa [Function.comp_def] using hrecords
+  simp only [BinaryNatLists.wireSize, toNatLists, List.length_cons,
+    List.map_cons, List.sum_cons, List.map_map,
+    ofRuntimeSystem_variableCount] at *
+  nlinarith
+
 end RuntimeStructuralView
 
 /-! ## Compiler-oriented runtime input
@@ -841,6 +1064,21 @@ theorem encode_length_le (C : RuntimeSystem) :
   omega
 
 end RuntimeCompilerInput
+
+namespace RuntimeStructuralView
+
+/-- The same quadratic structural-output bound measured against the complete
+compiler-facing input, including its checked unary occurrence header. -/
+theorem ofRuntimeSystem_encodedSize_le_compilerInput_quadratic
+    (C : RuntimeSystem) :
+    (ofRuntimeSystem C).encodedSize ≤
+      32 * (RuntimeCompilerInput.encode C).length.succ ^ 2 := by
+  exact (ofRuntimeSystem_encodedSize_le_quadratic C).trans
+    (Nat.mul_le_mul_left 32 (Nat.pow_le_pow_left
+      (Nat.add_le_add_right
+        (RuntimeCompilerInput.compact_encodedSize_le_encode_length C) 1) 2))
+
+end RuntimeStructuralView
 
 /-- Runtime-sized residual-row output, with finite indices erased to natural
 numbers for serialization. -/
@@ -1388,6 +1626,8 @@ theorem compileUsingDomainEntryBound_encodedSize_le_compilerInput_quartic
 #print axioms RuntimeStructuralView.indexedDomainOccurrences_variable_lt
 #print axioms RuntimeStructuralView.ofNatLists_toNatLists
 #print axioms RuntimeStructuralView.encodedSize_eq_wireSize
+#print axioms RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic
+#print axioms RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_compilerInput_quadratic
 #print axioms RuntimeCompilerInput.decode_encode
 #print axioms RuntimeCompilerInput.encode_length_le
 #print axioms RuntimeObjective.ofNatLists_toNatLists
