@@ -175,7 +175,12 @@ length and domain-count header precede all domains and scopes.
 `sourceOrderRawFieldsComputableInPolyTime` constructs it in exactly one more
 step than the raw stream length, while
 `runtimeCompilerSourceOrderFieldsComputableInPolyTime` composes the pass from
-the actual checked compiler input. `binaryPredComputableInPolyTime` supplies
+the actual checked compiler input. `StructuralFieldStream.ofRuntimeSystem`
+gives the structural emitter an exact executable field contract: every domain
+value expands to `[3, 0, index, value]`, every scope remains intact as
+`[|S|+1, 1, ...S]`, and `encode_reverse_eq_raw` proves that reversing this
+semantic-order stream is exactly `RuntimeStructuralView.rawFinEncoding`'s
+stack output. `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
 powers of two, and arbitrary borrow chains. The checked

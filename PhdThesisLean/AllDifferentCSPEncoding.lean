@@ -73,9 +73,12 @@ compiler-facing input bit lengths; copied domain values and scope entries are
 charged to their original framed fields rather than to their numeric values.
 The machine layer also checks canonical binary predecessor in linear time,
 supplying the countdown primitive for domain and row lengths. Canonical row
-construction, the record-staging machine that emits the raw structural view,
-encoded objective emission, and whole-compiler composition remain separate
-from these encoding and size results.
+construction now has an exact field-level emission specification: every
+domain occurrence and intact scope is expanded to its complete tagged row,
+and reversal is proved to give the checked raw structural encoding. The finite
+record-staging machine that realizes this stream, encoded objective emission,
+and whole-compiler composition remain separate from these encoding and size
+results.
 -/
 
 namespace BinaryNatLists

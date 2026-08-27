@@ -39,13 +39,14 @@ that no statement-faithful Lean theorem is currently present.
 | `cor:sudoku-special-case` | Pending wrapper | The general all-different theorem supplies the mathematics, but the 81-cell peer graph, degree-20 bound, clue domains, and Sudoku equivalence have not been instantiated in Lean. |
 
 For the partial `cor:all-different-csp` runtime path, the latest checked
-increment is
-`RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_compilerInput_quadratic`:
-the exact tagged intermediate has at most `32 * (s + 1)^2` bits in the complete
-compiler input length. The proof preserves a genuine bit model even for large
-domain symbols by charging copied payloads to their original framed fields.
-The tagged record-staging machine remains absent; `binaryPredComputableInPolyTime`
-already supplies its empty- and singleton-safe binary countdown operation.
+increment is `StructuralFieldStream.raw_decode_encode_reverse`: the exact
+semantic-order emitter stream expands every indexed domain occurrence and
+intact scope to its complete tagged row, and its reversal is accepted as
+exactly `RuntimeStructuralView.ofRuntimeSystem` by the checked raw decoder.
+The prior quadratic theorem still bounds the target in the actual compiler
+input bit length. The finite tagged record-staging machine remains absent;
+`binaryPredComputableInPolyTime` already supplies its empty- and singleton-safe
+binary countdown operation.
 
 The headline catalogue therefore contains 24 statements: 15 complete, 2
 partial, and 7 pending. The qualified clause theorem is included in the

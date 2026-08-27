@@ -69,6 +69,10 @@ next structural emitter. A checked binary predecessor machine supplies that
 emitter's remaining-domain and remaining-value countdown primitive in at most
 `2s + 3` steps, including zero, one, powers of two, and arbitrary borrow
 chains.
+`StructuralFieldStream` now fixes the emitter's exact executable field-level
+contract: domain occurrences expand to `[3, 0, index, value]`, scopes remain
+intact as `[|S|+1, 1, ...S]`, and reversing the semantic-order stream is proved
+to be exactly the checked raw structural encoding.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for emitting the tagged structural view, canonical
@@ -463,6 +467,112 @@ def finEncoding : FinEncoding (List (List ℕ)) where
 
 end SourceOrderRawNatLists
 
+/-! ## Exact structural emitter field stream
+
+The next finite machine consumes the source-order compact-system fields and
+stages the tagged structural records before it can prefix the final record
+count.  The definitions below fix the exact natural-field stream that this
+machine must emit.  Keeping this specification at field level exposes the
+domain index, local tags, record lengths, and final stack reversal separately
+from binary counter manipulation.
+-/
+
+namespace StructuralFieldStream
+
+/-- Flatten nested natural lists to their outer length, then each inner length
+and its entries, all in semantic source order. -/
+def flatten (xss : List (List ℕ)) : List ℕ :=
+  xss.length :: xss.flatMap fun xs => xs.length :: xs
+
+/-- Fields for every domain occurrence, starting at the supplied variable
+index.  Each occurrence becomes the complete row `[3, 0, index, value]`: the
+row length followed by the locally tagged record. -/
+def domainFieldsFrom : ℕ → List (List ℕ) → List ℕ
+  | _, [] => []
+  | index, domain :: domains =>
+      domain.flatMap (fun value => [3, 0, index, value]) ++
+        domainFieldsFrom (index + 1) domains
+
+/-- Fields for intact scope records.  A scope `entries` becomes its row length
+`entries.length + 1`, tag `1`, and the unchanged entries. -/
+def scopeFields (scopes : List (List ℕ)) : List ℕ :=
+  scopes.flatMap fun entries => (entries.length + 1) :: 1 :: entries
+
+/-- Exact semantic-order natural fields emitted for a runtime system.  The
+outer count includes the singleton variable-count header. -/
+def ofRuntimeSystem (C : RuntimeSystem) : List ℕ :=
+  (1 + C.domainEntryCount + C.scopes.length) ::
+    1 :: C.domains.length ::
+      (domainFieldsFrom 0 C.domains ++ scopeFields C.scopes)
+
+/-- Binary source-order form of `ofRuntimeSystem`.  Every field begins with an
+explicit delimiter and then its canonical least-significant-bit-first bits. -/
+def encode (C : RuntimeSystem) : List (Option Bool) :=
+  (ofRuntimeSystem C).flatMap fun field =>
+    none :: (Computability.encodeNat field).map some
+
+private theorem domainFieldsFrom_eq_records
+    (start : ℕ) (domains : List (List ℕ)) :
+    domainFieldsFrom start domains =
+      ((RuntimeStructuralView.indexedDomainOccurrencesFrom start domains).map
+        fun occurrence => RuntimeStructuralRecord.domainOccurrence
+          occurrence.1 occurrence.2).flatMap fun record =>
+            record.toNatList.length :: record.toNatList := by
+  induction domains generalizing start with
+  | nil => simp [domainFieldsFrom,
+      RuntimeStructuralView.indexedDomainOccurrencesFrom]
+  | cons domain domains ih =>
+      simp [domainFieldsFrom,
+        RuntimeStructuralView.indexedDomainOccurrencesFrom,
+        RuntimeStructuralRecord.toNatList, List.flatMap_map,
+        Function.comp_def, ih]
+
+private theorem scopeFields_eq_records (scopes : List (List ℕ)) :
+    scopeFields scopes =
+      (scopes.map RuntimeStructuralRecord.scope).flatMap fun record =>
+        record.toNatList.length :: record.toNatList := by
+  simp [scopeFields, RuntimeStructuralRecord.toNatList,
+    List.flatMap_map]
+
+/-- The explicit emitter fields are exactly the flattened natural fields of
+the checked tagged structural view. -/
+theorem ofRuntimeSystem_eq_flatten (C : RuntimeSystem) :
+    ofRuntimeSystem C =
+      flatten (RuntimeStructuralView.ofRuntimeSystem C).toNatLists := by
+  rw [ofRuntimeSystem, flatten, RuntimeStructuralView.toNatLists]
+  simp only [List.length_cons, List.length_map, List.flatMap_cons]
+  rw [RuntimeStructuralView.ofRuntimeSystem_records_length]
+  simp only [RuntimeStructuralView.ofRuntimeSystem]
+  rw [domainFieldsFrom_eq_records, scopeFields_eq_records]
+  simp [RuntimeStructuralView.domainRecords, List.flatMap_map,
+    RuntimeStructuralView.indexedDomainOccurrences, Function.comp_def,
+    Nat.add_comm, Nat.add_left_comm]
+
+private theorem payloads_eq_map_flatten (xss : List (List ℕ)) :
+    RawNatLists.payloads xss =
+      (flatten xss).map Computability.encodeNat := by
+  simp [RawNatLists.payloads, flatten, List.map_flatMap]
+
+/-- The field-level specification is exactly the checked source-order raw
+encoding of the target structural view. -/
+theorem encode_eq_sourceOrderRawNatLists (C : RuntimeSystem) :
+    encode C = SourceOrderRawNatLists.encode
+      (RuntimeStructuralView.ofRuntimeSystem C).toNatLists := by
+  rw [SourceOrderRawNatLists.encode_eq_payloads]
+  rw [payloads_eq_map_flatten]
+  rw [← ofRuntimeSystem_eq_flatten]
+  simp [encode, List.flatMap_map]
+
+/-- Reversing the semantic-order emitter stream gives exactly the checked raw
+stack encoding required by `RuntimeStructuralView.rawFinEncoding`. -/
+theorem encode_reverse_eq_raw (C : RuntimeSystem) :
+    (encode C).reverse = RawNatLists.encode
+      (RuntimeStructuralView.ofRuntimeSystem C).toNatLists := by
+  rw [encode_eq_sourceOrderRawNatLists]
+  simp [SourceOrderRawNatLists.encode]
+
+end StructuralFieldStream
+
 namespace RuntimeStructuralView
 
 /-- Checked stack-oriented raw-field encoding of the tagged structural view.
@@ -481,6 +591,16 @@ def rawFinEncoding : FinEncoding RuntimeStructuralView where
   ΓFin := inferInstance
 
 end RuntimeStructuralView
+
+/-- The exact reversed emitter stream is accepted by the checked raw
+structural decoder, including zero-variable, empty-domain, singleton, and
+empty-scope cases covered by the general definitions. -/
+theorem StructuralFieldStream.raw_decode_encode_reverse (C : RuntimeSystem) :
+    RuntimeStructuralView.rawFinEncoding.toEncoding.decode
+        (StructuralFieldStream.encode C).reverse =
+      some (RuntimeStructuralView.ofRuntimeSystem C) := by
+  rw [StructuralFieldStream.encode_reverse_eq_raw]
+  simp [RuntimeStructuralView.rawFinEncoding]
 
 /-- Four Boolean stacks suffice to preserve the payload while prefixing its
 length: input, reversed payload, unary counter, and output. -/
@@ -13174,6 +13294,10 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms sourceOrderRawFields_outputsInTime
 #print axioms sourceOrderRawFieldsComputableInPolyTime
 #print axioms runtimeCompilerSourceOrderFieldsComputableInPolyTime
+#print axioms StructuralFieldStream.ofRuntimeSystem_eq_flatten
+#print axioms StructuralFieldStream.encode_eq_sourceOrderRawNatLists
+#print axioms StructuralFieldStream.encode_reverse_eq_raw
+#print axioms StructuralFieldStream.raw_decode_encode_reverse
 #print axioms runtimeDomainEntryPrimeComputableInPolyTime
 #print axioms binarySuccBits_encodeNat
 #print axioms binarySucc_outputsInTime

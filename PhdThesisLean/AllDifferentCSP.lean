@@ -1205,8 +1205,10 @@ construction, raw structural-payload extraction, and linear framing of the
 tagged structural target; the encoding module also bounds that complete tagged
 target quadratically in the actual input bit length. The raw compact payload
 can also be normalized to semantic source order in linear time, and canonical
-binary predecessor supplies the parser countdown operation in linear time;
-the tagged record-staging loop,
+binary predecessor supplies the parser countdown operation in linear time.
+The machine module fixes and verifies the exact semantic-order field stream
+for every tagged domain occurrence and intact scope, including its reversal to
+the checked raw structural encoding; the finite tagged record-staging loop,
 canonical relabelling, edge deduplication, encoded objective emission, and
 final runtime composition remain before `cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness

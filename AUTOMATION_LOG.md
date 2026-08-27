@@ -2109,3 +2109,73 @@
   `RuntimeStructuralView.ofRuntimeSystem` raw output, and then compose with the
   framing bridge; the new quadratic theorem supplies the intermediate
   bit-size invariant for that composition.
+
+## 2026-08-28 05:32:19 AEST — fix the exact structural emitter field contract
+
+- **Starting state:** clean synchronized `main` at
+  `e274acf50de6bc1ea93ddcc5178abda966135a18`. A fresh fetch and live
+  `ls-remote` check confirmed that local `HEAD`, `origin/main`, upstream, and
+  the live remote ref agreed, so no fast-forward was needed. The active thesis
+  checkout was clean and synchronized at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`.
+- **Thesis/source review:** re-read `AGENTS.md`, `THEOREM_STATUS.md`, the
+  relevant `README.md` correspondence, `AllDifferent.lean`,
+  `FiniteDomainCompiler.lean`, the active proof of
+  `cor:all-different-csp`, this journal, and the current structural
+  encoding/machine boundary. The corollary remains **Partial** because the
+  field-stream specification added here is not yet realized by a finite
+  record-staging machine, and canonical relabelling, edge deduplication,
+  objective emission, and final composition remain.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  with its live remote at
+  `db130fb7041f0035355783c2b24569838a1fe27f`. Its new checked tagged-pair
+  classification and order-restoration phases are not yet integrated into one
+  composable adapter and do not implement this structural emitter. The sibling
+  repository and this project's dependency pin were not changed.
+- **Chosen increment:** added executable `StructuralFieldStream.flatten`,
+  `domainFieldsFrom`, `scopeFields`, `ofRuntimeSystem`, and `encode` to make
+  the pending machine's exact field contract explicit. Every domain value is
+  emitted as the complete field block `[3, 0, index, value]`; every scope is
+  emitted intact as `[scope.length + 1, 1, ...scope]`; and the outer count is
+  exactly `1 + domainEntryCount + scopes.length`.
+- **Checked correspondence declarations:**
+  `StructuralFieldStream.ofRuntimeSystem_eq_flatten` identifies those fields
+  with the checked `RuntimeStructuralView.toNatLists` payload;
+  `encode_eq_sourceOrderRawNatLists` identifies their delimited binary form;
+  `encode_reverse_eq_raw` proves final stack reversal gives exactly
+  `RawNatLists.encode`; and `raw_decode_encode_reverse` proves the checked raw
+  decoder accepts that stream as exactly `RuntimeStructuralView.ofRuntimeSystem`.
+  The general definitions cover zero variables, empty domains, singleton
+  domains and scopes, repeats, and empty scopes without separate assumptions.
+- **Failed proof shapes and corrections:** the first domain induction left a
+  `List.map` composition opaque; unfolding `Function.comp` exposed the exact
+  occurrence row. The complete-stream proof also needed the definitional
+  equality between `indexedDomainOccurrences` and its start-at-zero form plus
+  commutative normalization of the record count. Finally, the raw-decoder
+  theorem was initially placed before `rawFinEncoding` was declared; moving it
+  immediately below that declaration fixed the namespace/declaration-order
+  error. No representation change or placeholder was needed.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  executable contract, four checked correspondence theorems, and axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the new boundary while retaining **Partial**
+  status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine
+  PhdThesisLean.AllDifferentCSPEncoding PhdThesisLean.AllDifferentCSP` (3100
+  jobs); full `lake build` (3123 jobs); `git diff --check`; and tracked
+  Lean-source scans for `sorry`, `admit`, project `axiom`, `unsafe`, and
+  `proof_wanted` (all empty). The four new `#print axioms` audits report only
+  `propext`, `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one coherent verified field-contract,
+  correspondence, status, and log increment; no unrelated work was changed.
+- **Best next step:** implement the finite source-order parser and staging
+  loop against `StructuralFieldStream.encode`. Maintain binary countdowns for
+  remaining domains and row entries, increment the variable index and final
+  record count, stage record fields through the two reversals required to put
+  the computed outer/header fields at the bottom of the raw output stack, and
+  prove exact output with `encode_reverse_eq_raw` before composing the framing
+  bridge.
