@@ -72,12 +72,16 @@ chains.
 `StructuralFieldStream` now fixes the emitter's exact executable field-level
 contract: domain occurrences expand to `[3, 0, index, value]`, scopes remain
 intact as `[|S|+1, 1, ...S]`, and reversing the semantic-order stream is proved
-to be exactly the checked raw structural encoding.
+to be exactly the checked raw structural encoding. `SourceOrderRawFields`
+checks uncounted semantic-order field sequences, and
+`domainOccurrenceBlockComputableInPolyTime` is the first finite component of
+the structural emitter: it turns arbitrary current-index and value fields into
+the exact `[3, 0, index, value]` block in at most `2s + 2` steps.
 
 These are checked components of the eventual compiler machine. They do not yet
-establish polynomial time for emitting the tagged structural view, canonical
-relabelling and edge construction, objective-row emission, or final compiler
-assembly.
+establish polynomial time for the outer domain/scope scan that emits the full
+tagged structural view, canonical relabelling and edge construction,
+objective-row emission, or final compiler assembly.
 -/
 
 namespace FramedNat
@@ -194,6 +198,12 @@ private theorem parseAux_segments
       simp only [List.singleton_append, parseAux]
       rw [ih]
       simp [List.reverse_cons, List.append_assoc]
+
+/-- Parsing any complete sequence of stack-oriented raw segments restores the
+semantic field order. -/
+theorem parse_segments (segments : List (List Bool)) :
+    parse (segments.flatMap segment) = some segments.reverse := by
+  simpa [parse] using parseAux_segments segments []
 
 @[simp]
 theorem parse_encode (xs : List ℕ) :
@@ -467,6 +477,54 @@ def finEncoding : FinEncoding (List (List ℕ)) where
 
 end SourceOrderRawNatLists
 
+namespace SourceOrderRawFields
+
+/-!
+Unlike `SourceOrderRawNatLists`, this encoding carries an uncounted sequence
+of natural fields.  It is the local interface needed by structural-emitter
+components: each field begins with a delimiter and is followed by its
+canonical least-significant-bit-first payload.
+-/
+
+/-- Encode an uncounted natural-field sequence in semantic source order. -/
+def encode (fields : List ℕ) : List (Option Bool) :=
+  fields.flatMap fun field =>
+    none :: (Computability.encodeNat field).map some
+
+/-- Decode a complete source-order raw-field sequence. -/
+def decode (input : List (Option Bool)) : Option (List ℕ) := do
+  let payloads ← RawNatList.parse input.reverse
+  pure (payloads.map Computability.decodeNat)
+
+private theorem encode_reverse_eq_segments (fields : List ℕ) :
+    (encode fields).reverse =
+      ((fields.map Computability.encodeNat).reverse).flatMap
+        RawNatList.segment := by
+  induction fields with
+  | nil => rfl
+  | cons field fields ih =>
+      rw [encode, List.flatMap_cons, List.reverse_append]
+      change (encode fields).reverse ++
+          (none :: (Computability.encodeNat field).map some).reverse = _
+      rw [ih]
+      simp [RawNatList.segment, List.reverse_cons]
+
+@[simp]
+theorem decode_encode (fields : List ℕ) :
+    decode (encode fields) = some fields := by
+  rw [decode, encode_reverse_eq_segments, RawNatList.parse_segments]
+  simp [Function.comp_def]
+
+/-- Checked encoding for uncounted semantic-order natural fields. -/
+def finEncoding : FinEncoding (List ℕ) where
+  Γ := Option Bool
+  encode := encode
+  decode := decode
+  decode_encode := decode_encode
+  ΓFin := inferInstance
+
+end SourceOrderRawFields
+
 /-! ## Exact structural emitter field stream
 
 The next finite machine consumes the source-order compact-system fields and
@@ -601,6 +659,396 @@ theorem StructuralFieldStream.raw_decode_encode_reverse (C : RuntimeSystem) :
       some (RuntimeStructuralView.ofRuntimeSystem C) := by
   rw [StructuralFieldStream.encode_reverse_eq_raw]
   simp [RuntimeStructuralView.rawFinEncoding]
+
+/-! ## Tagged domain-occurrence field blocks
+
+The complete structural scan repeatedly turns a current variable index and a
+domain value into the field block `[3, 0, index, value]`.  The machine below
+checks that local transformation independently of the still-pending outer
+domain/scope parser.  It preserves arbitrary binary index and value payloads,
+including zero, and adds only the fixed row-length and domain-tag fields.
+-/
+
+namespace DomainOccurrenceFieldBlock
+
+/-- Source-order input fields for one current variable index and value. -/
+def inputEncode (occurrence : ℕ × ℕ) : List (Option Bool) :=
+  SourceOrderRawFields.encode [occurrence.1, occurrence.2]
+
+/-- Decode exactly two source-order natural fields. -/
+def inputDecode (input : List (Option Bool)) : Option (ℕ × ℕ) := do
+  match ← SourceOrderRawFields.decode input with
+  | [index, value] => some (index, value)
+  | _ => none
+
+@[simp]
+theorem inputDecode_encode (occurrence : ℕ × ℕ) :
+    inputDecode (inputEncode occurrence) = some occurrence := by
+  simp [inputDecode, inputEncode]
+
+/-- Checked two-field input encoding for the local domain emitter. -/
+def inputFinEncoding : FinEncoding (ℕ × ℕ) where
+  Γ := Option Bool
+  encode := inputEncode
+  decode := inputDecode
+  decode_encode := inputDecode_encode
+  ΓFin := inferInstance
+
+/-- Source-order output fields for one complete tagged domain record. -/
+def outputEncode (occurrence : ℕ × ℕ) : List (Option Bool) :=
+  SourceOrderRawFields.encode [3, 0, occurrence.1, occurrence.2]
+
+/-- Decode exactly one complete domain-occurrence field block. -/
+def outputDecode (input : List (Option Bool)) : Option (ℕ × ℕ) := do
+  match ← SourceOrderRawFields.decode input with
+  | [3, 0, index, value] => some (index, value)
+  | _ => none
+
+@[simp]
+theorem outputDecode_encode (occurrence : ℕ × ℕ) :
+    outputDecode (outputEncode occurrence) = some occurrence := by
+  simp [outputDecode, outputEncode]
+
+/-- Checked output encoding whose wire form is the exact structural domain
+record field block. -/
+def outputFinEncoding : FinEncoding (ℕ × ℕ) where
+  Γ := Option Bool
+  encode := outputEncode
+  decode := outputDecode
+  decode_encode := outputDecode_encode
+  ΓFin := inferInstance
+
+/-- The constant source-order cells for row length `3` and domain tag `0`. -/
+def headerPrefix : List (Option Bool) :=
+  [none, some true, some true, none]
+
+private theorem encodeNat_three :
+    Computability.encodeNat 3 = [true, true] := by
+  unfold Computability.encodeNat
+  change Computability.encodeNum (Num.ofNat' 3) = [true, true]
+  rw [show (3 : ℕ) = Nat.bit true 1 by norm_num [Nat.bit], Num.ofNat'_bit,
+    Num.ofNat'_one]
+  rfl
+
+private theorem encodeNat_zero :
+    Computability.encodeNat 0 = [] := by
+  unfold Computability.encodeNat
+  change Computability.encodeNum (Num.ofNat' 0) = []
+  rw [Num.ofNat'_zero]
+  rfl
+
+@[simp]
+theorem outputEncode_eq_prefix (occurrence : ℕ × ℕ) :
+    outputEncode occurrence = headerPrefix ++ inputEncode occurrence := by
+  simp [outputEncode, inputEncode, SourceOrderRawFields.encode, headerPrefix,
+    encodeNat_three, encodeNat_zero]
+
+/-- The emitted semantic fields are exactly the length-prefixed tagged record
+used by `RuntimeStructuralView`. -/
+theorem fields_eq_record (occurrence : ℕ × ℕ) :
+    [3, 0, occurrence.1, occurrence.2] =
+      (RuntimeStructuralRecord.domainOccurrence occurrence.1
+        occurrence.2).toNatList.length ::
+      (RuntimeStructuralRecord.domainOccurrence occurrence.1
+        occurrence.2).toNatList := by
+  rfl
+
+end DomainOccurrenceFieldBlock
+
+/-- Input, reversal work, and output stacks for the local domain-record
+emitter. -/
+inductive DomainOccurrenceBlockStack
+  | input
+  | scratch
+  | output
+  deriving DecidableEq, Fintype
+
+/-- Reversal and restoration phases of the local domain-record emitter. -/
+inductive DomainOccurrenceBlockLabel
+  | stash
+  | restore
+  deriving DecidableEq, Fintype
+
+/-- Finite control remembers the most recently popped raw-field cell. -/
+abbrev DomainOccurrenceBlockState := Option (Option Bool)
+
+private def domainOccurrenceBlockPopped
+    (_state : DomainOccurrenceBlockState)
+    (symbol : Option (Option Bool)) : DomainOccurrenceBlockState :=
+  symbol
+
+private def domainOccurrenceBlockPresent :
+    DomainOccurrenceBlockState → Bool
+  | some _ => true
+  | none => false
+
+private def domainOccurrenceBlockHeld :
+    DomainOccurrenceBlockState → Option Bool
+  | some symbol => symbol
+  | none => none
+
+private def DomainOccurrenceBlockAlphabet
+    (_index : DomainOccurrenceBlockStack) : Type :=
+  Option Bool
+
+/-- A finite program that preserves the two arbitrary source fields and then
+prefixes the fixed row length and domain-record tag. -/
+def domainOccurrenceBlockProgram :
+    DomainOccurrenceBlockLabel →
+      TM2.Stmt DomainOccurrenceBlockAlphabet DomainOccurrenceBlockLabel
+        DomainOccurrenceBlockState
+  | .stash =>
+      .pop .input domainOccurrenceBlockPopped <|
+        .branch domainOccurrenceBlockPresent
+          (.push .scratch domainOccurrenceBlockHeld <|
+            .goto (fun _ => .stash))
+          (.goto (fun _ => .restore))
+  | .restore =>
+      .pop .scratch domainOccurrenceBlockPopped <|
+        .branch domainOccurrenceBlockPresent
+          (.push .output domainOccurrenceBlockHeld <|
+            .goto (fun _ => .restore))
+          (.push .output (fun _ => (none : Option Bool)) <|
+            .push .output (fun _ => some true) <|
+              .push .output (fun _ => some true) <|
+                .push .output (fun _ => (none : Option Bool)) <|
+                  .halt)
+
+/-- Concrete finite machine for one tagged domain-occurrence block. -/
+def domainOccurrenceBlockComputer : FinTM2 where
+  K := DomainOccurrenceBlockStack
+  k₀ := .input
+  k₁ := .output
+  Γ := DomainOccurrenceBlockAlphabet
+  Λ := DomainOccurrenceBlockLabel
+  main := .stash
+  σ := DomainOccurrenceBlockState
+  initialState := none
+  Γk₀Fin := show Fintype (Option Bool) from inferInstance
+  m := domainOccurrenceBlockProgram
+
+private def domainOccurrenceBlockStacks
+    (input scratch output : List (Option Bool)) :
+    (index : DomainOccurrenceBlockStack) →
+      List (DomainOccurrenceBlockAlphabet index)
+  | .input => input
+  | .scratch => scratch
+  | .output => output
+
+private def domainOccurrenceBlockCfg
+    (label : Option DomainOccurrenceBlockLabel)
+    (state : DomainOccurrenceBlockState)
+    (input scratch output : List (Option Bool)) :
+    domainOccurrenceBlockComputer.Cfg where
+  l := label
+  var := state
+  stk := domainOccurrenceBlockStacks input scratch output
+
+private theorem domainOccurrenceBlock_step_stash_cons
+    (symbol : Option Bool) (input scratch output : List (Option Bool))
+    (state : DomainOccurrenceBlockState) :
+    domainOccurrenceBlockComputer.step
+        (domainOccurrenceBlockCfg (some .stash) state
+          (symbol :: input) scratch output) =
+      some (domainOccurrenceBlockCfg (some .stash) (some symbol)
+        input (symbol :: scratch) output) := by
+  simp [domainOccurrenceBlockComputer, FinTM2.step,
+    domainOccurrenceBlockCfg, domainOccurrenceBlockProgram,
+    domainOccurrenceBlockStacks, DomainOccurrenceBlockAlphabet,
+    domainOccurrenceBlockPopped, domainOccurrenceBlockPresent,
+    domainOccurrenceBlockHeld, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem domainOccurrenceBlock_step_stash_nil
+    (scratch output : List (Option Bool))
+    (state : DomainOccurrenceBlockState) :
+    domainOccurrenceBlockComputer.step
+        (domainOccurrenceBlockCfg (some .stash) state [] scratch output) =
+      some (domainOccurrenceBlockCfg (some .restore) none
+        [] scratch output) := by
+  simp [domainOccurrenceBlockComputer, FinTM2.step,
+    domainOccurrenceBlockCfg, domainOccurrenceBlockProgram,
+    domainOccurrenceBlockStacks, DomainOccurrenceBlockAlphabet,
+    domainOccurrenceBlockPopped, domainOccurrenceBlockPresent,
+    Function.update]
+
+private theorem domainOccurrenceBlock_step_restore_cons
+    (symbol : Option Bool) (scratch output : List (Option Bool))
+    (state : DomainOccurrenceBlockState) :
+    domainOccurrenceBlockComputer.step
+        (domainOccurrenceBlockCfg (some .restore) state []
+          (symbol :: scratch) output) =
+      some (domainOccurrenceBlockCfg (some .restore) (some symbol)
+        [] scratch (symbol :: output)) := by
+  simp [domainOccurrenceBlockComputer, FinTM2.step,
+    domainOccurrenceBlockCfg, domainOccurrenceBlockProgram,
+    domainOccurrenceBlockStacks, DomainOccurrenceBlockAlphabet,
+    domainOccurrenceBlockPopped, domainOccurrenceBlockPresent,
+    domainOccurrenceBlockHeld, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem domainOccurrenceBlock_step_restore_nil
+    (output : List (Option Bool))
+    (state : DomainOccurrenceBlockState) :
+    domainOccurrenceBlockComputer.step
+        (domainOccurrenceBlockCfg (some .restore) state [] [] output) =
+      some (domainOccurrenceBlockCfg none none [] []
+        (DomainOccurrenceFieldBlock.headerPrefix ++ output)) := by
+  simp [domainOccurrenceBlockComputer, FinTM2.step,
+    domainOccurrenceBlockCfg, domainOccurrenceBlockProgram,
+    domainOccurrenceBlockStacks, DomainOccurrenceBlockAlphabet,
+    domainOccurrenceBlockPopped, domainOccurrenceBlockPresent,
+    DomainOccurrenceFieldBlock.headerPrefix, Function.update]
+  funext index
+  cases index <;> rfl
+
+private def domainOccurrenceBlockEvalsToInTimeOne
+    {start finish : domainOccurrenceBlockComputer.Cfg}
+    (hstep : domainOccurrenceBlockComputer.step start = some finish) :
+    EvalsToInTime domainOccurrenceBlockComputer.step
+      start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def domainOccurrenceBlock_stash_evals
+    (input scratch output : List (Option Bool))
+    (state : DomainOccurrenceBlockState) :
+    EvalsToInTime domainOccurrenceBlockComputer.step
+      (domainOccurrenceBlockCfg (some .stash) state input scratch output)
+      (some (domainOccurrenceBlockCfg (some .restore) none []
+        (input.reverse ++ scratch) output))
+      (input.length + 1) := by
+  induction input generalizing scratch state with
+  | nil =>
+      simpa using domainOccurrenceBlockEvalsToInTimeOne
+        (domainOccurrenceBlock_step_stash_nil scratch output state)
+  | cons symbol input ih =>
+      let middle := domainOccurrenceBlockCfg (some .stash) (some symbol)
+        input (symbol :: scratch) output
+      have hone : EvalsToInTime domainOccurrenceBlockComputer.step
+          (domainOccurrenceBlockCfg (some .stash) state
+            (symbol :: input) scratch output)
+          (some middle) 1 :=
+        domainOccurrenceBlockEvalsToInTimeOne (by
+          simpa [middle] using domainOccurrenceBlock_step_stash_cons
+            symbol input scratch output state)
+      have hrest := ih (symbol :: scratch) (some symbol)
+      have hall := EvalsToInTime.trans domainOccurrenceBlockComputer.step
+        1 (input.length + 1)
+        (domainOccurrenceBlockCfg (some .stash) state
+          (symbol :: input) scratch output)
+        middle
+        (some (domainOccurrenceBlockCfg (some .restore) none []
+          ((symbol :: input).reverse ++ scratch) output))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainOccurrenceBlock_restore_evals
+    (scratch output : List (Option Bool))
+    (state : DomainOccurrenceBlockState) :
+    EvalsToInTime domainOccurrenceBlockComputer.step
+      (domainOccurrenceBlockCfg (some .restore) state [] scratch output)
+      (some (domainOccurrenceBlockCfg none none [] []
+        (DomainOccurrenceFieldBlock.headerPrefix ++ scratch.reverse ++ output)))
+      (scratch.length + 1) := by
+  induction scratch generalizing output state with
+  | nil =>
+      simpa using domainOccurrenceBlockEvalsToInTimeOne
+        (domainOccurrenceBlock_step_restore_nil output state)
+  | cons symbol scratch ih =>
+      let middle := domainOccurrenceBlockCfg (some .restore) (some symbol)
+        [] scratch (symbol :: output)
+      have hone : EvalsToInTime domainOccurrenceBlockComputer.step
+          (domainOccurrenceBlockCfg (some .restore) state []
+            (symbol :: scratch) output)
+          (some middle) 1 :=
+        domainOccurrenceBlockEvalsToInTimeOne (by
+          simpa [middle] using domainOccurrenceBlock_step_restore_cons
+            symbol scratch output state)
+      have hrest := ih (symbol :: output) (some symbol)
+      have hall := EvalsToInTime.trans domainOccurrenceBlockComputer.step
+        1 (scratch.length + 1)
+        (domainOccurrenceBlockCfg (some .restore) state []
+          (symbol :: scratch) output)
+        middle
+        (some (domainOccurrenceBlockCfg none none [] []
+          (DomainOccurrenceFieldBlock.headerPrefix ++
+            (symbol :: scratch).reverse ++ output)))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem domainOccurrenceBlock_initList_eq_cfg
+    (input : List (Option Bool)) :
+    initList domainOccurrenceBlockComputer input =
+      domainOccurrenceBlockCfg (some .stash) none input [] [] := by
+  unfold initList domainOccurrenceBlockCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem domainOccurrenceBlock_haltList_eq_cfg
+    (output : List (Option Bool)) :
+    haltList domainOccurrenceBlockComputer output =
+      domainOccurrenceBlockCfg none none [] [] output := by
+  unfold haltList domainOccurrenceBlockCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- The local finite transducer emits one exact tagged domain-occurrence field
+block in at most twice the source-pair wire length plus two steps. -/
+def domainOccurrenceBlock_outputsInTime (occurrence : ℕ × ℕ) :
+    TM2OutputsInTime domainOccurrenceBlockComputer
+      (DomainOccurrenceFieldBlock.inputEncode occurrence)
+      (some (DomainOccurrenceFieldBlock.outputEncode occurrence))
+      (2 * (DomainOccurrenceFieldBlock.inputEncode occurrence).length + 2) := by
+  let input := DomainOccurrenceFieldBlock.inputEncode occurrence
+  have hstash := domainOccurrenceBlock_stash_evals input [] [] none
+  have hrestore := domainOccurrenceBlock_restore_evals input.reverse [] none
+  have hall := EvalsToInTime.trans domainOccurrenceBlockComputer.step
+    (input.length + 1) (input.reverse.length + 1)
+    (domainOccurrenceBlockCfg (some .stash) none input [] [])
+    (domainOccurrenceBlockCfg (some .restore) none [] input.reverse [])
+    (some (domainOccurrenceBlockCfg none none [] []
+      (DomainOccurrenceFieldBlock.headerPrefix ++ input)))
+    (by simpa using hstash)
+    (by simpa [List.reverse_reverse] using hrestore)
+  have htime :
+      (input.reverse.length + 1) + (input.length + 1) =
+        2 * input.length + 2 := by
+    simp
+    omega
+  rw [htime] at hall
+  rw [TM2OutputsInTime, domainOccurrenceBlock_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [domainOccurrenceBlock_haltList_eq_cfg]
+  simpa [input, DomainOccurrenceFieldBlock.outputEncode_eq_prefix,
+    Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+/-- A genuine linear-time finite-machine witness for emitting one complete
+tagged domain-occurrence field block. -/
+noncomputable def domainOccurrenceBlockComputableInPolyTime :
+    @TM2ComputableInPolyTime (ℕ × ℕ) (ℕ × ℕ)
+      DomainOccurrenceFieldBlock.inputFinEncoding
+      DomainOccurrenceFieldBlock.outputFinEncoding id where
+  tm := domainOccurrenceBlockComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := 2 * Polynomial.X + 2
+  outputsFun occurrence := by
+    simpa [DomainOccurrenceFieldBlock.inputFinEncoding,
+      DomainOccurrenceFieldBlock.outputFinEncoding, Equiv.refl,
+      Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_natCast,
+      Polynomial.eval_X] using
+        domainOccurrenceBlock_outputsInTime occurrence
 
 /-- Four Boolean stacks suffice to preserve the payload while prefixing its
 length: input, reversed payload, unary counter, and output. -/
@@ -13298,6 +13746,10 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms StructuralFieldStream.encode_eq_sourceOrderRawNatLists
 #print axioms StructuralFieldStream.encode_reverse_eq_raw
 #print axioms StructuralFieldStream.raw_decode_encode_reverse
+#print axioms SourceOrderRawFields.decode_encode
+#print axioms DomainOccurrenceFieldBlock.fields_eq_record
+#print axioms domainOccurrenceBlock_outputsInTime
+#print axioms domainOccurrenceBlockComputableInPolyTime
 #print axioms runtimeDomainEntryPrimeComputableInPolyTime
 #print axioms binarySuccBits_encodeNat
 #print axioms binarySucc_outputsInTime

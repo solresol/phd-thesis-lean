@@ -89,8 +89,10 @@ machine reverses the compact raw stream into semantic source order, exposing
 the outer length and domain-count boundary before all domain and scope fields.
 A checked canonical binary predecessor now supplies the structural parser's
 remaining-domain and remaining-value countdowns in linear time. Emitting the
-tagged records, canonical row construction, encoded objective emission, and
-final whole-compiler composition remain.
+exact tagged domain-occurrence block from current index/value fields is now a
+checked linear-time finite-machine step. The outer domain/scope record-staging
+loop, canonical row construction, encoded objective emission, and final
+whole-compiler composition remain.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -1208,9 +1210,11 @@ can also be normalized to semantic source order in linear time, and canonical
 binary predecessor supplies the parser countdown operation in linear time.
 The machine module fixes and verifies the exact semantic-order field stream
 for every tagged domain occurrence and intact scope, including its reversal to
-the checked raw structural encoding; the finite tagged record-staging loop,
-canonical relabelling, edge deduplication, encoded objective emission, and
-final runtime composition remain before `cor:all-different-csp` is complete. -/
+the checked raw structural encoding. Its local domain-occurrence transducer
+emits `[3, 0, index, value]` in linear time from arbitrary current-index and
+value fields; the outer tagged record-staging loop, canonical relabelling,
+edge deduplication, encoded objective emission, and final runtime composition
+remain before `cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness
     {n : ℕ} (C : ExplicitSystem n) (hC : C.WellFormed) :
     letI : Fact C.compilerPrime.Prime := ⟨C.compilerPrime_prime⟩

@@ -180,7 +180,10 @@ gives the structural emitter an exact executable field contract: every domain
 value expands to `[3, 0, index, value]`, every scope remains intact as
 `[|S|+1, 1, ...S]`, and `encode_reverse_eq_raw` proves that reversing this
 semantic-order stream is exactly `RuntimeStructuralView.rawFinEncoding`'s
-stack output. `binaryPredComputableInPolyTime` supplies
+stack output. `SourceOrderRawFields.finEncoding` checks the uncounted local
+field interface, and `domainOccurrenceBlockComputableInPolyTime` emits one
+exact `[3, 0, index, value]` block from arbitrary current-index and value
+fields in at most `2s+2` steps. `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
 powers of two, and arbitrary borrow chains. The checked
@@ -462,6 +465,8 @@ The copied statements are grouped by mathematical contribution:
   stream in linear time so every field is available in semantic source order,
   and `runtimeCompilerSourceOrderFieldsComputableInPolyTime` composes this
   normalization from the checked compiler input;
+  `domainOccurrenceBlockComputableInPolyTime` emits the exact tagged
+  `[3, 0, index, value]` field block for one domain occurrence in linear time;
   `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
   to parse its domain and row lengths;
   `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its

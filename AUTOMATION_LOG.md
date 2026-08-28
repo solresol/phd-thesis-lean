@@ -2179,3 +2179,72 @@
   the computed outer/header fields at the bottom of the raw output stack, and
   prove exact output with `encode_reverse_eq_raw` before composing the framing
   bridge.
+
+## 2026-08-29 05:33:01 AEST — emit one tagged domain-occurrence block
+
+- **Starting state:** clean synchronized `main` at
+  `20cf0d2b9f3ff1217c795441b60ea9daf134cb8a`. A fresh fetch confirmed local
+  `HEAD` and `origin/main` agreed. The active thesis checkout was clean and
+  synchronized at `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`; the proof of
+  `cor:all-different-csp` still claims explicit relabelling, compiler-selected
+  prime construction, deduplicated primal edges, polynomial-time output, and
+  exact minimum-conflict/satisfiable semantics. The corollary remains
+  **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized
+  at `aff35e5959c5d4a8e3cc120009323f113ddc9ffd`. Its new integrated tagged-pair
+  preprocessing adapter is useful generic machinery but is newer than this
+  project's pinned dependency and does not implement the required structural
+  list emitter. Neither the sibling repository nor the dependency pin was
+  changed.
+- **Chosen increment:** realized the repeated local domain-expansion operation
+  of the pending structural emitter as a genuine finite machine. The input is
+  an arbitrary current variable index and domain value in a checked uncounted
+  source-order raw-field encoding; the output is the exact field block
+  `[3, 0, index, value]` required by `StructuralFieldStream.domainFieldsFrom`
+  and `RuntimeStructuralRecord.domainOccurrence`.
+- **Headline declarations:** `SourceOrderRawFields.finEncoding` checks
+  uncounted delimiter-first canonical binary natural fields.
+  `DomainOccurrenceFieldBlock.inputFinEncoding` and `outputFinEncoding` check
+  the local pair/block boundary; `fields_eq_record` identifies the four
+  semantic fields with the length-prefixed tagged structural record.
+  `domainOccurrenceBlockComputer` is a concrete three-stack finite machine;
+  `domainOccurrenceBlock_outputsInTime` proves exact output in `2s+2` steps,
+  and `domainOccurrenceBlockComputableInPolyTime` packages the linear
+  polynomial-time witness. Arbitrary zero or nonzero indices and values are
+  copied byte-for-byte; only the fixed row-length and tag fields are added.
+- **Failed proof shapes and corrections:** the first source-field reversal
+  proof named a nonexistent `List.reverse_map`; ordinary simplification
+  already knew the required map/reverse identity. The identifier `prefix` is
+  reserved in this Lean parser, so the fixed cells were renamed
+  `headerPrefix`. Direct reduction and `decide` could not normalize mathlib's
+  `Nat`-to-`Num` cast in `encodeNat 3`; rewriting through `Num.ofNat'_bit` and
+  `Num.ofNat'_one` produced the checked constant encoding without compiler
+  trust. Finally, `EvalsToInTime.trans` normalized the summed phase times in
+  the reverse syntactic order; an explicit arithmetic equality closed the
+  exact `2s+2` bound. No placeholder, project axiom, or representation
+  weakening was introduced.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  checked raw-field encoding, local domain-block encodings, finite machine,
+  exact execution/runtime proofs, and four axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the new boundary while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine
+  PhdThesisLean.AllDifferentCSPEncoding PhdThesisLean.AllDifferentCSP` (3100
+  jobs); full `lake build` (3123 jobs); `git diff --check`; and a tracked
+  project Lean-source scan for `sorry`, `admit`, project `axiom`, `unsafe`, and
+  `proof_wanted` (all empty). New `#print axioms` audits report only `propext`,
+  `Classical.choice`, and `Quot.sound`; `fields_eq_record` is axiom-free.
+- **Ending state before commit:** one coherent verified local structural-
+  emitter increment plus synchronized correspondence/status documentation;
+  no unrelated repository, thesis, or sibling work was changed.
+- **Best next step:** implement the outer source-order domain parser that uses
+  binary countdowns to emit this checked block once per domain value, advance
+  the variable index including empty/singleton domains, stage the accumulated
+  record count, and prove exact agreement with
+  `StructuralFieldStream.domainFieldsFrom`; then add the intact tagged-scope
+  branch and compose the complete stream with `encode_reverse_eq_raw`.
