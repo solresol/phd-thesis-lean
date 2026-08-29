@@ -183,7 +183,11 @@ semantic-order stream is exactly `RuntimeStructuralView.rawFinEncoding`'s
 stack output. `SourceOrderRawFields.finEncoding` checks the uncounted local
 field interface, and `domainOccurrenceBlockComputableInPolyTime` emits one
 exact `[3, 0, index, value]` block from arbitrary current-index and value
-fields in at most `2s+2` steps. `binaryPredComputableInPolyTime` supplies
+fields in at most `2s+2` steps. `scopeFieldBlockComputableInPolyTime` consumes
+one count-checked source scope, increments its row length, inserts tag `1`, and
+copies every entry unchanged as `[|S|+1, 1, ...S]` in at most `3s+8` steps;
+empty and singleton scopes are covered by the general theorem.
+`binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
 powers of two, and arbitrary borrow chains. The checked
@@ -467,12 +471,14 @@ The copied statements are grouped by mathematical contribution:
   normalization from the checked compiler input;
   `domainOccurrenceBlockComputableInPolyTime` emits the exact tagged
   `[3, 0, index, value]` field block for one domain occurrence in linear time;
+  `scopeFieldBlockComputableInPolyTime` emits the exact intact tagged scope
+  block `[|S|+1, 1, ...S]` in linear time, including empty and singleton scopes;
   `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
   to parse its domain and row lengths;
   `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its
   compiler-input specialization bound the complete tagged intermediate by
   `32 * (s + 1)^2` bits without bounding numeric symbol values by `s`. The
-  structural record-staging loop,
+  outer structural driver and record-count staging,
   canonical relabelling, edge deduplication, encoded objective rows, and final
   composition remain open;
   `thm:3sat-clausewise` is

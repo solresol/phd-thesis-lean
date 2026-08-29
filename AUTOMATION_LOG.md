@@ -2248,3 +2248,71 @@
   record count, and prove exact agreement with
   `StructuralFieldStream.domainFieldsFrom`; then add the intact tagged-scope
   branch and compose the complete stream with `encode_reverse_eq_raw`.
+
+## 2026-08-30 05:30:36 AEST — emit one intact tagged scope block
+
+- **Starting state:** clean synchronized `main` at
+  `32f32b51c90d891ad9610eea55697e9de144df1e`. A fresh fetch confirmed local
+  `HEAD` and `origin/main` agreed, so no fast-forward was needed. The active
+  thesis checkout remained clean at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`; its proof of
+  `cor:all-different-csp` still requires the complete structural compiler,
+  canonical relabelling, deduplicated primal edges, compiler-selected prime,
+  polynomial runtime, and exact minimizer semantics. The corollary remains
+  **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean at
+  `3718fe5a90615ed99c04a406427efcc3c0238080`. Its newly checked tagged-pair
+  adapter and reduction-machine lifting theorems separate and preserve pair
+  components, but they do not yet provide a complete polynomial-time map or
+  repeated-record driver that implements this structural parser. The sibling
+  repository and this project's pinned dependency were not changed.
+- **Chosen increment:** completed the scope-side local branch of the pending
+  structural emitter. The checked input contains one scope's explicit entry
+  count followed by all source-order entry fields. The new fused machine
+  increments only that first canonical binary field, inserts tag `1`, copies
+  all remaining fields byte-for-byte, and restores semantic source order.
+- **Headline declarations:** `ScopeFieldBlock.inputFinEncoding` and
+  `outputFinEncoding` check the local count/entry and tagged-record boundaries;
+  `ScopeFieldBlock.fields_eq_record` identifies the semantic output with
+  `RuntimeStructuralRecord.scope`. `scopeFieldBlockComputer` is a concrete
+  three-stack finite machine. `scopeFieldBlock_outputsInTime` proves exact
+  `[|S|+1, 1, ...S]` output in at most `3s+8` steps for complete input length
+  `s`, and `scopeFieldBlockComputableInPolyTime` packages the linear machine
+  witness. The general proof includes empty scopes, singleton scopes, binary
+  carry growth, and arbitrary natural entry values.
+- **Failed proof shapes and corrections:** the first direct Lean check exposed
+  four local normalization gaps rather than a machine error. Constant tag
+  output needed an explicit checked `encodeNat 1 = [true]` lemma; two empty-
+  stack transitions needed extensional proofs for dependent stack-family
+  updates; the empty-scope endpoint needed explicit zero/one encoding
+  rewrites; and the final time inequality needed the input/output encoding
+  equalities rewritten into the already proved output-length bound. Those
+  changes closed all goals without weakening the representation or runtime
+  claim.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the local
+  encodings, semantic correspondence, finite program, exact phase executions,
+  linear runtime theorem, polynomial wrapper, and three axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the checked boundary while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine
+  PhdThesisLean.AllDifferentCSPEncoding PhdThesisLean.AllDifferentCSP` (3100
+  jobs); full `lake build` (3123 jobs); `git diff --check`; and a project
+  Lean-source scan for `sorry`, `admit`, project `axiom`, `unsafe`, and
+  `proof_wanted` (all empty). The new `#print axioms` audits report only the
+  standard `propext`, `Classical.choice`, and `Quot.sound` dependencies.
+- **Ending state before commit:** one coherent verified scope-record finite-
+  machine increment plus synchronized correspondence/status documentation;
+  no thesis, sibling, or unrelated repository work was changed.
+- **Best next step:** implement the outer source-order structural driver that
+  parses the domain-count boundary, applies the checked domain-occurrence
+  block once per value, advances the current variable index across empty and
+  singleton domains, switches to the checked scope block for every remaining
+  row, and stages the variable header and exact total record count. Prove its
+  output agrees with `StructuralFieldStream.encode`, then reverse it into
+  `RuntimeStructuralView.rawFinEncoding` and compose the existing framing
+  bridge.

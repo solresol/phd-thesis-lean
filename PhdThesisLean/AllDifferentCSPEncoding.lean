@@ -77,10 +77,12 @@ construction now has an exact field-level emission specification: every
 domain occurrence and intact scope is expanded to its complete tagged row,
 and reversal is proved to give the checked raw structural encoding. The finite
 machine layer now emits one exact `[3, 0, index, value]` domain-occurrence
-block from arbitrary source-order index/value fields in linear time. The outer
-record-staging loop that realizes the complete stream, encoded objective
-emission, and whole-compiler composition remain separate from these encoding
-and size results.
+block from arbitrary source-order index/value fields in linear time. It also
+emits one exact intact `[|S|+1, 1, ...S]` scope block in linear time from the
+count-checked source fields, including empty and singleton scopes. The outer
+driver that applies these branches and stages the complete stream, encoded
+objective emission, and whole-compiler composition remain separate from these
+encoding and size results.
 -/
 
 namespace BinaryNatLists

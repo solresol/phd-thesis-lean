@@ -90,9 +90,12 @@ the outer length and domain-count boundary before all domain and scope fields.
 A checked canonical binary predecessor now supplies the structural parser's
 remaining-domain and remaining-value countdowns in linear time. Emitting the
 exact tagged domain-occurrence block from current index/value fields is now a
-checked linear-time finite-machine step. The outer domain/scope record-staging
-loop, canonical row construction, encoded objective emission, and final
-whole-compiler composition remain.
+checked linear-time finite-machine step. A second checked linear machine turns
+one count-checked source scope into the exact intact `[|S|+1, 1, ...S]` block,
+including empty and singleton scopes. The outer driver that applies these
+local branches, maintains domain indices and record counts, and stages the
+complete structural stream remains, as do canonical row construction, encoded
+objective emission, and final whole-compiler composition.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

@@ -77,11 +77,16 @@ checks uncounted semantic-order field sequences, and
 `domainOccurrenceBlockComputableInPolyTime` is the first finite component of
 the structural emitter: it turns arbitrary current-index and value fields into
 the exact `[3, 0, index, value]` block in at most `2s + 2` steps.
+`scopeFieldBlockComputableInPolyTime` supplies the other local record branch:
+from a count-checked source scope it increments the row length, inserts tag
+`1`, and copies all entries unchanged in at most `3s + 8` steps, including
+empty and singleton scopes.
 
 These are checked components of the eventual compiler machine. They do not yet
-establish polynomial time for the outer domain/scope scan that emits the full
-tagged structural view, canonical relabelling and edge construction,
-objective-row emission, or final compiler assembly.
+establish polynomial time for the outer driver that parses every domain and
+scope, maintains its counters and current index, and stages the full tagged
+structural view; canonical relabelling and edge construction, objective-row
+emission, and final compiler assembly also remain.
 -/
 
 namespace FramedNat
@@ -3726,6 +3731,768 @@ noncomputable def binarySuccComputableInPolyTime :
     simpa [finEncodingNatBool, Equiv.refl, binarySuccBits_encodeNat,
       Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_natCast,
       Polynomial.eval_X] using binarySucc_outputsInTime (encodeNat n)
+
+/-! ## Tagged scope field blocks
+
+The source-order compact stream presents each scope as its entry count followed
+by the entries themselves.  The structural target retains those entries
+verbatim, increments the row length to account for the local tag, and inserts
+tag `1`.  The following fused finite machine performs that whole local pass.
+It propagates successor only across the first binary field, copies the
+remaining scope fields unchanged, and stages the result through one reversal
+so that the output remains in semantic source order.
+-/
+
+namespace ScopeFieldBlock
+
+/-- One source-order natural field, including its leading delimiter. -/
+def fieldSegment (field : ℕ) : List (Option Bool) :=
+  none :: (encodeNat field).map some
+
+/-- The fixed source-order field for scope tag `1`. -/
+def tagSegment : List (Option Bool) :=
+  [none, some true]
+
+private theorem encodeNat_zero : encodeNat 0 = [] := by
+  unfold encodeNat
+  change encodeNum (Num.ofNat' 0) = []
+  rw [Num.ofNat'_zero]
+  rfl
+
+private theorem encodeNat_one : encodeNat 1 = [true] := by
+  unfold encodeNat
+  change encodeNum (Num.ofNat' 1) = [true]
+  rw [Num.ofNat'_one]
+  rfl
+
+/-- A source scope arrives as its entry count followed by every entry. -/
+def inputEncode (entries : List ℕ) : List (Option Bool) :=
+  SourceOrderRawFields.encode (entries.length :: entries)
+
+/-- Decode one count-checked source scope. -/
+def inputDecode (input : List (Option Bool)) : Option (List ℕ) := do
+  match ← SourceOrderRawFields.decode input with
+  | count :: entries =>
+      if count = entries.length then some entries else none
+  | [] => none
+
+@[simp]
+theorem inputDecode_encode (entries : List ℕ) :
+    inputDecode (inputEncode entries) = some entries := by
+  simp [inputDecode, inputEncode]
+
+/-- Checked local input encoding for one complete scope. -/
+def inputFinEncoding : FinEncoding (List ℕ) where
+  Γ := Option Bool
+  encode := inputEncode
+  decode := inputDecode
+  decode_encode := inputDecode_encode
+  ΓFin := inferInstance
+
+/-- The exact structural scope block: row length, tag, and unchanged entries. -/
+def outputEncode (entries : List ℕ) : List (Option Bool) :=
+  SourceOrderRawFields.encode ((entries.length + 1) :: 1 :: entries)
+
+/-- Decode one checked tagged scope block. -/
+def outputDecode (input : List (Option Bool)) : Option (List ℕ) := do
+  match ← SourceOrderRawFields.decode input with
+  | rowLength :: tag :: entries =>
+      if tag = 1 ∧ rowLength = entries.length + 1 then some entries else none
+  | _ => none
+
+@[simp]
+theorem outputDecode_encode (entries : List ℕ) :
+    outputDecode (outputEncode entries) = some entries := by
+  simp [outputDecode, outputEncode]
+
+/-- Checked local output encoding for one complete tagged scope. -/
+def outputFinEncoding : FinEncoding (List ℕ) where
+  Γ := Option Bool
+  encode := outputEncode
+  decode := outputDecode
+  decode_encode := outputDecode_encode
+  ΓFin := inferInstance
+
+theorem inputEncode_eq (entries : List ℕ) :
+    inputEncode entries =
+      fieldSegment entries.length ++ SourceOrderRawFields.encode entries := by
+  simp [inputEncode, fieldSegment, SourceOrderRawFields.encode]
+
+theorem outputEncode_eq (entries : List ℕ) :
+    outputEncode entries =
+      fieldSegment (entries.length + 1) ++ tagSegment ++
+        SourceOrderRawFields.encode entries := by
+  simp [outputEncode, fieldSegment, tagSegment,
+    SourceOrderRawFields.encode, encodeNat_one]
+
+/-- The semantic output fields are exactly the length-prefixed tagged record
+used by `RuntimeStructuralView`. -/
+theorem fields_eq_record (entries : List ℕ) :
+    (entries.length + 1) :: 1 :: entries =
+      (RuntimeStructuralRecord.scope entries).toNatList.length ::
+        (RuntimeStructuralRecord.scope entries).toNatList := by
+  simp [RuntimeStructuralRecord.toNatList]
+
+theorem outputEncode_length_le (entries : List ℕ) :
+    (outputEncode entries).length ≤ (inputEncode entries).length + 3 := by
+  have hsucc := binarySuccBits_length_le (encodeNat entries.length)
+  rw [binarySuccBits_encodeNat] at hsucc
+  rw [inputEncode_eq, outputEncode_eq]
+  simp only [List.length_append, fieldSegment, tagSegment, List.length_cons,
+    List.length_nil, List.length_map]
+  omega
+
+end ScopeFieldBlock
+
+/-- Input, reversed staging, and source-order output stacks for one scope. -/
+inductive ScopeFieldBlockStack
+  | input
+  | scratch
+  | output
+  deriving DecidableEq, Fintype
+
+/-- First-field successor, suffix copying, and output-restoration phases. -/
+inductive ScopeFieldBlockLabel
+  | start
+  | carry
+  | copyLength
+  | copyRest
+  | restore
+  deriving DecidableEq, Fintype
+
+/-- Finite control remembers the most recently popped raw-field cell. -/
+abbrev ScopeFieldBlockState := Option (Option Bool)
+
+private def scopeFieldBlockPopped
+    (_state : ScopeFieldBlockState)
+    (symbol : Option (Option Bool)) : ScopeFieldBlockState :=
+  symbol
+
+private def scopeFieldBlockPresent : ScopeFieldBlockState → Bool
+  | some _ => true
+  | none => false
+
+private def scopeFieldBlockIsBit : ScopeFieldBlockState → Bool
+  | some (some _) => true
+  | _ => false
+
+private def scopeFieldBlockBitTrue : ScopeFieldBlockState → Bool
+  | some (some true) => true
+  | _ => false
+
+private def scopeFieldBlockHeld : ScopeFieldBlockState → Option Bool
+  | some symbol => symbol
+  | none => none
+
+private def ScopeFieldBlockAlphabet
+    (_index : ScopeFieldBlockStack) : Type :=
+  Option Bool
+
+/-- A fused finite program that increments the source row length, inserts the
+scope tag, and copies every scope-entry field unchanged. -/
+def scopeFieldBlockProgram :
+    ScopeFieldBlockLabel →
+      TM2.Stmt ScopeFieldBlockAlphabet ScopeFieldBlockLabel
+        ScopeFieldBlockState
+  | .start =>
+      .pop .input scopeFieldBlockPopped <|
+        .push .scratch (fun _ => (none : Option Bool)) <|
+          .goto (fun _ => .carry)
+  | .carry =>
+      .pop .input scopeFieldBlockPopped <|
+        .branch scopeFieldBlockPresent
+          (.branch scopeFieldBlockIsBit
+            (.branch scopeFieldBlockBitTrue
+              (.push .scratch (fun _ => some false) <|
+                .goto (fun _ => .carry))
+              (.push .scratch (fun _ => some true) <|
+                .goto (fun _ => .copyLength)))
+            (.push .scratch (fun _ => some true) <|
+              .push .scratch (fun _ => (none : Option Bool)) <|
+                .push .scratch (fun _ => some true) <|
+                  .push .scratch (fun _ => (none : Option Bool)) <|
+                    .goto (fun _ => .copyRest)))
+          (.push .scratch (fun _ => some true) <|
+            .push .scratch (fun _ => (none : Option Bool)) <|
+              .push .scratch (fun _ => some true) <|
+                .goto (fun _ => .restore))
+  | .copyLength =>
+      .pop .input scopeFieldBlockPopped <|
+        .branch scopeFieldBlockPresent
+          (.branch scopeFieldBlockIsBit
+            (.push .scratch scopeFieldBlockHeld <|
+              .goto (fun _ => .copyLength))
+            (.push .scratch (fun _ => (none : Option Bool)) <|
+              .push .scratch (fun _ => some true) <|
+                .push .scratch (fun _ => (none : Option Bool)) <|
+                  .goto (fun _ => .copyRest)))
+          (.push .scratch (fun _ => (none : Option Bool)) <|
+            .push .scratch (fun _ => some true) <|
+              .goto (fun _ => .restore))
+  | .copyRest =>
+      .pop .input scopeFieldBlockPopped <|
+        .branch scopeFieldBlockPresent
+          (.push .scratch scopeFieldBlockHeld <|
+            .goto (fun _ => .copyRest))
+          (.goto (fun _ => .restore))
+  | .restore =>
+      .pop .scratch scopeFieldBlockPopped <|
+        .branch scopeFieldBlockPresent
+          (.push .output scopeFieldBlockHeld <|
+            .goto (fun _ => .restore))
+          .halt
+
+/-- Concrete finite machine for one complete tagged scope block. -/
+def scopeFieldBlockComputer : FinTM2 where
+  K := ScopeFieldBlockStack
+  k₀ := .input
+  k₁ := .output
+  Γ := ScopeFieldBlockAlphabet
+  Λ := ScopeFieldBlockLabel
+  main := .start
+  σ := ScopeFieldBlockState
+  initialState := none
+  Γk₀Fin := show Fintype (Option Bool) from inferInstance
+  m := scopeFieldBlockProgram
+
+private def scopeFieldBlockStacks
+    (input scratch output : List (Option Bool)) :
+    (index : ScopeFieldBlockStack) →
+      List (ScopeFieldBlockAlphabet index)
+  | .input => input
+  | .scratch => scratch
+  | .output => output
+
+private def scopeFieldBlockCfg
+    (label : Option ScopeFieldBlockLabel)
+    (state : ScopeFieldBlockState)
+    (input scratch output : List (Option Bool)) :
+    scopeFieldBlockComputer.Cfg where
+  l := label
+  var := state
+  stk := scopeFieldBlockStacks input scratch output
+
+private theorem scopeFieldBlock_step_start
+    (input scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .start) state
+          (none :: input) scratch output) =
+      some (scopeFieldBlockCfg (some .carry) (some none)
+        input (none :: scratch) output) := by
+  simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+    scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+    scopeFieldBlockPopped, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem scopeFieldBlock_step_carry_true
+    (input scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .carry) state
+          (some true :: input) scratch output) =
+      some (scopeFieldBlockCfg (some .carry) (some (some true))
+        input (some false :: scratch) output) := by
+  simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+    scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+    scopeFieldBlockPopped, scopeFieldBlockPresent, scopeFieldBlockIsBit,
+    scopeFieldBlockBitTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem scopeFieldBlock_step_carry_false
+    (input scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .carry) state
+          (some false :: input) scratch output) =
+      some (scopeFieldBlockCfg (some .copyLength) (some (some false))
+        input (some true :: scratch) output) := by
+  simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+    scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+    scopeFieldBlockPopped, scopeFieldBlockPresent, scopeFieldBlockIsBit,
+    scopeFieldBlockBitTrue, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem scopeFieldBlock_step_carry_delimiter
+    (input scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .carry) state
+          (none :: input) scratch output) =
+      some (scopeFieldBlockCfg (some .copyRest) (some none) input
+        (none :: some true :: none :: some true :: scratch) output) := by
+  simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+    scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+    scopeFieldBlockPopped, scopeFieldBlockPresent, scopeFieldBlockIsBit,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem scopeFieldBlock_step_carry_nil
+    (scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .carry) state [] scratch output) =
+      some (scopeFieldBlockCfg (some .restore) none []
+        (some true :: none :: some true :: scratch) output) := by
+  simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+    scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+    scopeFieldBlockPopped, scopeFieldBlockPresent, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem scopeFieldBlock_step_copyLength_bit
+    (bit : Bool) (input scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .copyLength) state
+          (some bit :: input) scratch output) =
+      some (scopeFieldBlockCfg (some .copyLength) (some (some bit))
+        input (some bit :: scratch) output) := by
+  cases bit <;>
+    simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+      scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+      scopeFieldBlockPopped, scopeFieldBlockPresent, scopeFieldBlockIsBit,
+      scopeFieldBlockHeld, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem scopeFieldBlock_step_copyLength_delimiter
+    (input scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .copyLength) state
+          (none :: input) scratch output) =
+      some (scopeFieldBlockCfg (some .copyRest) (some none) input
+        (none :: some true :: none :: scratch) output) := by
+  simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+    scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+    scopeFieldBlockPopped, scopeFieldBlockPresent, scopeFieldBlockIsBit,
+    Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem scopeFieldBlock_step_copyLength_nil
+    (scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .copyLength) state [] scratch output) =
+      some (scopeFieldBlockCfg (some .restore) none []
+        (some true :: none :: scratch) output) := by
+  simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+    scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+    scopeFieldBlockPopped, scopeFieldBlockPresent, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem scopeFieldBlock_step_copyRest_cons
+    (symbol : Option Bool) (input scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .copyRest) state
+          (symbol :: input) scratch output) =
+      some (scopeFieldBlockCfg (some .copyRest) (some symbol)
+        input (symbol :: scratch) output) := by
+  cases symbol <;>
+    simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+      scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+      scopeFieldBlockPopped, scopeFieldBlockPresent, scopeFieldBlockHeld,
+      Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem scopeFieldBlock_step_copyRest_nil
+    (scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .copyRest) state [] scratch output) =
+      some (scopeFieldBlockCfg (some .restore) none [] scratch output) := by
+  simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+    scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+    scopeFieldBlockPopped, scopeFieldBlockPresent, Function.update]
+
+private theorem scopeFieldBlock_step_restore_cons
+    (symbol : Option Bool) (scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .restore) state []
+          (symbol :: scratch) output) =
+      some (scopeFieldBlockCfg (some .restore) (some symbol)
+        [] scratch (symbol :: output)) := by
+  cases symbol <;>
+    simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+      scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+      scopeFieldBlockPopped, scopeFieldBlockPresent, scopeFieldBlockHeld,
+      Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem scopeFieldBlock_step_restore_nil
+    (output : List (Option Bool)) (state : ScopeFieldBlockState) :
+    scopeFieldBlockComputer.step
+        (scopeFieldBlockCfg (some .restore) state [] [] output) =
+      some (scopeFieldBlockCfg none none [] [] output) := by
+  simp [scopeFieldBlockComputer, FinTM2.step, scopeFieldBlockCfg,
+    scopeFieldBlockProgram, scopeFieldBlockStacks, ScopeFieldBlockAlphabet,
+    scopeFieldBlockPopped, scopeFieldBlockPresent, Function.update]
+
+private def scopeFieldBlockEvalsToInTimeOne
+    {start finish : scopeFieldBlockComputer.Cfg}
+    (hstep : scopeFieldBlockComputer.step start = some finish) :
+    EvalsToInTime scopeFieldBlockComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def scopeFieldBlock_copyRest_evals
+    (input scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    EvalsToInTime scopeFieldBlockComputer.step
+      (scopeFieldBlockCfg (some .copyRest) state input scratch output)
+      (some (scopeFieldBlockCfg (some .restore) none []
+        (input.reverse ++ scratch) output))
+      (input.length + 1) := by
+  induction input generalizing scratch state with
+  | nil =>
+      simpa using scopeFieldBlockEvalsToInTimeOne
+        (scopeFieldBlock_step_copyRest_nil scratch output state)
+  | cons symbol input ih =>
+      let middle := scopeFieldBlockCfg (some .copyRest) (some symbol)
+        input (symbol :: scratch) output
+      have hone : EvalsToInTime scopeFieldBlockComputer.step
+          (scopeFieldBlockCfg (some .copyRest) state
+            (symbol :: input) scratch output)
+          (some middle) 1 :=
+        scopeFieldBlockEvalsToInTimeOne (by
+          simpa [middle] using scopeFieldBlock_step_copyRest_cons
+            symbol input scratch output state)
+      have hrest := ih (symbol :: scratch) (some symbol)
+      have hall := EvalsToInTime.trans scopeFieldBlockComputer.step
+        1 (input.length + 1)
+        (scopeFieldBlockCfg (some .copyRest) state
+          (symbol :: input) scratch output)
+        middle
+        (some (scopeFieldBlockCfg (some .restore) none []
+          ((symbol :: input).reverse ++ scratch) output))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def scopeFieldBlock_restore_evals
+    (scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    EvalsToInTime scopeFieldBlockComputer.step
+      (scopeFieldBlockCfg (some .restore) state [] scratch output)
+      (some (scopeFieldBlockCfg none none [] []
+        (scratch.reverse ++ output)))
+      (scratch.length + 1) := by
+  induction scratch generalizing output state with
+  | nil =>
+      simpa using scopeFieldBlockEvalsToInTimeOne
+        (scopeFieldBlock_step_restore_nil output state)
+  | cons symbol scratch ih =>
+      let middle := scopeFieldBlockCfg (some .restore) (some symbol)
+        [] scratch (symbol :: output)
+      have hone : EvalsToInTime scopeFieldBlockComputer.step
+          (scopeFieldBlockCfg (some .restore) state []
+            (symbol :: scratch) output)
+          (some middle) 1 :=
+        scopeFieldBlockEvalsToInTimeOne (by
+          simpa [middle] using scopeFieldBlock_step_restore_cons
+            symbol scratch output state)
+      have hrest := ih (symbol :: output) (some symbol)
+      have hall := EvalsToInTime.trans scopeFieldBlockComputer.step
+        1 (scratch.length + 1)
+        (scopeFieldBlockCfg (some .restore) state []
+          (symbol :: scratch) output)
+        middle
+        (some (scopeFieldBlockCfg none none [] []
+          ((symbol :: scratch).reverse ++ output)))
+        hone
+        (by simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def scopeFieldBlock_copyLength_evals
+    (bits : List Bool) (tail scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    EvalsToInTime scopeFieldBlockComputer.step
+      (scopeFieldBlockCfg (some .copyLength) state
+        (bits.map some ++ none :: tail) scratch output)
+      (some (scopeFieldBlockCfg (some .restore) none []
+        ((bits.map some ++ ScopeFieldBlock.tagSegment ++ none :: tail).reverse ++
+          scratch) output))
+      (bits.length + tail.length + 2) := by
+  induction bits generalizing scratch state with
+  | nil =>
+      have hone := scopeFieldBlockEvalsToInTimeOne
+        (scopeFieldBlock_step_copyLength_delimiter tail scratch output state)
+      have hrest := scopeFieldBlock_copyRest_evals tail
+        (none :: some true :: none :: scratch) output (some none)
+      have hall := EvalsToInTime.trans scopeFieldBlockComputer.step
+        1 (tail.length + 1)
+        (scopeFieldBlockCfg (some .copyLength) state
+          (none :: tail) scratch output)
+        (scopeFieldBlockCfg (some .copyRest) (some none) tail
+          (none :: some true :: none :: scratch) output)
+        (some (scopeFieldBlockCfg (some .restore) none []
+          (tail.reverse ++ none :: some true :: none :: scratch) output))
+        (by simpa using hone)
+        (by simpa using hrest)
+      simpa [ScopeFieldBlock.tagSegment, List.append_assoc,
+        Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+  | cons bit bits ih =>
+      let middle := scopeFieldBlockCfg (some .copyLength) (some (some bit))
+        (bits.map some ++ none :: tail) (some bit :: scratch) output
+      have hone : EvalsToInTime scopeFieldBlockComputer.step
+          (scopeFieldBlockCfg (some .copyLength) state
+            ((bit :: bits).map some ++ none :: tail) scratch output)
+          (some middle) 1 :=
+        scopeFieldBlockEvalsToInTimeOne (by
+          simpa [middle] using scopeFieldBlock_step_copyLength_bit bit
+            (bits.map some ++ none :: tail) scratch output state)
+      have hrest := ih (some bit :: scratch) (some (some bit))
+      have hall := EvalsToInTime.trans scopeFieldBlockComputer.step
+        1 (bits.length + tail.length + 2)
+        (scopeFieldBlockCfg (some .copyLength) state
+          ((bit :: bits).map some ++ none :: tail) scratch output)
+        middle
+        (some (scopeFieldBlockCfg (some .restore) none []
+          (((bit :: bits).map some ++ ScopeFieldBlock.tagSegment ++
+            none :: tail).reverse ++ scratch) output))
+        hone
+        (by
+          simpa [middle, List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def scopeFieldBlock_carry_evals
+    (bits : List Bool) (tail scratch output : List (Option Bool))
+    (state : ScopeFieldBlockState) :
+    EvalsToInTime scopeFieldBlockComputer.step
+      (scopeFieldBlockCfg (some .carry) state
+        (bits.map some ++ none :: tail) scratch output)
+      (some (scopeFieldBlockCfg (some .restore) none []
+        (((binarySuccBits bits).map some ++ ScopeFieldBlock.tagSegment ++
+          none :: tail).reverse ++ scratch) output))
+      (bits.length + tail.length + 2) := by
+  induction bits generalizing scratch state with
+  | nil =>
+      have hone := scopeFieldBlockEvalsToInTimeOne
+        (scopeFieldBlock_step_carry_delimiter tail scratch output state)
+      have hrest := scopeFieldBlock_copyRest_evals tail
+        (none :: some true :: none :: some true :: scratch) output (some none)
+      have hall := EvalsToInTime.trans scopeFieldBlockComputer.step
+        1 (tail.length + 1)
+        (scopeFieldBlockCfg (some .carry) state (none :: tail) scratch output)
+        (scopeFieldBlockCfg (some .copyRest) (some none) tail
+          (none :: some true :: none :: some true :: scratch) output)
+        (some (scopeFieldBlockCfg (some .restore) none []
+          (tail.reverse ++ none :: some true :: none :: some true :: scratch)
+          output))
+        (by simpa using hone)
+        (by simpa using hrest)
+      simpa [binarySuccBits, ScopeFieldBlock.tagSegment, List.append_assoc,
+        Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+  | cons bit bits ih =>
+      cases bit with
+      | false =>
+          let middle := scopeFieldBlockCfg (some .copyLength)
+            (some (some false)) (bits.map some ++ none :: tail)
+            (some true :: scratch) output
+          have hone : EvalsToInTime scopeFieldBlockComputer.step
+              (scopeFieldBlockCfg (some .carry) state
+                ((false :: bits).map some ++ none :: tail) scratch output)
+              (some middle) 1 :=
+            scopeFieldBlockEvalsToInTimeOne (by
+              simpa [middle] using scopeFieldBlock_step_carry_false
+                (bits.map some ++ none :: tail) scratch output state)
+          have hrest := scopeFieldBlock_copyLength_evals bits tail
+            (some true :: scratch) output (some (some false))
+          have hall := EvalsToInTime.trans scopeFieldBlockComputer.step
+            1 (bits.length + tail.length + 2)
+            (scopeFieldBlockCfg (some .carry) state
+              ((false :: bits).map some ++ none :: tail) scratch output)
+            middle
+            (some (scopeFieldBlockCfg (some .restore) none []
+              (((binarySuccBits (false :: bits)).map some ++
+                ScopeFieldBlock.tagSegment ++ none :: tail).reverse ++ scratch)
+              output))
+            hone
+            (by
+              simpa [middle, binarySuccBits, List.reverse_cons,
+                List.append_assoc] using hrest)
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+      | true =>
+          let middle := scopeFieldBlockCfg (some .carry) (some (some true))
+            (bits.map some ++ none :: tail) (some false :: scratch) output
+          have hone : EvalsToInTime scopeFieldBlockComputer.step
+              (scopeFieldBlockCfg (some .carry) state
+                ((true :: bits).map some ++ none :: tail) scratch output)
+              (some middle) 1 :=
+            scopeFieldBlockEvalsToInTimeOne (by
+              simpa [middle] using scopeFieldBlock_step_carry_true
+                (bits.map some ++ none :: tail) scratch output state)
+          have hrest := ih (some false :: scratch) (some (some true))
+          have hall := EvalsToInTime.trans scopeFieldBlockComputer.step
+            1 (bits.length + tail.length + 2)
+            (scopeFieldBlockCfg (some .carry) state
+              ((true :: bits).map some ++ none :: tail) scratch output)
+            middle
+            (some (scopeFieldBlockCfg (some .restore) none []
+              (((binarySuccBits (true :: bits)).map some ++
+                ScopeFieldBlock.tagSegment ++ none :: tail).reverse ++ scratch)
+              output))
+            hone
+            (by
+              simpa [middle, binarySuccBits, List.reverse_cons,
+                List.append_assoc] using hrest)
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem scopeFieldBlock_initList_eq_cfg
+    (input : List (Option Bool)) :
+    initList scopeFieldBlockComputer input =
+      scopeFieldBlockCfg (some .start) none input [] [] := by
+  unfold initList scopeFieldBlockCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem scopeFieldBlock_haltList_eq_cfg
+    (output : List (Option Bool)) :
+    haltList scopeFieldBlockComputer output =
+      scopeFieldBlockCfg none none [] [] output := by
+  unfold haltList scopeFieldBlockCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+/-- The fused local scope transducer emits the exact tagged scope block in
+linear time in the complete source-scope field encoding. -/
+def scopeFieldBlock_outputsInTime (entries : List ℕ) :
+    TM2OutputsInTime scopeFieldBlockComputer
+      (ScopeFieldBlock.inputEncode entries)
+      (some (ScopeFieldBlock.outputEncode entries))
+      (3 * (ScopeFieldBlock.inputEncode entries).length + 8) := by
+  cases entries with
+  | nil =>
+      have hstart := scopeFieldBlockEvalsToInTimeOne
+        (scopeFieldBlock_step_start [] [] [] none)
+      have hcarry := scopeFieldBlockEvalsToInTimeOne
+        (scopeFieldBlock_step_carry_nil [none] [] (some none))
+      have hfirst := EvalsToInTime.trans scopeFieldBlockComputer.step
+        1 1
+        (scopeFieldBlockCfg (some .start) none [none] [] [])
+        (scopeFieldBlockCfg (some .carry) (some none) [] [none] [])
+        (some (scopeFieldBlockCfg (some .restore) none []
+          [some true, none, some true, none] []))
+        (by simpa using hstart)
+        (by simpa using hcarry)
+      have hrestore := scopeFieldBlock_restore_evals
+        [some true, none, some true, none] [] none
+      have hall := EvalsToInTime.trans scopeFieldBlockComputer.step
+        2 5
+        (scopeFieldBlockCfg (some .start) none [none] [] [])
+        (scopeFieldBlockCfg (some .restore) none []
+          [some true, none, some true, none] [])
+        (some (scopeFieldBlockCfg none none [] []
+          [none, some true, none, some true]))
+        (by simpa using hfirst)
+        (by simpa using hrestore)
+      have hmono : EvalsToInTime scopeFieldBlockComputer.step
+          (scopeFieldBlockCfg (some .start) none [none] [] [])
+          (some (scopeFieldBlockCfg none none [] []
+            [none, some true, none, some true]))
+          (3 * (ScopeFieldBlock.inputEncode []).length + 8) :=
+        evalsToInTimeMono hall (by
+          simp [ScopeFieldBlock.inputEncode,
+            SourceOrderRawFields.encode])
+      rw [TM2OutputsInTime, scopeFieldBlock_initList_eq_cfg]
+      simp only [Option.map_some]
+      rw [scopeFieldBlock_haltList_eq_cfg]
+      simpa [ScopeFieldBlock.inputEncode, ScopeFieldBlock.outputEncode,
+        SourceOrderRawFields.encode, ScopeFieldBlock.encodeNat_zero,
+        ScopeFieldBlock.encodeNat_one] using hmono
+  | cons entry entries =>
+      let bits := encodeNat (entry :: entries).length
+      let tail := (encodeNat entry).map some ++
+        SourceOrderRawFields.encode entries
+      have hinput : ScopeFieldBlock.inputEncode (entry :: entries) =
+          none :: bits.map some ++ none :: tail := by
+        simp [ScopeFieldBlock.inputEncode_eq, ScopeFieldBlock.fieldSegment,
+          SourceOrderRawFields.encode, bits, tail]
+      have houtput : ScopeFieldBlock.outputEncode (entry :: entries) =
+          none :: (binarySuccBits bits).map some ++
+            ScopeFieldBlock.tagSegment ++ none :: tail := by
+        rw [ScopeFieldBlock.outputEncode_eq]
+        simp [ScopeFieldBlock.fieldSegment, SourceOrderRawFields.encode,
+          bits, tail, binarySuccBits_encodeNat]
+      have hstart := scopeFieldBlockEvalsToInTimeOne
+        (scopeFieldBlock_step_start
+          (bits.map some ++ none :: tail) [] [] none)
+      have hcarry := scopeFieldBlock_carry_evals bits tail [none] [] (some none)
+      have hfirst := EvalsToInTime.trans scopeFieldBlockComputer.step
+        1 (bits.length + tail.length + 2)
+        (scopeFieldBlockCfg (some .start) none
+          (none :: bits.map some ++ none :: tail) [] [])
+        (scopeFieldBlockCfg (some .carry) (some none)
+          (bits.map some ++ none :: tail) [none] [])
+        (some (scopeFieldBlockCfg (some .restore) none []
+          ((none :: (binarySuccBits bits).map some ++
+            ScopeFieldBlock.tagSegment ++ none :: tail).reverse) []))
+        (by simpa using hstart)
+        (by
+          simpa [List.reverse_cons, List.append_assoc] using hcarry)
+      have hrestore := scopeFieldBlock_restore_evals
+        (none :: (binarySuccBits bits).map some ++
+          ScopeFieldBlock.tagSegment ++ none :: tail).reverse [] none
+      have hall := EvalsToInTime.trans scopeFieldBlockComputer.step
+        (1 + (bits.length + tail.length + 2))
+        ((none :: (binarySuccBits bits).map some ++
+          ScopeFieldBlock.tagSegment ++ none :: tail).reverse.length + 1)
+        (scopeFieldBlockCfg (some .start) none
+          (none :: bits.map some ++ none :: tail) [] [])
+        (scopeFieldBlockCfg (some .restore) none []
+          (none :: (binarySuccBits bits).map some ++
+            ScopeFieldBlock.tagSegment ++ none :: tail).reverse [])
+        (some (scopeFieldBlockCfg none none [] []
+          (none :: (binarySuccBits bits).map some ++
+            ScopeFieldBlock.tagSegment ++ none :: tail)))
+        (by simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hfirst)
+        (by simpa using hrestore)
+      have hsize := ScopeFieldBlock.outputEncode_length_le (entry :: entries)
+      have hsize' := hsize
+      rw [hinput, houtput] at hsize'
+      have hmono : EvalsToInTime scopeFieldBlockComputer.step
+          (scopeFieldBlockCfg (some .start) none
+            (ScopeFieldBlock.inputEncode (entry :: entries)) [] [])
+          (some (scopeFieldBlockCfg none none [] []
+            (ScopeFieldBlock.outputEncode (entry :: entries))))
+          (3 * (ScopeFieldBlock.inputEncode (entry :: entries)).length + 8) := by
+        rw [hinput, houtput]
+        apply evalsToInTimeMono hall
+        simp only [List.length_reverse, List.length_cons, List.length_append,
+          List.length_map, ScopeFieldBlock.tagSegment] at hsize' ⊢
+        omega
+      rw [TM2OutputsInTime, scopeFieldBlock_initList_eq_cfg]
+      simp only [Option.map_some]
+      rw [scopeFieldBlock_haltList_eq_cfg]
+      exact hmono
+
+/-- A genuine linear-time finite-machine witness for constructing one intact
+tagged scope record, including empty and singleton scopes. -/
+noncomputable def scopeFieldBlockComputableInPolyTime :
+    @TM2ComputableInPolyTime (List ℕ) (List ℕ)
+      ScopeFieldBlock.inputFinEncoding ScopeFieldBlock.outputFinEncoding id where
+  tm := scopeFieldBlockComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := 3 * Polynomial.X + 8
+  outputsFun entries := by
+    simpa [ScopeFieldBlock.inputFinEncoding, ScopeFieldBlock.outputFinEncoding,
+      Equiv.refl, Polynomial.eval_add, Polynomial.eval_mul,
+      Polynomial.eval_natCast, Polynomial.eval_X] using
+        scopeFieldBlock_outputsInTime entries
 
 /-! ## Binary predecessor
 
@@ -13754,6 +14521,9 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms binarySuccBits_encodeNat
 #print axioms binarySucc_outputsInTime
 #print axioms binarySuccComputableInPolyTime
+#print axioms ScopeFieldBlock.fields_eq_record
+#print axioms scopeFieldBlock_outputsInTime
+#print axioms scopeFieldBlockComputableInPolyTime
 #print axioms binaryPredBits_encodeNat
 #print axioms binaryPred_outputsInTime
 #print axioms binaryPredComputableInPolyTime
