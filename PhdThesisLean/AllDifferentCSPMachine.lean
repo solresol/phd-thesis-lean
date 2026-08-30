@@ -81,12 +81,17 @@ the exact `[3, 0, index, value]` block in at most `2s + 2` steps.
 from a count-checked source scope it increments the row length, inserts tag
 `1`, and copies all entries unchanged in at most `3s + 8` steps, including
 empty and singleton scopes.
+`domainFieldRowComputableInPolyTime` closes the inner repeated-record loop:
+from a count-checked row `[index, |D|, ...D]`, it emits every exact
+`[3, 0, index, value]` block in at most `20(s+1)^2` steps, including empty
+and singleton domains, and halts with every non-output stack empty.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for the outer driver that parses every domain and
-scope, maintains its counters and current index, and stages the full tagged
-structural view; canonical relabelling and edge construction, objective-row
-emission, and final compiler assembly also remain.
+scope, advances the index between domain rows, switches to the scope branch,
+maintains record counts, and stages the full tagged structural view; canonical
+relabelling and edge construction, objective-row emission, and final compiler
+assembly also remain.
 -/
 
 namespace FramedNat
@@ -4493,6 +4498,1483 @@ noncomputable def scopeFieldBlockComputableInPolyTime :
       Equiv.refl, Polynomial.eval_add, Polynomial.eval_mul,
       Polynomial.eval_natCast, Polynomial.eval_X] using
         scopeFieldBlock_outputsInTime entries
+
+/-! ## Complete domain-row occurrence expansion
+
+The pending outer structural driver receives one explicitly counted domain at
+a time. The machine below closes its inner repeated-record loop: from a
+current variable index and the complete source-order domain row, it emits one
+exact tagged occurrence block for every listed value. The checked input
+decoder verifies the supplied row count, so the finite program traverses the
+actual row fields rather than treating a binary number as a unit-cost loop
+bound.
+-/
+
+namespace DomainFieldRow
+
+/-- Every explicitly listed value paired with the current variable index. -/
+def occurrences (row : ℕ × List ℕ) : List (ℕ × ℕ) :=
+  row.2.map fun value => (row.1, value)
+
+/-- Source-order row input: current index, checked value count, then values. -/
+def inputEncode (row : ℕ × List ℕ) : List (Option Bool) :=
+  SourceOrderRawFields.encode (row.1 :: row.2.length :: row.2)
+
+/-- Decode a complete row and check its explicit value count. -/
+def inputDecode (input : List (Option Bool)) : Option (ℕ × List ℕ) := do
+  match ← SourceOrderRawFields.decode input with
+  | index :: count :: values =>
+      if count = values.length then some (index, values) else none
+  | _ => none
+
+@[simp]
+theorem inputDecode_encode (row : ℕ × List ℕ) :
+    inputDecode (inputEncode row) = some row := by
+  rcases row with ⟨index, values⟩
+  simp [inputDecode, inputEncode]
+
+/-- Checked source-order encoding for one indexed domain row. -/
+def inputFinEncoding : FinEncoding (ℕ × List ℕ) where
+  Γ := Option Bool
+  encode := inputEncode
+  decode := inputDecode
+  decode_encode := inputDecode_encode
+  ΓFin := inferInstance
+
+/-- Parse a sequence of complete `[3, 0, index, value]` field groups. -/
+def parseOccurrenceFields : List ℕ → Option (List (ℕ × ℕ))
+  | [] => some []
+  | 3 :: 0 :: index :: value :: rest => do
+      pure ((index, value) :: (← parseOccurrenceFields rest))
+  | _ => none
+
+/-- Exact concatenation of the local domain-occurrence block encodings. -/
+def outputEncode (occurrences : List (ℕ × ℕ)) : List (Option Bool) :=
+  occurrences.flatMap DomainOccurrenceFieldBlock.outputEncode
+
+/-- Decode only complete tagged occurrence blocks. -/
+def outputDecode (output : List (Option Bool)) :
+    Option (List (ℕ × ℕ)) := do
+  parseOccurrenceFields (← SourceOrderRawFields.decode output)
+
+@[simp]
+theorem parseOccurrenceFields_flatten
+    (occurrences : List (ℕ × ℕ)) :
+    parseOccurrenceFields
+        (occurrences.flatMap fun occurrence =>
+          [3, 0, occurrence.1, occurrence.2]) = some occurrences := by
+  induction occurrences with
+  | nil => rfl
+  | cons occurrence occurrences ih =>
+      rcases occurrence with ⟨index, value⟩
+      simp [parseOccurrenceFields, ih]
+
+@[simp]
+theorem outputDecode_encode (occurrences : List (ℕ × ℕ)) :
+    outputDecode (outputEncode occurrences) = some occurrences := by
+  rw [outputDecode, outputEncode]
+  have hfields :
+      occurrences.flatMap DomainOccurrenceFieldBlock.outputEncode =
+        SourceOrderRawFields.encode
+          (occurrences.flatMap fun occurrence =>
+            [3, 0, occurrence.1, occurrence.2]) := by
+    induction occurrences with
+    | nil => rfl
+    | cons occurrence occurrences ih =>
+        simp only [List.flatMap_cons]
+        rw [ih]
+        simp [DomainOccurrenceFieldBlock.outputEncode,
+          SourceOrderRawFields.encode]
+  rw [hfields]
+  simp
+
+/-- Checked output encoding for complete tagged domain occurrences. -/
+def outputFinEncoding : FinEncoding (List (ℕ × ℕ)) where
+  Γ := Option Bool
+  encode := outputEncode
+  decode := outputDecode
+  decode_encode := outputDecode_encode
+  ΓFin := inferInstance
+
+theorem outputEncode_occurrences (index : ℕ) (values : List ℕ) :
+    outputEncode (occurrences (index, values)) =
+      values.flatMap fun value =>
+        DomainOccurrenceFieldBlock.outputEncode (index, value) := by
+  simp [outputEncode, occurrences, List.flatMap_map]
+
+theorem inputEncode_length (index : ℕ) (values : List ℕ) :
+    (inputEncode (index, values)).length =
+      (encodeNat index).length + (encodeNat values.length).length +
+        values.length + (values.map fun value => (encodeNat value).length).sum +
+          2 := by
+  simp [inputEncode, SourceOrderRawFields.encode]
+  omega
+
+theorem outputEncode_occurrences_length (index : ℕ) (values : List ℕ) :
+    (outputEncode (occurrences (index, values))).length =
+      values.length * ((encodeNat index).length + 6) +
+        (values.map fun value => (encodeNat value).length).sum := by
+  rw [outputEncode_occurrences]
+  induction values with
+  | nil => simp
+  | cons value values ih =>
+      simp [DomainOccurrenceFieldBlock.outputEncode_eq_prefix,
+        DomainOccurrenceFieldBlock.inputEncode,
+        DomainOccurrenceFieldBlock.headerPrefix,
+        SourceOrderRawFields.encode]
+      ring
+
+end DomainFieldRow
+
+/-- Stacks for the source, persistent index, index-copy work, reversed output,
+and final output. -/
+inductive DomainFieldRowStack
+  | input
+  | index
+  | work
+  | scratch
+  | output
+  deriving DecidableEq, Fintype
+
+/-- Control phases for expanding one complete domain row. -/
+inductive DomainFieldRowLabel
+  | start
+  | readIndex
+  | restoreInitialIndex
+  | skipCount
+  | beginValue
+  | copyIndex
+  | copyValue
+  | restoreIndexNext
+  | restoreIndexFinish
+  | finish
+  | clearIndex
+  deriving DecidableEq, Fintype
+
+/-- The outer option distinguishes stack exhaustion from an inner field
+delimiter. -/
+abbrev DomainFieldRowState := Option (Option Bool)
+
+private def domainFieldRowPopped
+    (_state : DomainFieldRowState)
+    (symbol : Option (Option Bool)) : DomainFieldRowState :=
+  symbol
+
+private def domainFieldRowPresent : DomainFieldRowState → Bool
+  | some _ => true
+  | none => false
+
+private def domainFieldRowIsBit : DomainFieldRowState → Bool
+  | some (some _) => true
+  | _ => false
+
+private def domainFieldRowHeld : DomainFieldRowState → Option Bool
+  | some symbol => symbol
+  | none => none
+
+private def DomainFieldRowAlphabet (_index : DomainFieldRowStack) : Type :=
+  Option Bool
+
+/-- Finite repeated-record program for one indexed domain row. -/
+def domainFieldRowProgram :
+    DomainFieldRowLabel →
+      TM2.Stmt DomainFieldRowAlphabet DomainFieldRowLabel DomainFieldRowState
+  | .start =>
+      .pop .input domainFieldRowPopped <|
+        .goto (fun _ => .readIndex)
+  | .readIndex =>
+      .pop .input domainFieldRowPopped <|
+        .branch domainFieldRowPresent
+          (.branch domainFieldRowIsBit
+            (.push .work domainFieldRowHeld <|
+              .goto (fun _ => .readIndex))
+            (.goto (fun _ => .restoreInitialIndex)))
+          (.goto (fun _ => .restoreInitialIndex))
+  | .restoreInitialIndex =>
+      .pop .work domainFieldRowPopped <|
+        .branch domainFieldRowPresent
+          (.push .index domainFieldRowHeld <|
+            .goto (fun _ => .restoreInitialIndex))
+          (.goto (fun _ => .skipCount))
+  | .skipCount =>
+      .pop .input domainFieldRowPopped <|
+        .branch domainFieldRowPresent
+          (.branch domainFieldRowIsBit
+            (.goto (fun _ => .skipCount))
+            (.goto (fun _ => .beginValue)))
+          (.goto (fun _ => .finish))
+  | .beginValue =>
+      .push .scratch (fun _ => (none : Option Bool)) <|
+        .push .scratch (fun _ => some true) <|
+          .push .scratch (fun _ => some true) <|
+            .push .scratch (fun _ => (none : Option Bool)) <|
+              .push .scratch (fun _ => (none : Option Bool)) <|
+                .goto (fun _ => .copyIndex)
+  | .copyIndex =>
+      .pop .index domainFieldRowPopped <|
+        .branch domainFieldRowPresent
+          (.push .work domainFieldRowHeld <|
+            .push .scratch domainFieldRowHeld <|
+              .goto (fun _ => .copyIndex))
+          (.push .scratch (fun _ => (none : Option Bool)) <|
+            .goto (fun _ => .copyValue))
+  | .copyValue =>
+      .pop .input domainFieldRowPopped <|
+        .branch domainFieldRowPresent
+          (.branch domainFieldRowIsBit
+            (.push .scratch domainFieldRowHeld <|
+              .goto (fun _ => .copyValue))
+            (.goto (fun _ => .restoreIndexNext)))
+          (.goto (fun _ => .restoreIndexFinish))
+  | .restoreIndexNext =>
+      .pop .work domainFieldRowPopped <|
+        .branch domainFieldRowPresent
+          (.push .index domainFieldRowHeld <|
+            .goto (fun _ => .restoreIndexNext))
+          (.goto (fun _ => .beginValue))
+  | .restoreIndexFinish =>
+      .pop .work domainFieldRowPopped <|
+        .branch domainFieldRowPresent
+          (.push .index domainFieldRowHeld <|
+            .goto (fun _ => .restoreIndexFinish))
+          (.goto (fun _ => .finish))
+  | .finish =>
+      .pop .scratch domainFieldRowPopped <|
+        .branch domainFieldRowPresent
+          (.push .output domainFieldRowHeld <|
+            .goto (fun _ => .finish))
+          (.goto (fun _ => .clearIndex))
+  | .clearIndex =>
+      .pop .index domainFieldRowPopped <|
+        .branch domainFieldRowPresent
+          (.goto (fun _ => .clearIndex))
+          .halt
+
+/-- Concrete five-stack finite machine expanding one complete domain. -/
+def domainFieldRowComputer : FinTM2 where
+  K := DomainFieldRowStack
+  k₀ := .input
+  k₁ := .output
+  Γ := DomainFieldRowAlphabet
+  Λ := DomainFieldRowLabel
+  main := .start
+  σ := DomainFieldRowState
+  initialState := none
+  Γk₀Fin := show Fintype (Option Bool) from inferInstance
+  m := domainFieldRowProgram
+
+private def domainFieldRowStacks
+    (input index work scratch output : List (Option Bool)) :
+    (stack : DomainFieldRowStack) → List (DomainFieldRowAlphabet stack)
+  | .input => input
+  | .index => index
+  | .work => work
+  | .scratch => scratch
+  | .output => output
+
+private def domainFieldRowCfg
+    (label : Option DomainFieldRowLabel) (state : DomainFieldRowState)
+    (input index work scratch output : List (Option Bool)) :
+    domainFieldRowComputer.Cfg where
+  l := label
+  var := state
+  stk := domainFieldRowStacks input index work scratch output
+
+private def domainFieldRowEvalsToInTimeOne
+    {start finish : domainFieldRowComputer.Cfg}
+    (hstep : domainFieldRowComputer.step start = some finish) :
+    EvalsToInTime domainFieldRowComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private theorem domainFieldRow_step_start
+    (input index work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .start) state
+          (none :: input) index work scratch output) =
+      some (domainFieldRowCfg (some .readIndex) (some none)
+        input index work scratch output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped]
+  funext stack
+  cases stack <;> rfl
+
+private theorem domainFieldRow_step_readIndex_bit
+    (bit : Bool) (input index work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .readIndex) state
+          (some bit :: input) index work scratch output) =
+      some (domainFieldRowCfg (some .readIndex) (some (some bit))
+        input index (some bit :: work) scratch output) := by
+  cases bit <;>
+    simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+      domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+      domainFieldRowPopped, domainFieldRowPresent, domainFieldRowIsBit,
+      domainFieldRowHeld, Function.update] <;>
+    (funext stack; cases stack <;> rfl)
+
+private theorem domainFieldRow_step_readIndex_delimiter
+    (input index work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .readIndex) state
+          (none :: input) index work scratch output) =
+      some (domainFieldRowCfg (some .restoreInitialIndex) (some none)
+        input index work scratch output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent, domainFieldRowIsBit]
+  funext stack
+  cases stack <;> rfl
+
+private theorem domainFieldRow_step_restoreInitial_cons
+    (symbol : Option Bool) (input index work scratch output :
+      List (Option Bool)) (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .restoreInitialIndex) state input index
+          (symbol :: work) scratch output) =
+      some (domainFieldRowCfg (some .restoreInitialIndex) (some symbol)
+        input (symbol :: index) work scratch output) := by
+  rcases symbol with _ | bit <;>
+    simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+      domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+      domainFieldRowPopped, domainFieldRowPresent, domainFieldRowHeld,
+      Function.update] <;>
+    (funext stack; cases stack <;> rfl)
+
+private theorem domainFieldRow_step_restoreInitial_nil
+    (input index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .restoreInitialIndex) state input index []
+          scratch output) =
+      some (domainFieldRowCfg (some .skipCount) none input index []
+        scratch output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent, Function.update]
+
+private theorem domainFieldRow_step_skipCount_bit
+    (bit : Bool) (input index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .skipCount) state (some bit :: input)
+          index [] scratch output) =
+      some (domainFieldRowCfg (some .skipCount) (some (some bit)) input
+        index [] scratch output) := by
+  cases bit <;>
+    simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+      domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+      domainFieldRowPopped, domainFieldRowPresent, domainFieldRowIsBit] <;>
+    (funext stack; cases stack <;> rfl)
+
+private theorem domainFieldRow_step_skipCount_delimiter
+    (input index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .skipCount) state (none :: input)
+          index [] scratch output) =
+      some (domainFieldRowCfg (some .beginValue) (some none) input
+        index [] scratch output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent, domainFieldRowIsBit]
+  funext stack
+  cases stack <;> rfl
+
+private theorem domainFieldRow_step_skipCount_nil
+    (index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .skipCount) state [] index [] scratch output) =
+      some (domainFieldRowCfg (some .finish) none [] index [] scratch output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent]
+
+private theorem domainFieldRow_step_beginValue
+    (input index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .beginValue) state input index [] scratch
+          output) =
+      some (domainFieldRowCfg (some .copyIndex) state input index []
+        (none :: none :: some true :: some true :: none :: scratch)
+        output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    Function.update]
+  funext stack
+  cases stack <;> rfl
+
+private theorem domainFieldRow_step_copyIndex_cons
+    (symbol : Option Bool) (input index work scratch output :
+      List (Option Bool)) (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .copyIndex) state input
+          (symbol :: index) work scratch output) =
+      some (domainFieldRowCfg (some .copyIndex) (some symbol) input index
+        (symbol :: work) (symbol :: scratch) output) := by
+  rcases symbol with _ | bit <;>
+    simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+      domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+      domainFieldRowPopped, domainFieldRowPresent, domainFieldRowHeld,
+      Function.update] <;>
+    (funext stack; cases stack <;> rfl)
+
+private theorem domainFieldRow_step_copyIndex_nil
+    (input work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .copyIndex) state input [] work scratch
+          output) =
+      some (domainFieldRowCfg (some .copyValue) none input [] work
+        (none :: scratch) output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent, Function.update]
+  funext stack
+  cases stack <;> rfl
+
+private theorem domainFieldRow_step_copyValue_bit
+    (bit : Bool) (input work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .copyValue) state (some bit :: input) []
+          work scratch output) =
+      some (domainFieldRowCfg (some .copyValue) (some (some bit)) input []
+        work (some bit :: scratch) output) := by
+  cases bit <;>
+    simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+      domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+      domainFieldRowPopped, domainFieldRowPresent, domainFieldRowIsBit,
+      domainFieldRowHeld, Function.update] <;>
+    (funext stack; cases stack <;> rfl)
+
+private theorem domainFieldRow_step_copyValue_delimiter
+    (input work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .copyValue) state (none :: input) [] work
+          scratch output) =
+      some (domainFieldRowCfg (some .restoreIndexNext) (some none) input []
+        work scratch output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent, domainFieldRowIsBit]
+  funext stack
+  cases stack <;> rfl
+
+private theorem domainFieldRow_step_copyValue_nil
+    (work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .copyValue) state [] [] work scratch output) =
+      some (domainFieldRowCfg (some .restoreIndexFinish) none [] [] work
+        scratch output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent]
+
+private theorem domainFieldRow_step_restoreNext_cons
+    (symbol : Option Bool) (input index work scratch output :
+      List (Option Bool)) (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .restoreIndexNext) state input index
+          (symbol :: work) scratch output) =
+      some (domainFieldRowCfg (some .restoreIndexNext) (some symbol) input
+        (symbol :: index) work scratch output) := by
+  rcases symbol with _ | bit <;>
+    simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+      domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+      domainFieldRowPopped, domainFieldRowPresent, domainFieldRowHeld,
+      Function.update] <;>
+    (funext stack; cases stack <;> rfl)
+
+private theorem domainFieldRow_step_restoreNext_nil
+    (input index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .restoreIndexNext) state input index []
+          scratch output) =
+      some (domainFieldRowCfg (some .beginValue) none input index [] scratch
+        output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent]
+
+private theorem domainFieldRow_step_restoreFinish_cons
+    (symbol : Option Bool) (index work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .restoreIndexFinish) state [] index
+          (symbol :: work) scratch output) =
+      some (domainFieldRowCfg (some .restoreIndexFinish) (some symbol) []
+        (symbol :: index) work scratch output) := by
+  rcases symbol with _ | bit <;>
+    simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+      domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+      domainFieldRowPopped, domainFieldRowPresent, domainFieldRowHeld,
+      Function.update] <;>
+    (funext stack; cases stack <;> rfl)
+
+private theorem domainFieldRow_step_restoreFinish_nil
+    (index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .restoreIndexFinish) state [] index []
+          scratch output) =
+      some (domainFieldRowCfg (some .finish) none [] index [] scratch
+        output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent]
+
+private theorem domainFieldRow_step_finish_cons
+    (symbol : Option Bool) (scratch output index : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .finish) state [] index []
+          (symbol :: scratch) output) =
+      some (domainFieldRowCfg (some .finish) (some symbol) [] index [] scratch
+        (symbol :: output)) := by
+  rcases symbol with _ | bit <;>
+    simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+      domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+      domainFieldRowPopped, domainFieldRowPresent, domainFieldRowHeld,
+      Function.update] <;>
+    (funext stack; cases stack <;> rfl)
+
+private theorem domainFieldRow_step_finish_nil
+    (index output : List (Option Bool)) (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .finish) state [] index [] [] output) =
+      some (domainFieldRowCfg (some .clearIndex) none [] index [] []
+        output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent, Function.update]
+
+private theorem domainFieldRow_step_clearIndex_cons
+    (symbol : Option Bool) (index output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .clearIndex) state [] (symbol :: index) [] []
+          output) =
+      some (domainFieldRowCfg (some .clearIndex) (some symbol) [] index [] []
+        output) := by
+  rcases symbol with _ | bit <;>
+    simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+      domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+      domainFieldRowPopped, domainFieldRowPresent] <;>
+    (funext stack; cases stack <;> rfl)
+
+private theorem domainFieldRow_step_clearIndex_nil
+    (output : List (Option Bool)) (state : DomainFieldRowState) :
+    domainFieldRowComputer.step
+        (domainFieldRowCfg (some .clearIndex) state [] [] [] [] output) =
+      some (domainFieldRowCfg none none [] [] [] [] output) := by
+  simp [domainFieldRowComputer, FinTM2.step, domainFieldRowCfg,
+    domainFieldRowProgram, domainFieldRowStacks, DomainFieldRowAlphabet,
+    domainFieldRowPopped, domainFieldRowPresent]
+
+private def domainFieldRow_readIndex_evals
+    (bits : List Bool) (input index work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .readIndex) state
+        (bits.map some ++ none :: input) index work scratch output)
+      (some (domainFieldRowCfg (some .restoreInitialIndex) (some none) input
+        index (bits.reverse.map some ++ work) scratch output))
+      (bits.length + 1) := by
+  induction bits generalizing work state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_readIndex_delimiter input index work scratch
+          output state)
+  | cons bit bits ih =>
+      let middle := domainFieldRowCfg (some .readIndex) (some (some bit))
+        (bits.map some ++ none :: input) index (some bit :: work) scratch
+        output
+      have hone : EvalsToInTime domainFieldRowComputer.step
+          (domainFieldRowCfg (some .readIndex) state
+            ((bit :: bits).map some ++ none :: input) index work scratch
+            output)
+          (some middle) 1 :=
+        domainFieldRowEvalsToInTimeOne (by
+          simpa [middle] using domainFieldRow_step_readIndex_bit bit
+            (bits.map some ++ none :: input) index work scratch output state)
+      have hrest := ih (some bit :: work) (some (some bit))
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        1 (bits.length + 1)
+        (domainFieldRowCfg (some .readIndex) state
+          ((bit :: bits).map some ++ none :: input) index work scratch output)
+        middle
+        (some (domainFieldRowCfg (some .restoreInitialIndex) (some none)
+          input index ((bit :: bits).reverse.map some ++ work) scratch output))
+        hone
+        (by simpa [middle, List.reverse_cons, List.map_append,
+          List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainFieldRow_restoreInitial_evals
+    (work input index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .restoreInitialIndex) state input index work
+        scratch output)
+      (some (domainFieldRowCfg (some .skipCount) none input
+        (work.reverse ++ index) [] scratch output))
+      (work.length + 1) := by
+  induction work generalizing index state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_restoreInitial_nil input index scratch output state)
+  | cons symbol work ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_restoreInitial_cons symbol input index work
+          scratch output state)
+      have hrest := ih (symbol :: index) (some symbol)
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        1 (work.length + 1)
+        (domainFieldRowCfg (some .restoreInitialIndex) state input index
+          (symbol :: work) scratch output)
+        (domainFieldRowCfg (some .restoreInitialIndex) (some symbol) input
+          (symbol :: index) work scratch output)
+        (some (domainFieldRowCfg (some .skipCount) none input
+          ((symbol :: work).reverse ++ index) [] scratch output))
+        (by simpa using hone)
+        (by simpa [List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainFieldRow_skipCount_present_evals
+    (bits : List Bool) (input index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .skipCount) state
+        (bits.map some ++ none :: input) index [] scratch output)
+      (some (domainFieldRowCfg (some .beginValue) (some none) input index []
+        scratch output))
+      (bits.length + 1) := by
+  induction bits generalizing state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_skipCount_delimiter input index scratch output
+          state)
+  | cons bit bits ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_skipCount_bit bit
+          (bits.map some ++ none :: input) index scratch output state)
+      have hrest := ih (some (some bit))
+      exact EvalsToInTime.trans domainFieldRowComputer.step
+        1 (bits.length + 1)
+        (domainFieldRowCfg (some .skipCount) state
+          ((bit :: bits).map some ++ none :: input) index [] scratch output)
+        (domainFieldRowCfg (some .skipCount) (some (some bit))
+          (bits.map some ++ none :: input) index [] scratch output)
+        (some (domainFieldRowCfg (some .beginValue) (some none) input index []
+          scratch output))
+        (by simpa using hone) hrest
+
+private def domainFieldRow_skipCount_nil_evals
+    (bits : List Bool) (index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .skipCount) state (bits.map some) index []
+        scratch output)
+      (some (domainFieldRowCfg (some .finish) none [] index [] scratch output))
+      (bits.length + 1) := by
+  induction bits generalizing state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_skipCount_nil index scratch output state)
+  | cons bit bits ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_skipCount_bit bit (bits.map some) index scratch
+          output state)
+      have hrest := ih (some (some bit))
+      exact EvalsToInTime.trans domainFieldRowComputer.step
+        1 (bits.length + 1)
+        (domainFieldRowCfg (some .skipCount) state
+          ((bit :: bits).map some) index [] scratch output)
+        (domainFieldRowCfg (some .skipCount) (some (some bit))
+          (bits.map some) index [] scratch output)
+        (some (domainFieldRowCfg (some .finish) none [] index [] scratch
+          output))
+        (by simpa using hone) hrest
+
+private def domainFieldRow_copyIndex_evals
+    (index input work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .copyIndex) state input index work scratch output)
+      (some (domainFieldRowCfg (some .copyValue) none input []
+        (index.reverse ++ work) (none :: index.reverse ++ scratch) output))
+      (index.length + 1) := by
+  induction index generalizing work scratch state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_copyIndex_nil input work scratch output state)
+  | cons symbol index ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_copyIndex_cons symbol input index work scratch
+          output state)
+      have hrest := ih (symbol :: work) (symbol :: scratch) (some symbol)
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        1 (index.length + 1)
+        (domainFieldRowCfg (some .copyIndex) state input (symbol :: index)
+          work scratch output)
+        (domainFieldRowCfg (some .copyIndex) (some symbol) input index
+          (symbol :: work) (symbol :: scratch) output)
+        (some (domainFieldRowCfg (some .copyValue) none input []
+          ((symbol :: index).reverse ++ work)
+          (none :: (symbol :: index).reverse ++ scratch) output))
+        (by simpa using hone)
+        (by simpa [List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainFieldRow_copyValue_next_evals
+    (bits : List Bool) (input work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .copyValue) state
+        (bits.map some ++ none :: input) [] work scratch output)
+      (some (domainFieldRowCfg (some .restoreIndexNext) (some none) input []
+        work (bits.reverse.map some ++ scratch) output))
+      (bits.length + 1) := by
+  induction bits generalizing scratch state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_copyValue_delimiter input work scratch output
+          state)
+  | cons bit bits ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_copyValue_bit bit
+          (bits.map some ++ none :: input) work scratch output state)
+      have hrest := ih (some bit :: scratch) (some (some bit))
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        1 (bits.length + 1)
+        (domainFieldRowCfg (some .copyValue) state
+          ((bit :: bits).map some ++ none :: input) [] work scratch output)
+        (domainFieldRowCfg (some .copyValue) (some (some bit))
+          (bits.map some ++ none :: input) [] work (some bit :: scratch)
+          output)
+        (some (domainFieldRowCfg (some .restoreIndexNext) (some none) input []
+          work ((bit :: bits).reverse.map some ++ scratch) output))
+        (by simpa using hone)
+        (by simpa [List.reverse_cons, List.map_append,
+          List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainFieldRow_copyValue_finish_evals
+    (bits : List Bool) (work scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .copyValue) state (bits.map some) [] work
+        scratch output)
+      (some (domainFieldRowCfg (some .restoreIndexFinish) none [] [] work
+        (bits.reverse.map some ++ scratch) output))
+      (bits.length + 1) := by
+  induction bits generalizing scratch state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_copyValue_nil work scratch output state)
+  | cons bit bits ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_copyValue_bit bit (bits.map some) work scratch
+          output state)
+      have hrest := ih (some bit :: scratch) (some (some bit))
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        1 (bits.length + 1)
+        (domainFieldRowCfg (some .copyValue) state
+          ((bit :: bits).map some) [] work scratch output)
+        (domainFieldRowCfg (some .copyValue) (some (some bit))
+          (bits.map some) [] work (some bit :: scratch) output)
+        (some (domainFieldRowCfg (some .restoreIndexFinish) none [] [] work
+          ((bit :: bits).reverse.map some ++ scratch) output))
+        (by simpa using hone)
+        (by simpa [List.reverse_cons, List.map_append,
+          List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainFieldRow_restoreNext_evals
+    (work input index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .restoreIndexNext) state input index work
+        scratch output)
+      (some (domainFieldRowCfg (some .beginValue) none input
+        (work.reverse ++ index) [] scratch output))
+      (work.length + 1) := by
+  induction work generalizing index state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_restoreNext_nil input index scratch output state)
+  | cons symbol work ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_restoreNext_cons symbol input index work scratch
+          output state)
+      have hrest := ih (symbol :: index) (some symbol)
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        1 (work.length + 1)
+        (domainFieldRowCfg (some .restoreIndexNext) state input index
+          (symbol :: work) scratch output)
+        (domainFieldRowCfg (some .restoreIndexNext) (some symbol) input
+          (symbol :: index) work scratch output)
+        (some (domainFieldRowCfg (some .beginValue) none input
+          ((symbol :: work).reverse ++ index) [] scratch output))
+        (by simpa using hone)
+        (by simpa [List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainFieldRow_restoreFinish_evals
+    (work index scratch output : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .restoreIndexFinish) state [] index work
+        scratch output)
+      (some (domainFieldRowCfg (some .finish) none []
+        (work.reverse ++ index) [] scratch output))
+      (work.length + 1) := by
+  induction work generalizing index state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_restoreFinish_nil index scratch output state)
+  | cons symbol work ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_restoreFinish_cons symbol index work scratch
+          output state)
+      have hrest := ih (symbol :: index) (some symbol)
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        1 (work.length + 1)
+        (domainFieldRowCfg (some .restoreIndexFinish) state [] index
+          (symbol :: work) scratch output)
+        (domainFieldRowCfg (some .restoreIndexFinish) (some symbol) []
+          (symbol :: index) work scratch output)
+        (some (domainFieldRowCfg (some .finish) none []
+          ((symbol :: work).reverse ++ index) [] scratch output))
+        (by simpa using hone)
+        (by simpa [List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainFieldRow_finish_evals
+    (scratch output index : List (Option Bool))
+    (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .finish) state [] index [] scratch output)
+      (some (domainFieldRowCfg (some .clearIndex) none [] index [] []
+        (scratch.reverse ++ output)))
+      (scratch.length + 1) := by
+  induction scratch generalizing output state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_finish_nil index output state)
+  | cons symbol scratch ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_finish_cons symbol scratch output index state)
+      have hrest := ih (symbol :: output) (some symbol)
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        1 (scratch.length + 1)
+        (domainFieldRowCfg (some .finish) state [] index []
+          (symbol :: scratch) output)
+        (domainFieldRowCfg (some .finish) (some symbol) [] index [] scratch
+          (symbol :: output))
+        (some (domainFieldRowCfg (some .clearIndex) none [] index [] []
+          ((symbol :: scratch).reverse ++ output)))
+        (by simpa using hone)
+        (by simpa [List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainFieldRow_clearIndex_evals
+    (index output : List (Option Bool)) (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .clearIndex) state [] index [] [] output)
+      (some (domainFieldRowCfg none none [] [] [] [] output))
+      (index.length + 1) := by
+  induction index generalizing state with
+  | nil =>
+      simpa using domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_clearIndex_nil output state)
+  | cons symbol index ih =>
+      have hone := domainFieldRowEvalsToInTimeOne
+        (domainFieldRow_step_clearIndex_cons symbol index output state)
+      have hrest := ih (some symbol)
+      exact EvalsToInTime.trans domainFieldRowComputer.step
+        1 (index.length + 1)
+        (domainFieldRowCfg (some .clearIndex) state [] (symbol :: index) [] []
+          output)
+        (domainFieldRowCfg (some .clearIndex) (some symbol) [] index [] []
+          output)
+        (some (domainFieldRowCfg none none [] [] [] [] output))
+        (by simpa using hone) hrest
+
+/-- Exact work before the final output reversal. -/
+def domainFieldRowValuesTime (index : ℕ) : List ℕ → ℕ
+  | [] => 0
+  | value :: values =>
+      2 * (encodeNat index).length + (encodeNat value).length + 4 +
+        domainFieldRowValuesTime index values
+
+theorem domainFieldRowValuesTime_eq (index : ℕ) (values : List ℕ) :
+    domainFieldRowValuesTime index values =
+      values.length * (2 * (encodeNat index).length + 4) +
+        (values.map fun value => (encodeNat value).length).sum := by
+  induction values with
+  | nil => simp [domainFieldRowValuesTime]
+  | cons value values ih =>
+      simp [domainFieldRowValuesTime, ih]
+      ring
+
+private theorem domainFieldRow_block_reverse_append
+    (index value : ℕ) (scratch : List (Option Bool)) :
+    (DomainOccurrenceFieldBlock.outputEncode (index, value)).reverse ++
+        scratch =
+      (encodeNat value).reverse.map some ++
+        none :: (encodeNat index).reverse.map some ++
+          none :: none :: some true :: some true :: none :: scratch := by
+  rw [DomainOccurrenceFieldBlock.outputEncode_eq_prefix]
+  simp [DomainOccurrenceFieldBlock.inputEncode,
+    DomainOccurrenceFieldBlock.headerPrefix, SourceOrderRawFields.encode,
+    List.reverse_append, List.map_reverse, List.append_assoc]
+
+private theorem domainFieldRow_occurrences_cons_reverse_append
+    (index value : ℕ) (values : List ℕ)
+    (scratch : List (Option Bool)) :
+    (DomainFieldRow.outputEncode
+        (DomainFieldRow.occurrences (index, value :: values))).reverse ++
+        scratch =
+      (DomainFieldRow.outputEncode
+        (DomainFieldRow.occurrences (index, values))).reverse ++
+        (DomainOccurrenceFieldBlock.outputEncode (index, value)).reverse ++
+          scratch := by
+  simp [DomainFieldRow.outputEncode, DomainFieldRow.occurrences,
+    List.reverse_append, List.append_assoc]
+
+private def domainFieldRow_values_evals
+    (index value : ℕ) (values : List ℕ)
+    (scratch output : List (Option Bool)) (state : DomainFieldRowState) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .beginValue) state
+        ((encodeNat value).map some ++ SourceOrderRawFields.encode values)
+        ((encodeNat index).map some) [] scratch output)
+      (some (domainFieldRowCfg (some .finish) none []
+        ((encodeNat index).map some) []
+        ((DomainFieldRow.outputEncode
+          (DomainFieldRow.occurrences (index, value :: values))).reverse ++
+            scratch) output))
+      (domainFieldRowValuesTime index (value :: values)) := by
+  let prefixScratch : List (Option Bool) :=
+    none :: none :: some true :: some true :: none :: scratch
+  have hbegin := domainFieldRowEvalsToInTimeOne
+    (domainFieldRow_step_beginValue
+      ((encodeNat value).map some ++ SourceOrderRawFields.encode values)
+      ((encodeNat index).map some) scratch output state)
+  have hindex := domainFieldRow_copyIndex_evals
+    ((encodeNat index).map some)
+    ((encodeNat value).map some ++ SourceOrderRawFields.encode values)
+    [] prefixScratch output state
+  have hfirst := EvalsToInTime.trans domainFieldRowComputer.step
+    1 ((encodeNat index).length + 1)
+    (domainFieldRowCfg (some .beginValue) state
+      ((encodeNat value).map some ++ SourceOrderRawFields.encode values)
+      ((encodeNat index).map some) [] scratch output)
+    (domainFieldRowCfg (some .copyIndex) state
+      ((encodeNat value).map some ++ SourceOrderRawFields.encode values)
+      ((encodeNat index).map some) [] prefixScratch output)
+    (some (domainFieldRowCfg (some .copyValue) none
+      ((encodeNat value).map some ++ SourceOrderRawFields.encode values)
+      [] ((encodeNat index).reverse.map some)
+      (none :: (encodeNat index).reverse.map some ++ prefixScratch) output))
+    (by simpa [prefixScratch] using hbegin)
+    (by simpa [prefixScratch, List.map_reverse] using hindex)
+  cases values with
+  | nil =>
+      have hvalue := domainFieldRow_copyValue_finish_evals
+        (encodeNat value) ((encodeNat index).reverse.map some)
+        (none :: (encodeNat index).reverse.map some ++ prefixScratch)
+        output none
+      have hrestore := domainFieldRow_restoreFinish_evals
+        ((encodeNat index).reverse.map some) []
+        ((encodeNat value).reverse.map some ++
+          none :: (encodeNat index).reverse.map some ++ prefixScratch)
+        output none
+      have hscratch :
+          (encodeNat value).reverse.map some ++
+              none :: (encodeNat index).reverse.map some ++ prefixScratch =
+            (DomainOccurrenceFieldBlock.outputEncode
+              (index, value)).reverse ++ scratch := by
+        rw [domainFieldRow_block_reverse_append]
+      have hthroughValue := EvalsToInTime.trans
+        domainFieldRowComputer.step
+        (1 + ((encodeNat index).length + 1))
+        ((encodeNat value).length + 1)
+        (domainFieldRowCfg (some .beginValue) state
+          ((encodeNat value).map some)
+          ((encodeNat index).map some) [] scratch output)
+        (domainFieldRowCfg (some .copyValue) none
+          ((encodeNat value).map some) []
+          ((encodeNat index).reverse.map some)
+          (none :: (encodeNat index).reverse.map some ++ prefixScratch)
+          output)
+        (some (domainFieldRowCfg (some .restoreIndexFinish) none [] []
+          ((encodeNat index).reverse.map some)
+          ((encodeNat value).reverse.map some ++
+            none :: (encodeNat index).reverse.map some ++ prefixScratch)
+          output))
+        (by
+          simpa [SourceOrderRawFields.encode, Nat.add_assoc, Nat.add_comm,
+            Nat.add_left_comm] using hfirst)
+        (by simpa using hvalue)
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        ((encodeNat value).length + 1 +
+          (1 + ((encodeNat index).length + 1)))
+        ((encodeNat index).length + 1)
+        (domainFieldRowCfg (some .beginValue) state
+          ((encodeNat value).map some)
+          ((encodeNat index).map some) [] scratch output)
+        (domainFieldRowCfg (some .restoreIndexFinish) none [] []
+          ((encodeNat index).reverse.map some)
+          ((encodeNat value).reverse.map some ++
+            none :: (encodeNat index).reverse.map some ++ prefixScratch)
+          output)
+        (some (domainFieldRowCfg (some .finish) none []
+          ((encodeNat index).map some) []
+          ((encodeNat value).reverse.map some ++
+            none :: (encodeNat index).reverse.map some ++ prefixScratch)
+          output))
+        (by
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+            hthroughValue)
+        (by
+          simpa [List.map_reverse] using hrestore)
+      have htime :
+          (encodeNat index).length + 1 +
+              ((encodeNat value).length + 1 +
+                (1 + ((encodeNat index).length + 1))) =
+            domainFieldRowValuesTime index [value] := by
+        simp [domainFieldRowValuesTime]
+        omega
+      rw [htime] at hall
+      have houtputScratch :
+          (DomainFieldRow.outputEncode
+            (DomainFieldRow.occurrences (index, [value]))).reverse ++
+              scratch =
+            (encodeNat value).reverse.map some ++
+              none :: (encodeNat index).reverse.map some ++ prefixScratch := by
+        simpa only [DomainFieldRow.outputEncode, DomainFieldRow.occurrences,
+          List.map, List.flatMap_cons, List.flatMap_nil, List.append_nil,
+          List.reverse_append, List.reverse_nil, List.nil_append] using
+            hscratch.symm
+      rw [houtputScratch]
+      simpa [SourceOrderRawFields.encode] using hall
+  | cons next values =>
+      have hvalue := domainFieldRow_copyValue_next_evals (encodeNat value)
+        ((encodeNat next).map some ++ SourceOrderRawFields.encode values)
+        ((encodeNat index).reverse.map some)
+        (none :: (encodeNat index).reverse.map some ++ prefixScratch)
+        output none
+      have hrestore := domainFieldRow_restoreNext_evals
+        ((encodeNat index).reverse.map some)
+        ((encodeNat next).map some ++ SourceOrderRawFields.encode values) []
+        ((encodeNat value).reverse.map some ++
+          none :: (encodeNat index).reverse.map some ++ prefixScratch)
+        output (some none)
+      have hscratch :
+          (encodeNat value).reverse.map some ++
+              none :: (encodeNat index).reverse.map some ++ prefixScratch =
+            (DomainOccurrenceFieldBlock.outputEncode
+              (index, value)).reverse ++ scratch := by
+        rw [domainFieldRow_block_reverse_append]
+      have hrest := domainFieldRow_values_evals index next values
+        ((DomainOccurrenceFieldBlock.outputEncode (index, value)).reverse ++
+          scratch) output none
+      have hthroughValue := EvalsToInTime.trans
+        domainFieldRowComputer.step
+        (1 + ((encodeNat index).length + 1))
+        ((encodeNat value).length + 1)
+        (domainFieldRowCfg (some .beginValue) state
+          ((encodeNat value).map some ++ none ::
+            (encodeNat next).map some ++ SourceOrderRawFields.encode values)
+          ((encodeNat index).map some) [] scratch output)
+        (domainFieldRowCfg (some .copyValue) none
+          ((encodeNat value).map some ++ none ::
+            (encodeNat next).map some ++ SourceOrderRawFields.encode values)
+          [] ((encodeNat index).reverse.map some)
+          (none :: (encodeNat index).reverse.map some ++ prefixScratch)
+          output)
+        (some (domainFieldRowCfg (some .restoreIndexNext) (some none)
+          ((encodeNat next).map some ++ SourceOrderRawFields.encode values)
+          [] ((encodeNat index).reverse.map some)
+          ((encodeNat value).reverse.map some ++
+            none :: (encodeNat index).reverse.map some ++ prefixScratch)
+          output))
+        (by
+          simpa [SourceOrderRawFields.encode, Nat.add_assoc, Nat.add_comm,
+            Nat.add_left_comm] using hfirst)
+        (by simpa using hvalue)
+      have hthroughRestore := EvalsToInTime.trans
+        domainFieldRowComputer.step
+        ((encodeNat value).length + 1 +
+          (1 + ((encodeNat index).length + 1)))
+        ((encodeNat index).length + 1)
+        (domainFieldRowCfg (some .beginValue) state
+          ((encodeNat value).map some ++ none ::
+            (encodeNat next).map some ++ SourceOrderRawFields.encode values)
+          ((encodeNat index).map some) [] scratch output)
+        (domainFieldRowCfg (some .restoreIndexNext) (some none)
+          ((encodeNat next).map some ++ SourceOrderRawFields.encode values)
+          [] ((encodeNat index).reverse.map some)
+          ((encodeNat value).reverse.map some ++
+            none :: (encodeNat index).reverse.map some ++ prefixScratch)
+          output)
+        (some (domainFieldRowCfg (some .beginValue) none
+          ((encodeNat next).map some ++ SourceOrderRawFields.encode values)
+          ((encodeNat index).map some) []
+          ((encodeNat value).reverse.map some ++
+            none :: (encodeNat index).reverse.map some ++ prefixScratch)
+          output))
+        (by
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+            hthroughValue)
+        (by
+          simpa [List.map_reverse] using hrestore)
+      have hthroughRestore' : EvalsToInTime domainFieldRowComputer.step
+          (domainFieldRowCfg (some .beginValue) state
+            ((encodeNat value).map some ++ SourceOrderRawFields.encode
+              (next :: values))
+            ((encodeNat index).map some) [] scratch output)
+          (some (domainFieldRowCfg (some .beginValue) none
+            ((encodeNat next).map some ++ SourceOrderRawFields.encode values)
+            ((encodeNat index).map some) []
+            ((DomainOccurrenceFieldBlock.outputEncode
+              (index, value)).reverse ++ scratch) output))
+          ((encodeNat index).length + 1 +
+            ((encodeNat value).length + 1 +
+              (1 + ((encodeNat index).length + 1)))) := by
+        rw [← hscratch]
+        simpa [SourceOrderRawFields.encode, Nat.add_assoc, Nat.add_comm,
+          Nat.add_left_comm] using hthroughRestore
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        ((encodeNat index).length + 1 +
+          ((encodeNat value).length + 1 +
+            (1 + ((encodeNat index).length + 1))))
+        (domainFieldRowValuesTime index (next :: values))
+        (domainFieldRowCfg (some .beginValue) state
+          ((encodeNat value).map some ++ SourceOrderRawFields.encode
+            (next :: values))
+          ((encodeNat index).map some) [] scratch output)
+        (domainFieldRowCfg (some .beginValue) none
+          ((encodeNat next).map some ++ SourceOrderRawFields.encode values)
+          ((encodeNat index).map some) []
+          ((DomainOccurrenceFieldBlock.outputEncode (index, value)).reverse ++
+            scratch) output)
+        (some (domainFieldRowCfg (some .finish) none []
+          ((encodeNat index).map some) []
+          ((DomainFieldRow.outputEncode
+            (DomainFieldRow.occurrences
+              (index, value :: next :: values))).reverse ++ scratch)
+          output))
+        (by
+          exact hthroughRestore')
+        (by
+          rw [domainFieldRow_occurrences_cons_reverse_append]
+          simpa [List.append_assoc] using hrest)
+      have htime :
+          domainFieldRowValuesTime index (next :: values) +
+              ((encodeNat index).length + 1 +
+                ((encodeNat value).length + 1 +
+                  (1 + ((encodeNat index).length + 1)))) =
+            domainFieldRowValuesTime index (value :: next :: values) := by
+        simp [domainFieldRowValuesTime]
+        omega
+      rw [htime] at hall
+      simpa using hall
+
+private theorem domainFieldRow_initList_eq_cfg
+    (input : List (Option Bool)) :
+    initList domainFieldRowComputer input =
+      domainFieldRowCfg (some .start) none input [] [] [] [] := by
+  unfold initList domainFieldRowCfg
+  congr
+  funext stack
+  cases stack <;> rfl
+
+private theorem domainFieldRow_haltList_eq_cfg
+    (output : List (Option Bool)) :
+    haltList domainFieldRowComputer output =
+      domainFieldRowCfg none none [] [] [] [] output := by
+  unfold haltList domainFieldRowCfg
+  congr
+  funext stack
+  cases stack <;> rfl
+
+private def domainFieldRow_run_evals (index : ℕ) (values : List ℕ) :
+    EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .start) none
+        (DomainFieldRow.inputEncode (index, values)) [] [] [] [])
+      (some (domainFieldRowCfg none none [] [] [] []
+        (DomainFieldRow.outputEncode
+          (DomainFieldRow.occurrences (index, values)))))
+      (3 * (encodeNat index).length + (encodeNat values.length).length +
+        domainFieldRowValuesTime index values +
+        (DomainFieldRow.outputEncode
+          (DomainFieldRow.occurrences (index, values))).length + 6) := by
+  let indexBits := encodeNat index
+  let countBits := encodeNat values.length
+  have hinput : DomainFieldRow.inputEncode (index, values) =
+      none :: indexBits.map some ++ none :: countBits.map some ++
+        SourceOrderRawFields.encode values := by
+    simp [DomainFieldRow.inputEncode, SourceOrderRawFields.encode,
+      indexBits, countBits, List.append_assoc]
+  have hstart := domainFieldRowEvalsToInTimeOne
+    (domainFieldRow_step_start
+      (indexBits.map some ++ none :: countBits.map some ++
+        SourceOrderRawFields.encode values) [] [] [] [] none)
+  have hread := domainFieldRow_readIndex_evals indexBits
+    (countBits.map some ++ SourceOrderRawFields.encode values) [] [] [] []
+    (some none)
+  have hfirst := EvalsToInTime.trans domainFieldRowComputer.step
+    1 (indexBits.length + 1)
+    (domainFieldRowCfg (some .start) none
+      (none :: indexBits.map some ++ none :: countBits.map some ++
+        SourceOrderRawFields.encode values) [] [] [] [])
+    (domainFieldRowCfg (some .readIndex) (some none)
+      (indexBits.map some ++ none :: countBits.map some ++
+        SourceOrderRawFields.encode values) [] [] [] [])
+    (some (domainFieldRowCfg (some .restoreInitialIndex) (some none)
+      (countBits.map some ++ SourceOrderRawFields.encode values) []
+      (indexBits.reverse.map some) [] []))
+    (by simpa using hstart)
+    (by simpa [List.append_assoc] using hread)
+  have hrestore := domainFieldRow_restoreInitial_evals
+    (indexBits.reverse.map some)
+    (countBits.map some ++ SourceOrderRawFields.encode values) [] [] []
+    (some none)
+  have hheader := EvalsToInTime.trans domainFieldRowComputer.step
+    (indexBits.length + 2) (indexBits.length + 1)
+    (domainFieldRowCfg (some .start) none
+      (none :: indexBits.map some ++ none :: countBits.map some ++
+        SourceOrderRawFields.encode values) [] [] [] [])
+    (domainFieldRowCfg (some .restoreInitialIndex) (some none)
+      (countBits.map some ++ SourceOrderRawFields.encode values) []
+      (indexBits.reverse.map some) [] [])
+    (some (domainFieldRowCfg (some .skipCount) none
+      (countBits.map some ++ SourceOrderRawFields.encode values)
+      (indexBits.map some) [] [] []))
+    (by
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hfirst)
+    (by simpa [List.map_reverse] using hrestore)
+  rw [show indexBits.length + 1 + (indexBits.length + 2) =
+    2 * indexBits.length + 3 by omega] at hheader
+  cases values with
+  | nil =>
+      have hcount := domainFieldRow_skipCount_nil_evals countBits
+        (indexBits.map some) [] [] none
+      have hthroughCount := EvalsToInTime.trans domainFieldRowComputer.step
+        (2 * indexBits.length + 3) (countBits.length + 1)
+        (domainFieldRowCfg (some .start) none
+          (none :: indexBits.map some ++ none :: countBits.map some) [] [] []
+          [])
+        (domainFieldRowCfg (some .skipCount) none (countBits.map some)
+          (indexBits.map some) [] [] [])
+        (some (domainFieldRowCfg (some .finish) none []
+          (indexBits.map some) [] [] []))
+        (by
+          simpa [SourceOrderRawFields.encode, Nat.add_assoc, Nat.add_comm,
+            Nat.add_left_comm] using hheader)
+        (by simpa using hcount)
+      rw [show countBits.length + 1 + (2 * indexBits.length + 3) =
+        2 * indexBits.length + countBits.length + 4 by omega] at hthroughCount
+      have hfinish := domainFieldRow_finish_evals [] []
+        (indexBits.map some) none
+      have hthroughFinish := EvalsToInTime.trans domainFieldRowComputer.step
+        (2 * indexBits.length + countBits.length + 4) 1
+        (domainFieldRowCfg (some .start) none
+          (none :: indexBits.map some ++ none :: countBits.map some) [] [] []
+          [])
+        (domainFieldRowCfg (some .finish) none [] (indexBits.map some) [] []
+          [])
+        (some (domainFieldRowCfg (some .clearIndex) none []
+          (indexBits.map some) [] [] []))
+        (by
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+            hthroughCount)
+        (by simpa using hfinish)
+      rw [show 1 + (2 * indexBits.length + countBits.length + 4) =
+        2 * indexBits.length + countBits.length + 5 by omega] at hthroughFinish
+      have hclear := domainFieldRow_clearIndex_evals
+        (indexBits.map some) [] none
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        (2 * indexBits.length + countBits.length + 5)
+        (indexBits.length + 1)
+        (domainFieldRowCfg (some .start) none
+          (none :: indexBits.map some ++ none :: countBits.map some) [] [] []
+          [])
+        (domainFieldRowCfg (some .clearIndex) none [] (indexBits.map some) []
+          [] [])
+        (some (domainFieldRowCfg none none [] [] [] [] []))
+        (by
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+            hthroughFinish)
+        (by simpa using hclear)
+      rw [show indexBits.length + 1 +
+          (2 * indexBits.length + countBits.length + 5) =
+        3 * indexBits.length + countBits.length + 6 by omega] at hall
+      rw [hinput]
+      simpa [indexBits, countBits, DomainFieldRow.occurrences,
+        DomainFieldRow.outputEncode, domainFieldRowValuesTime,
+        SourceOrderRawFields.encode, Nat.add_assoc, Nat.add_comm,
+        Nat.add_left_comm] using hall
+  | cons value values =>
+      have hcount := domainFieldRow_skipCount_present_evals countBits
+        ((encodeNat value).map some ++ SourceOrderRawFields.encode values)
+        (indexBits.map some) [] [] none
+      have hthroughCount := EvalsToInTime.trans domainFieldRowComputer.step
+        (2 * indexBits.length + 3) (countBits.length + 1)
+        (domainFieldRowCfg (some .start) none
+          (none :: indexBits.map some ++ none :: countBits.map some ++
+            SourceOrderRawFields.encode (value :: values)) [] [] [] [])
+        (domainFieldRowCfg (some .skipCount) none
+          (countBits.map some ++ SourceOrderRawFields.encode (value :: values))
+          (indexBits.map some) [] [] [])
+        (some (domainFieldRowCfg (some .beginValue) (some none)
+          ((encodeNat value).map some ++ SourceOrderRawFields.encode values)
+          (indexBits.map some) [] [] []))
+        (by
+          simpa [SourceOrderRawFields.encode, Nat.add_assoc, Nat.add_comm,
+            Nat.add_left_comm] using hheader)
+        (by simpa using hcount)
+      rw [show countBits.length + 1 + (2 * indexBits.length + 3) =
+        2 * indexBits.length + countBits.length + 4 by omega] at hthroughCount
+      have hvalues := domainFieldRow_values_evals index value values [] []
+        (some none)
+      have hthroughValues := EvalsToInTime.trans domainFieldRowComputer.step
+        (2 * indexBits.length + countBits.length + 4)
+        (domainFieldRowValuesTime index (value :: values))
+        (domainFieldRowCfg (some .start) none
+          (none :: indexBits.map some ++ none :: countBits.map some ++
+            SourceOrderRawFields.encode (value :: values)) [] [] [] [])
+        (domainFieldRowCfg (some .beginValue) (some none)
+          ((encodeNat value).map some ++ SourceOrderRawFields.encode values)
+          (indexBits.map some) [] [] [])
+        (some (domainFieldRowCfg (some .finish) none []
+          (indexBits.map some) []
+          ((DomainFieldRow.outputEncode
+            (DomainFieldRow.occurrences (index, value :: values))).reverse)
+          []))
+        (by
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+            hthroughCount)
+        (by simpa [indexBits] using hvalues)
+      let outputBits := DomainFieldRow.outputEncode
+        (DomainFieldRow.occurrences (index, value :: values))
+      have hfinish := domainFieldRow_finish_evals outputBits.reverse []
+        (indexBits.map some) none
+      have hthroughFinish := EvalsToInTime.trans domainFieldRowComputer.step
+        (2 * indexBits.length + countBits.length + 4 +
+          domainFieldRowValuesTime index (value :: values))
+        (outputBits.length + 1)
+        (domainFieldRowCfg (some .start) none
+          (none :: indexBits.map some ++ none :: countBits.map some ++
+            SourceOrderRawFields.encode (value :: values)) [] [] [] [])
+        (domainFieldRowCfg (some .finish) none [] (indexBits.map some) []
+          outputBits.reverse [])
+        (some (domainFieldRowCfg (some .clearIndex) none []
+          (indexBits.map some) [] [] outputBits))
+        (by
+          simpa [outputBits, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+            using hthroughValues)
+        (by simpa [List.reverse_reverse] using hfinish)
+      rw [show outputBits.length + 1 +
+          (2 * indexBits.length + countBits.length + 4 +
+            domainFieldRowValuesTime index (value :: values)) =
+        2 * indexBits.length + countBits.length + 5 +
+          domainFieldRowValuesTime index (value :: values) +
+            outputBits.length by omega] at hthroughFinish
+      have hclear := domainFieldRow_clearIndex_evals
+        (indexBits.map some) outputBits none
+      have hall := EvalsToInTime.trans domainFieldRowComputer.step
+        (2 * indexBits.length + countBits.length + 5 +
+          domainFieldRowValuesTime index (value :: values) + outputBits.length)
+        (indexBits.length + 1)
+        (domainFieldRowCfg (some .start) none
+          (none :: indexBits.map some ++ none :: countBits.map some ++
+            SourceOrderRawFields.encode (value :: values)) [] [] [] [])
+        (domainFieldRowCfg (some .clearIndex) none [] (indexBits.map some) []
+          [] outputBits)
+        (some (domainFieldRowCfg none none [] [] [] [] outputBits))
+        (by
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+            hthroughFinish)
+        (by simpa using hclear)
+      rw [show indexBits.length + 1 +
+          (2 * indexBits.length + countBits.length + 5 +
+            domainFieldRowValuesTime index (value :: values) +
+              outputBits.length) =
+        3 * indexBits.length + countBits.length +
+          domainFieldRowValuesTime index (value :: values) +
+            outputBits.length + 6 by omega] at hall
+      rw [hinput]
+      simpa [indexBits, countBits, outputBits, Nat.add_assoc, Nat.add_comm,
+        Nat.add_left_comm] using hall
+
+/-- One complete counted domain row expands to all of its indexed occurrence
+blocks in quadratic time in the checked bit-level row encoding. -/
+def domainFieldRow_outputsInTime (row : ℕ × List ℕ) :
+    TM2OutputsInTime domainFieldRowComputer
+      (DomainFieldRow.inputEncode row)
+      (some (DomainFieldRow.outputEncode (DomainFieldRow.occurrences row)))
+      (20 * ((DomainFieldRow.inputEncode row).length + 1) ^ 2) := by
+  rcases row with ⟨index, values⟩
+  have hrun := domainFieldRow_run_evals index values
+  have hn : (encodeNat index).length ≤
+      (encodeNat index).length + (encodeNat values.length).length +
+        values.length +
+          (values.map fun value => (encodeNat value).length).sum + 2 := by
+    omega
+  have hm : values.length ≤
+      (encodeNat index).length + (encodeNat values.length).length +
+        values.length +
+          (values.map fun value => (encodeNat value).length).sum + 2 := by
+    omega
+  have hproduct := Nat.mul_le_mul hm hn
+  have hmono : EvalsToInTime domainFieldRowComputer.step
+      (domainFieldRowCfg (some .start) none
+        (DomainFieldRow.inputEncode (index, values)) [] [] [] [])
+      (some (domainFieldRowCfg none none [] [] [] []
+        (DomainFieldRow.outputEncode
+          (DomainFieldRow.occurrences (index, values)))))
+      (20 * ((DomainFieldRow.inputEncode (index, values)).length + 1) ^ 2) :=
+    evalsToInTimeMono hrun (by
+      rw [DomainFieldRow.inputEncode_length,
+        DomainFieldRow.outputEncode_occurrences_length,
+        domainFieldRowValuesTime_eq]
+      nlinarith)
+  rw [TM2OutputsInTime, domainFieldRow_initList_eq_cfg]
+  simp only [Option.map_some]
+  rw [domainFieldRow_haltList_eq_cfg]
+  exact hmono
+
+/-- A finite-machine polynomial-time witness for expanding every explicitly
+listed value in one counted domain while preserving its current index. -/
+noncomputable def domainFieldRowComputableInPolyTime :
+    @TM2ComputableInPolyTime (ℕ × List ℕ) (List (ℕ × ℕ))
+      DomainFieldRow.inputFinEncoding DomainFieldRow.outputFinEncoding
+      DomainFieldRow.occurrences where
+  tm := domainFieldRowComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := 20 * (Polynomial.X + 1) ^ 2
+  outputsFun row := by
+    simpa [DomainFieldRow.inputFinEncoding,
+      DomainFieldRow.outputFinEncoding, Equiv.refl, Polynomial.eval_mul,
+      Polynomial.eval_add, Polynomial.eval_pow, Polynomial.eval_natCast,
+      Polynomial.eval_one, Polynomial.eval_X] using
+        domainFieldRow_outputsInTime row
 
 /-! ## Binary predecessor
 
@@ -14524,6 +16006,9 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms ScopeFieldBlock.fields_eq_record
 #print axioms scopeFieldBlock_outputsInTime
 #print axioms scopeFieldBlockComputableInPolyTime
+#print axioms DomainFieldRow.outputDecode_encode
+#print axioms domainFieldRow_outputsInTime
+#print axioms domainFieldRowComputableInPolyTime
 #print axioms binaryPredBits_encodeNat
 #print axioms binaryPred_outputsInTime
 #print axioms binaryPredComputableInPolyTime

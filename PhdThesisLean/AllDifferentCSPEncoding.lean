@@ -79,10 +79,12 @@ and reversal is proved to give the checked raw structural encoding. The finite
 machine layer now emits one exact `[3, 0, index, value]` domain-occurrence
 block from arbitrary source-order index/value fields in linear time. It also
 emits one exact intact `[|S|+1, 1, ...S]` scope block in linear time from the
-count-checked source fields, including empty and singleton scopes. The outer
-driver that applies these branches and stages the complete stream, encoded
-objective emission, and whole-compiler composition remain separate from these
-encoding and size results.
+count-checked source fields, including empty and singleton scopes. A checked
+quadratic machine expands a complete count-checked indexed domain row into all
+of its exact occurrence blocks, including empty and singleton domains. The
+outer driver that advances between domain rows, switches to scopes, and stages
+the complete stream, encoded objective emission, and whole-compiler
+composition remain separate from these encoding and size results.
 -/
 
 namespace BinaryNatLists

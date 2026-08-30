@@ -187,6 +187,10 @@ fields in at most `2s+2` steps. `scopeFieldBlockComputableInPolyTime` consumes
 one count-checked source scope, increments its row length, inserts tag `1`, and
 copies every entry unchanged as `[|S|+1, 1, ...S]` in at most `3s+8` steps;
 empty and singleton scopes are covered by the general theorem.
+`domainFieldRowComputableInPolyTime` consumes a complete count-checked
+`[index, |D|, ...D]` row and emits every corresponding
+`[3, 0, index, value]` block in at most `20 * (s+1)^2` steps in the complete
+row wire length `s`; empty and singleton domains are covered.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
@@ -473,12 +477,16 @@ The copied statements are grouped by mathematical contribution:
   `[3, 0, index, value]` field block for one domain occurrence in linear time;
   `scopeFieldBlockComputableInPolyTime` emits the exact intact tagged scope
   block `[|S|+1, 1, ...S]` in linear time, including empty and singleton scopes;
+  `domainFieldRowComputableInPolyTime` expands one complete count-checked
+  indexed domain row into all exact tagged occurrence blocks in quadratic
+  bit-level time, including empty and singleton domains;
   `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
   to parse its domain and row lengths;
   `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its
   compiler-input specialization bound the complete tagged intermediate by
   `32 * (s + 1)^2` bits without bounding numeric symbol values by `s`. The
-  outer structural driver and record-count staging,
+  outer structural driver, cross-domain index advancement, scope switching,
+  and record-count staging,
   canonical relabelling, edge deduplication, encoded objective rows, and final
   composition remain open;
   `thm:3sat-clausewise` is

@@ -92,10 +92,13 @@ remaining-domain and remaining-value countdowns in linear time. Emitting the
 exact tagged domain-occurrence block from current index/value fields is now a
 checked linear-time finite-machine step. A second checked linear machine turns
 one count-checked source scope into the exact intact `[|S|+1, 1, ...S]` block,
-including empty and singleton scopes. The outer driver that applies these
-local branches, maintains domain indices and record counts, and stages the
-complete structural stream remains, as do canonical row construction, encoded
-objective emission, and final whole-compiler composition.
+including empty and singleton scopes. A checked quadratic finite machine also
+expands one complete count-checked indexed domain row into every exact
+`[3, 0, index, value]` block, including empty and singleton domains. The outer
+driver that advances indices between rows, switches to scope records,
+maintains record counts, and stages the complete structural stream remains, as
+do canonical row construction, encoded objective emission, and final
+whole-compiler composition.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -1215,7 +1218,9 @@ The machine module fixes and verifies the exact semantic-order field stream
 for every tagged domain occurrence and intact scope, including its reversal to
 the checked raw structural encoding. Its local domain-occurrence transducer
 emits `[3, 0, index, value]` in linear time from arbitrary current-index and
-value fields; the outer tagged record-staging loop, canonical relabelling,
+value fields, and its domain-row driver expands every explicitly counted value
+for one index in quadratic bit-level time. Cross-domain index advancement,
+scope switching, the outer tagged record-staging loop, canonical relabelling,
 edge deduplication, encoded objective emission, and final runtime composition
 remain before `cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness

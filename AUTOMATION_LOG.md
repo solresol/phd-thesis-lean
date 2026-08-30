@@ -2316,3 +2316,72 @@
   output agrees with `StructuralFieldStream.encode`, then reverse it into
   `RuntimeStructuralView.rawFinEncoding` and compose the existing framing
   bridge.
+
+## 2026-08-31 05:55 AEST — expand one complete indexed domain row
+
+- **Starting state:** clean synchronized `main` at
+  `2252803590ef8d14670429e76364b2059c0d2d70`. A fresh fetch confirmed local
+  `HEAD`, `origin/main`, and the live tracking state agreed, so no fast-forward
+  was needed. The active thesis checkout was clean at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`; the exact
+  `cor:all-different-csp` proof still requires the complete polynomial
+  compiler, including source-order structural traversal, canonical shared-
+  value relabelling, deduplicated primal edges, selected-prime construction,
+  dataset emission, and semantic composition. The corollary remains
+  **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean at
+  `bbda24607069652e00e54541387e01505f6411df`. Its latest checked ordered-
+  reduction input transfer remains useful for later composition, but it has no
+  complete repeated-record driver for one source domain. The sibling and this
+  project's pinned dependency were not changed.
+- **Chosen increment:** closed the inner domain-row loop of the structural
+  emitter. A checked input row contains the current variable index, an
+  explicit value count, and every source-order value field. The machine keeps
+  the index on a persistent stack, emits one exact tagged occurrence block per
+  value, reverses the accumulated output once, and clears every non-output
+  stack before halting.
+- **Headline declarations:** `DomainFieldRow.inputFinEncoding` checks the
+  explicit row count; `DomainFieldRow.outputFinEncoding` accepts only complete
+  `[3, 0, index, value]` groups; `DomainFieldRow.inputEncode_length` and
+  `outputEncode_occurrences_length` expose exact bit-level sizes.
+  `domainFieldRowComputer` is a concrete five-stack finite machine;
+  `domainFieldRow_outputsInTime` proves the exact occurrence list is emitted
+  in at most `20 * (s+1)^2` steps for complete encoded row length `s`; and
+  `domainFieldRowComputableInPolyTime` packages the corresponding
+  `TM2ComputableInPolyTime` witness. Empty and singleton domains are handled by
+  the general proof, with equality-preserving reuse of the same supplied index
+  for every value.
+- **Failed proof shapes and corrections:** the first complete run exposed that
+  a standard `haltList` configuration requires all work stacks empty; the
+  initial program retained the persistent index stack. A finite `clearIndex`
+  phase now discharges it before halt. Early closed-form length proofs asked
+  `omega` to distribute products, so the checked proofs now isolate exact
+  block lengths and use semiring normalization. The phase-composition proof
+  also revealed the library's accumulated-time association; explicit `omega`
+  equalities normalize those sums without changing the machine or bound.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  checked row encodings, semantic occurrence function, finite program, exact
+  phase and end-to-end executions, quadratic bit-level runtime theorem,
+  polynomial wrapper, and three axiom audits.
+  `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the new boundary while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine
+  PhdThesisLean.AllDifferentCSPEncoding PhdThesisLean.AllDifferentCSP` (3100
+  jobs); full `lake build`; `git diff --check`; and a tracked project Lean-
+  source scan for `sorry`, `admit`, project `axiom`, `unsafe`, and
+  `proof_wanted` (all empty). New `#print axioms` audits report only the
+  standard `propext`, `Classical.choice`, and `Quot.sound` dependencies.
+- **Ending state before commit:** one coherent verified domain-row finite-
+  machine increment plus synchronized correspondence/status documentation;
+  no thesis, sibling, or unrelated repository work was changed.
+- **Best next step:** build the outer source-order driver around this row
+  machine: consume the domain-count boundary, advance the current index after
+  every domain including empty and singleton rows, switch to
+  `scopeFieldBlockComputer`, stage the variable header and exact record count,
+  and prove agreement with `StructuralFieldStream.encode` before composing the
+  existing raw reversal and framing bridge.
