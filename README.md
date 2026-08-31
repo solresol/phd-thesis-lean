@@ -191,6 +191,12 @@ empty and singleton scopes are covered by the general theorem.
 `[index, |D|, ...D]` row and emits every corresponding
 `[3, 0, index, value]` block in at most `20 * (s+1)^2` steps in the complete
 row wire length `s`; empty and singleton domains are covered.
+`DomainFieldSection.inputFinEncoding` checks an entire domain section using
+the exact source-order nested-list wire format: the outer domain count and
+every inner value count are decoder-checked. `occurrences_indexedRowsFrom`
+proves that row indices advance across all domains, including empty ones, and
+`outputEncode_eq_structuralFields` identifies the concatenated checked row
+outputs exactly with `StructuralFieldStream.domainFieldsFrom`.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
@@ -480,6 +486,10 @@ The copied statements are grouped by mathematical contribution:
   `domainFieldRowComputableInPolyTime` expands one complete count-checked
   indexed domain row into all exact tagged occurrence blocks in quadratic
   bit-level time, including empty and singleton domains;
+  `DomainFieldSection.inputFinEncoding` checks the complete counted domain
+  section in the existing source-order encoding, while
+  `outputEncode_eq_structuralFields` proves that its consecutive indexed-row
+  outputs are exactly the domain part of the structural target;
   `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
   to parse its domain and row lengths;
   `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its

@@ -94,8 +94,12 @@ checked linear-time finite-machine step. A second checked linear machine turns
 one count-checked source scope into the exact intact `[|S|+1, 1, ...S]` block,
 including empty and singleton scopes. A checked quadratic finite machine also
 expands one complete count-checked indexed domain row into every exact
-`[3, 0, index, value]` block, including empty and singleton domains. The outer
-driver that advances indices between rows, switches to scope records,
+`[3, 0, index, value]` block, including empty and singleton domains. A checked
+whole-domain-section parser now verifies the outer domain count and every row
+count in the exact source-order encoding; its index-advancement and output
+lemmas show that concatenated row outputs are exactly the domain portion of
+the structural target, including empty rows. The outer finite driver that
+realizes this section contract, switches to scope records,
 maintains record counts, and stages the complete structural stream remains, as
 do canonical row construction, encoded objective emission, and final
 whole-compiler composition.

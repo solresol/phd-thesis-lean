@@ -2385,3 +2385,65 @@
   `scopeFieldBlockComputer`, stage the variable header and exact record count,
   and prove agreement with `StructuralFieldStream.encode` before composing the
   existing raw reversal and framing bridge.
+
+## 2026-09-01 05:38 AEST — check the complete domain-section contract
+
+- **Starting state:** clean synchronized `main` at
+  `900925f9dd46dca17daa118f4ff852f188577c97`. A fresh fetch confirmed local
+  `HEAD`, `origin/main`, and the live remote `main` ref agreed, so no
+  fast-forward was needed. The active thesis checkout was clean at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`; its proof of
+  `cor:all-different-csp` still claims the complete polynomial compiler. The
+  corollary remains **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean at
+  `fb9798f`. Its latest pair-preprocessing and composition APIs do not provide
+  a generic repeated-record/list-map machine, so no generic foundation was
+  duplicated or changed in that repository.
+- **Chosen increment:** fixed a checked whole-domain-section interface for the
+  next structural finite driver. The source-order input contains the exact
+  domain count followed by count-prefixed rows; its decoder checks the outer
+  count, every inner count, and exhaustion of all fields. Consecutive row
+  indices are explicit and advance across empty as well as nonempty domains.
+- **Headline declarations:** `DomainFieldSection.inputFinEncoding` is the
+  complete checked domain-section encoding;
+  `inputEncode_eq_sourceOrderRawNatLists` proves it is exactly the existing
+  source-order nested-list wire format. `occurrences_indexedRowsFrom` identifies
+  the indexed row expansion with
+  `RuntimeStructuralView.indexedDomainOccurrencesFrom`, including empty-row
+  index advancement. `outputEncode_eq_row_outputs` proves the section output
+  is the concatenation of the already checked per-row outputs, and
+  `outputEncode_eq_structuralFields` identifies that output exactly with
+  `StructuralFieldStream.domainFieldsFrom`.
+- **Failed proof shapes and corrections:** simplification did not initially
+  expose the recursive `parseRows` equation under the computed successor
+  length; changing the goal to an explicit `Nat.succ` and source-row append
+  made the count invariant available. The structural-output induction also
+  needed the row output and raw-field encoders unfolded on the induction
+  hypothesis before the append equality could rewrite. Both corrections are
+  proof-local and leave the executable definitions unchanged.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  parser, checked encoding, indexed-row specification, exact row-concatenation
+  and structural-target lemmas, module correspondence note, and five axiom
+  audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the new boundary while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine
+  PhdThesisLean.AllDifferentCSPEncoding PhdThesisLean.AllDifferentCSP` (3100
+  jobs); and full `lake build` (3123 jobs). New `#print axioms` audits report
+  only the standard `propext`, `Classical.choice`, and `Quot.sound`
+  dependencies. The final diff and prohibited-token scans follow this entry
+  before commit.
+- **Ending state before commit:** one coherent checked domain-section contract
+  plus synchronized correspondence/status documentation; no thesis, sibling,
+  or unrelated repository work was changed.
+- **Best next step:** implement the finite driver for
+  `DomainFieldSection.inputFinEncoding`: count down the checked rows and their
+  values, maintain and increment the current binary index even for an empty
+  row, reuse the checked per-row output contract, and package the exact
+  `RuntimeStructuralView.indexedDomainOccurrences` map as a
+  `TM2ComputableInPolyTime` witness. Then splice the scope branch and stage the
+  variable/record-count header.

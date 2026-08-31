@@ -85,6 +85,11 @@ empty and singleton scopes.
 from a count-checked row `[index, |D|, ...D]`, it emits every exact
 `[3, 0, index, value]` block in at most `20(s+1)^2` steps, including empty
 and singleton domains, and halts with every non-output stack empty.
+`DomainFieldSection.inputFinEncoding` now checks the complete counted domain
+section, including its outer row count and every inner value count;
+`occurrences_indexedRowsFrom` makes consecutive index advancement explicit,
+and `outputEncode_eq_structuralFields` proves that concatenating the checked
+row outputs is exactly `StructuralFieldStream.domainFieldsFrom`.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for the outer driver that parses every domain and
@@ -5975,6 +5980,174 @@ noncomputable def domainFieldRowComputableInPolyTime :
       Polynomial.eval_add, Polynomial.eval_pow, Polynomial.eval_natCast,
       Polynomial.eval_one, Polynomial.eval_X] using
         domainFieldRow_outputsInTime row
+
+/-! ## Complete domain-section contract
+
+The next outer finite driver must traverse all counted domain rows, not just
+one row in isolation.  This section fixes a checked interface for that pass.
+The input is exactly the source-order raw encoding of the nested domain list:
+its first field is the number of domains and each row begins with its value
+count.  The decoder checks both levels of counts and rejects leftover fields.
+
+`indexedRowsFrom` makes the required index advance explicit, including across
+empty domains.  The output lemmas then identify the concatenation of the
+already checked row outputs with `StructuralFieldStream.domainFieldsFrom`, the
+domain portion of the eventual structural compiler output.  A future machine
+for this interface therefore has a complete typed contract rather than an
+informal repeated-row invariant.
+-/
+
+namespace DomainFieldSection
+
+/-- Count-prefixed source fields for every domain row. -/
+def rowFields (domains : List (List ℕ)) : List ℕ :=
+  domains.flatMap fun domain => domain.length :: domain
+
+/-- Complete domain-section fields: domain count followed by counted rows. -/
+def inputFields (domains : List (List ℕ)) : List ℕ :=
+  domains.length :: rowFields domains
+
+/-- Source-order raw encoding of the complete counted domain section. -/
+def inputEncode (domains : List (List ℕ)) : List (Option Bool) :=
+  SourceOrderRawFields.encode (inputFields domains)
+
+theorem inputFields_eq_flatten (domains : List (List ℕ)) :
+    inputFields domains = StructuralFieldStream.flatten domains :=
+  rfl
+
+/-- The local field encoding is exactly the checked source-order encoding of
+the nested domain list, rather than a bespoke unit-cell representation. -/
+theorem inputEncode_eq_sourceOrderRawNatLists
+    (domains : List (List ℕ)) :
+    inputEncode domains = SourceOrderRawNatLists.encode domains := by
+  rw [inputEncode, inputFields_eq_flatten,
+    SourceOrderRawNatLists.encode_eq_payloads]
+  simp only [SourceOrderRawFields.encode, StructuralFieldStream.flatten,
+    RawNatLists.payloads, List.flatMap_cons]
+  congr 1
+  induction domains with
+  | nil => rfl
+  | cons domain domains ih =>
+      simp [ih, List.flatMap_map]
+
+/-- Parse exactly the declared number of count-prefixed domain rows. -/
+def parseRows : ℕ → List ℕ → Option (List (List ℕ))
+  | 0, [] => some []
+  | 0, _ :: _ => none
+  | _ + 1, [] => none
+  | count + 1, rowCount :: fields => do
+      if rowCount ≤ fields.length then
+        let row := fields.take rowCount
+        let rest := fields.drop rowCount
+        pure (row :: (← parseRows count rest))
+      else
+        none
+
+@[simp]
+theorem parseRows_rowFields (domains : List (List ℕ)) :
+    parseRows domains.length (rowFields domains) = some domains := by
+  induction domains with
+  | nil => rfl
+  | cons domain domains ih =>
+      change parseRows (Nat.succ domains.length)
+        (domain.length :: domain ++ rowFields domains) =
+          some (domain :: domains)
+      simp [parseRows, ih]
+
+/-- Decode the complete domain section and check its outer and row counts. -/
+def inputDecode (input : List (Option Bool)) : Option (List (List ℕ)) := do
+  match ← SourceOrderRawFields.decode input with
+  | count :: fields => parseRows count fields
+  | [] => none
+
+@[simp]
+theorem inputDecode_encode (domains : List (List ℕ)) :
+    inputDecode (inputEncode domains) = some domains := by
+  simp [inputDecode, inputEncode, inputFields]
+
+/-- Checked source-order encoding for a complete domain section. -/
+def inputFinEncoding : FinEncoding (List (List ℕ)) where
+  Γ := Option Bool
+  encode := inputEncode
+  decode := inputDecode
+  decode_encode := inputDecode_encode
+  ΓFin := inferInstance
+
+/-- Attach consecutive variable indices to every domain row. -/
+def indexedRowsFrom : ℕ → List (List ℕ) → List (ℕ × List ℕ)
+  | _, [] => []
+  | index, domain :: domains =>
+      (index, domain) :: indexedRowsFrom (index + 1) domains
+
+@[simp]
+theorem indexedRowsFrom_length (start : ℕ) (domains : List (List ℕ)) :
+    (indexedRowsFrom start domains).length = domains.length := by
+  induction domains generalizing start with
+  | nil => rfl
+  | cons domain domains ih => simp [indexedRowsFrom, ih]
+
+/-- Expanding the indexed rows gives exactly the structural view's occurrence
+stream.  Empty rows still advance the following row's index. -/
+theorem occurrences_indexedRowsFrom (start : ℕ)
+    (domains : List (List ℕ)) :
+    (indexedRowsFrom start domains).flatMap DomainFieldRow.occurrences =
+      RuntimeStructuralView.indexedDomainOccurrencesFrom start domains := by
+  induction domains generalizing start with
+  | nil => rfl
+  | cons domain domains ih =>
+      simp [indexedRowsFrom, DomainFieldRow.occurrences,
+        RuntimeStructuralView.indexedDomainOccurrencesFrom, ih]
+
+/-- Concatenation of the checked per-row inputs after indices are attached. -/
+def rowInputEncode (domains : List (List ℕ)) : List (Option Bool) :=
+  (indexedRowsFrom 0 domains).flatMap DomainFieldRow.inputEncode
+
+/-- Exact occurrence-block output required from the domain-section pass. -/
+def outputEncode (domains : List (List ℕ)) : List (Option Bool) :=
+  DomainFieldRow.outputEncode
+    (RuntimeStructuralView.indexedDomainOccurrences domains)
+
+/-- The domain-section output is the concatenation of all checked local row
+outputs in source order. -/
+theorem outputEncode_eq_row_outputs (domains : List (List ℕ)) :
+    outputEncode domains =
+      (indexedRowsFrom 0 domains).flatMap fun row =>
+        DomainFieldRow.outputEncode (DomainFieldRow.occurrences row) := by
+  rw [outputEncode, RuntimeStructuralView.indexedDomainOccurrences,
+    ← occurrences_indexedRowsFrom]
+  simp [DomainFieldRow.outputEncode, List.flatMap_assoc]
+
+private theorem outputEncodeFrom_eq_structuralFields (start : ℕ)
+    (domains : List (List ℕ)) :
+    DomainFieldRow.outputEncode
+        (RuntimeStructuralView.indexedDomainOccurrencesFrom start domains) =
+      SourceOrderRawFields.encode
+        (StructuralFieldStream.domainFieldsFrom start domains) := by
+  induction domains generalizing start with
+  | nil => rfl
+  | cons domain domains ih =>
+      simp only [RuntimeStructuralView.indexedDomainOccurrencesFrom,
+        StructuralFieldStream.domainFieldsFrom,
+        DomainFieldRow.outputEncode, List.flatMap_append]
+      have ih' := ih (start + 1)
+      rw [DomainFieldRow.outputEncode, SourceOrderRawFields.encode] at ih'
+      rw [SourceOrderRawFields.encode, List.flatMap_append, ih']
+      congr 1
+      induction domain with
+      | nil => rfl
+      | cons value values ihValues =>
+          simp [DomainOccurrenceFieldBlock.outputEncode,
+            SourceOrderRawFields.encode, ihValues]
+
+/-- The section output is exactly the domain portion of the complete
+`StructuralFieldStream` target. -/
+theorem outputEncode_eq_structuralFields (domains : List (List ℕ)) :
+    outputEncode domains =
+      SourceOrderRawFields.encode
+        (StructuralFieldStream.domainFieldsFrom 0 domains) := by
+  exact outputEncodeFrom_eq_structuralFields 0 domains
+
+end DomainFieldSection
 
 /-! ## Binary predecessor
 
@@ -16009,6 +16182,11 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms DomainFieldRow.outputDecode_encode
 #print axioms domainFieldRow_outputsInTime
 #print axioms domainFieldRowComputableInPolyTime
+#print axioms DomainFieldSection.inputFinEncoding
+#print axioms DomainFieldSection.inputEncode_eq_sourceOrderRawNatLists
+#print axioms DomainFieldSection.occurrences_indexedRowsFrom
+#print axioms DomainFieldSection.outputEncode_eq_row_outputs
+#print axioms DomainFieldSection.outputEncode_eq_structuralFields
 #print axioms binaryPredBits_encodeNat
 #print axioms binaryPred_outputsInTime
 #print axioms binaryPredComputableInPolyTime

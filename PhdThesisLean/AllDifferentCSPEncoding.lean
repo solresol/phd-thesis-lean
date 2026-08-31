@@ -82,9 +82,13 @@ emits one exact intact `[|S|+1, 1, ...S]` scope block in linear time from the
 count-checked source fields, including empty and singleton scopes. A checked
 quadratic machine expands a complete count-checked indexed domain row into all
 of its exact occurrence blocks, including empty and singleton domains. The
-outer driver that advances between domain rows, switches to scopes, and stages
-the complete stream, encoded objective emission, and whole-compiler
-composition remain separate from these encoding and size results.
+machine layer now also checks a complete source-order domain section, proves
+that consecutive indices advance across empty rows, and identifies the
+concatenated checked row outputs with the exact domain portion of the
+structural target. The finite driver realizing that section contract,
+scope switching, complete-stream staging, encoded objective emission, and
+whole-compiler composition remain separate from these encoding and size
+results.
 -/
 
 namespace BinaryNatLists
