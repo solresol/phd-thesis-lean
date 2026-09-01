@@ -85,10 +85,12 @@ of its exact occurrence blocks, including empty and singleton domains. The
 machine layer now also checks a complete source-order domain section, proves
 that consecutive indices advance across empty rows, and identifies the
 concatenated checked row outputs with the exact domain portion of the
-structural target. The finite driver realizing that section contract,
-scope switching, complete-stream staging, encoded objective emission, and
-whole-compiler composition remain separate from these encoding and size
-results.
+structural target. Its checked linear payload pass removes the verified outer
+domain count while preserving every complete count-prefixed row cell in source
+order, including the empty-section case. The finite driver adding consecutive
+indices and realizing the row contract, scope switching, complete-stream
+staging, encoded objective emission, and whole-compiler composition remain
+separate from these encoding and size results.
 -/
 
 namespace BinaryNatLists

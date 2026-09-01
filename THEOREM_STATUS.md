@@ -39,9 +39,11 @@ that no statement-faithful Lean theorem is currently present.
 | `cor:sudoku-special-case` | Pending wrapper | The general all-different theorem supplies the mathematics, but the 81-cell peer graph, degree-20 bound, clue domains, and Sudoku equivalence have not been instantiated in Lean. |
 
 For the partial `cor:all-different-csp` runtime path, the latest checked
-increment is `DomainFieldSection.inputFinEncoding`: it parses an entire domain
-section in the exact existing source-order nested-list encoding and verifies
-both its outer domain count and every inner value count. The accompanying
+increment is `domainRowPayloadComputableInPolyTime`: from
+`DomainFieldSection.inputFinEncoding`, a concrete three-stack finite machine
+removes only the decoder-checked outer domain count and emits every complete
+count-prefixed row field unchanged in semantic source order in at most
+`2s+1` steps, including the empty-section case. The accompanying
 `occurrences_indexedRowsFrom` theorem advances consecutive indices across all
 rows, including empty rows, while `outputEncode_eq_row_outputs` and
 `outputEncode_eq_structuralFields` prove that concatenating the already
@@ -51,9 +53,10 @@ quadratic machine for each indexed row, and
 `scopeFieldBlockComputableInPolyTime` supplies the intact-scope branch.
 `StructuralFieldStream.raw_decode_encode_reverse` still supplies the complete
 full-stream target, and the prior quadratic theorem bounds that target in the
-actual compiler input bit length. The outer finite driver that realizes the
-new whole-domain-section contract, switches to the scope branch, maintains
-record counts, and stages the complete output remains absent;
+actual compiler input bit length. The outer finite driver that reads the
+exhaustion-delimited row payload, adds consecutive indices, switches to the
+scope branch, maintains record counts, and stages the complete output remains
+absent;
 `binaryPredComputableInPolyTime` already supplies its empty- and
 singleton-safe binary countdown operation.
 

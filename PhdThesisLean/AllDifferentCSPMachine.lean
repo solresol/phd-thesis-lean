@@ -89,7 +89,11 @@ and singleton domains, and halts with every non-output stack empty.
 section, including its outer row count and every inner value count;
 `occurrences_indexedRowsFrom` makes consecutive index advancement explicit,
 and `outputEncode_eq_structuralFields` proves that concatenating the checked
-row outputs is exactly `StructuralFieldStream.domainFieldsFrom`.
+row outputs is exactly `StructuralFieldStream.domainFieldsFrom`. The concrete
+`domainRowPayloadComputableInPolyTime` pass removes only the checked outer
+domain count and preserves every count-prefixed row cell in source order in at
+most `2s + 1` steps. Thus the next indexed-row driver can halt on exact payload
+exhaustion instead of maintaining a second binary countdown.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for the outer driver that parses every domain and
@@ -6148,6 +6152,513 @@ theorem outputEncode_eq_structuralFields (domains : List (List ℕ)) :
   exact outputEncodeFrom_eq_structuralFields 0 domains
 
 end DomainFieldSection
+
+/-! ## Complete domain-section payload extraction
+
+The checked domain-section input begins with a redundant outer row count.
+The eventual indexed-row driver can instead halt when the exact row payload
+is exhausted, provided that this first field is removed by a genuine finite
+machine rather than by a semantic projection.  The pass below discards only
+that decoder-checked count field and preserves every count-prefixed row cell
+byte-for-byte.  In particular, an empty domain section becomes the empty row
+payload rather than a distinguished malformed case.
+-/
+
+/-- Input, reversal scratch, and semantic-order output stacks for removing
+the complete domain-count field. -/
+inductive DomainRowPayloadStack
+  | input
+  | scratch
+  | output
+  deriving DecidableEq, Fintype
+
+/-- Initial delimiter removal, binary count skipping, payload staging, and
+order restoration. -/
+inductive DomainRowPayloadLabel
+  | start
+  | skipCount
+  | stash
+  | restore
+  deriving DecidableEq, Fintype
+
+/-- The outer option records stack exhaustion; the inner option distinguishes
+a field delimiter from a binary payload bit. -/
+abbrev DomainRowPayloadState := Option (Option Bool)
+
+private def domainRowPayloadPopped
+    (_state : DomainRowPayloadState)
+    (symbol : Option (Option Bool)) : DomainRowPayloadState :=
+  symbol
+
+private def domainRowPayloadPresent : DomainRowPayloadState → Bool
+  | some _ => true
+  | none => false
+
+private def domainRowPayloadIsBit : DomainRowPayloadState → Bool
+  | some (some _) => true
+  | _ => false
+
+private def domainRowPayloadHeld : DomainRowPayloadState → Option Bool
+  | some symbol => symbol
+  | none => none
+
+private def DomainRowPayloadAlphabet
+    (_index : DomainRowPayloadStack) : Type :=
+  Option Bool
+
+/-- Remove the first delimiter and its binary field, then reverse the
+remaining source cells twice so their semantic order is unchanged. -/
+def domainRowPayloadProgram :
+    DomainRowPayloadLabel →
+      TM2.Stmt DomainRowPayloadAlphabet DomainRowPayloadLabel
+        DomainRowPayloadState
+  | .start =>
+      .pop .input domainRowPayloadPopped <|
+        .goto (fun _ => .skipCount)
+  | .skipCount =>
+      .pop .input domainRowPayloadPopped <|
+        .branch domainRowPayloadPresent
+          (.branch domainRowPayloadIsBit
+            (.goto (fun _ => .skipCount))
+            (.push .scratch domainRowPayloadHeld <|
+              .goto (fun _ => .stash)))
+          (.goto (fun _ => .restore))
+  | .stash =>
+      .pop .input domainRowPayloadPopped <|
+        .branch domainRowPayloadPresent
+          (.push .scratch domainRowPayloadHeld <|
+            .goto (fun _ => .stash))
+          (.goto (fun _ => .restore))
+  | .restore =>
+      .pop .scratch domainRowPayloadPopped <|
+        .branch domainRowPayloadPresent
+          (.push .output domainRowPayloadHeld <|
+            .goto (fun _ => .restore))
+          .halt
+
+/-- Concrete three-stack machine extracting the complete domain-row payload.
+-/
+def domainRowPayloadComputer : FinTM2 where
+  K := DomainRowPayloadStack
+  k₀ := .input
+  k₁ := .output
+  Γ := DomainRowPayloadAlphabet
+  Λ := DomainRowPayloadLabel
+  main := .start
+  σ := DomainRowPayloadState
+  initialState := none
+  Γk₀Fin := show Fintype (Option Bool) from inferInstance
+  m := domainRowPayloadProgram
+
+private def domainRowPayloadStackContents
+    (input scratch output : List (Option Bool)) :
+    (index : DomainRowPayloadStack) →
+      List (DomainRowPayloadAlphabet index)
+  | .input => input
+  | .scratch => scratch
+  | .output => output
+
+private def domainRowPayloadCfg
+    (label : Option DomainRowPayloadLabel)
+    (state : DomainRowPayloadState)
+    (input scratch output : List (Option Bool)) :
+    domainRowPayloadComputer.Cfg where
+  l := label
+  var := state
+  stk := domainRowPayloadStackContents input scratch output
+
+private theorem domainRowPayload_step_start
+    (input scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    domainRowPayloadComputer.step
+        (domainRowPayloadCfg (some .start) state input scratch output) =
+      some (domainRowPayloadCfg (some .skipCount) input.head?
+        input.tail scratch output) := by
+  simp [domainRowPayloadComputer, FinTM2.step, domainRowPayloadCfg,
+    domainRowPayloadProgram, domainRowPayloadStackContents,
+    DomainRowPayloadAlphabet, domainRowPayloadPopped]
+  funext index
+  cases index <;> rfl
+
+private theorem domainRowPayload_step_skipCount_bit
+    (bit : Bool) (input scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    domainRowPayloadComputer.step
+        (domainRowPayloadCfg (some .skipCount) state
+          (some bit :: input) scratch output) =
+      some (domainRowPayloadCfg (some .skipCount) (some (some bit))
+        input scratch output) := by
+  cases bit <;>
+    simp [domainRowPayloadComputer, FinTM2.step, domainRowPayloadCfg,
+      domainRowPayloadProgram, domainRowPayloadStackContents,
+      DomainRowPayloadAlphabet, domainRowPayloadPopped,
+      domainRowPayloadPresent, domainRowPayloadIsBit] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem domainRowPayload_step_skipCount_delimiter
+    (input scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    domainRowPayloadComputer.step
+        (domainRowPayloadCfg (some .skipCount) state
+          (none :: input) scratch output) =
+      some (domainRowPayloadCfg (some .stash) (some none)
+        input (none :: scratch) output) := by
+  simp [domainRowPayloadComputer, FinTM2.step, domainRowPayloadCfg,
+    domainRowPayloadProgram, domainRowPayloadStackContents,
+    DomainRowPayloadAlphabet, domainRowPayloadPopped,
+    domainRowPayloadPresent, domainRowPayloadIsBit,
+    domainRowPayloadHeld, Function.update]
+  funext index
+  cases index <;> rfl
+
+private theorem domainRowPayload_step_skipCount_nil
+    (scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    domainRowPayloadComputer.step
+        (domainRowPayloadCfg (some .skipCount) state [] scratch output) =
+      some (domainRowPayloadCfg (some .restore) none [] scratch output) := by
+  simp [domainRowPayloadComputer, FinTM2.step, domainRowPayloadCfg,
+    domainRowPayloadProgram, domainRowPayloadStackContents,
+    DomainRowPayloadAlphabet, domainRowPayloadPopped,
+    domainRowPayloadPresent]
+
+private theorem domainRowPayload_step_stash_cons
+    (symbol : Option Bool) (input scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    domainRowPayloadComputer.step
+        (domainRowPayloadCfg (some .stash) state
+          (symbol :: input) scratch output) =
+      some (domainRowPayloadCfg (some .stash) (some symbol)
+        input (symbol :: scratch) output) := by
+  rcases symbol with _ | bit <;>
+    simp [domainRowPayloadComputer, FinTM2.step, domainRowPayloadCfg,
+      domainRowPayloadProgram, domainRowPayloadStackContents,
+      DomainRowPayloadAlphabet, domainRowPayloadPopped,
+      domainRowPayloadPresent, domainRowPayloadHeld, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem domainRowPayload_step_stash_nil
+    (scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    domainRowPayloadComputer.step
+        (domainRowPayloadCfg (some .stash) state [] scratch output) =
+      some (domainRowPayloadCfg (some .restore) none [] scratch output) := by
+  simp [domainRowPayloadComputer, FinTM2.step, domainRowPayloadCfg,
+    domainRowPayloadProgram, domainRowPayloadStackContents,
+    DomainRowPayloadAlphabet, domainRowPayloadPopped,
+    domainRowPayloadPresent]
+
+private theorem domainRowPayload_step_restore_cons
+    (symbol : Option Bool) (scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    domainRowPayloadComputer.step
+        (domainRowPayloadCfg (some .restore) state []
+          (symbol :: scratch) output) =
+      some (domainRowPayloadCfg (some .restore) (some symbol) []
+        scratch (symbol :: output)) := by
+  rcases symbol with _ | bit <;>
+    simp [domainRowPayloadComputer, FinTM2.step, domainRowPayloadCfg,
+      domainRowPayloadProgram, domainRowPayloadStackContents,
+      DomainRowPayloadAlphabet, domainRowPayloadPopped,
+      domainRowPayloadPresent, domainRowPayloadHeld, Function.update] <;>
+    (funext index; cases index <;> rfl)
+
+private theorem domainRowPayload_step_restore_nil
+    (output : List (Option Bool)) (state : DomainRowPayloadState) :
+    domainRowPayloadComputer.step
+        (domainRowPayloadCfg (some .restore) state [] [] output) =
+      some (domainRowPayloadCfg none none [] [] output) := by
+  simp [domainRowPayloadComputer, FinTM2.step, domainRowPayloadCfg,
+    domainRowPayloadProgram, domainRowPayloadStackContents,
+    DomainRowPayloadAlphabet, domainRowPayloadPopped,
+    domainRowPayloadPresent]
+
+private def domainRowPayloadEvalsToInTimeOne
+    {start finish : domainRowPayloadComputer.Cfg}
+    (hstep : domainRowPayloadComputer.step start = some finish) :
+    EvalsToInTime domainRowPayloadComputer.step start (some finish) 1 where
+  steps := 1
+  evals_in_steps := by
+    simpa [Function.iterate_one] using hstep
+  steps_le_m := Nat.le_refl 1
+
+private def domainRowPayload_skipCount_nil_evals
+    (bits : List Bool) (scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    EvalsToInTime domainRowPayloadComputer.step
+      (domainRowPayloadCfg (some .skipCount) state
+        (bits.map some) scratch output)
+      (some (domainRowPayloadCfg (some .restore) none [] scratch output))
+      (bits.length + 1) := by
+  induction bits generalizing state with
+  | nil =>
+      simpa using domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_skipCount_nil scratch output state)
+  | cons bit bits ih =>
+      have hone := domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_skipCount_bit bit
+          (bits.map some) scratch output state)
+      have hrest := ih (some (some bit))
+      exact EvalsToInTime.trans domainRowPayloadComputer.step
+        1 (bits.length + 1)
+        (domainRowPayloadCfg (some .skipCount) state
+          ((bit :: bits).map some) scratch output)
+        (domainRowPayloadCfg (some .skipCount) (some (some bit))
+          (bits.map some) scratch output)
+        (some (domainRowPayloadCfg (some .restore) none [] scratch output))
+        (by simpa using hone) hrest
+
+private def domainRowPayload_stash_evals
+    (input scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    EvalsToInTime domainRowPayloadComputer.step
+      (domainRowPayloadCfg (some .stash) state input scratch output)
+      (some (domainRowPayloadCfg (some .restore) none []
+        (input.reverse ++ scratch) output))
+      (input.length + 1) := by
+  induction input generalizing scratch state with
+  | nil =>
+      simpa using domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_stash_nil scratch output state)
+  | cons symbol input ih =>
+      have hone := domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_stash_cons symbol input scratch output state)
+      have hrest := ih (symbol :: scratch) (some symbol)
+      have hall := EvalsToInTime.trans domainRowPayloadComputer.step
+        1 (input.length + 1)
+        (domainRowPayloadCfg (some .stash) state
+          (symbol :: input) scratch output)
+        (domainRowPayloadCfg (some .stash) (some symbol)
+          input (symbol :: scratch) output)
+        (some (domainRowPayloadCfg (some .restore) none []
+          ((symbol :: input).reverse ++ scratch) output))
+        (by simpa using hone)
+        (by simpa [List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainRowPayload_skipCount_payload_evals
+    (bits : List Bool) (tail scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    EvalsToInTime domainRowPayloadComputer.step
+      (domainRowPayloadCfg (some .skipCount) state
+        (bits.map some ++ none :: tail) scratch output)
+      (some (domainRowPayloadCfg (some .restore) none []
+        ((none :: tail).reverse ++ scratch) output))
+      (bits.length + tail.length + 2) := by
+  induction bits generalizing state with
+  | nil =>
+      have hdelimiter := domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_skipCount_delimiter tail scratch output state)
+      have hstash := domainRowPayload_stash_evals
+        tail (none :: scratch) output (some none)
+      have hall := EvalsToInTime.trans domainRowPayloadComputer.step
+        1 (tail.length + 1)
+        (domainRowPayloadCfg (some .skipCount) state
+          (none :: tail) scratch output)
+        (domainRowPayloadCfg (some .stash) (some none)
+          tail (none :: scratch) output)
+        (some (domainRowPayloadCfg (some .restore) none []
+          ((none :: tail).reverse ++ scratch) output))
+        (by simpa using hdelimiter)
+        (by
+          simpa [List.reverse_cons, List.append_assoc] using hstash)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+  | cons bit bits ih =>
+      have hone := domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_skipCount_bit bit
+          (bits.map some ++ none :: tail) scratch output state)
+      have hrest := ih (some (some bit))
+      have hall := EvalsToInTime.trans domainRowPayloadComputer.step
+        1 (bits.length + tail.length + 2)
+        (domainRowPayloadCfg (some .skipCount) state
+          ((bit :: bits).map some ++ none :: tail) scratch output)
+        (domainRowPayloadCfg (some .skipCount) (some (some bit))
+          (bits.map some ++ none :: tail) scratch output)
+        (some (domainRowPayloadCfg (some .restore) none []
+          ((none :: tail).reverse ++ scratch) output))
+        (by simpa using hone) hrest
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private def domainRowPayload_restore_evals
+    (scratch output : List (Option Bool))
+    (state : DomainRowPayloadState) :
+    EvalsToInTime domainRowPayloadComputer.step
+      (domainRowPayloadCfg (some .restore) state [] scratch output)
+      (some (domainRowPayloadCfg none none [] []
+        (scratch.reverse ++ output)))
+      (scratch.length + 1) := by
+  induction scratch generalizing output state with
+  | nil =>
+      simpa using domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_restore_nil output state)
+  | cons symbol scratch ih =>
+      have hone := domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_restore_cons symbol scratch output state)
+      have hrest := ih (symbol :: output) (some symbol)
+      have hall := EvalsToInTime.trans domainRowPayloadComputer.step
+        1 (scratch.length + 1)
+        (domainRowPayloadCfg (some .restore) state []
+          (symbol :: scratch) output)
+        (domainRowPayloadCfg (some .restore) (some symbol) []
+          scratch (symbol :: output))
+        (some (domainRowPayloadCfg none none [] []
+          ((symbol :: scratch).reverse ++ output)))
+        (by simpa using hone)
+        (by simpa [List.reverse_cons, List.append_assoc] using hrest)
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hall
+
+private theorem domainRowPayload_initList_eq_cfg
+    (input : List (Option Bool)) :
+    initList domainRowPayloadComputer input =
+      domainRowPayloadCfg (some .start) none input [] [] := by
+  unfold initList domainRowPayloadCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem domainRowPayload_haltList_eq_cfg
+    (output : List (Option Bool)) :
+    haltList domainRowPayloadComputer output =
+      domainRowPayloadCfg none none [] [] output := by
+  unfold haltList domainRowPayloadCfg
+  congr
+  funext index
+  cases index <;> rfl
+
+private theorem DomainFieldSection.inputEncode_eq_count_payload
+    (domains : List (List ℕ)) :
+    DomainFieldSection.inputEncode domains =
+      none :: (encodeNat domains.length).map some ++
+        SourceOrderRawFields.encode (DomainFieldSection.rowFields domains) := by
+  simp [DomainFieldSection.inputEncode, DomainFieldSection.inputFields,
+    SourceOrderRawFields.encode]
+
+/-- The checked outer domain count is removed in linear time, while every
+count-prefixed domain row is preserved exactly in source order. -/
+def domainRowPayload_outputsInTime (domains : List (List ℕ)) :
+    TM2OutputsInTime domainRowPayloadComputer
+      (DomainFieldSection.inputEncode domains)
+      (some (SourceOrderRawFields.encode
+        (DomainFieldSection.rowFields domains)))
+      (2 * (DomainFieldSection.inputEncode domains).length + 1) := by
+  cases domains with
+  | nil =>
+      have hstart := domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_start [none] [] [] none)
+      have hskip := domainRowPayload_skipCount_nil_evals [] [] [] (some none)
+      have hfirst := EvalsToInTime.trans domainRowPayloadComputer.step
+        1 1
+        (domainRowPayloadCfg (some .start) none [none] [] [])
+        (domainRowPayloadCfg (some .skipCount) (some none) [] [] [])
+        (some (domainRowPayloadCfg (some .restore) none [] [] []))
+        (by simpa using hstart)
+        (by simpa using hskip)
+      have hrestore := domainRowPayload_restore_evals [] [] none
+      have hall := EvalsToInTime.trans domainRowPayloadComputer.step
+        2 1
+        (domainRowPayloadCfg (some .start) none [none] [] [])
+        (domainRowPayloadCfg (some .restore) none [] [] [])
+        (some (domainRowPayloadCfg none none [] [] []))
+        (by simpa using hfirst)
+        (by simpa using hrestore)
+      have hmono : EvalsToInTime domainRowPayloadComputer.step
+          (domainRowPayloadCfg (some .start) none
+            (DomainFieldSection.inputEncode []) [] [])
+          (some (domainRowPayloadCfg none none [] [] []))
+          (2 * (DomainFieldSection.inputEncode []).length + 1) := by
+        have hzero : encodeNat 0 = [] := by
+          unfold encodeNat
+          change encodeNum (Num.ofNat' 0) = []
+          rw [Num.ofNat'_zero]
+          rfl
+        simpa [DomainFieldSection.inputEncode,
+          DomainFieldSection.inputFields, DomainFieldSection.rowFields,
+          SourceOrderRawFields.encode, hzero] using hall
+      rw [TM2OutputsInTime, domainRowPayload_initList_eq_cfg]
+      simp only [Option.map_some]
+      rw [domainRowPayload_haltList_eq_cfg]
+      simpa [DomainFieldSection.rowFields,
+        SourceOrderRawFields.encode] using hmono
+  | cons domain domains =>
+      let countBits := encodeNat (domain :: domains).length
+      let tail := (encodeNat domain.length).map some ++
+        SourceOrderRawFields.encode
+          (domain ++ DomainFieldSection.rowFields domains)
+      have hinput : DomainFieldSection.inputEncode (domain :: domains) =
+          none :: countBits.map some ++ none :: tail := by
+        simp [DomainFieldSection.inputEncode, DomainFieldSection.inputFields,
+          DomainFieldSection.rowFields, SourceOrderRawFields.encode,
+          countBits, tail]
+      have hpayload : SourceOrderRawFields.encode
+          (DomainFieldSection.rowFields (domain :: domains)) = none :: tail := by
+        simp [DomainFieldSection.rowFields, SourceOrderRawFields.encode, tail]
+      have hstart := domainRowPayloadEvalsToInTimeOne
+        (domainRowPayload_step_start
+          (none :: countBits.map some ++ none :: tail) [] [] none)
+      have hskip := domainRowPayload_skipCount_payload_evals
+        countBits tail [] [] (some none)
+      have hfirst := EvalsToInTime.trans domainRowPayloadComputer.step
+        1 (countBits.length + tail.length + 2)
+        (domainRowPayloadCfg (some .start) none
+          (none :: countBits.map some ++ none :: tail) [] [])
+        (domainRowPayloadCfg (some .skipCount) (some none)
+          (countBits.map some ++ none :: tail) [] [])
+        (some (domainRowPayloadCfg (some .restore) none []
+          (none :: tail).reverse []))
+        (by simpa using hstart)
+        (by simpa using hskip)
+      have hrestore := domainRowPayload_restore_evals
+        (none :: tail).reverse [] none
+      have hfirst' : EvalsToInTime domainRowPayloadComputer.step
+          (domainRowPayloadCfg (some .start) none
+            (none :: countBits.map some ++ none :: tail) [] [])
+          (some (domainRowPayloadCfg (some .restore) none []
+            (none :: tail).reverse []))
+          (countBits.length + tail.length + 3) := by
+        rw [show countBits.length + tail.length + 3 =
+          (countBits.length + tail.length + 2) + 1 by omega]
+        exact hfirst
+      have hall := EvalsToInTime.trans domainRowPayloadComputer.step
+        (countBits.length + tail.length + 3)
+        ((none :: tail).reverse.length + 1)
+        (domainRowPayloadCfg (some .start) none
+          (none :: countBits.map some ++ none :: tail) [] [])
+        (domainRowPayloadCfg (some .restore) none []
+          (none :: tail).reverse [])
+        (some (domainRowPayloadCfg none none [] [] (none :: tail)))
+        hfirst'
+        (by simpa using hrestore)
+      have hmono : EvalsToInTime domainRowPayloadComputer.step
+          (domainRowPayloadCfg (some .start) none
+            (DomainFieldSection.inputEncode (domain :: domains)) [] [])
+          (some (domainRowPayloadCfg none none [] [] (none :: tail)))
+          (2 * (DomainFieldSection.inputEncode
+            (domain :: domains)).length + 1) := by
+        rw [hinput]
+        apply evalsToInTimeMono hall
+        simp only [List.length_cons, List.length_append, List.length_map,
+          List.length_reverse]
+        omega
+      rw [TM2OutputsInTime, domainRowPayload_initList_eq_cfg]
+      simp only [Option.map_some]
+      rw [domainRowPayload_haltList_eq_cfg]
+      simpa [hpayload] using hmono
+
+/-- A genuine linear-time finite-machine witness for extracting the complete
+count-prefixed row payload from the checked domain-section encoding. -/
+noncomputable def domainRowPayloadComputableInPolyTime :
+    @TM2ComputableInPolyTime (List (List ℕ)) (List ℕ)
+      DomainFieldSection.inputFinEncoding SourceOrderRawFields.finEncoding
+      DomainFieldSection.rowFields where
+  tm := domainRowPayloadComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := 2 * Polynomial.X + 1
+  outputsFun domains := by
+    simpa [DomainFieldSection.inputFinEncoding,
+      SourceOrderRawFields.finEncoding, Equiv.refl, Polynomial.eval_add,
+      Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_one,
+      Polynomial.eval_X] using domainRowPayload_outputsInTime domains
 
 /-! ## Binary predecessor
 
@@ -16187,6 +16698,8 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms DomainFieldSection.occurrences_indexedRowsFrom
 #print axioms DomainFieldSection.outputEncode_eq_row_outputs
 #print axioms DomainFieldSection.outputEncode_eq_structuralFields
+#print axioms domainRowPayload_outputsInTime
+#print axioms domainRowPayloadComputableInPolyTime
 #print axioms binaryPredBits_encodeNat
 #print axioms binaryPred_outputsInTime
 #print axioms binaryPredComputableInPolyTime

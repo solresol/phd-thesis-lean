@@ -2447,3 +2447,65 @@
   `RuntimeStructuralView.indexedDomainOccurrences` map as a
   `TM2ComputableInPolyTime` witness. Then splice the scope branch and stage the
   variable/record-count header.
+
+## 2026-09-02 05:34 AEST — extract the complete domain-row payload
+
+- **Starting state:** clean synchronized `main` at
+  `67a09ba210a12f5e4b2ef005e5bf88b64fa6b430`. A fresh live fetch confirmed
+  local `HEAD` and `origin/main` agreed, so no fast-forward was needed. The
+  active thesis checkout was clean at `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`;
+  its proof of `cor:all-different-csp` still claims the complete polynomial
+  compiler, so the Lean corollary remains **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized at
+  `e80f20bdc5f5238a504ac28927cebc69b8b957d9`. Its new pair-preprocessing to
+  reduction-control bridge remains useful for later paired phases, but it does
+  not provide the exhaustion-delimited indexed-row loop required here. The
+  sibling and active thesis were not changed.
+- **Chosen increment:** removed the decoder-checked outer domain count with a
+  concrete finite machine and preserved the complete count-prefixed row
+  payload byte-for-byte in semantic source order. This removes one live binary
+  counter from the pending indexed-row loop: after this pass, that loop can
+  halt exactly when its checked row payload is exhausted.
+- **Headline declarations:** `domainRowPayloadComputer` is a concrete
+  three-stack finite machine. `domainRowPayload_outputsInTime` proves that it
+  maps `DomainFieldSection.inputEncode domains` to exactly
+  `SourceOrderRawFields.encode (DomainFieldSection.rowFields domains)` in at
+  most `2s+1` steps for complete input length `s`.
+  `domainRowPayloadComputableInPolyTime` packages the corresponding
+  `TM2ComputableInPolyTime` witness. The execution proof treats the empty
+  domain section separately and retains the first row delimiter for every
+  nonempty section.
+- **Failed proof shapes and corrections:** the first stack-step proofs left
+  `Function.update` equalities unresolved; extensional stack-case proofs close
+  those obligations. A nested payload-staging induction inherited the wrong
+  outer state, so it was replaced by a reusable state-general
+  `domainRowPayload_stash_evals` lemma. Finally, splitting an arbitrary encoded
+  payload made its leading delimiter difficult to recover; splitting the
+  semantic domain list instead exposes the empty case and the nonempty
+  delimiter by definition. These were proof-shape failures, not changes to the
+  machine contract.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the finite
+  program, exact phase and end-to-end executions, linear runtime theorem,
+  polynomial wrapper, and two axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the new boundary while retaining **Partial**
+  status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine
+  PhdThesisLean.AllDifferentCSPEncoding PhdThesisLean.AllDifferentCSP` (3100
+  jobs); and full `lake build` (3123 jobs). The new `#print axioms` audits for
+  `domainRowPayload_outputsInTime` and
+  `domainRowPayloadComputableInPolyTime` report only `propext`,
+  `Classical.choice`, and `Quot.sound`. Final diff and prohibited-token scans
+  follow this entry before commit.
+- **Ending state before commit:** one coherent checked outer-header removal
+  pass plus synchronized correspondence/status documentation; no thesis,
+  sibling, or unrelated repository work was changed.
+- **Best next step:** build the exhaustion-delimited indexed-row driver over
+  `DomainFieldSection.rowFields`: read each binary row count, attach and
+  increment the canonical index even for empty rows, reuse the checked
+  `DomainFieldRow` output contract, and prove exact agreement with
+  `DomainFieldSection.outputEncode`. Then splice the scope branch and stage the
+  variable and exact record-count headers.

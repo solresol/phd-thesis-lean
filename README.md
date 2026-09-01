@@ -197,6 +197,11 @@ every inner value count are decoder-checked. `occurrences_indexedRowsFrom`
 proves that row indices advance across all domains, including empty ones, and
 `outputEncode_eq_structuralFields` identifies the concatenated checked row
 outputs exactly with `StructuralFieldStream.domainFieldsFrom`.
+`domainRowPayloadComputableInPolyTime` removes only the verified outer count
+and emits every count-prefixed row cell unchanged in source order in at most
+`2s+1` steps, including the empty-section case. This lets the remaining
+indexed-row loop halt on exact payload exhaustion rather than count down a
+second binary header.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
@@ -490,8 +495,11 @@ The copied statements are grouped by mathematical contribution:
   section in the existing source-order encoding, while
   `outputEncode_eq_structuralFields` proves that its consecutive indexed-row
   outputs are exactly the domain part of the structural target;
+  `domainRowPayloadComputableInPolyTime` removes the checked outer domain
+  count in linear time and preserves the complete count-prefixed row payload
+  byte-for-byte, including the empty-section case;
   `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
-  to parse its domain and row lengths;
+  to parse each remaining row length;
   `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its
   compiler-input specialization bound the complete tagged intermediate by
   `32 * (s + 1)^2` bits without bounding numeric symbol values by `s`. The
