@@ -87,10 +87,13 @@ that consecutive indices advance across empty rows, and identifies the
 concatenated checked row outputs with the exact domain portion of the
 structural target. Its checked linear payload pass removes the verified outer
 domain count while preserving every complete count-prefixed row cell in source
-order, including the empty-section case. The finite driver adding consecutive
-indices and realizing the row contract, scope switching, complete-stream
-staging, encoded objective emission, and whole-compiler composition remain
-separate from these encoding and size results.
+order, including the empty-section case. Its exhaustion-delimited output now
+has a checked structured `FinEncoding`: the decoder reconstructs all domains,
+rechecks every row count, and preserves empty rows, while the exact output is
+no longer than the complete section input. The finite driver adding
+consecutive indices and realizing the row contract, scope switching,
+complete-stream staging, encoded objective emission, and whole-compiler
+composition remain separate from these encoding and size results.
 -/
 
 namespace BinaryNatLists

@@ -92,8 +92,12 @@ and `outputEncode_eq_structuralFields` proves that concatenating the checked
 row outputs is exactly `StructuralFieldStream.domainFieldsFrom`. The concrete
 `domainRowPayloadComputableInPolyTime` pass removes only the checked outer
 domain count and preserves every count-prefixed row cell in source order in at
-most `2s + 1` steps. Thus the next indexed-row driver can halt on exact payload
-exhaustion instead of maintaining a second binary countdown.
+most `2s + 1` steps. `DomainFieldSection.rowPayloadFinEncoding` now decodes
+that exhaustion-delimited output back to the structured domain list, rechecks
+every row count, and preserves empty rows; the same finite machine is therefore
+also packaged as `domainRowPayloadStructuredComputableInPolyTime`. Thus the
+next indexed-row driver has a checked structured input and can halt on exact
+payload exhaustion instead of maintaining a second binary countdown.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish polynomial time for the outer driver that parses every domain and
@@ -6077,6 +6081,82 @@ def inputFinEncoding : FinEncoding (List (List ℕ)) where
   decode_encode := inputDecode_encode
   ΓFin := inferInstance
 
+/-- Source-order raw encoding after the redundant outer domain count has been
+removed.  Each remaining row still begins with its checked value count. -/
+def rowPayloadEncode (domains : List (List ℕ)) : List (Option Bool) :=
+  SourceOrderRawFields.encode (rowFields domains)
+
+/-- Parse count-prefixed rows until the payload is exhausted.  Unlike
+`parseRows`, this parser needs no supplied outer count: each recursive call
+removes the current row-count field even when that row is empty. -/
+def parseRowPayload : (fields : List ℕ) → Option (List (List ℕ))
+  | [] => some []
+  | rowCount :: fields => do
+      if rowCount ≤ fields.length then
+        let row := fields.take rowCount
+        let rest := fields.drop rowCount
+        pure (row :: (← parseRowPayload rest))
+      else
+        none
+termination_by fields => fields.length
+decreasing_by
+  simp_wf
+  omega
+
+@[simp]
+theorem parseRowPayload_rowFields (domains : List (List ℕ)) :
+    parseRowPayload (rowFields domains) = some domains := by
+  induction domains with
+  | nil => simp [rowFields, parseRowPayload]
+  | cons domain domains ih =>
+      change parseRowPayload
+        (domain.length :: domain ++ rowFields domains) =
+          some (domain :: domains)
+      rw [parseRowPayload.eq_def]
+      simp [ih]
+
+/-- Count-prefixed row payloads determine all domain boundaries uniquely,
+even though the redundant outer domain count is absent. -/
+theorem rowFields_injective : Function.Injective rowFields := by
+  intro left right heq
+  have hdecoded := congrArg parseRowPayload heq
+  simpa using hdecoded
+
+/-- Decode the exhaustion-delimited row payload and recheck every row count.
+Malformed counts and trailing partial rows are rejected. -/
+def rowPayloadDecode (input : List (Option Bool)) :
+    Option (List (List ℕ)) := do
+  parseRowPayload (← SourceOrderRawFields.decode input)
+
+@[simp]
+theorem rowPayloadDecode_encode (domains : List (List ℕ)) :
+    rowPayloadDecode (rowPayloadEncode domains) = some domains := by
+  simp [rowPayloadDecode, rowPayloadEncode]
+
+theorem rowPayloadEncode_injective : Function.Injective rowPayloadEncode := by
+  intro left right heq
+  have hdecoded := congrArg rowPayloadDecode heq
+  simpa using hdecoded
+
+/-- Checked structured encoding of the domain-row payload.  The semantic type
+retains the domain boundaries needed by the indexed-row driver even though the
+wire format contains no outer count. -/
+def rowPayloadFinEncoding : FinEncoding (List (List ℕ)) where
+  Γ := Option Bool
+  encode := rowPayloadEncode
+  decode := rowPayloadDecode
+  decode_encode := rowPayloadDecode_encode
+  ΓFin := inferInstance
+
+/-- Removing the outer count never increases the exact raw bit-cell length. -/
+theorem rowPayloadEncode_length_le_inputEncode_length
+    (domains : List (List ℕ)) :
+    (rowPayloadEncode domains).length ≤ (inputEncode domains).length := by
+  simp only [rowPayloadEncode, inputEncode, inputFields,
+    SourceOrderRawFields.encode, List.flatMap_cons, List.length_append,
+    List.length_cons, List.length_map]
+  omega
+
 /-- Attach consecutive variable indices to every domain row. -/
 def indexedRowsFrom : ℕ → List (List ℕ) → List (ℕ × List ℕ)
   | _, [] => []
@@ -6657,6 +6737,24 @@ noncomputable def domainRowPayloadComputableInPolyTime :
   outputsFun domains := by
     simpa [DomainFieldSection.inputFinEncoding,
       SourceOrderRawFields.finEncoding, Equiv.refl, Polynomial.eval_add,
+      Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_one,
+      Polynomial.eval_X] using domainRowPayload_outputsInTime domains
+
+/-- The same concrete pass preserves the structured list-of-domains meaning:
+its checked output decoder reconstructs every row, including empty rows, and
+rejects malformed or partial count-prefixed payloads. -/
+noncomputable def domainRowPayloadStructuredComputableInPolyTime :
+    @TM2ComputableInPolyTime (List (List ℕ)) (List (List ℕ))
+      DomainFieldSection.inputFinEncoding
+      DomainFieldSection.rowPayloadFinEncoding id where
+  tm := domainRowPayloadComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := 2 * Polynomial.X + 1
+  outputsFun domains := by
+    simpa [DomainFieldSection.inputFinEncoding,
+      DomainFieldSection.rowPayloadFinEncoding,
+      DomainFieldSection.rowPayloadEncode, Equiv.refl, Polynomial.eval_add,
       Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_one,
       Polynomial.eval_X] using domainRowPayload_outputsInTime domains
 
@@ -16695,11 +16793,17 @@ noncomputable def runtimeDomainEntryPrimeComputableInPolyTime :
 #print axioms domainFieldRowComputableInPolyTime
 #print axioms DomainFieldSection.inputFinEncoding
 #print axioms DomainFieldSection.inputEncode_eq_sourceOrderRawNatLists
+#print axioms DomainFieldSection.parseRowPayload_rowFields
+#print axioms DomainFieldSection.rowFields_injective
+#print axioms DomainFieldSection.rowPayloadFinEncoding
+#print axioms DomainFieldSection.rowPayloadEncode_injective
+#print axioms DomainFieldSection.rowPayloadEncode_length_le_inputEncode_length
 #print axioms DomainFieldSection.occurrences_indexedRowsFrom
 #print axioms DomainFieldSection.outputEncode_eq_row_outputs
 #print axioms DomainFieldSection.outputEncode_eq_structuralFields
 #print axioms domainRowPayload_outputsInTime
 #print axioms domainRowPayloadComputableInPolyTime
+#print axioms domainRowPayloadStructuredComputableInPolyTime
 #print axioms binaryPredBits_encodeNat
 #print axioms binaryPred_outputsInTime
 #print axioms binaryPredComputableInPolyTime

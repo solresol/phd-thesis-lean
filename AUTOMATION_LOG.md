@@ -2509,3 +2509,63 @@
   `DomainFieldRow` output contract, and prove exact agreement with
   `DomainFieldSection.outputEncode`. Then splice the scope branch and stage the
   variable and exact record-count headers.
+
+## 2026-09-03 05:32 AEST — retain structured domain-row payloads
+
+- **Starting state:** clean synchronized `main` at
+  `06e163b2e4c68519ae39cb1f254af3ea5a4b6e6e`. The initial sandboxed fetch was
+  blocked by restricted DNS; the approved network retry succeeded and
+  confirmed local `HEAD` and `origin/main` still agreed, so no fast-forward was
+  needed. The active thesis checkout remains at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d` but now contains broader user
+  edits, including `sudoku-via-padic-regression/body.tex`; all were read only
+  and preserved. Its proof still states the complete polynomial compiler, so
+  the Lean corollary remains **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` is clean and synchronized at
+  `c262973e844d7f3d3292816adc30af18276ac185`. Its latest paired-reduction
+  dispatcher does not supply the required repeated count-prefixed-row driver,
+  so no generic foundation was duplicated and the sibling was not changed.
+- **Chosen increment:** gave the existing outer-count removal machine a
+  checked structured codomain instead of treating its result only as a flat
+  list of naturals. The new decoder parses count-prefixed rows to exact payload
+  exhaustion, consumes a count even for an empty row, rejects partial rows,
+  and proves that no row boundary is lost.
+- **Headline declarations:** `DomainFieldSection.parseRowPayload_rowFields`
+  proves the exhaustion parser reconstructs every domain list;
+  `rowFields_injective` and `rowPayloadEncode_injective` prove the flat payload
+  uniquely determines its rows; `rowPayloadFinEncoding` is the resulting
+  checked `FinEncoding (List (List ℕ))`;
+  `rowPayloadEncode_length_le_inputEncode_length` proves removal of the outer
+  count is nonexpansive; and
+  `domainRowPayloadStructuredComputableInPolyTime` reuses the concrete
+  `domainRowPayloadComputer` as an identity machine on structured domains in
+  at most `2s+1` steps.
+- **Failed proof shapes and corrections:** an attempted proof used the
+  nonexistent lemma `List.length_drop_le`; simplifying the well-founded goal
+  exposed the arithmetic inequality directly, which `omega` closes. Rewriting
+  the well-founded recursive parser by its bare definition name also failed;
+  Lean's generated `parseRowPayload.eq_def` is the correct equation theorem.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPMachine.lean` adds the
+  structured encoding, semantic and size lemmas, polynomial wrapper, and six
+  axiom audits. `PhdThesisLean/AllDifferentCSP.lean`,
+  `PhdThesisLean/AllDifferentCSPEncoding.lean`, `README.md`, and
+  `THEOREM_STATUS.md` synchronize the new boundary while retaining **Partial**
+  status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPMachine.lean`; targeted `lake build
+  PhdThesisLean.AllDifferentCSPMachine
+  PhdThesisLean.AllDifferentCSPEncoding PhdThesisLean.AllDifferentCSP` (3100
+  jobs); full `lake build` (3123 jobs); `git diff --check`; and a null-delimited
+  tracked Lean-source scan for `sorry`, `admit`, project `axiom`, `unsafe`, and
+  `proof_wanted` (all empty). The new `#print axioms` audits report only
+  `propext`, `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one coherent checked structured-payload
+  increment plus synchronized correspondence/status documentation; no thesis,
+  sibling, or unrelated repository work was changed.
+- **Best next step:** use `DomainFieldSection.rowPayloadFinEncoding` as the
+  direct input to the exhaustion-delimited indexed-row driver: read each row
+  count, preserve and increment the canonical index even for empty rows, emit
+  the exact checked `DomainFieldRow` output, and prove agreement with
+  `DomainFieldSection.outputEncode`. Then splice the scope branch and stage the
+  variable and exact record-count headers.

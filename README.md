@@ -199,9 +199,14 @@ proves that row indices advance across all domains, including empty ones, and
 outputs exactly with `StructuralFieldStream.domainFieldsFrom`.
 `domainRowPayloadComputableInPolyTime` removes only the verified outer count
 and emits every count-prefixed row cell unchanged in source order in at most
-`2s+1` steps, including the empty-section case. This lets the remaining
-indexed-row loop halt on exact payload exhaustion rather than count down a
-second binary header.
+`2s+1` steps, including the empty-section case.
+`DomainFieldSection.rowPayloadFinEncoding` decodes that flat payload back to
+the structured domain list by rechecking every row count through exhaustion;
+`rowFields_injective` proves no domain boundary is lost, and
+`domainRowPayloadStructuredComputableInPolyTime` packages the same machine as
+an identity transformation on domain lists. The payload is no longer than the
+complete section input. This lets the remaining indexed-row loop halt on exact
+payload exhaustion rather than count down a second binary header.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
@@ -498,6 +503,9 @@ The copied statements are grouped by mathematical contribution:
   `domainRowPayloadComputableInPolyTime` removes the checked outer domain
   count in linear time and preserves the complete count-prefixed row payload
   byte-for-byte, including the empty-section case;
+  `DomainFieldSection.rowPayloadFinEncoding` rechecks that payload through
+  exhaustion and `domainRowPayloadStructuredComputableInPolyTime` gives the
+  same pass a structured identity contract without losing empty rows;
   `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
   to parse each remaining row length;
   `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its

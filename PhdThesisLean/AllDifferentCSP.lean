@@ -100,11 +100,14 @@ count in the exact source-order encoding; its index-advancement and output
 lemmas show that concatenated row outputs are exactly the domain portion of
 the structural target, including empty rows. A checked linear finite machine
 now removes only that verified outer count and preserves every count-prefixed
-domain row byte-for-byte, so the next row driver can halt on exact payload
-exhaustion. The outer finite driver that advances row indices, switches to
-scope records, maintains record counts, and stages the complete structural
-stream remains, as do canonical row construction, encoded objective emission,
-and final whole-compiler composition.
+domain row byte-for-byte. Its checked structured output encoding parses rows
+to payload exhaustion, rechecks every count, preserves empty rows, and makes
+the same pass an identity machine on domain lists. The next row driver can
+therefore halt on exact payload exhaustion without losing domain boundaries.
+The outer finite driver that advances row indices, switches to scope records,
+maintains record counts, and stages the complete structural stream remains, as
+do canonical row construction, encoded objective emission, and final
+whole-compiler composition.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
