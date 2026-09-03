@@ -205,8 +205,15 @@ the structured domain list by rechecking every row count through exhaustion;
 `rowFields_injective` proves no domain boundary is lost, and
 `domainRowPayloadStructuredComputableInPolyTime` packages the same machine as
 an identity transformation on domain lists. The payload is no longer than the
-complete section input. This lets the remaining indexed-row loop halt on exact
-payload exhaustion rather than count down a second binary header.
+complete section input. The follow-on machine in
+[`PhdThesisLean/AllDifferentCSPStructuralMachine.lean`](PhdThesisLean/AllDifferentCSPStructuralMachine.lean)
+then implements that indexed-row loop:
+`domainSectionComputableInPolyTime` consumes the checked payload, increments a
+canonical binary index after every row (including empty rows), and emits
+exactly `RuntimeStructuralView.indexedDomainOccurrences` in at most
+`100 * (s+1)^3` steps for payload bit length `s`. Thus the whole domain branch
+now has a concrete bit-level polynomial machine rather than only a semantic
+concatenation theorem.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
@@ -506,13 +513,16 @@ The copied statements are grouped by mathematical contribution:
   `DomainFieldSection.rowPayloadFinEncoding` rechecks that payload through
   exhaustion and `domainRowPayloadStructuredComputableInPolyTime` gives the
   same pass a structured identity contract without losing empty rows;
+  `domainSectionComputableInPolyTime` traverses the complete checked payload,
+  advances its canonical index across every row, and emits the exact tagged
+  domain-occurrence stream in cubic bit-level time;
   `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
   to parse each remaining row length;
   `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its
   compiler-input specialization bound the complete tagged intermediate by
   `32 * (s + 1)^2` bits without bounding numeric symbol values by `s`. The
-  outer structural driver, cross-domain index advancement, scope switching,
-  and record-count staging,
+  composition of the domain passes, scope switching and traversal, and
+  variable/record-count staging,
   canonical relabelling, edge deduplication, encoded objective rows, and final
   composition remain open;
   `thm:3sat-clausewise` is

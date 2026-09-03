@@ -2510,6 +2510,67 @@
   `DomainFieldSection.outputEncode`. Then splice the scope branch and stage the
   variable and exact record-count headers.
 
+## 2026-09-04 06:22 AEST — execute the complete indexed domain section
+
+- **Starting state:** clean synchronized `main` at
+  `96b0b17533c8b1ba045a5923dc5f228e66007cb6`; a fresh fetch confirmed local
+  `HEAD` and `origin/main` agreed, so no fast-forward was needed. The active
+  thesis checkout remains at `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`;
+  its proof of `cor:all-different-csp` still claims a complete polynomial
+  compiler, so the Lean corollary remains **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized at
+  `863291d64ba4f3da798d4232514e98b9933917ea`. Its checked sequential and
+  composition APIs remain available, but it has no exhaustion-delimited
+  count-prefixed-row driver to reuse. The sibling and thesis were not changed.
+- **Chosen increment:** implemented the complete domain-section transducer over
+  `DomainFieldSection.rowPayloadFinEncoding`. The machine parses every checked
+  row count, explicitly counts down the remaining values, retains and copies a
+  canonical binary variable index, increments it after every row, and emits
+  every exact `[3, 0, index, value]` occurrence block in source order. Empty
+  sections, empty rows, singleton rows, payload exhaustion, and binary carry
+  growth are handled by the general execution proof.
+- **Headline declarations:** the new
+  `PhdThesisLean/AllDifferentCSPStructuralMachine.lean` module defines
+  `domainSectionProgram` and `domainSectionComputer`;
+  `domainSection_outputsInTime` proves exact output
+  `DomainFieldSection.outputEncode domains` within `100 * (s+1)^3` steps for
+  checked payload bit length `s`; and
+  `domainSectionComputableInPolyTime` packages the concrete machine as a
+  `TM2ComputableInPolyTime` witness for exactly
+  `RuntimeStructuralView.indexedDomainOccurrences`. `PhdThesisLean.lean` now
+  imports the module.
+- **Failed proof shapes and corrections:** a direct structural recursive call
+  in the end-versus-boundary time lemma did not expose Lean's induction
+  hypothesis; using the named hypothesis closed the shared suffix. Initial
+  `nlinarith`/`omega` attempts could not normalize products and squares in the
+  value-loop recurrence, so explicit ring equalities exposed the linear
+  differences before `omega`. The first section-time proof case-split after
+  introducing dependent hypotheses, leaving mismatched payload expressions;
+  moving the split into a separate `domainSectionRunTime_le` lemma specialized
+  all bounds cleanly. An attempted reuse of `evalsToInTimeMono` failed because
+  the imported helper is private; the module's already-present local monotonic
+  helper was used instead.
+- **Files changed:** added
+  `PhdThesisLean/AllDifferentCSPStructuralMachine.lean`; imported it from
+  `PhdThesisLean.lean`; and synchronized the runtime boundary and remaining
+  obligations in `AllDifferentCSP.lean`, `AllDifferentCSPEncoding.lean`,
+  `AllDifferentCSPMachine.lean`, `README.md`, and `THEOREM_STATUS.md`.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPStructuralMachine.lean`; full `lake build`
+  (3124 jobs); `git diff --check`; and a repository Lean-source scan for
+  `sorry`, `admit`, project `axiom` declarations, `unsafe`, and
+  `proof_wanted` (all empty). The two new `#print axioms` audits report only
+  `propext`, `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one coherent checked outer domain-row driver
+  plus synchronized correspondence/status documentation; no thesis, sibling,
+  or unrelated repository work was changed.
+- **Best next step:** compose the checked outer-count removal pass with
+  `domainSectionComputableInPolyTime`, then implement the analogous
+  exhaustion-delimited scope-section loop using
+  `scopeFieldBlockComputableInPolyTime` and stage the variable and exact
+  record-count headers for the complete raw `RuntimeStructuralView`.
+
 ## 2026-09-03 05:32 AEST — retain structured domain-row payloads
 
 - **Starting state:** clean synchronized `main` at

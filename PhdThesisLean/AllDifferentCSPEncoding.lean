@@ -90,10 +90,13 @@ domain count while preserving every complete count-prefixed row cell in source
 order, including the empty-section case. Its exhaustion-delimited output now
 has a checked structured `FinEncoding`: the decoder reconstructs all domains,
 rechecks every row count, and preserves empty rows, while the exact output is
-no longer than the complete section input. The finite driver adding
-consecutive indices and realizing the row contract, scope switching,
-complete-stream staging, encoded objective emission, and whole-compiler
-composition remain separate from these encoding and size results.
+no longer than the complete section input. The separate structural machine
+consumes this checked payload, adds consecutive canonical binary indices
+across every row including empty ones, and emits the exact tagged occurrence
+stream in cubic bit-level time. Composition with the header-removal pass,
+scope switching and traversal, complete-stream staging, encoded objective
+emission, and whole-compiler composition remain separate from these encoding
+and size results.
 -/
 
 namespace BinaryNatLists

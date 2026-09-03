@@ -95,14 +95,15 @@ domain count and preserves every count-prefixed row cell in source order in at
 most `2s + 1` steps. `DomainFieldSection.rowPayloadFinEncoding` now decodes
 that exhaustion-delimited output back to the structured domain list, rechecks
 every row count, and preserves empty rows; the same finite machine is therefore
-also packaged as `domainRowPayloadStructuredComputableInPolyTime`. Thus the
-next indexed-row driver has a checked structured input and can halt on exact
-payload exhaustion instead of maintaining a second binary countdown.
+also packaged as `domainRowPayloadStructuredComputableInPolyTime`. The separate
+`AllDifferentCSPStructuralMachine` module consumes that checked payload through
+exhaustion, advances a canonical binary index across every row including empty
+ones, and emits the exact tagged domain-occurrence stream in cubic bit-level
+time.
 
 These are checked components of the eventual compiler machine. They do not yet
-establish polynomial time for the outer driver that parses every domain and
-scope, advances the index between domain rows, switches to the scope branch,
-maintains record counts, and stages the full tagged structural view; canonical
+establish the composition of the domain passes, the scope-section loop,
+variable/record-count staging, or the full tagged structural view; canonical
 relabelling and edge construction, objective-row emission, and final compiler
 assembly also remain.
 -/
