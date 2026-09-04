@@ -2630,3 +2630,55 @@
   the exact checked `DomainFieldRow` output, and prove agreement with
   `DomainFieldSection.outputEncode`. Then splice the scope branch and stage the
   variable and exact record-count headers.
+
+## 2026-09-05 05:23 AEST — compose the complete domain-section passes
+
+- **Starting state:** clean synchronized `main` at
+  `d2ab12ffdb4db921684045f34fe3a2d05e49375d`; local `HEAD`, the tracking ref,
+  and the live `origin/main` ref agreed, so no fast-forward was needed. The
+  active thesis checkout remained at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d` with broader user edits,
+  including the relevant chapter, all preserved. Its proof still claims the
+  complete polynomial compiler, so `cor:all-different-csp` remains **Partial**.
+- **Read-only reusable-API review:** sibling
+  `/Users/gregb/Documents/devel/lean-np-hardness` was clean and synchronized at
+  `f0c5f6d75b7059349ba95744a8320f832110fed1`. Its checked generic
+  `compositionComputableInPolyTime` API remains the correct reusable
+  foundation; its new pair-output reassembly code does not provide a counted
+  scope-list driver. The sibling and thesis were not changed.
+- **Chosen increment:** closed the composition gap between the complete
+  counted domain-section input and the exact tagged domain-occurrence output.
+  The outer-count-free row payload is now produced, decoded, and consumed
+  inside one checked sequential finite-machine composition rather than being
+  assumed at the public boundary.
+- **Headline declaration:**
+  `completeDomainSectionComputableInPolyTime` composes
+  `domainRowPayloadStructuredComputableInPolyTime` with
+  `domainSectionComputableInPolyTime`. Its source is
+  `DomainFieldSection.inputFinEncoding`, its target is
+  `DomainFieldRow.outputFinEncoding`, and its function is exactly
+  `RuntimeStructuralView.indexedDomainOccurrences`, including empty sections,
+  empty and singleton rows, and index advancement across every row.
+- **Proof/API notes:** the existing generic composition theorem accepted the
+  two checked components directly. A small wrapper discharges only the
+  definitional `indexedDomainOccurrences ∘ id` equality; no failed proof
+  approach or new machine assumption was introduced.
+- **Files changed:** `PhdThesisLean/AllDifferentCSPStructuralMachine.lean`
+  adds the composed theorem and axiom audit. `AllDifferentCSP.lean`,
+  `AllDifferentCSPEncoding.lean`, `AllDifferentCSPMachine.lean`, `README.md`,
+  and `THEOREM_STATUS.md` synchronize the verified boundary while retaining
+  **Partial** status; this entry records the run.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPStructuralMachine.lean`; full `lake build`
+  (3124 jobs); `git diff --check`; and null-delimited tracked Lean-source scans
+  for `sorry`, `admit`, project `axiom` declarations, `unsafe`, and
+  `proof_wanted` (all empty). The new `#print axioms` audit reports only
+  `propext`, `Classical.choice`, and `Quot.sound`.
+- **Ending state before commit:** one coherent checked composition from the
+  complete domain-section input to its exact structural occurrence stream,
+  plus synchronized correspondence/status documentation; no thesis, sibling,
+  or unrelated repository work was changed.
+- **Best next step:** define the checked exhaustion-delimited scope-section
+  contract and implement its repeated finite-machine driver using the existing
+  `scopeFieldBlockComputableInPolyTime`; then stage the variable and exact
+  record-count headers around the composed domain and scope outputs.

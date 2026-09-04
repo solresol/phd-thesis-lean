@@ -5,6 +5,7 @@ namespace PhdThesisLean.AllDifferentCSPMachine
 open Computability
 open Turing
 open PhdThesisLean.AllDifferentCSPEncoding
+open LeanNPHardness.MachineComposition
 
 /-!
 # Complete domain-section structural machine
@@ -15,6 +16,11 @@ domain-row payload from `DomainFieldSection.rowPayloadFinEncoding`.  It keeps
 the current variable index and current row count as canonical binary words,
 advances the index even across empty rows, and emits the exact tagged domain
 occurrence stream required by `DomainFieldSection.outputEncode`.
+
+`completeDomainSectionComputableInPolyTime` composes that indexed-row machine
+with the checked outer-count removal pass, starting from the complete counted
+domain-section encoding.  The row payload is therefore an internal checked
+intermediate rather than a caller-supplied assumption.
 
 The scope branch, final structural headers, canonical relabelling, edge
 deduplication, objective rows, and full compiler composition remain separate
@@ -3577,8 +3583,35 @@ noncomputable def domainSectionComputableInPolyTime :
       Polynomial.eval_pow, Polynomial.eval_natCast, Polynomial.eval_one,
       Polynomial.eval_X] using domainSection_outputsInTime domains
 
+private noncomputable def completeDomainSectionComposition :
+    @TM2ComputableInPolyTime (List (List ℕ)) (List (ℕ × ℕ))
+      DomainFieldSection.inputFinEncoding DomainFieldRow.outputFinEncoding
+      (RuntimeStructuralView.indexedDomainOccurrences ∘ id) :=
+  compositionComputableInPolyTime
+    DomainFieldSection.inputFinEncoding
+    DomainFieldSection.rowPayloadFinEncoding
+    DomainFieldRow.outputFinEncoding id
+    RuntimeStructuralView.indexedDomainOccurrences
+    domainRowPayloadStructuredComputableInPolyTime
+    domainSectionComputableInPolyTime
+
+/-- A genuine polynomial-time machine from the complete counted domain
+section to the exact tagged occurrence stream.  This sequentially composes
+the checked outer-count removal pass with the exhaustion-delimited indexed-row
+driver, so the intermediate row payload is no longer a caller-supplied
+assumption. -/
+noncomputable def completeDomainSectionComputableInPolyTime :
+    @TM2ComputableInPolyTime (List (List ℕ)) (List (ℕ × ℕ))
+      DomainFieldSection.inputFinEncoding DomainFieldRow.outputFinEncoding
+      RuntimeStructuralView.indexedDomainOccurrences := by
+  let composed := completeDomainSectionComposition
+  exact { composed with
+    outputsFun := fun domains => by
+      simpa [Function.comp_def] using composed.outputsFun domains }
+
 #print axioms domainSection_outputsInTime
 #print axioms domainSectionComputableInPolyTime
+#print axioms completeDomainSectionComputableInPolyTime
 
 
 end PhdThesisLean.AllDifferentCSPMachine

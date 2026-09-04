@@ -213,7 +213,10 @@ canonical binary index after every row (including empty rows), and emits
 exactly `RuntimeStructuralView.indexedDomainOccurrences` in at most
 `100 * (s+1)^3` steps for payload bit length `s`. Thus the whole domain branch
 now has a concrete bit-level polynomial machine rather than only a semantic
-concatenation theorem.
+concatenation theorem. `completeDomainSectionComputableInPolyTime` composes
+the checked count-removal and indexed-row passes from
+`DomainFieldSection.inputFinEncoding`, so the row payload is constructed and
+decoded inside the verified machine composition.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
@@ -516,14 +519,16 @@ The copied statements are grouped by mathematical contribution:
   `domainSectionComputableInPolyTime` traverses the complete checked payload,
   advances its canonical index across every row, and emits the exact tagged
   domain-occurrence stream in cubic bit-level time;
+  `completeDomainSectionComputableInPolyTime` composes the checked
+  count-removal and indexed-row machines from the complete counted domain
+  section to that exact occurrence stream;
   `binaryPredComputableInPolyTime` adds the linear canonical countdown needed
   to parse each remaining row length;
   `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its
   compiler-input specialization bound the complete tagged intermediate by
-  `32 * (s + 1)^2` bits without bounding numeric symbol values by `s`. The
-  composition of the domain passes, scope switching and traversal, and
-  variable/record-count staging,
-  canonical relabelling, edge deduplication, encoded objective rows, and final
+  `32 * (s + 1)^2` bits without bounding numeric symbol values by `s`.
+  Scope switching and traversal, variable/record-count staging, canonical
+  relabelling, edge deduplication, encoded objective rows, and final
   composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction

@@ -99,11 +99,13 @@ also packaged as `domainRowPayloadStructuredComputableInPolyTime`. The separate
 `AllDifferentCSPStructuralMachine` module consumes that checked payload through
 exhaustion, advances a canonical binary index across every row including empty
 ones, and emits the exact tagged domain-occurrence stream in cubic bit-level
-time.
+time. Its composed `completeDomainSectionComputableInPolyTime` machine starts
+from the complete counted section, so the intermediate payload is checked and
+constructed internally.
 
 These are checked components of the eventual compiler machine. They do not yet
-establish the composition of the domain passes, the scope-section loop,
-variable/record-count staging, or the full tagged structural view; canonical
+establish the scope-section loop, variable/record-count staging, or the full
+tagged structural view; canonical
 relabelling and edge construction, objective-row emission, and final compiler
 assembly also remain.
 -/

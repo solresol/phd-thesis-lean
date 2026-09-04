@@ -105,10 +105,11 @@ to payload exhaustion, rechecks every count, preserves empty rows, and makes
 the same pass an identity machine on domain lists. The separate structural
 machine now consumes that payload through exhaustion, advances a canonical
 binary index across every row including empty ones, and emits the exact tagged
-domain-occurrence stream in cubic bit-level time. Composition of the two
-domain passes, the scope-section loop, variable/record-count staging, canonical
-row construction, encoded objective emission, and final whole-compiler
-composition remain.
+domain-occurrence stream in cubic bit-level time. The checked sequential
+composition now maps the complete counted domain section through both passes,
+so the outer-count-free payload is an internal verified intermediate. The
+scope-section loop, variable/record-count staging, canonical row construction,
+encoded objective emission, and final whole-compiler composition remain.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
