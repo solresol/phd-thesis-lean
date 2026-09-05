@@ -217,6 +217,20 @@ concatenation theorem. `completeDomainSectionComputableInPolyTime` composes
 the checked count-removal and indexed-row passes from
 `DomainFieldSection.inputFinEncoding`, so the row payload is constructed and
 decoded inside the verified machine composition.
+[`PhdThesisLean/AllDifferentCSPScopeSection.lean`](PhdThesisLean/AllDifferentCSPScopeSection.lean)
+reuses those counted-row input encodings and the linear header-removal machine
+for the complete scope section. `ScopeFieldSection.outputFinEncoding` checks
+its exact tagged output, retaining every scope boundary, empty scope, and
+repetition; its decoder rejects missing and incorrect scope tags.
+`outputEncode_length_le_linear` bounds the complete output by four times the
+actual raw payload length, and `outputEncode_length_le_input_linear` gives
+the same bound against the complete counted section input. These are size
+bounds; the repeated-scope machine is still to be constructed.
+`StructuralFieldStream.encode_eq_header_sections` specifies the full output as
+the exact record-count and variable headers followed by the domain and scope
+outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
+order with the checked raw structural view, ready for the existing framing
+machine. Executable header staging remains to be proved.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,

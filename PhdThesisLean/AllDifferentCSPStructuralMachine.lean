@@ -22,9 +22,11 @@ with the checked outer-count removal pass, starting from the complete counted
 domain-section encoding.  The row payload is therefore an internal checked
 intermediate rather than a caller-supplied assumption.
 
-The scope branch, final structural headers, canonical relabelling, edge
-deduplication, objective rows, and full compiler composition remain separate
-obligations.
+`AllDifferentCSPScopeSection` reuses the counted-row input and header-removal
+pass for scopes, checks the tagged section output, and specifies the exact
+section/header assembly. The repeated scope machine, executable header
+staging, canonical relabelling, edge deduplication, objective rows, and full
+compiler composition remain separate obligations.
 -/
 
 /-- Work stacks for the complete exhaustion-delimited domain-section pass. -/

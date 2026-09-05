@@ -95,9 +95,13 @@ consumes this checked payload, adds consecutive canonical binary indices
 across every row including empty ones, and emits the exact tagged occurrence
 stream in cubic bit-level time. Its composed complete-domain-section machine
 starts from the checked counted section and constructs that payload internally.
-Scope switching and traversal, complete-stream staging, encoded objective
-emission, and whole-compiler composition remain separate from these encoding
-and size results.
+The scope-section interface reuses those source encodings and the linear
+header-removal pass; its checked tagged output recovers every scope exactly
+and has a linear bound in actual raw-wire length. Exact header/section assembly
+identities connect both section outputs to the full raw structural view.
+Scope switching and traversal, executable complete-stream staging, encoded
+objective emission, and whole-compiler composition remain separate from these
+encoding and size results.
 -/
 
 namespace BinaryNatLists

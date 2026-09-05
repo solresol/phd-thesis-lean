@@ -2682,3 +2682,80 @@
   contract and implement its repeated finite-machine driver using the existing
   `scopeFieldBlockComputableInPolyTime`; then stage the variable and exact
   record-count headers around the composed domain and scope outputs.
+
+## 2026-09-06 05:23 AEST — check the complete scope-section contract and assembly
+
+- **Starting state:** clean synchronized `main` at
+  `f5bca30bdbb2aed69801b2b129e92e78c6806bd0`; `git fetch origin`
+  confirmed no upstream advance. The active thesis remained at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d` with broader user edits,
+  including the relevant chapter, all preserved. Its current corollary and
+  proof still require the full polynomial compiler; the corollary stays
+  **Partial**.
+- **Read-only reusable-API review:** sibling `lean-np-hardness` was clean and
+  synchronized at `be2e978b974bb7b80a62537f4c7090457691e01d`.
+  Its checked sequential-composition API remains available through the pinned
+  dependency. Its newer pair-left execution result does not supply a generic
+  repeated-scope/list-map driver. Neither sibling repository was changed.
+- **Chosen increments:** define the checked complete scope-section output,
+  reuse the existing counted-row source parser and header-removal machine,
+  prove a linear bound on the complete tagged output, and identify the exact
+  header/section assembly for the whole raw structural target.
+- **Declarations:** `ScopeFieldSection.inputFinEncoding` and
+  `rowPayloadFinEncoding` reuse the existing domain-section encodings without
+  duplicating the parser. `outputFinEncoding`, `outputDecode_encode`, and
+  `outputEncode_injective` recover all scopes and entries exactly, preserving
+  empty scopes, repeated scopes, repeated entries, and source order. The
+  decoder reuses checked count-prefixed parsing before checking each tag;
+  `outputDecode_rejects_missing_tag` and `outputDecode_rejects_wrong_tag`
+  certify the malformed-tag cases. `outputEncode_eq_taggedRowPayload`,
+  `rowPayloadEncode_eq_block_inputs`, and `outputEncode_eq_structuralFields`
+  connect the shared parser, existing per-scope machine interfaces, and the
+  precise structural target.
+- **Size and runtime boundaries:** `outputEncode_length_le_payload_add`
+  charges at most three extra raw bit-or-delimiter cells per scope.
+  `outputEncode_length_le_linear` bounds all tagged output by `4s` in the
+  actual raw payload length, and `outputEncode_length_le_input_linear` gives
+  the same bound against the complete counted section input. These are
+  output-size results, not a running-time theorem for repeated scope
+  processing. `scopeRowPayloadStructuredComputableInPolyTime` reuses the
+  existing concrete `2s+1`-step machine unchanged to remove the outer count.
+- **Exact assembly:** `StructuralFieldStream.headerEncode` carries the
+  `1 + domainEntryCount + scopes.length` outer count and the singleton
+  variable-count row. `encode_eq_header_sections` proves the full stream is
+  those headers followed by the complete domain and scope outputs.
+  `raw_encode_eq_reversed_sections` identifies reverse section/header staging
+  exactly with `RuntimeStructuralView.rawFinEncoding`, the existing framing
+  machine's checked input. These equations do not supply executable staging.
+- **Failed proof shapes and correction:** a broad `simp` left unapplied
+  `ScopeFieldBlock.outputEncode`/`inputEncode` constants inside `List.flatMap`;
+  structural induction on the scope list exposed applied heads and closed the
+  equalities. Broad simplification also rewrote `List.mapM` through `List.map`
+  before the reconstruction lemma matched; `simp only` on the shared decoder
+  round trip followed by `mapM_untag_tagged` solved that goal. No failed
+  machine construction or new semantic assumption was introduced.
+- **Files changed:** new `PhdThesisLean/AllDifferentCSPScopeSection.lean` and
+  its root import; correspondence comments in `AllDifferentCSP.lean`,
+  `AllDifferentCSPEncoding.lean`, `AllDifferentCSPMachine.lean`, and
+  `AllDifferentCSPStructuralMachine.lean`; synchronized `README.md` and
+  `THEOREM_STATUS.md`; and this log.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPScopeSection.lean`; full `lake build` (3125
+  jobs); `git diff --check`; and scans of all 21 project Lean files, including
+  the new file, for `sorry`, `admit`, `axiom`, `unsafe`, and `proof_wanted`
+  (zero matches). All nine new headline `#print axioms` audits report only
+  `propext`, `Classical.choice`, and `Quot.sound`; the new module has no
+  warnings.
+- **Ending state before commit:** checked scope input/output contracts,
+  linear complete-output bounds, reused finite-machine payload extraction,
+  and exact whole-stream assembly identities, with the full corollary still
+  **Partial**. No unrelated work was changed.
+- **Best next step:** construct the finite driver from
+  `ScopeFieldSection.rowPayloadFinEncoding` to
+  `ScopeFieldSection.outputFinEncoding`, computing the identity on complete
+  scope lists. The existing `scopeFieldBlockComputer` copies its entire input
+  suffix to exhaustion, so it cannot simply be run on a concatenated section:
+  isolate one counted row at a time or fuse a binary-count-limited copying
+  loop. Preserve empty rows and use canonical binary predecessor to count
+  entries. Then implement the exact `headerEncode` staging and full input
+  splitting, using the new assembly/reversal equalities for correctness.

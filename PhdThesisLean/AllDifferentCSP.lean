@@ -108,8 +108,13 @@ binary index across every row including empty ones, and emits the exact tagged
 domain-occurrence stream in cubic bit-level time. The checked sequential
 composition now maps the complete counted domain section through both passes,
 so the outer-count-free payload is an internal verified intermediate. The
-scope-section loop, variable/record-count staging, canonical row construction,
-encoded objective emission, and final whole-compiler composition remain.
+scope-section interface now reuses the same checked row parser and linear
+header-removal machine, decodes the exact tagged output without losing empty
+scopes or repetitions, and bounds that output linearly in encoded input size.
+Exact section/header assembly identities specify the full raw structural
+target. The scope-section loop, executable variable/record-count staging,
+canonical row construction, encoded objective emission, and final
+whole-compiler composition remain.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

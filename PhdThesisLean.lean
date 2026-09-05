@@ -3,6 +3,7 @@ import PhdThesisLean.AllDifferent
 import PhdThesisLean.AllDifferentCSP
 import PhdThesisLean.AllDifferentCSPEncoding
 import PhdThesisLean.AllDifferentCSPMachine
+import PhdThesisLean.AllDifferentCSPScopeSection
 import PhdThesisLean.AllDifferentCSPStructuralMachine
 import PhdThesisLean.ClauseCompiler
 import PhdThesisLean.ContactTheorem
