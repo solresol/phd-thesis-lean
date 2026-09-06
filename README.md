@@ -224,8 +224,18 @@ its exact tagged output, retaining every scope boundary, empty scope, and
 repetition; its decoder rejects missing and incorrect scope tags.
 `outputEncode_length_le_linear` bounds the complete output by four times the
 actual raw payload length, and `outputEncode_length_le_input_linear` gives
-the same bound against the complete counted section input. These are size
-bounds; the repeated-scope machine is still to be constructed.
+the same bound against the complete counted section input.
+[`PhdThesisLean/AllDifferentCSPScopeMachine.lean`](PhdThesisLean/AllDifferentCSPScopeMachine.lean)
+now implements the whole scope loop. `scopeSection_outputsInTime` and
+`scopeSectionComputableInPolyTime` prove that its five-stack finite machine
+emits exactly that tagged output in at most `20 * (s+1)^2` steps for payload
+bit length `s`. It increments each binary row length, inserts the scope tag,
+and copies exactly the counted entries using explicit binary predecessor.
+Looking ahead restores the next delimiter, so empty rows, repeated entries,
+and final-row exhaustion are covered by the same proof. All non-output stacks
+are empty at halt. `completeScopeSectionComputableInPolyTime` composes this
+pass with the existing linear header-removal machine, starting from the
+complete checked counted scope section.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
@@ -541,9 +551,12 @@ The copied statements are grouped by mathematical contribution:
   `RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic` and its
   compiler-input specialization bound the complete tagged intermediate by
   `32 * (s + 1)^2` bits without bounding numeric symbol values by `s`.
-  Scope switching and traversal, variable/record-count staging, canonical
-  relabelling, edge deduplication, encoded objective rows, and final
-  composition remain open;
+  `scopeSectionComputableInPolyTime` traverses the complete checked scope
+  payload and emits its exact tagged output in at most `20 * (s+1)^2`
+  bit-level steps; `completeScopeSectionComputableInPolyTime` composes it
+  with checked outer-count removal. Source splitting, variable/record-count
+  staging, canonical relabelling, edge deduplication, encoded objective rows,
+  and final composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

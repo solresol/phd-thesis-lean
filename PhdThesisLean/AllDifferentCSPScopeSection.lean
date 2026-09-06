@@ -14,9 +14,10 @@ Reuse that parser and its concrete outer-count removal machine. The output
 retains each scope as one tagged row, including empty scopes, repeated scopes,
 and repeated entries. Its decoder rechecks the row lengths and every tag.
 
-The linear output-size theorem and the exact structural assembly identities
-are specifications for the remaining repeated-scope and header-staging
-machines; they do not assert that those machines have been constructed.
+`AllDifferentCSPScopeMachine` implements and composes the repeated-scope
+machine against these exact encodings, with a quadratic bit-level time bound.
+The structural assembly identities here specify the remaining executable
+header staging and complete structural-machine assembly.
 -/
 
 namespace ScopeFieldSection

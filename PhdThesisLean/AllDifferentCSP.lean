@@ -111,8 +111,10 @@ so the outer-count-free payload is an internal verified intermediate. The
 scope-section interface now reuses the same checked row parser and linear
 header-removal machine, decodes the exact tagged output without losing empty
 scopes or repetitions, and bounds that output linearly in encoded input size.
-Exact section/header assembly identities specify the full raw structural
-target. The scope-section loop, executable variable/record-count staging,
+The separate scope machine now implements that entire branch in quadratic
+bit-level time and composes it with checked outer-count removal. Exact
+section/header assembly identities specify the full raw structural target.
+Executable variable/record-count staging,
 canonical row construction, encoded objective emission, and final
 whole-compiler composition remain.
 -/
@@ -1235,10 +1237,12 @@ for every tagged domain occurrence and intact scope, including its reversal to
 the checked raw structural encoding. Its local domain-occurrence transducer
 emits `[3, 0, index, value]` in linear time from arbitrary current-index and
 value fields, and its domain-row driver expands every explicitly counted value
-for one index in quadratic bit-level time. Cross-domain index advancement,
-scope switching, the outer tagged record-staging loop, canonical relabelling,
-edge deduplication, encoded objective emission, and final runtime composition
-remain before `cor:all-different-csp` is complete. -/
+for one index in quadratic bit-level time. The separate complete domain and
+scope machines now check cross-domain index advancement and whole-scope
+traversal, each composed with checked outer-count removal. Source splitting,
+variable/record-count staging, canonical relabelling, edge deduplication,
+encoded objective emission, and final runtime composition remain before
+`cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness
     {n : ℕ} (C : ExplicitSystem n) (hC : C.WellFormed) :
     letI : Fact C.compilerPrime.Prime := ⟨C.compilerPrime_prime⟩

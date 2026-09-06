@@ -99,7 +99,9 @@ The scope-section interface reuses those source encodings and the linear
 header-removal pass; its checked tagged output recovers every scope exactly
 and has a linear bound in actual raw-wire length. Exact header/section assembly
 identities connect both section outputs to the full raw structural view.
-Scope switching and traversal, executable complete-stream staging, encoded
+The separate scope machine implements the complete scope loop in quadratic
+bit-level time and composes checked outer-count removal internally.
+Source splitting, executable complete-stream staging, encoded
 objective emission, and whole-compiler composition remain separate from these
 encoding and size results.
 -/

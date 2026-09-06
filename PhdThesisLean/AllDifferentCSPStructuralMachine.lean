@@ -24,9 +24,10 @@ intermediate rather than a caller-supplied assumption.
 
 `AllDifferentCSPScopeSection` reuses the counted-row input and header-removal
 pass for scopes, checks the tagged section output, and specifies the exact
-section/header assembly. The repeated scope machine, executable header
-staging, canonical relabelling, edge deduplication, objective rows, and full
-compiler composition remain separate obligations.
+section/header assembly. `AllDifferentCSPScopeMachine` implements and composes
+the complete scope branch in polynomial time. Executable header staging,
+canonical relabelling, edge deduplication, objective rows, and full compiler
+composition remain separate obligations.
 -/
 
 /-- Work stacks for the complete exhaustion-delimited domain-section pass. -/

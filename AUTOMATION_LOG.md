@@ -2759,3 +2759,83 @@
   loop. Preserve empty rows and use canonical binary predecessor to count
   entries. Then implement the exact `headerEncode` staging and full input
   splitting, using the new assembly/reversal equalities for correctness.
+
+## 2026-09-07 AEST — execute and compose the complete scope section
+
+- **Starting state:** clean synchronized `main` at
+  `a31d02841b12981aa939f41547236038e98ad997`; `git fetch origin`
+  confirmed no upstream advance. Read the repository instructions, theorem
+  status, correspondence notes, recent automation log/memory, and relevant
+  semantic, encoding, domain-machine, and scope-interface declarations.
+- **Statement and reusable-API review:** the active thesis remained at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`, with broader user edits
+  including `sudoku-via-padic-regression/body.tex`; all were preserved.
+  Its current `cor:all-different-csp` still requires polynomial construction
+  and exact minimum-conflict/satisfiable semantics. Read-only sibling
+  `lean-np-hardness` was clean and synchronized at
+  `3852bc43c125d8f1005662496b6feefd57a00a66`. Its newer canonical
+  pair-left output result does not supply a repeated counted-row driver.
+  Reused `compositionComputableInPolyTime` from the existing pinned dependency
+  without changing either sibling or updating dependency pins.
+- **Chosen increments:** implement the whole scope-payload driver, prove its
+  exact execution and quadratic bit-level time bound, and compose the checked
+  outer-count-removal pass so the full counted section is accepted internally.
+- **Concrete machine:** `ScopeSectionMachine.program` and `computer` use five
+  stacks over `Option Bool` and eleven control labels. The first-field pass
+  saves the original binary length while emitting its successor, then inserts
+  the exact scope tag. The entry loop explicitly decrements a canonical binary
+  count and copies precisely one raw field per iteration. Looking ahead puts
+  a delimiter back on the input stack, so the same execution proof handles
+  empty rows, empty sections, repetitions, singleton scopes, and final-row
+  exhaustion. All non-output stacks are empty at halt.
+- **Checked declarations:** `scopeSection_outputsInTime` proves exact
+  `ScopeFieldSection.outputEncode` output in at most `20 * (s+1)^2` steps
+  for actual checked payload bit length `s`.
+  `scopeSectionComputableInPolyTime` packages the identity on whole scope
+  lists from `rowPayloadFinEncoding` to `outputFinEncoding` using mathlib's
+  standard finite-machine API. `completeScopeSectionComputableInPolyTime`
+  composes the existing linear header-removal machine with that driver from
+  `ScopeFieldSection.inputFinEncoding`. No caller-supplied intermediate is
+  needed for this complete-section result.
+- **Bit-size reasoning:** entry countdowns are bounded by the number of
+  explicitly encoded fields, each costing at least one delimiter; arbitrary
+  entry magnitudes are charged only by their binary word lengths. Per-row
+  work is bounded by twelve times the squared row wire length. Summing rows
+  and restoring the existing linearly bounded output gives the displayed
+  quadratic whole-section bound.
+- **Failed proof shapes and corrections:** the identifier `stacks` conflicts
+  with imported TM2 syntax, so the local function is `stackContents`.
+  Positional construction of `EvalsToInTime` tried to fill its inherited
+  `EvalsTo` field with a natural; named `steps`, `evals_in_steps`, and
+  `steps_le_m` fields resolve the exact API shape. Configuration equality
+  needed `congr 1` before stack extensionality. Broad simplification left
+  equivalent reverse/map payloads and differently associated step sums;
+  explicit boundary normalization followed by `convert` and `omega` closed
+  those goals. The previously logged suffix-to-exhaustion scope machine was
+  not rerun on a concatenated section: the new driver limits copying with a
+  binary countdown and restores lookahead delimiters.
+- **Files changed:** new `PhdThesisLean/AllDifferentCSPScopeMachine.lean`
+  and root import; synchronized README, theorem status, semantic/encoding/
+  machine correspondence comments, scope-interface comments, and this log.
+  `cor:all-different-csp` remains **Partial**.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPScopeMachine.lean`; full `lake build`
+  (3126 jobs); staged `git diff --check`; and a null-delimited inventory scan
+  of all 22 tracked/new Lean files, including the new module and Lake config,
+  for `sorry`, `admit`, project `axiom` declarations, `unsafe`, and
+  `proof_wanted` (zero matches). All four new `#print axioms` audits report
+  only `propext`, `Classical.choice`, and `Quot.sound`. The new module has no
+  warnings. The complete final tree was rebuilt after a stale source
+  correspondence comment was corrected.
+- **Ending state before commit:** both full section machines are checked,
+  including scope execution, its explicit payload time bound, and its
+  complete-counted-input composition. Status/correspondence notes are
+  synchronized and no unrelated work was changed. The full corollary remains
+  **Partial**; the next structural composition obligations are explicit.
+- **Best next step:** split the complete source-order compiler input into its
+  counted domain and scope sections while retaining the variable count and
+  exact output-record count. Stage `StructuralFieldStream.headerEncode`, run
+  both complete section machines, and use `encode_eq_header_sections` and
+  `raw_encode_eq_reversed_sections` to assemble the full raw structural view
+  before the checked framing pass. Canonical relabelling, edge deduplication,
+  objective emission, and final compiler composition still remain after that.

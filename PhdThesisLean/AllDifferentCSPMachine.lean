@@ -106,9 +106,11 @@ constructed internally.
 header-removal machine for scopes, checks the exact tagged scope output with
 a linear raw-wire-size bound, and proves the full header/section assembly
 identities, including the reversal into the checked raw structural view.
+`AllDifferentCSPScopeMachine` implements the complete scope loop in quadratic
+bit-level time and composes it with checked outer-count removal.
 
 These are checked components of the eventual compiler machine. They do not yet
-establish the scope-section loop, executable variable/record-count staging,
+establish executable variable/record-count staging,
 or construction of the full tagged structural view; canonical
 relabelling and edge construction, objective-row emission, and final compiler
 assembly also remain.
