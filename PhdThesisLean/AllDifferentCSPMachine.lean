@@ -108,6 +108,9 @@ a linear raw-wire-size bound, and proves the full header/section assembly
 identities, including the reversal into the checked raw structural view.
 `AllDifferentCSPScopeMachine` implements the complete scope loop in quadratic
 bit-level time and composes it with checked outer-count removal.
+`AllDifferentCSPSourceSections` now splits the complete source with binary
+row/value countdowns and composes domain expansion while retaining every scope
+through the pinned generic pair-left machine. Paired scope processing remains.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish executable variable/record-count staging,

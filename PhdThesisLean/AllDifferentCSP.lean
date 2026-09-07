@@ -114,7 +114,10 @@ scopes or repetitions, and bounds that output linearly in encoded input size.
 The separate scope machine now implements that entire branch in quadratic
 bit-level time and composes it with checked outer-count removal. Exact
 section/header assembly identities specify the full raw structural target.
-Executable variable/record-count staging,
+The source-section machine now splits the full runtime input using explicit
+binary row/value countdowns, and composes domain expansion through the checked
+generic pair-left machine while preserving every scope. Paired scope processing
+and executable variable/record-count staging,
 canonical row construction, encoded objective emission, and final
 whole-compiler composition remain.
 -/
@@ -1239,7 +1242,9 @@ emits `[3, 0, index, value]` in linear time from arbitrary current-index and
 value fields, and its domain-row driver expands every explicitly counted value
 for one index in quadratic bit-level time. The separate complete domain and
 scope machines now check cross-domain index advancement and whole-scope
-traversal, each composed with checked outer-count removal. Source splitting,
+traversal, each composed with checked outer-count removal. The source-section
+machine now splits the full input and composes domain expansion while retaining
+all scopes through the checked generic pair-left API. Paired scope processing,
 variable/record-count staging, canonical relabelling, edge deduplication,
 encoded objective emission, and final runtime composition remain before
 `cor:all-different-csp` is complete. -/

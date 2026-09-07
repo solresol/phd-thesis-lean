@@ -9,7 +9,7 @@ require mathlib from git
 
 require lean_np_hardness from git
   "https://github.com/solresol/lean-np-hardness.git" @
-    "527e16c1d0b5616a3e388c907a12added116806a"
+    "fb7ca30caecc88ffacea9a91fc292ee35b54fdd7"
 
 lean_lib «DiscreteMetricRegression» where
   -- Preserve the inherited prototype as a named library target.

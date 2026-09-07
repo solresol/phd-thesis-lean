@@ -236,6 +236,25 @@ and final-row exhaustion are covered by the same proof. All non-output stacks
 are empty at halt. `completeScopeSectionComputableInPolyTime` composes this
 pass with the existing linear header-removal machine, starting from the
 complete checked counted scope section.
+[`PhdThesisLean/AllDifferentCSPSourceSections.lean`](PhdThesisLean/AllDifferentCSPSourceSections.lean)
+now splits the full source-order runtime input into a checked pair: the complete
+counted domain section and the exhaustion-delimited scope payload.
+`sourceSections_outputsInTime` and `sourceSectionsComputableInPolyTime` prove
+exact output in at most `40 * (s+1)^2` steps for full raw input length `s`.
+The six-stack finite machine keeps separate binary row and entry countdowns,
+retains the domain count, restores looked-ahead delimiters, and preserves empty
+sections, empty rows, repetitions, and all entry values. The tagged pair output
+is no longer than the raw input, and all non-output stacks are empty at halt.
+`runtimeCompilerSectionsComputableInPolyTime` composes that split from the
+actual Boolean compiler input. The dependency is pinned to `lean-np-hardness`
+commit `fb7ca30caecc88ffacea9a91fc292ee35b54fdd7` to reuse its checked
+`pairReductionComputableInPolyTime` API.
+`pairedDomainSectionComputableInPolyTime` expands the domain half while
+preserving the complete scope half; its composed
+`runtimeCompilerDomainAndScopesComputableInPolyTime` starts from the actual
+compiler input and emits exactly the indexed domain occurrences paired with
+the original scope lists. Applying the scope machine within that pair and
+retaining the variable and record headers for full assembly remain.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
@@ -554,8 +573,12 @@ The copied statements are grouped by mathematical contribution:
   `scopeSectionComputableInPolyTime` traverses the complete checked scope
   payload and emits its exact tagged output in at most `20 * (s+1)^2`
   bit-level steps; `completeScopeSectionComputableInPolyTime` composes it
-  with checked outer-count removal. Source splitting, variable/record-count
-  staging, canonical relabelling, edge deduplication, encoded objective rows,
+  with checked outer-count removal. `sourceSectionsComputableInPolyTime`
+  splits the complete raw source into checked domains/scopes in `40(s+1)^2`
+  steps, and `runtimeCompilerDomainAndScopesComputableInPolyTime` composes
+  source preparation, splitting, and paired domain expansion from the actual
+  compiler input. Paired scope processing, variable/record-count staging,
+  canonical relabelling, edge deduplication, encoded objective rows,
   and final composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction

@@ -101,7 +101,9 @@ and has a linear bound in actual raw-wire length. Exact header/section assembly
 identities connect both section outputs to the full raw structural view.
 The separate scope machine implements the complete scope loop in quadratic
 bit-level time and composes checked outer-count removal internally.
-Source splitting, executable complete-stream staging, encoded
+The source-section machine now splits the full input into the existing tagged
+pair encoding and composes domain expansion while preserving the scope payload.
+Paired scope processing, executable complete-stream staging, encoded
 objective emission, and whole-compiler composition remain separate from these
 encoding and size results.
 -/

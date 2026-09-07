@@ -2839,3 +2839,96 @@
   `raw_encode_eq_reversed_sections` to assemble the full raw structural view
   before the checked framing pass. Canonical relabelling, edge deduplication,
   objective emission, and final compiler composition still remain after that.
+
+## 2026-09-08 AEST — split the complete source and compose paired domain expansion
+
+- **Starting state:** clean synchronized `main` at
+  `ff4d8a195669a1702feead62280f982374c95f1f`; `git fetch origin` and
+  the ahead/behind check confirmed no upstream advance. Read the repository
+  instructions, theorem status, correspondence notes, relevant Lean sources,
+  recent log, and automation memory before choosing the increment.
+- **Statement and reusable-API review:** the active thesis remained at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`, with broader user edits
+  including the active `sudoku-via-padic-regression/body.tex` corollary and
+  proof; all were preserved. The read-only `lean-np-hardness` sibling was
+  clean at `fb7ca30caecc88ffacea9a91fc292ee35b54fdd7`, matching its live
+  remote. Its new `MachineAdapters.pairReductionComputableInPolyTime` now
+  supplies the checked generic operation needed to transform domains while
+  preserving scopes. Updated this project's dependency pin and manifest to
+  that exact commit; `lake update lean_np_hardness` changed no other package
+  revision or toolchain. Neither sibling repository was edited.
+- **Chosen increments:** split the complete source into the existing checked
+  domain/scope encodings, compose that split from the actual compiler input,
+  and reuse the generic pair-left machine to expand all domains while
+  retaining every scope.
+- **Concrete source splitter:** new
+  `PhdThesisLean/AllDifferentCSPSourceSections.lean` defines
+  `RuntimeSourceSections.inputFinEncoding` by reusing the existing complete
+  source-order runtime encoding and its decoder. `outputFinEncoding` reuses
+  `PairEncoding.finEncoding` with the counted domain section and the
+  exhaustion-delimited scope payload. `inputEncode_eq_sections` exposes the
+  exact two removable source fields followed by those sections;
+  `output_length_le_input` proves the entire tagged output has no more
+  finite-alphabet cells than the raw input.
+- **Exact execution and runtime:** `SourceSectionMachine.program`/`computer`
+  use six finite-alphabet stacks, with independent canonical binary row and
+  entry countdowns. They skip the outer list count and singleton header
+  length, retain the domain count, copy exactly the declared domain rows,
+  and tag the remaining scope payload separately. A shared counter proof
+  checks binary borrow for both counters; looked-ahead delimiters are
+  restored before the next phase. `sourceSections_outputsInTime` and
+  `sourceSectionsComputableInPolyTime` prove exact canonical paired output
+  within `40 * (s+1)^2` steps for complete raw input length `s`. The theorem
+  covers empty sections, empty rows, repetitions, zero-valued entries, and
+  arbitrary entry magnitudes charged by binary length; every non-output
+  stack is empty at halt.
+- **Composed declarations:** `runtimeCompilerSourceSystemComputableInPolyTime`
+  reuses the existing compiler-to-source witness at the runtime-system type.
+  `runtimeCompilerSectionsComputableInPolyTime` composes preparation and
+  splitting from `RuntimeCompilerInput.finEncoding`.
+  `pairedDomainSectionComputableInPolyTime` applies the pinned generic
+  pair-left API to `completeDomainSectionComputableInPolyTime`, preserving
+  the scope payload. `runtimeCompilerDomainAndScopesComputableInPolyTime`
+  composes the actual Boolean compiler input to exactly
+  `(RuntimeStructuralView.indexedDomainOccurrences C.domains, C.scopes)`
+  under the existing paired output encoding. The explicit quadratic bound
+  belongs to the splitter; full-input compositions use the checked generic
+  polynomial bounds, not that same quadratic constant.
+- **Failed proof shapes and corrections:** checking the new import before its
+  dependency build reported missing `PairReductionComputable.olean`; the
+  targeted dependency build resolved it. A repeated-row `convert` left a
+  configuration equality with local `after`/`count` definitions opaque to
+  `omega`; unfolding those local definitions closed the equality before
+  arithmetic. Whole-run composition initially mismatched differently
+  associated delimiter/append expressions; `List.cons_append` and
+  `List.append_assoc` normalization made the boundaries agree. Rewriting
+  only the reversed output equation left canonical forward output and length
+  goals; applying `congrArg List.reverse` supplied the forward equation,
+  after which `simp` and `omega` closed both. No unproved machine assumption
+  or unresolved proof error remains.
+- **Files changed:** the new source-section module and root import; dependency
+  pin and manifest; correspondence comments in the semantic, encoding,
+  primitive-machine, and domain-machine modules; synchronized README and
+  theorem status; and this log. The full corollary remains **Partial**.
+- **Best next step:** preserve the variable-count header before domain
+  expansion, apply the scope machine within the paired representation while
+  retaining the domain output and necessary counts, then stage
+  `StructuralFieldStream.headerEncode` and use the existing assembly/reversal
+  equations before framing. Indexed occurrences alone lose the number of
+  trailing empty domains, so they cannot reconstruct the header on all runtime
+  inputs. Canonical relabelling, edge deduplication, objective emission, and
+  final compiler composition remain after structural assembly.
+- **Verification succeeded:** targeted
+  `lake build LeanNPHardness.PairReductionComputable` (1145 jobs), direct
+  `lake env lean PhdThesisLean/AllDifferentCSPSourceSections.lean`, and full
+  `lake build` (3136 jobs). All eight new headline axiom audits report only
+  `propext`, `Classical.choice`, and `Quot.sound`; the new module has no
+  warnings. The null-delimited tracked/new inventory scan covered all 23
+  project Lean files, including the Lake config, with zero matches for
+  `sorry`, `admit`, project `axiom` declarations, `unsafe`, or `proof_wanted`.
+  `git diff --check` passed.
+- **Ending state before commit:** the complete source split and the actual
+  compiler-to-indexed-domains-with-scopes composition are checked, with
+  synchronized status and correspondence notes. No unrelated work changed;
+  the complete corollary is still **Partial**. The verified increment is
+  ready to commit and push to `main`.
