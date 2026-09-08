@@ -2932,3 +2932,83 @@
   synchronized status and correspondence notes. No unrelated work changed;
   the complete corollary is still **Partial**. The verified increment is
   ready to commit and push to `main`.
+
+## 2026-09-09 AEST — compose both processed structural sections from compiler input
+
+- **Starting state:** clean synchronized `main` at
+  `a6767ed402506a48fa9e828565dc658ccb9169d3`. Read the repository
+  instructions, theorem status, relevant README and Lean correspondence,
+  active corollary/proof, recent automation log, and automation memory.
+  `git fetch origin` and the ahead/behind check confirmed no upstream advance.
+- **Statement and reusable-API review:** the active thesis remained at
+  `f1107f5db8ddf3bb2bb529e1afadf1fc3dff7e9d`, with broader user edits
+  including the all-different chapter, all preserved. The read-only
+  `lean-np-hardness` sibling was clean at
+  `dd5df1a63e0c3970b9bf8b5c012dca9cfe9459b0`, matching its live remote.
+  Its latest increment transports NP membership; its checked pair API still
+  transforms the left component only. Reused the existing
+  `pairReductionComputableInPolyTime` and sequential-composition APIs at the
+  current `fb7ca30` dependency pin. No dependency or sibling was changed.
+- **Chosen increments:** implement a small raw-section exchange, use it to
+  compose the existing scope machine while preserving the expanded domains,
+  and compose the complete result from the actual Boolean compiler input.
+- **Concrete exchange:** new
+  `PhdThesisLean/AllDifferentCSPProcessedSections.lean` defines
+  `SectionPairExchange.program` and `computer`, with four finite-alphabet
+  stacks and three labels. The program classifies and retags both section
+  streams, then restores their cells in exchanged section order.
+  `SectionPairExchange.outputsInTime` checks exact canonical output in at
+  most `2s+3` steps for complete paired wire length `s`. It covers arbitrary
+  raw words, empty sections, and every bit and delimiter; all non-output
+  stacks and the control register are empty at halt. The local exchange uses
+  the sibling's existing pair encoding/projections and does not duplicate
+  generic machine composition or pair-reduction foundations.
+- **Checked compositions:**
+  `exchangeDomainScopePayloadComputableInPolyTime` puts scopes first;
+  `exchangeScopeDomainOutputComputableInPolyTime` restores the original order
+  after processing. `pairedScopeSectionComputableInPolyTime` composes those
+  exchanges with the pinned generic pair-left scope machine. Its semantic
+  function is identity on the pair, but the scope wire representation changes
+  from counted-row payload to exact tagged records. Domain occurrences and
+  every scope, entry, boundary, and repetition are retained.
+  `pairedScopeSection_output_length_le` bounds the complete paired output by
+  four times its complete paired input length, including the retained domains.
+  `runtimeCompilerProcessedSectionsComputableInPolyTime` composes source
+  preparation, splitting, domain expansion, and scope processing from
+  `RuntimeCompilerInput.finEncoding`, emitting both exact tagged sections
+  internally. The full composition has the checked generic polynomial bound;
+  the displayed linear constant is for each exchange alone.
+- **Failed proof shapes and corrections:** `List.reverse_map` is not a
+  declaration in the pinned API; the checked lemma is `List.map_reverse`.
+  Normalizing only the transfer lemma then left its starting configuration
+  different from the scanner endpoint. Normalizing `hscan`, `hleft`, and
+  `hright` together with `List.map_reverse` and `List.reverse_reverse` made
+  all boundaries match. The remaining goal was only step-count arithmetic.
+  Removed unused simplifier arguments and an unnecessary `<;>` after the
+  successful direct check. No unresolved error or unproved machine premise
+  remains.
+- **Files changed:** the new processed-section module and root import;
+  synchronized README, theorem status, correspondence comments in the
+  semantic, encoding, primitive-machine, source-section, and domain-machine
+  modules; and this log. `cor:all-different-csp` remains **Partial**.
+- **Best next step:** retain the variable count and exact output-record count
+  before domain expansion, carry them through both checked section passes,
+  and stage `StructuralFieldStream.headerEncode`. Then assemble/reverse the
+  sections using the existing exact identities and apply the framing bridge.
+  Trailing empty domains make recovery of the variable count from occurrence
+  records invalid on general runtime inputs. Canonical relabelling, edge
+  deduplication, objective emission, and final compiler composition remain.
+- **Verification succeeded:** direct `lake env lean
+  PhdThesisLean/AllDifferentCSPProcessedSections.lean`, followed by full
+  `lake build` (3137 jobs) after all source/comment edits. All seven new
+  headline axiom audits report only `propext`, `Classical.choice`, and
+  `Quot.sound`; the new module has no warnings in the final build. The
+  null-delimited tracked/new inventory scan covered all 24 project Lean
+  files, including the Lake configuration, with zero matches for `sorry`,
+  `admit`, project `axiom` declarations, `unsafe`, or `proof_wanted`.
+  `git diff --check` passed.
+- **Ending state before commit:** both exact processed sections are now
+  constructed by a checked polynomial-time machine from the actual compiler
+  input, with synchronized status/correspondence notes and no unrelated work
+  changed. The full corollary remains **Partial**. The completed verified
+  increment is ready to commit and push to `main`.

@@ -110,7 +110,10 @@ identities, including the reversal into the checked raw structural view.
 bit-level time and composes it with checked outer-count removal.
 `AllDifferentCSPSourceSections` now splits the complete source with binary
 row/value countdowns and composes domain expansion while retaining every scope
-through the pinned generic pair-left machine. Paired scope processing remains.
+through the pinned generic pair-left machine. `AllDifferentCSPProcessedSections`
+exchanges the sections in linear time and reuses the same adapter to process
+scopes, then restores the original order; its complete composition starts at
+the actual Boolean compiler input and emits both exact tagged sections.
 
 These are checked components of the eventual compiler machine. They do not yet
 establish executable variable/record-count staging,

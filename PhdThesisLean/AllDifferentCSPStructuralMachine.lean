@@ -27,8 +27,10 @@ pass for scopes, checks the tagged section output, and specifies the exact
 section/header assembly. `AllDifferentCSPScopeMachine` implements and composes
 the complete scope branch in polynomial time. `AllDifferentCSPSourceSections`
 splits the complete compiler input and applies this domain machine while
-preserving all scopes through the checked generic pair-left API. Paired scope
-processing and executable header staging,
+preserving all scopes through the checked generic pair-left API.
+`AllDifferentCSPProcessedSections` reuses that API between two linear section
+exchanges to compose scope processing while retaining the domain output.
+Header retention and executable header staging,
 canonical relabelling, edge deduplication, objective rows, and full compiler
 composition remain separate obligations.
 -/

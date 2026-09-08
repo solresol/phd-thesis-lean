@@ -253,8 +253,22 @@ commit `fb7ca30caecc88ffacea9a91fc292ee35b54fdd7` to reuse its checked
 preserving the complete scope half; its composed
 `runtimeCompilerDomainAndScopesComputableInPolyTime` starts from the actual
 compiler input and emits exactly the indexed domain occurrences paired with
-the original scope lists. Applying the scope machine within that pair and
-retaining the variable and record headers for full assembly remain.
+the original scope lists.
+[`PhdThesisLean/AllDifferentCSPProcessedSections.lean`](PhdThesisLean/AllDifferentCSPProcessedSections.lean)
+now processes the scope half while preserving the domain output. Its
+`SectionPairExchange.outputsInTime` proves that a four-stack finite machine
+exchanges the sections and their alphabet tags in at most `2s+3` steps for
+complete paired wire length `s`, including empty sections. This permits reuse
+of the same checked pair-left adapter for scopes; a second exchange restores
+the original section order. `pairedScopeSectionComputableInPolyTime` composes
+those passes, and `pairedScopeSection_output_length_le` bounds the entire
+paired output by four times its input length.
+`runtimeCompilerProcessedSectionsComputableInPolyTime` starts from the actual
+Boolean compiler input and constructs both exact tagged sections internally,
+preserving domain occurrences, scope boundaries, entries, and repetitions.
+The full composition has a checked polynomial bound; `2s+3` is the bound for
+each exchange alone. Retaining the variable and record headers for full
+assembly remains, including the variable count lost by trailing empty domains.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
@@ -577,7 +591,9 @@ The copied statements are grouped by mathematical contribution:
   splits the complete raw source into checked domains/scopes in `40(s+1)^2`
   steps, and `runtimeCompilerDomainAndScopesComputableInPolyTime` composes
   source preparation, splitting, and paired domain expansion from the actual
-  compiler input. Paired scope processing, variable/record-count staging,
+  compiler input. `runtimeCompilerProcessedSectionsComputableInPolyTime`
+  also composes paired scope processing, preserving the domain output and
+  restoring the section order. Variable/record-count staging,
   canonical relabelling, edge deduplication, encoded objective rows,
   and final composition remain open;
   `thm:3sat-clausewise` is

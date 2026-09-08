@@ -116,8 +116,10 @@ bit-level time and composes it with checked outer-count removal. Exact
 section/header assembly identities specify the full raw structural target.
 The source-section machine now splits the full runtime input using explicit
 binary row/value countdowns, and composes domain expansion through the checked
-generic pair-left machine while preserving every scope. Paired scope processing
-and executable variable/record-count staging,
+generic pair-left machine while preserving every scope. The processed-section
+machine exchanges the paired sections in linear time and reuses the same
+adapter for scopes, composing both tagged section outputs from the actual
+compiler input. Executable variable/record-count staging,
 canonical row construction, encoded objective emission, and final
 whole-compiler composition remain.
 -/

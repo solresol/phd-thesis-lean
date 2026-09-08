@@ -16,6 +16,9 @@ The finite machine skips the outer list count and the singleton header length,
 retains the domain count, and uses separate binary row and entry countdowns to
 locate the domain/scope boundary. It emits the existing tagged pair encoding,
 so a checked component machine can run while preserving the other section.
+`AllDifferentCSPProcessedSections` composes both component machines from this
+split, using linear exchanges to reuse the pair-left adapter for scopes.
+Variable/record-count retention and full structural assembly remain separate.
 -/
 
 namespace RuntimeSourceSections
