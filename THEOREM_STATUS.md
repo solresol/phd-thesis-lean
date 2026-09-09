@@ -38,8 +38,8 @@ that no statement-faithful Lean theorem is currently present.
 | `cor:sudoku-polynomial-dyadic-hardness` | Pending | Formalise the positive multilinear \(p=2\) reduction and its complexity transfer. |
 | `cor:sudoku-special-case` | Pending wrapper | The general all-different theorem supplies the mathematics, but the 81-cell peer graph, degree-20 bound, clue domains, and Sudoku equivalence have not been instantiated in Lean. |
 
-For the partial `cor:all-different-csp` runtime path, the latest checked
-increment in `AllDifferentCSPSourceSections.lean` splits the complete runtime
+For the partial `cor:all-different-csp` runtime path,
+`AllDifferentCSPSourceSections.lean` splits the complete runtime
 source into the existing checked pair of domain and scope encodings.
 `SourceSectionMachine.computer` uses six stacks with separate binary row and
 entry countdowns. It removes the outer count and singleton header length,
@@ -60,8 +60,16 @@ machine supplies `pairedDomainSectionComputableInPolyTime`, which expands
 domains while preserving every scope. The composed
 `runtimeCompilerDomainAndScopesComputableInPolyTime` maps the actual compiler
 input to exactly `(indexedDomainOccurrences C.domains, C.scopes)` under the
-existing tagged pair encoding. Scope processing within that pair, retention
-of variable/record counts, and full structural output assembly remain open.
+existing tagged pair encoding.
+`AllDifferentCSPProcessedSections.lean` now also composes scope processing
+within that pair: `SectionPairExchange.outputsInTime` checks each canonical
+section exchange in at most `2s+3` steps for full paired wire length `s`;
+`pairedScopeSectionComputableInPolyTime` reuses the generic pair-left scope
+machine between two exchanges while preserving the domain output.
+`runtimeCompilerProcessedSectionsComputableInPolyTime` constructs both exact
+tagged sections from the actual Boolean compiler input, with a checked
+polynomial bound. Retention of variable/record counts and full structural
+output assembly remain open.
 In particular, domain expansion alone does not retain the number of trailing
 empty domains; the complete structural driver must preserve its header before
 that expansion. The full corollary remains **Partial**.
@@ -88,9 +96,9 @@ output-size bound. `StructuralFieldStream.encode_eq_header_sections` fixes
 the exact record and variable headers followed by the domain and scope
 outputs; `raw_encode_eq_reversed_sections` identifies their reverse staging
 with the checked raw structural view. Both complete section machines are now
-present, and source splitting with paired domain expansion is now checked.
-Paired scope processing, executable header staging, and their assembly into
-the full structural machine remain.
+present, and source splitting with both paired section passes now composes
+from the actual compiler input. Executable header retention/staging and
+assembly into the full structural machine remain.
 
 The complete indexed domain-section machine remains checked:
 `DomainFieldSection.rowPayloadFinEncoding` parses count-prefixed rows through
@@ -117,10 +125,10 @@ quadratic machine for each indexed row, and
 `scopeFieldBlockComputableInPolyTime` supplies the intact-scope branch.
 `StructuralFieldStream.raw_decode_encode_reverse` still supplies the complete
 full-stream target, and the prior quadratic theorem bounds that target in the
-actual compiler input bit length. Source splitting and paired domain expansion
-now compose from that input. Paired scope processing, executable
-variable/record-count staging, and complete structural machine assembly remain
-absent;
+actual compiler input bit length. Source splitting, paired domain expansion,
+and paired scope processing now compose from that input. Executable
+variable/record-count retention/staging and complete structural machine
+assembly remain absent;
 `binaryPredComputableInPolyTime` already supplies its empty- and
 singleton-safe binary countdown operation.
 

@@ -3012,3 +3012,21 @@
   input, with synchronized status/correspondence notes and no unrelated work
   changed. The full corollary remains **Partial**. The completed verified
   increment is ready to commit and push to `main`.
+
+### 2026-09-09 17:18 AEST — status explanation and correspondence correction
+
+- Answered the follow-up about progress against current checked commit
+  `37378ade457faa1824c9865a1e7f6b69c6182714`, with a clean worktree.
+- Found stale prose in four parts of `THEOREM_STATUS.md`: the headline row
+  reflected the new processed-section composition, but the detailed notes
+  still called it unfinished. Corrected those paragraphs against the checked
+  declarations; no Lean code or theorem classification changed.
+- The tracked tables contain 29 statements: 20 complete (including one
+  qualified), two partial, and seven pending. The all-different corollary's
+  semantics, encoding/size bounds, prime selection, and paired structural
+  section passes are checked. Header assembly, machine-level relabelling,
+  graph deduplication, objective emission, and end-to-end composition remain.
+  Statement counts do not measure remaining proof effort.
+- Validation: reviewed the documentation diff and ran `git diff --check`.
+  The prior successful 3137-job build still applies to unchanged Lean sources.
+  This documentation correction is a separate verified increment.
