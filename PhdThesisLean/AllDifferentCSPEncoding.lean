@@ -107,8 +107,10 @@ bit-level time and composes checked outer-count removal internally.
 The source-section machine now splits the full input into the existing tagged
 pair encoding and composes domain expansion while preserving the scope payload.
 The processed-section machine also composes scope processing within the pair,
-retaining the domain output and restoring section order. Header retention,
-executable complete-stream staging, encoded
+retaining the domain output and restoring section order. The variable-header
+machine copies the checked variable count while preserving the full source.
+Retained-count/section composition, record-count construction, complete-stream
+staging, encoded
 objective emission, and whole-compiler composition remain separate from these
 encoding and size results.
 -/

@@ -3097,3 +3097,50 @@
   remains Partial. Next formalisation work is the existing structural-header
   retention/assembly target; the normal automation sibling boundary returns
   to read-only after this explicitly authorized migration.
+
+## 2026-09-10 — retain the variable header before structural expansion
+
+- **Starting state:** clean and synchronized `main` at
+  `2836d833533f435f0e35597626705c219dde69f8`; fetch confirmed zero divergence.
+  Read the run memory, status, correspondence notes, current structural
+  modules, and active `cor:all-different-csp` statement/proof. The thesis
+  remained at `f1107f5` with its existing user edits preserved. The read-only
+  `lean-np-hardness` sibling was clean at `db20c69`, matching its live remote;
+  the existing dependency pin already supplies the needed pair-left,
+  pair-right, sequential composition, and execution-bound APIs.
+- **Chosen increment:** preserve the variable count before domain expansion,
+  since occurrence records do not determine the number of trailing empty
+  domains. Added `AllDifferentCSPVariableHeader.lean` and its root import.
+  `VariableHeader.outputFinEncoding` reuses the source encoding paired with
+  mathlib's standard binary `finEncodingNatBool`; `retain` returns the
+  unchanged system and its domain-list length. Its decoder reuses the checked
+  codecs, and `output_length_le` bounds the complete pair by `2s` cells.
+- **Concrete machine:** `VariableHeaderMachine.computer` has four finite
+  stacks. It explicitly scans the first three source fields, copies the third
+  field's bits to a private header stack, retains every input cell, and emits
+  the canonical tagged source/count pair. It preserves all domains, scope
+  entries, delimiters, and repetitions; zero variables and trailing empty
+  domains need no extra assumption. Every non-output stack is empty at halt.
+  `variableHeader_outputsInTime` and `variableHeaderComputableInPolyTime`
+  bound the exact output run by `3s+6` for full raw source length `s`.
+  `runtimeCompilerVariableHeaderComputableInPolyTime` composes extraction
+  from the actual Boolean compiler input, so the count is computed internally.
+- **Proof corrections:** the pinned standard natural codec is named
+  `finEncodingNatBool`, not `finEncodingNat`; length simplification also needs
+  its underlying `encodingNatBool`. `variables` is reserved syntax when used
+  as a binder, so the raw-word proof uses `countBits`. The first complete
+  execution proof then checked; removed its unused `List.cons_append` simp
+  argument. No unresolved machine/API error remains.
+- **Correspondence and next step:** README and detailed/headline status now
+  record source/count construction. The full corollary remains **Partial**.
+  Next carry the retained count through the already checked source split and
+  both section passes using the upstream pair-left API. Record-count
+  construction, header/section assembly and framing, canonical relabelling,
+  deduplicated edges, objective emission, and final compiler composition remain.
+- **Verification and ending state:** the direct module check and full
+  `lake build` passed (3152 jobs). All five new headline audits and every
+  reported build axiom set use only `propext`, `Classical.choice`, and
+  `Quot.sound`; the new module has no warnings. The null-delimited tracked/new
+  inventory scan covered all 25 project Lean files with zero prohibited-code
+  matches. `git diff --check` passed. This verified source/header increment is
+  ready to commit and push; no sibling or thesis files were changed.

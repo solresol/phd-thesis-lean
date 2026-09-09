@@ -128,8 +128,10 @@ exchanges the sections in linear time and reuses the same adapter to process
 scopes, then restores the original order; its complete composition starts at
 the actual Boolean compiler input and emits both exact tagged sections.
 
-These are checked components of the eventual compiler machine. They do not yet
-establish executable variable/record-count staging,
+`AllDifferentCSPVariableHeader` now copies the variable count and preserves
+the entire source in linear time, with a composition from the actual compiler
+input. These are checked components of the eventual compiler machine. They do
+not yet establish retained-count/section composition or record-count staging,
 or construction of the full tagged structural view; canonical
 relabelling and edge construction, objective-row emission, and final compiler
 assembly also remain.

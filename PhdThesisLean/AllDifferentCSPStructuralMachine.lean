@@ -30,7 +30,8 @@ splits the complete compiler input and applies this domain machine while
 preserving all scopes through the checked generic pair-left API.
 `AllDifferentCSPProcessedSections` reuses that API between two linear section
 exchanges to compose scope processing while retaining the domain output.
-Header retention and executable header staging,
+`AllDifferentCSPVariableHeader` copies the variable count before expansion.
+Count/section composition, record-count construction, executable header staging,
 canonical relabelling, edge deduplication, objective rows, and full compiler
 composition remain separate obligations.
 -/

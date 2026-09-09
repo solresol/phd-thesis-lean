@@ -18,7 +18,9 @@ locate the domain/scope boundary. It emits the existing tagged pair encoding,
 so a checked component machine can run while preserving the other section.
 `AllDifferentCSPProcessedSections` composes both component machines from this
 split, using linear exchanges to reuse the pair-left adapter for scopes.
-Variable/record-count retention and full structural assembly remain separate.
+`AllDifferentCSPVariableHeader` retains the variable count and complete source
+before this split. Count/section composition, record-count construction, and
+full structural assembly remain separate.
 -/
 
 namespace RuntimeSourceSections

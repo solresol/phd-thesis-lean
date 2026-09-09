@@ -280,8 +280,18 @@ paired output by four times its input length.
 Boolean compiler input and constructs both exact tagged sections internally,
 preserving domain occurrences, scope boundaries, entries, and repetitions.
 The full composition has a checked polynomial bound; `4s+6` is the bound for
-each generic exchange alone. Retaining the variable and record headers for full
-assembly remains, including the variable count lost by trailing empty domains.
+each generic exchange alone.
+[`AllDifferentCSPVariableHeader.lean`](PhdThesisLean/AllDifferentCSPVariableHeader.lean)
+now retains the variable count before domain expansion. Its four-stack finite
+machine copies the third source field's canonical binary payload while keeping
+the entire checked source word unchanged. `variableHeader_outputsInTime` and
+`variableHeaderComputableInPolyTime` prove exact source/count output in at most
+`3s+6` steps for full raw input length `s`; `VariableHeader.output_length_le`
+bounds the complete paired output by `2s`.
+`runtimeCompilerVariableHeaderComputableInPolyTime` constructs that pair from
+the actual Boolean compiler input, including zero variables and trailing empty
+domains. Carrying the retained count through section processing, constructing
+the record count, and assembling the full output remain.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging

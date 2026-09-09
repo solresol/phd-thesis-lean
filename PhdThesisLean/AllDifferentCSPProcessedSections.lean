@@ -15,7 +15,9 @@ computation. This module specializes those checked APIs to domain/scope
 encodings and composes them from the actual compiler input. Generic exchange
 uses arbitrary finite component alphabets and takes at most `4s+6` steps;
 its implementation and axiom audits are owned by `lean-np-hardness`.
-Header retention and complete structural assembly remain separate tasks.
+`AllDifferentCSPVariableHeader` separately copies the variable count while
+retaining the source. Carrying it through these passes, constructing the record
+count, and complete structural assembly remain separate tasks.
 -/
 
 /-- Put scopes first using the upstream generic pair exchange. -/

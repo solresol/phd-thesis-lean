@@ -8,6 +8,7 @@ import PhdThesisLean.AllDifferentCSPScopeSection
 import PhdThesisLean.AllDifferentCSPScopeMachine
 import PhdThesisLean.AllDifferentCSPSourceSections
 import PhdThesisLean.AllDifferentCSPStructuralMachine
+import PhdThesisLean.AllDifferentCSPVariableHeader
 import PhdThesisLean.ClauseCompiler
 import PhdThesisLean.ContactTheorem
 import PhdThesisLean.Coreset
