@@ -11,6 +11,19 @@ copies the core theorem statements from thesis commit
 The one uncommitted edit in the thesis working tree at extraction time did not
 touch any copied theorem statement.
 
+## Reusable components live in lean-np-hardness
+
+The generic list codecs, framing/serialization passes, binary arithmetic,
+counted-row parsers and header removal, Boolean aggregation, and unary-bounded
+prime machines are now imported from `lean-np-hardness`. The old thesis-facing
+names remain available as compatibility exports; their implementation bodies
+have been removed from this repository. CSP syntax, record formats, indexed
+domain/scope processing, objective construction, and p-adic correctness remain
+here. The dependency also owns generic pair exchange and
+`MachineAdapters.pairRightComputableInPolyTime`, which the scope composition
+now uses directly. Generic exchange covers different or empty finite alphabets
+with a `4s+6` bound, replacing the earlier specialized `2s+3` machine.
+
 ## Current status
 
 The central contact theorem now has a statement-faithful proof in
@@ -247,7 +260,7 @@ sections, empty rows, repetitions, and all entry values. The tagged pair output
 is no longer than the raw input, and all non-output stacks are empty at halt.
 `runtimeCompilerSectionsComputableInPolyTime` composes that split from the
 actual Boolean compiler input. The dependency is pinned to `lean-np-hardness`
-commit `fb7ca30caecc88ffacea9a91fc292ee35b54fdd7` to reuse its checked
+commit `db20c69186d2f717155392ed08772a3c03de1398` to reuse its checked
 `pairReductionComputableInPolyTime` API.
 `pairedDomainSectionComputableInPolyTime` expands the domain half while
 preserving the complete scope half; its composed
@@ -256,9 +269,9 @@ compiler input and emits exactly the indexed domain occurrences paired with
 the original scope lists.
 [`PhdThesisLean/AllDifferentCSPProcessedSections.lean`](PhdThesisLean/AllDifferentCSPProcessedSections.lean)
 now processes the scope half while preserving the domain output. Its
-`SectionPairExchange.outputsInTime` proves that a four-stack finite machine
-exchanges the sections and their alphabet tags in at most `2s+3` steps for
-complete paired wire length `s`, including empty sections. This permits reuse
+`LeanNPHardness.PairExchange.outputsInTime` proves the generic four-stack
+exchange in at most `4s+6` steps for complete paired wire length `s`,
+including empty sections and arbitrary finite component alphabets. This permits reuse
 of the same checked pair-left adapter for scopes; a second exchange restores
 the original section order. `pairedScopeSectionComputableInPolyTime` composes
 those passes, and `pairedScopeSection_output_length_le` bounds the entire
@@ -266,8 +279,8 @@ paired output by four times its input length.
 `runtimeCompilerProcessedSectionsComputableInPolyTime` starts from the actual
 Boolean compiler input and constructs both exact tagged sections internally,
 preserving domain occurrences, scope boundaries, entries, and repetitions.
-The full composition has a checked polynomial bound; `2s+3` is the bound for
-each exchange alone. Retaining the variable and record headers for full
+The full composition has a checked polynomial bound; `4s+6` is the bound for
+each generic exchange alone. Retaining the variable and record headers for full
 assembly remains, including the variable count lost by trailing empty domains.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

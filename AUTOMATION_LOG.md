@@ -3030,3 +3030,70 @@
 - Validation: reviewed the documentation diff and ran `git diff --check`.
   The prior successful 3137-job build still applies to unchanged Lean sources.
   This documentation correction is a separate verified increment.
+
+
+## 2026-09-09 — move reusable foundations upstream and consume the library
+
+- **Authorization and starting state:** the user explicitly requested moving
+  the identified reusable components into `../lean-np-hardness`, superseding
+  the automation's normal read-only sibling boundary for this migration.
+  This repository started clean/synchronized at `84be78d`; the sibling started
+  clean/synchronized at `4475e98`. Both fetch/ahead-behind checks showed no
+  upstream advance. The thesis prose repository was not changed.
+- **Upstream core increment:** committed and pushed `7f90b04` with ten library
+  modules: binary/nested-list codecs, raw field encodings, execution helpers,
+  framing/serialization, source-order conversion, binary arithmetic, counted-row
+  decoding and header removal, Boolean aggregation, and generic pair exchange.
+  Generalized exchange to arbitrary finite component alphabets, including empty
+  alphabets, and added `MachineAdapters.pairRightComputableInPolyTime`.
+  Carrying symbols in finite labels removes any default-symbol assumption.
+  Its bound is `4s+6`, replacing the former specialized exchange's `2s+3`.
+  Upstream full build passed (1164 jobs), with twenty new headline audits.
+- **Upstream prime increment:** committed and pushed
+  `db20c69186d2f717155392ed08772a3c03de1398`, adding `BoundedPrime`,
+  `IntervalMachines`, `UnaryDivisibilityMachine`, and `PrimeSelectionMachine`.
+  Preserved exact unary/padded encodings and all displayed runtime bounds,
+  including `1000(q+1)^6` for final selection on unary input. Thirteen new
+  headline audits and the final 2195-job full build passed. The library has
+  no imports from the downstream thesis and its 40-file prohibited-code scan
+  passed. Both upstream commits are pushed and the live remote matches HEAD.
+- **Downstream migration:** updated only the `lean_np_hardness` revision in
+  `lakefile.lean`/`lake-manifest.json` to `db20c69`; toolchain and all other
+  package revisions are unchanged. Removed the generic implementation bodies
+  from the semantic, encoding, primitive-machine, and processed-section files.
+  Compatibility exports retain the old public theorem names. Renamed generic
+  counted-row machines retain thin downstream aliases. The scope composition
+  now specializes the upstream right-component API directly.
+- **Scope retained here:** `RuntimeSystem`, `RuntimeStructuralView`, CSP record
+  tags, indexed domain/scope processing, the source splitter, objective
+  construction, and p-adic correctness. The structural field-level specification
+  and runtime-system compositions remain downstream. The full all-different
+  corollary remains Partial, with its remaining headers/relabelling/graph/
+  objective/final-composition obligations unchanged.
+- **Extraction corrections:** repaired clipped/dangling comments at source
+  boundaries; exported named helper lemmas needed across the new modules;
+  moved the shared replication identity into the execution helper module.
+  Generic exchange needed explicit intermediate configurations for empty-list
+  transitions. The generic arithmetic still advertises its aligned-pair input,
+  and the prime machinery still advertises its unary-bound input. Existing
+  simplifier-style warnings were carried with the prime proofs.
+- **Correspondence:** README and detailed/theorem-table status now identify the
+  upstream implementation ownership and the generalized exchange bound.
+  Historical automation entries are retained as records of their original
+  checked states.
+
+- **Final verification:** downstream `lake build` passed (3151 jobs), including
+  the original semantic theorems, encoding/size proofs, structural machines,
+  and `runtimeCompilerProcessedSectionsComputableInPolyTime` under the new
+  pinned dependency. Parsed every reported axiom set from the final upstream
+  and downstream builds; all contain only the three standard axioms.
+  The final downstream prohibited-code scan covered all 24 project Lean files.
+  `git diff --check` passed, and manifest comparison confirmed that only the
+  requested dependency revision changed. No unrelated work was modified.
+- **Ending state before downstream commit:** all fourteen reusable modules are
+  upstream, built, audited, committed and pushed. Downstream consumes the exact
+  verified upstream commit and retains compatibility names with its generic
+  implementation bodies removed. Both projects build and the full corollary
+  remains Partial. Next formalisation work is the existing structural-header
+  retention/assembly target; the normal automation sibling boundary returns
+  to read-only after this explicitly authorized migration.
