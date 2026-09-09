@@ -31,7 +31,8 @@ preserving all scopes through the checked generic pair-left API.
 `AllDifferentCSPProcessedSections` reuses that API between two linear section
 exchanges to compose scope processing while retaining the domain output.
 `AllDifferentCSPVariableHeader` copies the variable count before expansion.
-Count/section composition, record-count construction, executable header staging,
+`AllDifferentCSPCountedSections` carries it through both section passes.
+Record-count construction, executable header staging,
 canonical relabelling, edge deduplication, objective rows, and full compiler
 composition remain separate obligations.
 -/

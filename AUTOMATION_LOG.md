@@ -3144,3 +3144,55 @@
   inventory scan covered all 25 project Lean files with zero prohibited-code
   matches. `git diff --check` passed. This verified source/header increment is
   ready to commit and push; no sibling or thesis files were changed.
+
+### 2026-09-10 — carry the saved variable count through both section machines
+
+- **Starting state:** the first verified increment is committed and pushed as
+  `5b1e28b8e6ebdfbac4700414f09baf8b78e0c335`. Local HEAD, tracking main, and
+  the live remote ref agreed, with a clean worktree before this increment.
+- **Checked composition:** added `AllDifferentCSPCountedSections.lean` and
+  its root import. `sourceProcessedSectionsComputableInPolyTime` composes the
+  existing splitter and both section machines at the raw source boundary.
+  `processWithVariableCountComputableInPolyTime` applies the upstream generic
+  pair-left API to preserve the copied standard binary count throughout that
+  complete pass. `runtimeCompilerCountedSectionsComputableInPolyTime` composes
+  from the actual Boolean compiler input to exactly
+  `((indexedDomainOccurrences C.domains, C.scopes), C.domains.length)`.
+  The complete machine has a checked polynomial bound; `3s+6` remains only the
+  local header-copy bound. No generic foundations were copied or repinned.
+- **Exact remaining assembly contract:** `CountedSections.finEncoding` reuses
+  the existing nested pair and component encodings. The executable
+  `toStructuralView` reconstructs the target from this tuple;
+  `toStructuralView_ofRuntimeSystem` checks exact equality without any axioms.
+  `recordCount_ofRuntimeSystem` counts every occurrence and scope, including
+  repetitions and empty scopes. `recordCount_le_encode_length` charges every
+  record to its encoded cells and bounds the total by the actual tuple length,
+  independently of entry/index magnitude. `headerEncode_ofRuntimeSystem` and
+  `raw_encode_eq_sections` identify the header and full reversed assembly
+  exactly with the existing raw structural-view target. These are encoding
+  identities, not an assertion that the final merge machine already exists.
+- **Proof corrections:** simultaneous simplification unfolded `ofRuntimeSystem`
+  before the named `recordCount_ofRuntimeSystem` rewrite could match; doing
+  that rewrite first fixed the header identity. The raw-source composition
+  needed `CountedSections.sectionsFinEncoding` unfolded on both sides to match
+  the encoded output after simplification. The corrected direct module check
+  passed without warnings. All eight new headline axiom audits use only the
+  standard axioms, with the reconstruction equality axiom-free.
+- **Correspondence and best next step:** synchronized the headline catalogue,
+  detailed status, README, and relevant module correspondence comments,
+  including a stale semantic comment that still listed paired scope processing
+  as unfinished. The full corollary remains **Partial**. Next build the concrete
+  record-count/merge machine over `CountedSections.finEncoding`, emit
+  `CountedSections.headerEncode`, and realize `raw_encode_eq_sections` before
+  composing the existing framing bridge. After that, machine-level canonical
+  relabelling, deduplicated graph construction, objective emission, and final
+  compiler composition remain. The sibling and active thesis were read-only.
+- **Final verification and ending state:** the direct counted-section check
+  and full `lake build` passed (3153 jobs). All 190 nonempty reported axiom
+  sets contain only `propext`, `Classical.choice`, and `Quot.sound`; the new
+  reconstruction equality is axiom-free. Neither new module has warnings.
+  The prohibited-code scan covered all 26 project Lean files with zero
+  matches, and `git diff --check` passed. The sibling remains clean at the
+  unchanged pin, and the thesis retains its original dirty-file inventory.
+  This second verified increment is ready to commit and push; record-count
+  generation and raw structural assembly remain the next machine target.

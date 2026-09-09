@@ -109,8 +109,9 @@ pair encoding and composes domain expansion while preserving the scope payload.
 The processed-section machine also composes scope processing within the pair,
 retaining the domain output and restoring section order. The variable-header
 machine copies the checked variable count while preserving the full source.
-Retained-count/section composition, record-count construction, complete-stream
-staging, encoded
+The counted-section composition carries that count through both processed
+sections and checks exact structural reconstruction. Record-count construction,
+complete-stream staging, encoded
 objective emission, and whole-compiler composition remain separate from these
 encoding and size results.
 -/

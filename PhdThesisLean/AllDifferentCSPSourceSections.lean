@@ -19,8 +19,9 @@ so a checked component machine can run while preserving the other section.
 `AllDifferentCSPProcessedSections` composes both component machines from this
 split, using linear exchanges to reuse the pair-left adapter for scopes.
 `AllDifferentCSPVariableHeader` retains the variable count and complete source
-before this split. Count/section composition, record-count construction, and
-full structural assembly remain separate.
+before this split; `AllDifferentCSPCountedSections` carries that count through
+both section passes. Record-count construction and full structural assembly
+remain separate.
 -/
 
 namespace RuntimeSourceSections

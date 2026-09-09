@@ -130,8 +130,10 @@ the actual Boolean compiler input and emits both exact tagged sections.
 
 `AllDifferentCSPVariableHeader` now copies the variable count and preserves
 the entire source in linear time, with a composition from the actual compiler
-input. These are checked components of the eventual compiler machine. They do
-not yet establish retained-count/section composition or record-count staging,
+input. `AllDifferentCSPCountedSections` carries that count through the source
+split and both section passes, yielding the exact occurrence/scope/count tuple.
+These are checked components of the eventual compiler machine. They do not yet
+establish executable record-count staging,
 or construction of the full tagged structural view; canonical
 relabelling and edge construction, objective-row emission, and final compiler
 assembly also remain.

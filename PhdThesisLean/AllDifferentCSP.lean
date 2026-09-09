@@ -120,8 +120,11 @@ binary row/value countdowns, and composes domain expansion through the checked
 generic pair-left machine while preserving every scope. The processed-section
 machine exchanges the paired sections in linear time and reuses the same
 adapter for scopes, composing both tagged section outputs from the actual
-compiler input. Executable variable/record-count staging,
-canonical row construction, encoded objective emission, and final
+compiler input. The variable-header machine now copies the source count, and
+`AllDifferentCSPCountedSections` carries it through both section passes using
+the checked generic pair-left API. This exact tuple reconstructs the structural
+view even with trailing empty domains. Record-count construction, full
+header/section assembly, canonical row construction, objective emission, and final
 whole-compiler composition remain.
 -/
 
@@ -1174,8 +1177,10 @@ for one index in quadratic bit-level time. The separate complete domain and
 scope machines now check cross-domain index advancement and whole-scope
 traversal, each composed with checked outer-count removal. The source-section
 machine now splits the full input and composes domain expansion while retaining
-all scopes through the checked generic pair-left API. Paired scope processing,
-variable/record-count staging, canonical relabelling, edge deduplication,
+all scopes through the checked generic pair-left API. Paired scope processing
+now composes too, and the variable-header/count-preserving composition carries
+the original variable count through both passes. Record-count construction,
+full header/section assembly, canonical relabelling, edge deduplication,
 encoded objective emission, and final runtime composition remain before
 `cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness

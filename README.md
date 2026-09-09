@@ -290,8 +290,21 @@ the entire checked source word unchanged. `variableHeader_outputsInTime` and
 bounds the complete paired output by `2s`.
 `runtimeCompilerVariableHeaderComputableInPolyTime` constructs that pair from
 the actual Boolean compiler input, including zero variables and trailing empty
-domains. Carrying the retained count through section processing, constructing
-the record count, and assembling the full output remain.
+domains.
+[`AllDifferentCSPCountedSections.lean`](PhdThesisLean/AllDifferentCSPCountedSections.lean)
+uses the checked generic pair-left API to carry that saved count through source
+splitting and both section machines.
+`runtimeCompilerCountedSectionsComputableInPolyTime` constructs the complete
+checked tuple of domain occurrences, intact scopes, and original variable
+count from the actual Boolean input. Its bound is polynomial; the `3s+6`
+constant applies only to the header-copy pass.
+`CountedSections.toStructuralView_ofRuntimeSystem` proves that this tuple
+reconstructs exactly the intended structural view, and
+`recordCount_le_encode_length` bounds its record count by its actual encoded
+length, including repetitions and empty scopes. `raw_encode_eq_sections`
+specializes the exact header/section assembly contract to this internally
+constructed tuple. Computing the record count and executing the final merge
+into the raw structural encoding remain.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
@@ -616,7 +629,10 @@ The copied statements are grouped by mathematical contribution:
   source preparation, splitting, and paired domain expansion from the actual
   compiler input. `runtimeCompilerProcessedSectionsComputableInPolyTime`
   also composes paired scope processing, preserving the domain output and
-  restoring the section order. Variable/record-count staging,
+  restoring the section order. `runtimeCompilerCountedSectionsComputableInPolyTime`
+  additionally retains the original variable count throughout both passes;
+  its exact tuple reconstructs the structural view even with trailing empty
+  domains. Record-count construction, final header/section assembly,
   canonical relabelling, edge deduplication, encoded objective rows,
   and final composition remain open;
   `thm:3sat-clausewise` is

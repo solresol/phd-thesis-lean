@@ -16,8 +16,9 @@ encodings and composes them from the actual compiler input. Generic exchange
 uses arbitrary finite component alphabets and takes at most `4s+6` steps;
 its implementation and axiom audits are owned by `lean-np-hardness`.
 `AllDifferentCSPVariableHeader` separately copies the variable count while
-retaining the source. Carrying it through these passes, constructing the record
-count, and complete structural assembly remain separate tasks.
+retaining the source; `AllDifferentCSPCountedSections` carries it through both
+passes using the upstream pair-left API. Record-count construction and complete
+structural assembly remain separate tasks.
 -/
 
 /-- Put scopes first using the upstream generic pair exchange. -/
