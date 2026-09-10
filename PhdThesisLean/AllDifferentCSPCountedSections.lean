@@ -13,8 +13,10 @@ The upstream pair-left API carries the saved binary variable count through
 source splitting, domain expansion, and scope processing. The resulting
 checked tuple determines the exact structural view, even for trailing empty
 domains. Its record count is bounded by its actual encoded length. Constructing
-that count and merging the tuple into the raw structural encoding still need
-a finite-machine proof; the assembly identities below specify that boundary.
+that count and bridging to the original raw/framed encoding still need a
+finite-machine proof. `AllDifferentCSPAssemblyMachine` now merges this tuple
+into the exact structural view under its exhaustion-delimited payload encoding;
+the assembly identities below specify the original-format boundary.
 -/
 
 namespace CountedSections

@@ -1,6 +1,7 @@
 import PhdThesisLean.AdditiveContact
 import PhdThesisLean.AllDifferent
 import PhdThesisLean.AllDifferentCSP
+import PhdThesisLean.AllDifferentCSPAssemblyMachine
 import PhdThesisLean.AllDifferentCSPCountedSections
 import PhdThesisLean.AllDifferentCSPEncoding
 import PhdThesisLean.AllDifferentCSPMachine
@@ -9,6 +10,7 @@ import PhdThesisLean.AllDifferentCSPScopeSection
 import PhdThesisLean.AllDifferentCSPScopeMachine
 import PhdThesisLean.AllDifferentCSPSourceSections
 import PhdThesisLean.AllDifferentCSPStructuralMachine
+import PhdThesisLean.AllDifferentCSPStructuralAssembly
 import PhdThesisLean.AllDifferentCSPVariableHeader
 import PhdThesisLean.ClauseCompiler
 import PhdThesisLean.ContactTheorem

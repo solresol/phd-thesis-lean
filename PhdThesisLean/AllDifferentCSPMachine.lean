@@ -132,11 +132,11 @@ the actual Boolean compiler input and emits both exact tagged sections.
 the entire source in linear time, with a composition from the actual compiler
 input. `AllDifferentCSPCountedSections` carries that count through the source
 split and both section passes, yielding the exact occurrence/scope/count tuple.
-These are checked components of the eventual compiler machine. They do not yet
-establish executable record-count staging,
-or construction of the full tagged structural view; canonical
-relabelling and edge construction, objective-row emission, and final compiler
-assembly also remain.
+`AllDifferentCSPAssemblyMachine` now assembles that tuple into the exact full
+structural view under the checked exhaustion-delimited payload encoding.
+Outer-record-count construction and the bridge to the original framed Boolean
+encoding remain; canonical relabelling and edge construction, objective-row
+emission, and final compiler assembly also remain.
 -/
 
 namespace FramedNat

@@ -3196,3 +3196,58 @@
   unchanged pin, and the thesis retains its original dirty-file inventory.
   This second verified increment is ready to commit and push; record-count
   generation and raw structural assembly remain the next machine target.
+
+### 2026-09-11 — assemble the complete structural payload
+
+- **Starting state:** clean `main` at `e1eae4197a3d87e462934d5f4a7f6d93c2a3313e`,
+  with tracking and live remote parity after fetch. The active thesis still
+  has its existing user edits; its live `cor:all-different-csp` statement and
+  proof retain the explicit-input, canonical relabelling, deduplicated graph,
+  and polynomial construction obligations. Read-only `lean-np-hardness` is
+  clean at `9852d948abae3d35c49b5ebd4021bf1627e7328c`; the new CNF encoding
+  does not supply outer-record-count construction. Kept dependency pin `db20c69`.
+- **Chosen increment:** separate exact singleton-header/section assembly from
+  the still-missing total-row counter. Added `AllDifferentCSPStructuralAssembly.lean`
+  and `AllDifferentCSPAssemblyMachine.lean`, plus root imports. The new
+  `RuntimeStructuralView.payloadFinEncoding` reuses the upstream exhaustion-
+  delimited counted-row decoder and the existing structural tag parser.
+  It encodes every semantic field; only the redundant outer row count is
+  absent. `payloadDecode_encode` proves exact recovery and
+  `payloadEncode_toStructuralView_length` proves exactly three added header
+  cells relative to the complete counted-section input.
+- **Checked machine:** `StructuralAssemblyMachine.computer` uses four finite
+  stacks to remove the pair transport tags, retain all record tags and numeric
+  fields, and move the saved variable count into its singleton row.
+  `structuralAssembly_outputsInTime` / `structuralAssemblyComputableInPolyTime`
+  prove the exact merged output in at most `2s+3` steps for actual tuple wire
+  length `s`, clearing every non-output stack. Zero variables, trailing empty
+  domains, empty scopes, repetitions, and arbitrary binary payloads are covered.
+  `runtimeCompilerStructuralPayloadComputableInPolyTime` composes from the
+  actual Boolean compiler input to exactly `RuntimeStructuralView.ofRuntimeSystem`
+  under the payload encoding, with a checked polynomial bound. The `2s+3`
+  constant is only the final local pass.
+- **Remaining boundary:** `raw_encode_eq_count_payload` proves that prepending
+  the total row count and reversing produces the original raw encoding.
+  This is an encoding identity; the count producer and its composition with
+  the Boolean framing bridge remain missing. Canonical relabelling, primal-edge
+  deduplication, objective emission, and end-to-end compiler assembly still
+  remain. README and headline/detailed theorem status retain **Partial**.
+- **Proof corrections and API evidence:** a reverse rewrite against
+  `SourceOrderRawNatLists.encode` did not match; applying `List.reverse_injective`
+  then the checked counted-input identity resolved the exact raw bridge.
+  Simplifying `encodeNat 1` also needed `encodeNum` and `encodePosNum`.
+  `section` is a reserved binder; renamed it `part`. This Lean version has no
+  `List.filterMap_none`; used `List.filterMap_eq_nil_iff` for constant-none
+  projections and unfolded `Function.comp_def`, then normalized body reversal
+  before sequential composition. No unresolved proof/API error remains.
+- **Verification and ending state:** both direct module checks and full
+  `lake build` passed (3155 jobs). All nine new headline axiom audits use only
+  `propext`, `Classical.choice`, and `Quot.sound`; neither new module has warnings.
+  The tracked/new inventory scan covered all 28 project Lean files with zero
+  prohibited-code matches. A first scan also matched the prose phrase
+  “axiom audits”; declaration-sensitive scanning correctly distinguishes it
+  from a project-defined axiom. `git diff --check` passed. No sibling or thesis
+  files changed. This verified assembly increment is ready to commit and push.
+- **Best next step:** bound this newly constructed payload and its row count
+  in actual encoded length, then construct the outer row count and compose
+  reversal/framing to the original Boolean structural encoding.

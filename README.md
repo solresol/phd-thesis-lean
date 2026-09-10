@@ -303,18 +303,36 @@ reconstructs exactly the intended structural view, and
 `recordCount_le_encode_length` bounds its record count by its actual encoded
 length, including repetitions and empty scopes. `raw_encode_eq_sections`
 specializes the exact header/section assembly contract to this internally
-constructed tuple. Computing the record count and executing the final merge
-into the raw structural encoding remain.
+constructed tuple.
+[`AllDifferentCSPStructuralAssembly.lean`](PhdThesisLean/AllDifferentCSPStructuralAssembly.lean)
+checks an exhaustion-delimited encoding of the full structural view, including
+its singleton variable header. It reuses the upstream counted-row decoder to
+check every row length and the existing structural parser to check every tag.
+`payloadDecode_encode` recovers the view exactly; only the redundant outer row
+count is omitted. `payloadEncode_toStructuralView_length` proves that assembly
+adds exactly three fixed header cells to the complete counted-section input.
+[`AllDifferentCSPAssemblyMachine.lean`](PhdThesisLean/AllDifferentCSPAssemblyMachine.lean)
+implements this assembly with four finite stacks.
+`structuralAssembly_outputsInTime` and `structuralAssemblyComputableInPolyTime`
+merge the two record streams and move the saved count into its singleton row
+in at most `2s+3` steps for actual counted-section wire length `s`.
+`runtimeCompilerStructuralPayloadComputableInPolyTime` constructs exactly
+`RuntimeStructuralView.ofRuntimeSystem` from the actual Boolean compiler input
+with a checked polynomial bound, using `RuntimeStructuralView.payloadFinEncoding`.
+The local `2s+3` bound applies only to the final assembly pass.
+`raw_encode_eq_count_payload` specifies the remaining bridge to the original
+raw/framed encoding: prepend the total row count and reverse the cells.
+Constructing that outer count and composing the Boolean framing bridge remain.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
 order with the checked raw structural view, ready for the existing framing
-machine. Executable header staging remains to be proved.
+machine. Executable outer-record-count staging remains to be proved.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
 powers of two, and arbitrary borrow chains. The checked
-`RuntimeStructuralView` is the exact target for the next pass: it retains the
+`RuntimeStructuralView` is now constructed under its payload encoding: it retains the
 variable-count header, flattens every explicitly listed domain value to a
 tagged `(variable index, value)` occurrence, preserves duplicates and order,
 and keeps every scope intact under its own tag. Its Boolean `FinEncoding`
@@ -632,7 +650,10 @@ The copied statements are grouped by mathematical contribution:
   restoring the section order. `runtimeCompilerCountedSectionsComputableInPolyTime`
   additionally retains the original variable count throughout both passes;
   its exact tuple reconstructs the structural view even with trailing empty
-  domains. Record-count construction, final header/section assembly,
+  domains. `runtimeCompilerStructuralPayloadComputableInPolyTime` then merges
+  both streams and the singleton variable header into the exact structural view
+  under the checked exhaustion-delimited payload encoding. Outer-record-count
+  construction and framing to the original Boolean encoding,
   canonical relabelling, edge deduplication, encoded objective rows,
   and final composition remain open;
   `thm:3sat-clausewise` is
