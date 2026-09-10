@@ -311,6 +311,11 @@ check every row length and the existing structural parser to check every tag.
 `payloadDecode_encode` recovers the view exactly; only the redundant outer row
 count is omitted. `payloadEncode_toStructuralView_length` proves that assembly
 adds exactly three fixed header cells to the complete counted-section input.
+`payloadEncode_length_le_encodedSize` charges those payload cells to the existing
+framed encoding, so `payloadEncode_ofRuntimeSystem_length_le_compilerInput_quadratic`
+bounds the constructed payload by `32 * (s+1)^2` cells for actual Boolean input
+length `s`. `rowCount_le_payloadEncode_length` bounds the required outer row
+count, including the singleton header, by the payload's own encoded length.
 [`AllDifferentCSPAssemblyMachine.lean`](PhdThesisLean/AllDifferentCSPAssemblyMachine.lean)
 implements this assembly with four finite stacks.
 `structuralAssembly_outputsInTime` and `structuralAssemblyComputableInPolyTime`

@@ -123,9 +123,13 @@ adapter for scopes, composing both tagged section outputs from the actual
 compiler input. The variable-header machine now copies the source count, and
 `AllDifferentCSPCountedSections` carries it through both section passes using
 the checked generic pair-left API. This exact tuple reconstructs the structural
-view even with trailing empty domains. Record-count construction, full
-header/section assembly, canonical row construction, objective emission, and final
-whole-compiler composition remain.
+view even with trailing empty domains. `AllDifferentCSPAssemblyMachine` now
+constructs that full view under its checked exhaustion-delimited payload
+encoding, with a polynomial-time composition from the actual Boolean input.
+The payload has a quadratic size bound in that input, and its required outer
+row count is bounded by its own encoded length. Constructing this outer count
+and bridging to the original framed Boolean encoding, canonical row
+construction, objective emission, and final whole-compiler composition remain.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

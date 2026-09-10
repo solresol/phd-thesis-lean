@@ -3251,3 +3251,39 @@
 - **Best next step:** bound this newly constructed payload and its row count
   in actual encoded length, then construct the outer row count and compose
   reversal/framing to the original Boolean structural encoding.
+
+### 2026-09-11 — bound the assembled payload and its required outer count
+
+- **Starting state:** the assembly increment was committed and pushed as
+  `27b2ba1e9b67668ef94fb3204cc546686f28aa4d`; local HEAD, tracking main,
+  and the live remote ref agreed, with a clean worktree before this increment.
+- **Checked size bridge:** `RuntimeStructuralView.payloadEncode_length_le_encodedSize`
+  charges each raw field bit/delimiter to the corresponding framed field,
+  bounding the entire payload by the already checked Boolean structural size.
+  `payloadEncode_ofRuntimeSystem_length_le_quadratic` and
+  `payloadEncode_ofRuntimeSystem_length_le_compilerInput_quadratic` retain the
+  `32 * (s+1)^2` bound in compact and actual compiler input bit lengths.
+  These bound the exact output of the new composed structural assembly machine;
+  no numeric symbol magnitude is substituted for bit length.
+- **Counter input invariant:** `rowCount_le_payloadEncode_length` bounds the
+  missing outer row count, including the singleton variable header, by the
+  actual payload length. It reuses the existing checked counted-row length
+  theorem, including the empty-record case. This is a size invariant for the
+  next counting machine, not a claim that counting has been implemented.
+- **Proof approach and checks:** a minimal size experiment checked before
+  integration; no new failed approach or unresolved API error occurred.
+  The direct module check and final `lake build` passed (3155 jobs). All four
+  new headline audits use only standard axioms, and the complete build's
+  203 nonempty axiom reports contain only `propext`, `Classical.choice`, and
+  `Quot.sound`. Both new modules are warning-free. The final scan of all 28
+  tracked/new project Lean files found no prohibited code; `git diff --check`
+  passed. README, headline/detailed status, and semantic/encoding source
+  correspondence notes are synchronized; `cor:all-different-csp` stays **Partial**.
+- **Ending state and next step:** no sibling or active-thesis files changed;
+  their HEADs remain `9852d94` and `f1107f5`, respectively, and the thesis's
+  original dirty-file inventory is preserved. This second verified increment
+  is ready to commit and push. Next implement the outer-row counter on the
+  exact checked payload, preserve that payload, realize
+  `raw_encode_eq_count_payload`, and compose the existing framing bridge.
+  Relabelling, deduplicated edge construction, objective emission, and final
+  compiler composition remain after that structural-format bridge.

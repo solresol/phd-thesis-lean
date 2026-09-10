@@ -108,6 +108,58 @@ theorem raw_encode_eq_count_payload (view : AllDifferentCSPEncoding.RuntimeStruc
     payloadEncode, DomainFieldSection.rowPayloadEncode, SourceOrderRawFields.encode,
     AllDifferentCSPEncoding.RuntimeStructuralView.toNatLists]
 
+private theorem fields_length_le (fields : List ℕ) :
+    (SourceOrderRawFields.encode fields).length ≤
+      (fields.map BinaryNatLists.natWireSize).sum := by
+  induction fields with
+  | nil => rfl
+  | cons field fields ih =>
+      simp [SourceOrderRawFields.encode, BinaryNatLists.natWireSize] at *
+      omega
+
+private theorem rows_length_le (rows : List (List ℕ)) :
+    (DomainFieldSection.rowPayloadEncode rows).length ≤
+      (rows.map BinaryNatLists.listWireSize).sum := by
+  induction rows with
+  | nil => rfl
+  | cons row rows ih =>
+      have hf := fields_length_le row
+      simp [DomainFieldSection.rowPayloadEncode, DomainFieldSection.rowFields,
+        SourceOrderRawFields.encode, BinaryNatLists.listWireSize,
+        BinaryNatLists.natWireSize] at *
+      omega
+
+/-- Every raw payload bit/delimiter is charged to its framed counterpart.
+The comparison uses encoded lengths, not the magnitudes of natural values. -/
+theorem payloadEncode_length_le_encodedSize (view : AllDifferentCSPEncoding.RuntimeStructuralView) :
+    (payloadEncode view).length ≤ view.encodedSize := by
+  rw [AllDifferentCSPEncoding.RuntimeStructuralView.encodedSize_eq_wireSize]
+  have h := rows_length_le view.toNatLists
+  simp only [BinaryNatLists.wireSize]
+  exact h.trans (Nat.le_add_left _ _)
+
+/-- The missing outer row count includes the singleton header and is bounded
+by the actual payload length, including for an empty record list. -/
+theorem rowCount_le_payloadEncode_length (view : AllDifferentCSPEncoding.RuntimeStructuralView) :
+    view.records.length + 1 ≤ (payloadEncode view).length := by
+  have h := ScopeFieldSection.length_le_rowPayloadEncode_length view.toNatLists
+  simpa [payloadEncode, AllDifferentCSPEncoding.RuntimeStructuralView.toNatLists] using h
+
+/-- Quadratic payload-size bound in the complete compact Boolean input length. -/
+theorem payloadEncode_ofRuntimeSystem_length_le_quadratic (C : RuntimeSystem) :
+    (payloadEncode (AllDifferentCSPEncoding.RuntimeStructuralView.ofRuntimeSystem C)).length ≤
+      32 * (C.encodedSize + 1) ^ 2 :=
+  (payloadEncode_length_le_encodedSize _).trans
+    (AllDifferentCSPEncoding.RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_quadratic C)
+
+/-- The same bound in the actual compiler input, including its checked unary
+occurrence header. This bounds the output of the composed assembly machine. -/
+theorem payloadEncode_ofRuntimeSystem_length_le_compilerInput_quadratic (C : RuntimeSystem) :
+    (payloadEncode (AllDifferentCSPEncoding.RuntimeStructuralView.ofRuntimeSystem C)).length ≤
+      32 * ((RuntimeCompilerInput.encode C).length + 1) ^ 2 :=
+  (payloadEncode_length_le_encodedSize _).trans
+    (AllDifferentCSPEncoding.RuntimeStructuralView.ofRuntimeSystem_encodedSize_le_compilerInput_quadratic C)
+
 end RuntimeStructuralView
 
 #print axioms RuntimeStructuralView.payloadDecode_encode
@@ -115,5 +167,9 @@ end RuntimeStructuralView
 #print axioms RuntimeStructuralView.payloadEncode_toStructuralView
 #print axioms RuntimeStructuralView.payloadEncode_toStructuralView_length
 #print axioms RuntimeStructuralView.raw_encode_eq_count_payload
+#print axioms RuntimeStructuralView.payloadEncode_length_le_encodedSize
+#print axioms RuntimeStructuralView.rowCount_le_payloadEncode_length
+#print axioms RuntimeStructuralView.payloadEncode_ofRuntimeSystem_length_le_quadratic
+#print axioms RuntimeStructuralView.payloadEncode_ofRuntimeSystem_length_le_compilerInput_quadratic
 
 end PhdThesisLean.AllDifferentCSPMachine

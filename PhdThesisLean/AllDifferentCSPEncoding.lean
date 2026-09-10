@@ -110,10 +110,13 @@ The processed-section machine also composes scope processing within the pair,
 retaining the domain output and restoring section order. The variable-header
 machine copies the checked variable count while preserving the full source.
 The counted-section composition carries that count through both processed
-sections and checks exact structural reconstruction. Record-count construction,
-complete-stream staging, encoded
-objective emission, and whole-compiler composition remain separate from these
-encoding and size results.
+sections and checks exact structural reconstruction. The assembly machine now
+constructs the full structural view under a checked exhaustion-delimited payload
+encoding. Its payload is no larger than the framed encoding bounded here;
+the required outer row count is bounded by its actual payload length.
+Constructing that count and bridging to the original framed Boolean encoding,
+encoded objective emission, and whole-compiler composition remain separate
+from these encoding and size results.
 -/
 
 namespace BinaryNatLists
