@@ -12,8 +12,9 @@ open LeanNPHardness.MachineComposition
 The payload encoding uses the upstream exhaustion-delimited counted-row
 codec: the first row is the singleton variable header, followed by all tagged
 records. Every row length and record tag is checked. Only the redundant outer
-row count is absent. Adding that count and converting to the existing framed
-Boolean encoding remain distinct machine obligations.
+row count is absent. `AllDifferentCSPRowCount` constructs that count in unary
+while retaining the payload. Binary header conversion and the existing framed
+Boolean encoding bridge remain distinct machine obligations.
 -/
 
 namespace RuntimeStructuralView

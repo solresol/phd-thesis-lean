@@ -327,12 +327,22 @@ with a checked polynomial bound, using `RuntimeStructuralView.payloadFinEncoding
 The local `2s+3` bound applies only to the final assembly pass.
 `raw_encode_eq_count_payload` specifies the remaining bridge to the original
 raw/framed encoding: prepend the total row count and reverse the cells.
-Constructing that outer count and composing the Boolean framing bridge remain.
+[`AllDifferentCSPRowCount.lean`](PhdThesisLean/AllDifferentCSPRowCount.lean)
+now constructs the row count while retaining the entire payload.
+`structuralRowCount_outputsInTime` and `structuralRowCountComputableInPolyTime`
+use five finite-alphabet stacks to traverse every binary row length, copy each
+field unchanged, and emit one unary tally mark per row. The exact result is
+`(view, view.records.length + 1)` under the standard tagged pair encoding, in
+at most `20 * (s+1)^2` steps for actual payload length `s`. This includes the
+singleton variable header, empty scopes, and repeated records. All non-output
+stacks are empty at halt. Converting the computed tally to a binary outer
+header and composing the Boolean framing bridge remain.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
 order with the checked raw structural view, ready for the existing framing
-machine. Executable outer-record-count staging remains to be proved.
+machine. Binary outer-header staging remains to be proved; its unary count
+is now constructed by the payload-preserving row pass.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,

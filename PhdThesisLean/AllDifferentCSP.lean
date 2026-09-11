@@ -127,8 +127,10 @@ view even with trailing empty domains. `AllDifferentCSPAssemblyMachine` now
 constructs that full view under its checked exhaustion-delimited payload
 encoding, with a polynomial-time composition from the actual Boolean input.
 The payload has a quadratic size bound in that input, and its required outer
-row count is bounded by its own encoded length. Constructing this outer count
-and bridging to the original framed Boolean encoding, canonical row
+row count is bounded by its own encoded length. `AllDifferentCSPRowCount` now
+retains that payload and constructs the outer count in unary in quadratic
+bit-level time. Binary conversion of that tally and the original framed
+Boolean encoding bridge, canonical row
 construction, objective emission, and final whole-compiler composition remain.
 -/
 

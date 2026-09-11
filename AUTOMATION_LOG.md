@@ -3287,3 +3287,48 @@
   `raw_encode_eq_count_payload`, and compose the existing framing bridge.
   Relabelling, deduplicated edge construction, objective emission, and final
   compiler composition remain after that structural-format bridge.
+
+### 2026-09-12 — compute the outer structural row count while retaining the payload
+
+- **Starting state:** clean, synchronized `main` at
+  `f0a23a0dcabf8e8ddc6bf381822a01302f6da80e`; fetch confirmed zero divergence.
+  Read the run memory, theorem status, relevant source/correspondence notes,
+  previous log, and the active thesis corollary and proof. The active thesis
+  remained at `f1107f5` with its existing dirty-file inventory preserved.
+  Read-only `lean-np-hardness` was clean at `2b546d6`, matching the live remote;
+  its new SAT certificate results supply no row counter. Kept pin `db20c69`
+  and reused its counted-row encoding, binary predecessor semantics, encoded
+  length bounds, and standard pair codec without editing the sibling.
+- **Chosen increment:** added `AllDifferentCSPRowCount.lean` and its root
+  import. `StructuralCountedPayload.finEncoding` pairs the existing checked
+  structural payload with mathlib's unary natural encoding.
+  `encode_retain` identifies its exact canonical tagged wire. The concrete
+  five-stack `StructuralRowCountMachine.computer` traverses each binary row
+  length using explicit predecessor loops, saves all original fields, and
+  emits one unary tally mark per row. It never substitutes a numeric value
+  for the cost of reading that value's binary encoding.
+- **Checked declarations:** `structuralRowCount_outputsInTime` and
+  `structuralRowCountComputableInPolyTime` construct exactly
+  `(view, view.records.length + 1)` in at most `20 * (s+1)^2` finite-machine
+  steps for actual payload bit/delimiter length `s`. Every non-output stack
+  is empty at halt. The proof includes zero variables, the singleton variable
+  header, empty scopes, repeated scopes, and repeated entries. The underlying
+  traversal also covers empty row lists and empty rows.
+- **Failed approach and correction:** the first full traversal proof normalized
+  the expected tally as `true :: replicate n true`, while the recursive run
+  produced `replicate n true ++ [true]`. Using `List.replicate_succ'` rather
+  than `List.replicate_succ` resolves that exact append orientation. Removed
+  two unused simplifier arguments. The corrected direct check is warning-free,
+  with no remaining proof/API error; failed elaborations are not evidence.
+- **Verification:** the direct module check and full `lake build` passed
+  (3156 jobs). All four new headline audits use only `propext`,
+  `Classical.choice`, and `Quot.sound`; the full build's reported axiom sets
+  contain no unexpected axiom. The scan covered all 29 project Lean files
+  with zero prohibited-code matches, and `git diff --check` passed.
+  README, headline/detailed status, and source correspondence notes agree.
+- **Ending state and next step:** this verified increment is ready to commit
+  and push. The full corollary remains **Partial**. Next compose counting from
+  actual compiler input and bound the complete payload/tally pair; then convert
+  the computed unary tally to the binary outer header, reverse, and frame.
+  Canonical relabelling, deduplicated graph construction, objective emission,
+  and final compiler composition remain after that structural-format bridge.

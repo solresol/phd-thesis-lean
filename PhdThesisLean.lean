@@ -6,6 +6,7 @@ import PhdThesisLean.AllDifferentCSPCountedSections
 import PhdThesisLean.AllDifferentCSPEncoding
 import PhdThesisLean.AllDifferentCSPMachine
 import PhdThesisLean.AllDifferentCSPProcessedSections
+import PhdThesisLean.AllDifferentCSPRowCount
 import PhdThesisLean.AllDifferentCSPScopeSection
 import PhdThesisLean.AllDifferentCSPScopeMachine
 import PhdThesisLean.AllDifferentCSPSourceSections
