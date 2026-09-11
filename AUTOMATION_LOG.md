@@ -3332,3 +3332,44 @@
   the computed unary tally to the binary outer header, reverse, and frame.
   Canonical relabelling, deduplicated graph construction, objective emission,
   and final compiler composition remain after that structural-format bridge.
+
+### 2026-09-12 — compose counted payload construction and bound its complete output
+
+- **Starting state:** the first verified increment was committed and pushed as
+  `a600f8549a88b0b15283ebeea8c5ee659fc3d3f5`; local HEAD, tracking main,
+  and the live remote ref agreed, and the worktree was clean.
+- **Checked composition:** `runtimeCompilerStructuralCountedPayloadComputableInPolyTime`
+  uses the pinned generic sequential-machine API to compose complete payload
+  construction with the new row counter. Starting from the actual Boolean
+  compiler input, it constructs exactly the structural view together with
+  `C.domainEntryCount + C.scopes.length + 1`, without a supplied row count.
+  Its polynomial bound covers the whole composition; `20 * (s+1)^2` remains
+  the local counter bound in the intermediate payload length.
+- **Checked size bridge:** `StructuralCountedPayload.encode_retain_length`
+  gives exact output length as payload length plus the number of rows.
+  `encode_retain_length_le` bounds the pair by twice the payload length.
+  `retain_ofRuntimeSystem` identifies the count with domain occurrences,
+  scopes, and one singleton header. The compiler-input specialization
+  `encode_retain_ofRuntimeSystem_length_le_compilerInput_quadratic` bounds
+  the entire tagged output by `64 * (s+1)^2` cells in actual Boolean compiler
+  input length `s`. This is an intermediate finite-alphabet output; final
+  Boolean framing remains distinct.
+- **Proof approach:** all five new declarations checked on the first direct
+  module run, without warnings or failed approaches. The size bridge reuses
+  the prior payload row-count bound; no symbol magnitude is used as bit size.
+- **Verification and ending state:** the direct check and final full
+  `lake build` passed (3156 jobs). All new headline axiom sets and the full
+  build's 212 nonempty reports contain only `propext`, `Classical.choice`,
+  and `Quot.sound`. All 29 project Lean files passed prohibited-code scanning,
+  and `git diff --check` passed. README and headline/detailed status are
+  synchronized. The sibling remains clean at `2b546d6`; the active thesis
+  retains its original dirty-file inventory at `f1107f5`. This second verified
+  increment is ready to commit and push.
+- **Best next step:** convert the internally constructed unary row tally to
+  canonical binary while preserving the payload, emit the outer count field,
+  and compose reversal plus the existing framing bridge. The needed unary
+  count is at most the payload length. No checked standalone unary-to-binary
+  adapter was found in the current public upstream API; its interval enumerator
+  has an internal counting loop, but no exported adapter for this boundary.
+  Relabelling, deduplicated graph construction, objective emission, and final
+  compiler composition remain. `cor:all-different-csp` stays **Partial**.

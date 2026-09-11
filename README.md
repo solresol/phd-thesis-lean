@@ -335,8 +335,16 @@ field unchanged, and emit one unary tally mark per row. The exact result is
 `(view, view.records.length + 1)` under the standard tagged pair encoding, in
 at most `20 * (s+1)^2` steps for actual payload length `s`. This includes the
 singleton variable header, empty scopes, and repeated records. All non-output
-stacks are empty at halt. Converting the computed tally to a binary outer
-header and composing the Boolean framing bridge remain.
+stacks are empty at halt.
+`runtimeCompilerStructuralCountedPayloadComputableInPolyTime` composes this pass
+from the actual Boolean compiler input, producing exactly the structural view
+and `C.domainEntryCount + C.scopes.length + 1`. The count includes occurrences,
+scopes, and the singleton header. `StructuralCountedPayload.encode_retain_length_le`
+bounds the complete pair by twice the payload length;
+`encode_retain_ofRuntimeSystem_length_le_compilerInput_quadratic` therefore
+bounds its size by `64 * (s+1)^2` in the actual Boolean input length.
+Converting the computed tally to a binary outer header and composing the
+Boolean framing bridge remain.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging

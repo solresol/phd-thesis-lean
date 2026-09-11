@@ -527,6 +527,65 @@ noncomputable def structuralRowCountComputableInPolyTime :
       Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X]
       using structuralRowCount_outputsInTime view
 
+namespace StructuralCountedPayload
+
+/-- The new pair has exactly one extra encoded cell per structural row. -/
+theorem encode_retain_length (view : AllDifferentCSPEncoding.RuntimeStructuralView) :
+    (finEncoding.encode (retain view)).length =
+      (RuntimeStructuralView.payloadEncode view).length + view.records.length + 1 := by
+  rw [encode_retain]
+  simp [Nat.add_assoc]
+
+/-- Unary counting adds at most the size of the payload it traversed. -/
+theorem encode_retain_length_le (view : AllDifferentCSPEncoding.RuntimeStructuralView) :
+    (finEncoding.encode (retain view)).length ≤
+      2 * (RuntimeStructuralView.payloadEncode view).length := by
+  rw [encode_retain_length]
+  have h := RuntimeStructuralView.rowCount_le_payloadEncode_length view
+  omega
+
+/-- The internally computed count includes all occurrences, scopes, and the
+singleton variable header; it is not the original variable count. -/
+@[simp]
+theorem retain_ofRuntimeSystem (C : RuntimeSystem) :
+    retain (AllDifferentCSPEncoding.RuntimeStructuralView.ofRuntimeSystem C) =
+      (AllDifferentCSPEncoding.RuntimeStructuralView.ofRuntimeSystem C,
+        C.domainEntryCount + C.scopes.length + 1) := by
+  simp [retain]
+
+/-- Complete counted payload size against the actual Boolean compiler input. -/
+theorem encode_retain_ofRuntimeSystem_length_le_compilerInput_quadratic (C : RuntimeSystem) :
+    (finEncoding.encode
+      (retain (AllDifferentCSPEncoding.RuntimeStructuralView.ofRuntimeSystem C))).length ≤
+      64 * ((RuntimeCompilerInput.encode C).length + 1) ^ 2 := by
+  have h := encode_retain_length_le
+    (AllDifferentCSPEncoding.RuntimeStructuralView.ofRuntimeSystem C)
+  have hp := RuntimeStructuralView.payloadEncode_ofRuntimeSystem_length_le_compilerInput_quadratic C
+  omega
+
+end StructuralCountedPayload
+
+/-- Construct the full payload and its outer row count from the actual Boolean
+compiler input through the checked sequential-machine composition. -/
+noncomputable def runtimeCompilerStructuralCountedPayloadComputableInPolyTime :
+    @TM2ComputableInPolyTime RuntimeSystem
+      (AllDifferentCSPEncoding.RuntimeStructuralView × ℕ)
+      RuntimeCompilerInput.finEncoding StructuralCountedPayload.finEncoding
+      (fun C => (AllDifferentCSPEncoding.RuntimeStructuralView.ofRuntimeSystem C,
+        C.domainEntryCount + C.scopes.length + 1)) := by
+  let composed := compositionComputableInPolyTime _ _ _ _ _
+    runtimeCompilerStructuralPayloadComputableInPolyTime structuralRowCountComputableInPolyTime
+  exact { composed with
+    outputsFun := fun C => by
+      simpa [Function.comp_def, StructuralCountedPayload.retain_ofRuntimeSystem]
+        using composed.outputsFun C }
+
+#print axioms StructuralCountedPayload.encode_retain_length
+#print axioms StructuralCountedPayload.encode_retain_length_le
+#print axioms StructuralCountedPayload.retain_ofRuntimeSystem
+#print axioms StructuralCountedPayload.encode_retain_ofRuntimeSystem_length_le_compilerInput_quadratic
+#print axioms runtimeCompilerStructuralCountedPayloadComputableInPolyTime
+
 #print axioms StructuralCountedPayload.encode_retain
 #print axioms StructuralRowCountMachine.computer
 #print axioms structuralRowCount_outputsInTime
