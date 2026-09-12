@@ -3419,3 +3419,51 @@
   `git diff --check` passed. Sibling and active-thesis HEADs and dirty-file
   inventories are unchanged. This verified increment is ready to commit and
   push; the prepared composition is the next increment.
+
+### 2026-09-13 — complete structural preprocessing in the original Boolean encoding
+
+- **Starting state:** the first increment was committed and pushed as
+  `9a08b4e945f672efcf17b5b402d48169d919c183`; local HEAD, tracking main,
+  and live remote main agreed, and the worktree was clean.
+- **Checked composition:** added `AllDifferentCSPStructuralCompiler.lean`
+  and its root import. `structuralRawComputableInPolyTime` composes the checked
+  redundant row-count pass with binary-header staging and reversal.
+  `runtimeCompilerStructuralRawComputableInPolyTime` starts that complete path
+  from the actual Boolean compiler input. The headline
+  `runtimeCompilerStructuralViewComputableInPolyTime` adds the checked framing
+  machine and constructs exactly `RuntimeStructuralView.ofRuntimeSystem`
+  under its original Boolean `FinEncoding`.
+- **Evidence boundary:** every structural header and intermediate wire is
+  produced internally. The pinned generic composition theorem includes the
+  intermediate transfer cost and yields an overall polynomial bound in actual
+  compiler input length. The local `8(s+1)^2` header bound is not presented as
+  the bound for the entire composition. The existing
+  `ofRuntimeSystem_encodedSize_le_compilerInput_quadratic` theorem now bounds
+  the actual final Boolean machine output by `32(s+1)^2` bits. Zero variables,
+  trailing empty domains, empty scopes, repetitions, and arbitrary encoded
+  natural symbols remain covered. The smaller header-free input is still a
+  distinct representation boundary, as documented in README.
+- **Proof approach:** all three new composition declarations checked on their
+  first direct run without warnings. They reuse `compositionComputableInPolyTime`
+  and normalize only function composition with identity. Their axiom audits
+  use only `propext`, `Classical.choice`, and `Quot.sound`; no new failed
+  approach or unresolved API error occurred.
+- **Correspondence and next step:** synchronized README, headline/detailed
+  theorem status, and source correspondence notes. Structural construction
+  and original Boolean framing are now composed. The full corollary remains
+  **Partial** because canonical relabelling, deduplicated graph construction,
+  encoded objective emission, and composition with prime selection remain.
+  Next reuse `RuntimeStructuralView.ofRuntimeSystem_domainOccurrences` and
+  `indexedDomainOccurrences_values` (already checked) to specify a finite
+  domain-symbol extraction pass and connect its deduplicated value set to
+  `ExplicitSystem.domainValues`. Then implement the canonical rank
+  `(domainValues.filter (· < a)).card + 1`, reusing the upstream binary
+  comparison API and preserving equality across domains.
+- **Final verification and ending state:** the direct composition check and
+  final full `lake build` passed (3158 jobs). All three new headline audits
+  and all 220 nonempty build axiom reports contain only `propext`,
+  `Classical.choice`, and `Quot.sound`. Both new modules are warning-free.
+  All 31 project Lean files passed prohibited-code scanning;
+  `git diff --check` passed. The read-only sibling remains clean at `127cf2f`,
+  and the active thesis retains its original eleven-file dirty inventory at
+  `f1107f5`. This second verified increment is ready to commit and push.

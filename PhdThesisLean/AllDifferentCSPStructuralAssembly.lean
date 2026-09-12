@@ -14,8 +14,9 @@ codec: the first row is the singleton variable header, followed by all tagged
 records. Every row length and record tag is checked. Only the redundant outer
 row count is absent. `AllDifferentCSPRowCount` constructs that count in unary
 while retaining the payload. `AllDifferentCSPBinaryHeader` converts the tally
-and stages the exact raw encoding. Composition through the existing framed
-Boolean encoding bridge remains a distinct machine obligation.
+and stages the exact raw encoding. `AllDifferentCSPStructuralCompiler` composes
+these passes from actual compiler input through the existing Boolean framing
+bridge.
 -/
 
 namespace RuntimeStructuralView

@@ -13,7 +13,8 @@ Traverse the checked row lengths with explicit binary countdowns. Save every
 payload cell unchanged and emit one unary tally mark per row, including the
 singleton variable header. The result uses the standard tagged pair encoding.
 `AllDifferentCSPBinaryHeader` supplies binary conversion and raw staging as a
-separate pass; composition through the original framing bridge remains.
+separate pass. `AllDifferentCSPStructuralCompiler` composes the complete
+structural path from actual Boolean input through the original framing bridge.
 -/
 
 namespace StructuralCountedPayload

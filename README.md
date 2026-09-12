@@ -325,7 +325,7 @@ in at most `2s+3` steps for actual counted-section wire length `s`.
 `RuntimeStructuralView.ofRuntimeSystem` from the actual Boolean compiler input
 with a checked polynomial bound, using `RuntimeStructuralView.payloadFinEncoding`.
 The local `2s+3` bound applies only to the final assembly pass.
-`raw_encode_eq_count_payload` specifies the remaining bridge to the original
+`raw_encode_eq_count_payload` specifies the bridge to the original
 raw/framed encoding: prepend the total row count and reverse the cells.
 [`AllDifferentCSPRowCount.lean`](PhdThesisLean/AllDifferentCSPRowCount.lean)
 now constructs the row count while retaining the entire payload.
@@ -354,19 +354,33 @@ The bound is `8 * (s+1)^2` steps in the complete counted-payload wire length
 `s`, with every non-output stack empty at halt. All payload cells are retained,
 and binary carry growth and the zero tally are covered by the execution proof.
 `structuralRowCountCheckedComputableInPolyTime` packages the existing counter
-under this checked redundant encoding. Composition from the actual compiler
-input through binary-header staging and Boolean framing remains.
+under this checked redundant encoding.
+[`AllDifferentCSPStructuralCompiler.lean`](PhdThesisLean/AllDifferentCSPStructuralCompiler.lean)
+now closes this structural-format boundary. `structuralRawComputableInPolyTime`
+composes the row counter and binary-header machine;
+`runtimeCompilerStructuralRawComputableInPolyTime` constructs their exact raw
+output from the actual Boolean compiler input.
+`runtimeCompilerStructuralViewComputableInPolyTime` then composes the existing
+framing machine and constructs exactly `RuntimeStructuralView.ofRuntimeSystem`
+under its original Boolean `FinEncoding`. Every header and intermediate stream
+is produced internally, with a checked polynomial bound for the complete
+composition, including transfer costs. The existing output bound therefore
+applies to this actual machine output: at most `32 * (s+1)^2` bits for Boolean
+compiler input length `s`. The `8 * (s+1)^2` bound above is only the local
+header pass, measured in its own intermediate input length.
+Canonical relabelling, deduplicated edge construction, objective emission, and
+composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
 order with the checked raw structural view, ready for the existing framing
-machine. The binary-header machine now realizes this exact raw output;
-composition with input preparation and framing remains.
+machine. The binary-header machine realizes this exact raw output, and the
+complete structural composition now includes input preparation and framing.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
 powers of two, and arbitrary borrow chains. The checked
-`RuntimeStructuralView` is now constructed under its payload encoding: it retains the
+`RuntimeStructuralView` is now constructed under its original Boolean encoding: it retains the
 variable-count header, flattens every explicitly listed domain value to a
 tagged `(variable index, value)` occurrence, preserves duplicates and order,
 and keeps every scope intact under its own tag. Its Boolean `FinEncoding`
@@ -453,11 +467,11 @@ compiler-facing encoding; a transducer from the smaller header-free encoding
 would be a separate representation theorem. The compiler now also has a
 checked header-removal transducer and a composed raw-field view of the compact
 payload. The tagged structural target also has a checked raw encoding and a
-linear finite-machine bridge to its canonical Boolean encoding. Emission of
-that raw target now has checked successor and predecessor primitives for its
-binary indices and countdowns; the record-staging loop, canonical relabelling,
-primal-edge deduplication, encoded objective emission, and final whole-compiler
-assembly remain.
+linear finite-machine bridge to its canonical Boolean encoding. The complete
+structural compiler now constructs that raw target and frames it, using checked
+binary indices, countdowns, row counting, and header staging. Canonical
+relabelling, primal-edge deduplication, encoded objective emission, and final
+whole-compiler assembly remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -686,11 +700,12 @@ The copied statements are grouped by mathematical contribution:
   its exact tuple reconstructs the structural view even with trailing empty
   domains. `runtimeCompilerStructuralPayloadComputableInPolyTime` then merges
   both streams and the singleton variable header into the exact structural view
-  under the checked exhaustion-delimited payload encoding. The row counter and
-  binary-header machine now construct the exact raw format; their composition
-  from the actual compiler input through Boolean framing,
-  canonical relabelling, edge deduplication, encoded objective rows,
-  and final composition remain open;
+  under the checked exhaustion-delimited payload encoding.
+  `runtimeCompilerStructuralViewComputableInPolyTime` now additionally composes
+  row counting, binary-header staging, raw reversal, and Boolean framing from
+  the actual compiler input to the original structural encoding. Canonical
+  relabelling, edge deduplication, encoded objective rows, and composition with
+  prime selection remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

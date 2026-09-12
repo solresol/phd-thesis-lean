@@ -136,9 +136,10 @@ split and both section passes, yielding the exact occurrence/scope/count tuple.
 structural view under the checked exhaustion-delimited payload encoding.
 `AllDifferentCSPRowCount` retains that payload and computes its unary row
 count; `AllDifferentCSPBinaryHeader` converts the tally to binary and stages
-the exact raw structural output. Composing these passes from actual input
-through Boolean framing, canonical relabelling and edge construction,
-objective-row emission, and final compiler assembly remain.
+the exact raw structural output. `AllDifferentCSPStructuralCompiler` composes
+all structural passes from the actual Boolean compiler input through the
+original Boolean framing. Canonical relabelling and edge construction,
+objective-row emission, and composition with prime selection remain.
 -/
 
 namespace FramedNat

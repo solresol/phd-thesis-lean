@@ -116,9 +116,11 @@ encoding. Its payload is no larger than the framed encoding bounded here;
 the required outer row count is bounded by its actual payload length.
 A checked quadratic finite-machine pass now retains the payload and constructs
 that count in unary. A checked binary-header machine converts that tally and
-stages the exact raw encoding. Composition from actual input through Boolean
-framing, encoded objective emission, and whole-compiler composition remain separate
-from these encoding and size results.
+stages the exact raw encoding. `AllDifferentCSPStructuralCompiler` composes
+all structural passes from actual Boolean compiler input through Boolean
+framing; the structural size bound now describes its actual machine output.
+Canonical relabelling, edge deduplication, encoded objective emission, and
+whole-compiler composition remain separate from these encoding and size results.
 -/
 
 namespace BinaryNatLists
