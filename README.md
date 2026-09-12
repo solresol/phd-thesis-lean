@@ -343,14 +343,25 @@ scopes, and the singleton header. `StructuralCountedPayload.encode_retain_length
 bounds the complete pair by twice the payload length;
 `encode_retain_ofRuntimeSystem_length_le_compilerInput_quadratic` therefore
 bounds its size by `64 * (s+1)^2` in the actual Boolean input length.
-Converting the computed tally to a binary outer header and composing the
-Boolean framing bridge remain.
+[`AllDifferentCSPBinaryHeader.lean`](PhdThesisLean/AllDifferentCSPBinaryHeader.lean)
+now converts that computed tally and stages the complete raw output.
+`StructuralCountedPayload.checkedFinEncoding` checks that the tally agrees
+with the exact view. `structuralBinaryHeader_outputsInTime` and
+`structuralBinaryHeaderComputableInPolyTime` use five finite-alphabet stacks
+to increment a binary counter once per tally mark, insert the outer count,
+and reverse the complete wire into `RuntimeStructuralView.rawFinEncoding`.
+The bound is `8 * (s+1)^2` steps in the complete counted-payload wire length
+`s`, with every non-output stack empty at halt. All payload cells are retained,
+and binary carry growth and the zero tally are covered by the execution proof.
+`structuralRowCountCheckedComputableInPolyTime` packages the existing counter
+under this checked redundant encoding. Composition from the actual compiler
+input through binary-header staging and Boolean framing remains.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
 order with the checked raw structural view, ready for the existing framing
-machine. Binary outer-header staging remains to be proved; its unary count
-is now constructed by the payload-preserving row pass.
+machine. The binary-header machine now realizes this exact raw output;
+composition with input preparation and framing remains.
 `binaryPredComputableInPolyTime` supplies
 the structural parser's canonical saturated countdown operation in at most
 `2s + 3` steps on an `s`-bit word; its semantics explicitly cover zero, one,
@@ -675,8 +686,9 @@ The copied statements are grouped by mathematical contribution:
   its exact tuple reconstructs the structural view even with trailing empty
   domains. `runtimeCompilerStructuralPayloadComputableInPolyTime` then merges
   both streams and the singleton variable header into the exact structural view
-  under the checked exhaustion-delimited payload encoding. Outer-record-count
-  construction and framing to the original Boolean encoding,
+  under the checked exhaustion-delimited payload encoding. The row counter and
+  binary-header machine now construct the exact raw format; their composition
+  from the actual compiler input through Boolean framing,
   canonical relabelling, edge deduplication, encoded objective rows,
   and final composition remain open;
   `thm:3sat-clausewise` is

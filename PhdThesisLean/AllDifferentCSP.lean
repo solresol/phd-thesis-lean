@@ -129,9 +129,10 @@ encoding, with a polynomial-time composition from the actual Boolean input.
 The payload has a quadratic size bound in that input, and its required outer
 row count is bounded by its own encoded length. `AllDifferentCSPRowCount` now
 retains that payload and constructs the outer count in unary in quadratic
-bit-level time. Binary conversion of that tally and the original framed
-Boolean encoding bridge, canonical row
-construction, objective emission, and final whole-compiler composition remain.
+bit-level time. `AllDifferentCSPBinaryHeader` converts that tally and stages
+the exact raw encoding in quadratic time. Composing these passes from the
+actual input through Boolean framing, canonical row construction, objective
+emission, and final whole-compiler composition remain.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -1185,8 +1186,9 @@ traversal, each composed with checked outer-count removal. The source-section
 machine now splits the full input and composes domain expansion while retaining
 all scopes through the checked generic pair-left API. Paired scope processing
 now composes too, and the variable-header/count-preserving composition carries
-the original variable count through both passes. Record-count construction,
-full header/section assembly, canonical relabelling, edge deduplication,
+the original variable count through both passes. The payload, row counter,
+and binary-header machines now check the complete raw structural output.
+Composition from actual input through Boolean framing, canonical relabelling, edge deduplication,
 encoded objective emission, and final runtime composition remain before
 `cor:all-different-csp` is complete. -/
 theorem compilerPrime_allDifferent_correctness

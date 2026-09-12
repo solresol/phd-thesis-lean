@@ -115,8 +115,9 @@ constructs the full structural view under a checked exhaustion-delimited payload
 encoding. Its payload is no larger than the framed encoding bounded here;
 the required outer row count is bounded by its actual payload length.
 A checked quadratic finite-machine pass now retains the payload and constructs
-that count in unary. Binary conversion and the original framed Boolean bridge,
-encoded objective emission, and whole-compiler composition remain separate
+that count in unary. A checked binary-header machine converts that tally and
+stages the exact raw encoding. Composition from actual input through Boolean
+framing, encoded objective emission, and whole-compiler composition remain separate
 from these encoding and size results.
 -/
 

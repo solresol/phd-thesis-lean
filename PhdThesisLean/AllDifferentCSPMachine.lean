@@ -134,9 +134,11 @@ input. `AllDifferentCSPCountedSections` carries that count through the source
 split and both section passes, yielding the exact occurrence/scope/count tuple.
 `AllDifferentCSPAssemblyMachine` now assembles that tuple into the exact full
 structural view under the checked exhaustion-delimited payload encoding.
-Outer-record-count construction and the bridge to the original framed Boolean
-encoding remain; canonical relabelling and edge construction, objective-row
-emission, and final compiler assembly also remain.
+`AllDifferentCSPRowCount` retains that payload and computes its unary row
+count; `AllDifferentCSPBinaryHeader` converts the tally to binary and stages
+the exact raw structural output. Composing these passes from actual input
+through Boolean framing, canonical relabelling and edge construction,
+objective-row emission, and final compiler assembly remain.
 -/
 
 namespace FramedNat

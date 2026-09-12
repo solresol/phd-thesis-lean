@@ -12,7 +12,8 @@ open LeanNPHardness.MachineComposition
 Traverse the checked row lengths with explicit binary countdowns. Save every
 payload cell unchanged and emit one unary tally mark per row, including the
 singleton variable header. The result uses the standard tagged pair encoding.
-Binary header conversion and the original framing bridge are separate passes.
+`AllDifferentCSPBinaryHeader` supplies binary conversion and raw staging as a
+separate pass; composition through the original framing bridge remains.
 -/
 
 namespace StructuralCountedPayload

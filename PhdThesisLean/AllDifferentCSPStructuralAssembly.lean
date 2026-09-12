@@ -13,8 +13,9 @@ The payload encoding uses the upstream exhaustion-delimited counted-row
 codec: the first row is the singleton variable header, followed by all tagged
 records. Every row length and record tag is checked. Only the redundant outer
 row count is absent. `AllDifferentCSPRowCount` constructs that count in unary
-while retaining the payload. Binary header conversion and the existing framed
-Boolean encoding bridge remain distinct machine obligations.
+while retaining the payload. `AllDifferentCSPBinaryHeader` converts the tally
+and stages the exact raw encoding. Composition through the existing framed
+Boolean encoding bridge remains a distinct machine obligation.
 -/
 
 namespace RuntimeStructuralView

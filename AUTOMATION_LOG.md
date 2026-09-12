@@ -3373,3 +3373,49 @@
   has an internal counting loop, but no exported adapter for this boundary.
   Relabelling, deduplicated graph construction, objective emission, and final
   compiler composition remain. `cor:all-different-csp` stays **Partial**.
+
+### 2026-09-13 — stage the computed row tally as the exact binary outer header
+
+- **Starting state:** clean `main` at
+  `7e8763f3943b3ca400935c9c7cc3f7b27402fc7b`; fetch confirmed no divergence.
+  Read run memory, theorem status, source/correspondence notes, the previous
+  log, and the active thesis corollary and proof. The active thesis remains
+  at `f1107f5` with its existing eleven dirty files preserved. Read-only
+  `lean-np-hardness` is clean at `127cf2f`, matching its live remote; the new
+  exact-three-SAT normalization does not add a public unary-to-binary adapter.
+  Retained pin `db20c69` and reused its binary successor semantics, encoded
+  natural length bound, standard pair codec, and finite-machine composition APIs.
+- **Chosen increment:** added `AllDifferentCSPBinaryHeader.lean` and its root
+  import. `StructuralCountedPayload.checkedFinEncoding` treats the existing
+  view/tally pair as a structural-view encoding and checks tally equality.
+  The existing row counter is repackaged under that codec as
+  `structuralRowCountCheckedComputableInPolyTime`; no external count is assumed.
+  The five-stack `StructuralBinaryHeaderMachine.computer` saves every payload
+  cell, consumes each unary mark with explicit binary carry/restore transitions,
+  emits the outer count, and reverses into `RuntimeStructuralView.rawFinEncoding`.
+  `structuralBinaryHeader_outputsInTime` and
+  `structuralBinaryHeaderComputableInPolyTime` state an `8 * (s+1)^2` bound in
+  actual complete counted-payload length `s`, with empty non-output stacks at
+  halt. The internal execution proof covers zero tallies and arbitrary carries.
+- **Proof corrections:** fixed a nested tactic indentation parse error;
+  `encodeNat 0` needs `simp [encodeNat, encodeNum]` rather than `rfl` in this
+  version, and there is no `three_mul` lemma. Addition reassociation left
+  expressions such as `1+(1+(2+k))` versus `2+(2+k)` in time indices; instead
+  of repeating simplifier normalization, used run monotonicity followed by
+  `omega`. Earlier failed elaborations and their `sorryAx` reports are not
+  completed evidence.
+- **Correspondence:** synchronized README, headline/detailed status, and all
+  relevant source comments, including stale text that still listed payload
+  assembly and row counting as absent. The full corollary stays **Partial**.
+  Next compose actual compiler-input preparation, checked row counting, binary
+  header staging, and the existing Boolean framing machine. Canonical
+  relabelling, deduplicated graph construction, encoded objective emission,
+  and end-to-end compiler composition remain afterwards.
+- **Verification and ending state:** the corrected direct module check and
+  full `lake build` passed (3157 jobs). All five new headline axiom audits
+  and all 217 nonempty reports in the full build use only `propext`,
+  `Classical.choice`, and `Quot.sound`. The new module has no warnings.
+  All 30 project Lean files passed the prohibited-code scan, and
+  `git diff --check` passed. Sibling and active-thesis HEADs and dirty-file
+  inventories are unchanged. This verified increment is ready to commit and
+  push; the prepared composition is the next increment.
