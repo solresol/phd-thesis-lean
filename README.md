@@ -378,6 +378,21 @@ smaller values, count them, and add one) with the semantic compiler's rank.
 to equality preservation, the selected prime, and each exact relabeled domain.
 These are checked semantic contracts; a finite-machine rank implementation
 and its running-time proof remain outstanding.
+`AllDifferentCSPSymbolMachine.lean` now implements the extraction step.
+`domainSymbolExtractionComputableInPolyTime` retains the exact occurrence
+wire and extracts every symbol field in source order in at most `3s+3`
+finite-machine steps for occurrence-wire length `s`. Its four field phases
+use only finite control; zeros, repetitions, and empty occurrence lists are
+covered, and every non-output stack is empty at halt.
+`runtimeCompilerSymbolSectionsComputableInPolyTime` uses the pinned generic
+pair-left and sequential composition APIs to start from the actual Boolean
+compiler input and construct the symbol list while preserving all indexed
+occurrences, scopes, and the original variable count. Its overall polynomial
+bound includes preprocessing and transfer costs; `3s+3` is only the local
+extraction bound. `CountedSymbolSections.toStructuralView_ofRuntimeSystem`
+proves exact reconstruction, `rank_symbols_eq_relabelValue` connects the
+machine-produced list to the semantic rank, and `retain_encode_length_le`
+bounds the complete augmented tuple by twice the counted-section wire length.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

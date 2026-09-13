@@ -3504,3 +3504,63 @@
   counted sections. Deduplication/rank machine construction, deduplicated graph
   construction, objective emission, and final prime composition remain;
   `cor:all-different-csp` remains **Partial**.
+
+### 2026-09-14 — extract domain symbols in a finite machine and compose from Boolean input
+
+- **Starting state:** the first increment was committed and pushed as
+  `51322a324c11ac6700446a77939196087c9d538b`; HEAD, tracking main, and the live
+  remote ref agreed. Only this second increment's new module was untracked.
+- **Checked machine:** added `AllDifferentCSPSymbolMachine.lean` and its root
+  import. `DomainSymbolMachine.computer` uses four finite-alphabet stacks and
+  four field phases to recognize the symbol field of each existing checked
+  `[3, 0, index, value]` record. It copies the entire original occurrence wire
+  and separately extracts complete symbol fields in source order. The exact
+  execution proof preserves zeros, repetitions, and arbitrary binary values,
+  includes the empty occurrence list, and empties all non-output stacks.
+  `domainSymbolExtraction_outputsInTime` and
+  `domainSymbolExtractionComputableInPolyTime` prove at most `3s+3` steps in
+  the actual occurrence bit/delimiter length `s`. The raw-field and pair
+  encodings are reused from the pinned dependency; no generic codec is copied.
+- **Checked full-input composition:** the pinned generic pair-left API carries
+  all scopes and the variable count through extraction. The headline
+  `runtimeCompilerSymbolSectionsComputableInPolyTime` starts from actual
+  Boolean compiler input and outputs `CountedSymbolSections.ofRuntimeSystem`.
+  `symbols_ofRuntimeSystem` identifies the attached list with `domains.flatten`;
+  `toStructuralView_ofRuntimeSystem` proves exact reconstruction of the original
+  structural view, and `rank_symbols_eq_relabelValue` connects these internally
+  produced symbols to the semantic compiler's rank. The composition includes
+  every preprocessing and transfer cost; its polynomial bound is distinct
+  from the local `3s+3` extraction bound.
+- **Checked sizes:** `DomainSymbolExtraction.symbolsEncode_length_le` charges
+  extracted fields to their original encoded cells. Both local and complete
+  `retain_encode_length_le` theorems bound the augmented encoding by twice its
+  input length, including scopes and the variable count in the complete case.
+  This intermediate uses finite tagged alphabets, not a new claimed Boolean
+  encoding or a magnitude-based arithmetic cost model.
+- **Proof corrections:** the initial empty scan goal needed the pure trace
+  unfolded before the transition tactic; the value-phase bit induction needed
+  substitution before simplifying its hypothesis; the final `omega` bound
+  needed the local input alias unfolded. These local corrections resolved all
+  three errors. The machine and full-input composition then passed direct
+  `lake env lean` checks without warnings; all new audits contain only standard
+  axioms, and the exact reconstruction theorem is axiom-free.
+- **Next target:** implement deduplicated symbol membership and rank counting
+  on the extracted source-order raw fields, while retaining the original
+  sections. The sibling's new `BinaryEquality.natural_evalsToInTime` is a
+  reusable separately-loaded-stack kernel; a checked serialized-field loader
+  and repeated membership driver are still needed before using it for this
+  target. Review the upstream pin when integrating that API; do not copy the
+  generic equality kernel or edit the sibling from this automation. Then prove
+  the finite machine computes `DomainSymbols.rank`, construct deduplicated
+  edges and objective rows, and compose prime selection. The full corollary
+  remains **Partial**.
+- **Final verification and ending state:** direct machine and composition
+  checks and the final full `lake build` passed (3160 jobs). All 232 nonempty
+  axiom reports contain only `propext`, `Classical.choice`, and `Quot.sound`;
+  both new modules are warning-free. All 33 project Lean files pass the
+  prohibited-code scan; its sole raw text match is an existing explanatory
+  comment about axiom audits. `git diff --check` passes. README, headline and
+  detailed status, source correspondence, and this log are synchronized.
+  The active thesis's full binary diff and twelve-file status inventory match
+  the starting snapshots exactly; the read-only sibling remains clean at
+  `4521457`. This second verified increment is ready to commit and push.
