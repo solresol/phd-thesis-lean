@@ -368,6 +368,16 @@ composition, including transfer costs. The existing output bound therefore
 applies to this actual machine output: at most `32 * (s+1)^2` bits for Boolean
 compiler input length `s`. The `8 * (s+1)^2` bound above is only the local
 header pass, measured in its own intermediate input length.
+`AllDifferentCSPSymbols.lean` specifies executable occurrence extraction and
+canonical rank computation on lists. `DomainSymbols.extract_toFinset` proves
+that the extracted symbols have exactly `ExplicitSystem.domainValues` as
+their set, including repeated values within and between domains.
+`rank_extract_eq_relabelValue` identifies the list rank (deduplicate the
+smaller values, count them, and add one) with the semantic compiler's rank.
+`rank_eq_iff`, `rank_lt_domainEntryPrime`, and `relabeled_domain` connect it
+to equality preservation, the selected prime, and each exact relabeled domain.
+These are checked semantic contracts; a finite-machine rank implementation
+and its running-time proof remain outstanding.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

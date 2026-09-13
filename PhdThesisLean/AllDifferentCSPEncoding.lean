@@ -121,6 +121,10 @@ all structural passes from actual Boolean compiler input through Boolean
 framing; the structural size bound now describes its actual machine output.
 Canonical relabelling, edge deduplication, encoded objective emission, and
 whole-compiler composition remain separate from these encoding and size results.
+`AllDifferentCSPSymbols` now connects source-order occurrence extraction and
+an executable deduplicated list rank to the exact semantic relabelling,
+including equality preservation, prime bounds, and per-domain images.
+The machine proof for rank computation remains outstanding.
 -/
 
 namespace BinaryNatLists

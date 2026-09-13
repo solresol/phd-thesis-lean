@@ -14,6 +14,7 @@ import PhdThesisLean.AllDifferentCSPSourceSections
 import PhdThesisLean.AllDifferentCSPStructuralMachine
 import PhdThesisLean.AllDifferentCSPStructuralAssembly
 import PhdThesisLean.AllDifferentCSPStructuralCompiler
+import PhdThesisLean.AllDifferentCSPSymbols
 import PhdThesisLean.AllDifferentCSPVariableHeader
 import PhdThesisLean.ClauseCompiler
 import PhdThesisLean.ContactTheorem

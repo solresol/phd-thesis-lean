@@ -3467,3 +3467,40 @@
   `git diff --check` passed. The read-only sibling remains clean at `127cf2f`,
   and the active thesis retains its original eleven-file dirty inventory at
   `f1107f5`. This second verified increment is ready to commit and push.
+
+### 2026-09-14 — connect occurrence symbols and executable ranks to the semantic compiler
+
+- **Starting state:** clean `main` at
+  `ffb9f12a5bb10e485f1d8542efe165476ff6d014`; fetch and live remote inspection
+  confirmed synchronization. Read instructions, status, relevant sources,
+  correspondence notes, run memory, previous log, and the active corollary and
+  proof. The active thesis is at `f1107f5` with twelve pre-existing dirty files;
+  its complete diff and status were saved for preservation checks. Read-only
+  `lean-np-hardness` is clean at `4521457`, matching its live remote. Its new
+  `BinaryEquality` kernel compares separately supplied binary stacks in
+  `max(left.length,right.length)+1` steps; loading serialized pairs and repeated
+  lookup remain separate obligations. Retained dependency pin `db20c69`.
+- **Checked increment:** added `AllDifferentCSPSymbols.lean` and its root import.
+  `DomainSymbols.extract_toFinset` identifies the exact structural symbol set
+  with `ExplicitSystem.domainValues`. The executable list `rank` deduplicates
+  smaller symbols before counting. `rank_extract_eq_relabelValue` proves exact
+  agreement with the semantic rank; `rank_eq_iff`, `rank_lt_domainEntryPrime`,
+  and `relabeled_domain` give equality, prime-bound, and per-domain guarantees.
+  An ordinary kernel-checked example covers repeated shared symbols and
+  nonconsecutive values. No well-formedness assumption is needed for extraction.
+- **Proof correction:** simplification did not close the deduplicated filtered
+  finset equality under cardinality, and `List.toFinset_map` was unavailable.
+  Finset extensionality and membership simplification resolved both boundaries.
+  The failed elaboration's `sorryAx` reports are not evidence; the corrected
+  check has no unexpected axioms and no warnings.
+- **Verification:** direct `lake env lean PhdThesisLean/AllDifferentCSPSymbols.lean`
+  and full `lake build` passed (3159 jobs). All five new headline axiom audits
+  and the full build's nonempty reports use only `propext`, `Classical.choice`,
+  and `Quot.sound`. Project Lean sources pass the prohibited-code scan and
+  `git diff --check` passes. README, status and source correspondence agree.
+- **Ending state and next target:** this verified increment is ready to commit
+  and push. The next increment implements symbol-field extraction while
+  retaining the exact occurrence wire, then composes it through the existing
+  counted sections. Deduplication/rank machine construction, deduplicated graph
+  construction, objective emission, and final prime composition remain;
+  `cor:all-different-csp` remains **Partial**.

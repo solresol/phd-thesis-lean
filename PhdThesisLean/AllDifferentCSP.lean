@@ -135,6 +135,10 @@ composes all these passes and Boolean framing from actual compiler input to
 the original Boolean structural encoding. Canonical relabelling, deduplicated
 edge construction, objective emission, and composition with prime selection
 remain.
+`AllDifferentCSPSymbols` now connects source-order occurrence extraction and
+an executable deduplicated list rank to the exact semantic relabelling,
+including equality preservation, prime bounds, and per-domain images.
+The machine proof for rank computation remains outstanding.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
