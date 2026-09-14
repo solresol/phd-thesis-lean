@@ -127,7 +127,10 @@ including equality preservation, prime bounds, and per-domain images.
 `AllDifferentCSPSymbolMachine` implements occurrence-preserving symbol extraction
 in linear bit/delimiter time and composes it from actual Boolean compiler input,
 retaining scopes and the variable count through the upstream pair-left API.
-The machine proof for rank computation remains outstanding.
+`AllDifferentCSPSymbolMembership` decides serialized symbol membership in
+`6(s+1)^2` steps, including field loading, upstream query-preserving binary
+comparison, and cleanup. Repeated deduplication, the machine proof for rank
+computation, and full compiler composition remain outstanding.
 -/
 
 namespace BinaryNatLists

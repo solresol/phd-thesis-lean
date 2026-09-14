@@ -260,7 +260,7 @@ sections, empty rows, repetitions, and all entry values. The tagged pair output
 is no longer than the raw input, and all non-output stacks are empty at halt.
 `runtimeCompilerSectionsComputableInPolyTime` composes that split from the
 actual Boolean compiler input. The dependency is pinned to `lean-np-hardness`
-commit `db20c69186d2f717155392ed08772a3c03de1398` to reuse its checked
+commit `ad20a2e92ec5eb85379ac31df255671416f83b3d` to reuse its checked
 `pairReductionComputableInPolyTime` API.
 `pairedDomainSectionComputableInPolyTime` expands the domain half while
 preserving the complete scope half; its composed
@@ -393,6 +393,17 @@ extraction bound. `CountedSymbolSections.toStructuralView_ofRuntimeSystem`
 proves exact reconstruction, `rank_symbols_eq_relabelValue` connects the
 machine-produced list to the semantic rank, and `retain_encode_length_le`
 bounds the complete augmented tuple by twice the counted-section wire length.
+`AllDifferentCSPSymbolMembership.lean` now supplies the serialized membership
+pass. `domainSymbolMembershipComputableInPolyTime` takes a checked pair of a
+canonical binary query and source-order symbol fields and returns exactly
+whether the query occurs, in at most `6 * (s+1)^2` steps for complete tagged
+input length `s`. It loads every candidate internally, reuses the upstream
+query-preserving equality kernel, and counts loading, comparison, restoration,
+and final cleanup. Empty lists, zero, repeated symbols, and unequal bit
+lengths are covered; every non-output stack is empty at halt. Both loaded
+words are reversed, which preserves equality and avoids a separate reversal
+pass. This is a local membership machine, not yet the repeated deduplication
+or ranking driver or its composition from the complete compiler input.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

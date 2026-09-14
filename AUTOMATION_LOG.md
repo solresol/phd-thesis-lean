@@ -3564,3 +3564,60 @@
   The active thesis's full binary diff and twelve-file status inventory match
   the starting snapshots exactly; the read-only sibling remains clean at
   `4521457`. This second verified increment is ready to commit and push.
+
+### 2026-09-15 — decide membership in serialized domain-symbol fields
+
+- **Starting state:** clean `main` at `e643092c8926d07bca2cc804943aa27bd56440a8`;
+  a fresh fetch and live remote check agreed, so no fast-forward was needed.
+  The active thesis remained at `f1107f5` with its twelve pre-existing dirty
+  files preserved. Its active `cor:all-different-csp` statement and proof were
+  reread, including canonical relabelling and deduplicated conflicts.
+- **Read-only upstream review:** `lean-np-hardness` was clean at published
+  `ad20a2e92ec5eb85379ac31df255671416f83b3d`. Its new
+  `PreservingBinaryEquality.whole_list` preserves the query while consuming a
+  candidate, but has no serialized loader or membership traversal. Updated
+  only this project's dependency pin from `db20c69` to `ad20a2e`; the Lean
+  toolchain, mathlib revision, and other package pins are unchanged. The
+  sibling checkout was not edited. Initial sandboxed network attempts failed
+  to resolve GitHub; the authorized network-capable fetch and update succeeded.
+- **Checked increment:** added `AllDifferentCSPSymbolMembership.lean` and its
+  root import. `DomainSymbolMembership.finEncoding` reuses the standard
+  binary-natural and source-order raw-field encodings in the existing tagged
+  pair codec. `SymbolMembershipMachine.computer` parses this complete wire,
+  loads and compares every candidate, restores the query between comparisons,
+  accumulates the membership Boolean, and empties all non-output stacks.
+  `domainSymbolMembership_outputsInTime` and
+  `domainSymbolMembershipComputableInPolyTime` prove exactly `contains` in at
+  most `6 * (s+1)^2` steps for the complete tagged input length `s`. Empty
+  lists, zero, repetitions, unequal word lengths, and all loading/cleanup
+  costs are included. No numeric-magnitude bound or supplied stack alignment
+  is assumed.
+- **Reuse boundary:** the comparison statements and exact execution theorem
+  come from the upstream preserving kernel. The local lift only embeds those
+  statements in the CSP parser, preserves its input and finite control, and
+  redirects kernel halt to the next membership iteration. Both loaded words
+  are reversed, so equality remains exact without extra reversal passes.
+  `compare_iterate` handles only successful finite runs, allowing the kernel's
+  halt to return to the driver without assuming halted steps still commute.
+- **Proof corrections:** Lean has no `namespace Alias := ...` syntax, and
+  `stacks` is reserved; use the imported namespace and `stackContents`.
+  The dependent stack update needed substitution in its equal-index case.
+  The lifted iteration needed an explicit `step`-shaped hypothesis and the
+  fixed-point fact for iteration from `none`. Arithmetic reassociation was
+  closed with `omega`; encoded pair length uses its checked length theorem,
+  not definitional equality. Corrected direct checks have no warnings or
+  unexpected axioms; failed elaborations are not completion evidence.
+- **Verification:** the direct module check and full `lake build` passed
+  (3163 jobs); the build has 234 nonempty-format axiom reports, all using only
+  `propext`, `Classical.choice`, and `Quot.sound`. All 34 project Lean files
+  pass the comment/string-aware prohibited-code scan, and `git diff --check`
+  passes. README, theorem status, and source correspondence comments retain
+  the full corollary as **Partial**. The final full build also passed (3163
+  jobs) after synchronizing those correspondence comments.
+- **Ending state and next target:** this completed membership increment is
+  ready for commit and push. The next small increment
+  connects its Boolean to the canonical-rank recurrence and establishes the
+  exact query/tail bit-size boundary. A repeated deduplication/rank machine,
+  retention of the remaining compiler sections, deduplicated graph construction,
+  objective emission, and final prime-selection composition remain.
+- **Run time:** 2026-09-15 05:29 AEST (2026-09-14 19:29 UTC).
