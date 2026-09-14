@@ -3621,3 +3621,49 @@
   retention of the remaining compiler sections, deduplicated graph construction,
   objective emission, and final prime-selection composition remain.
 - **Run time:** 2026-09-15 05:29 AEST (2026-09-14 19:29 UTC).
+
+### 2026-09-15 — connect membership to canonical rank steps and exact field sizes
+
+- **Starting state:** the membership increment was committed and pushed as
+  `1c9739abea8d76513b4bd4102ca39a606a15477f`; HEAD, origin/main, and the
+  live remote main ref agreed, with a clean worktree before this increment.
+- **Checked increment:** added `AllDifferentCSPSymbolRankStep.lean` and its
+  root import. `DomainSymbolMembership.contains_extracted` connects the exact
+  machine predicate to `ExplicitSystem.domainValues`. `dedup_cons` identifies
+  the predicate with the branch that removes a repeated symbol.
+  `DomainSymbols.rank_cons` and `DomainSymbolMembership.rank_cons` prove that
+  a smaller symbol contributes one position only at its final source-order
+  occurrence. This connects the checked membership Boolean directly to the
+  existing canonical semantic rank, including repeated values across domains.
+- **Exact size boundary:** `input_cons_length` proves that the query/tail
+  encoding is precisely one delimiter shorter than the corresponding original
+  raw field stream. `tailMembership_outputsInTime` therefore reuses the
+  concrete membership machine with bound `6 * r^2` for that original stream
+  length `r`. The query's bits remain charged. `dedup_fields_length_le` uses
+  `List.dedup_sublist` and the sublist-preserving field encoding to show that
+  deduplication never enlarges the binary wire, without bounds on numeric
+  symbol magnitudes. This is a size theorem, not a deduplication time theorem.
+- **Verification:** the direct rank-step module check passed without warnings;
+  all six new headline axiom reports use only `propext`, `Classical.choice`,
+  and `Quot.sound`. The final full `lake build` passed (3164 jobs), with 240
+  nonempty-format axiom reports containing only those standard axioms. All
+  35 project Lean files pass the comment/string-aware prohibited-code scan,
+  and `git diff --check` passes. Ordinary kernel-checked examples cover zero,
+  absence, an empty list, and repeated smaller values contributing just once.
+  The exploratory rank proof checked on its first attempt; unused simp
+  arguments were removed before the final direct check.
+- **Preservation:** the active thesis's complete binary diff and twelve-file
+  status inventory exactly match the starting snapshots. The read-only
+  sibling remains clean at `ad20a2e`; no files there were edited. README,
+  headline and detailed theorem status, and the new module's correspondence
+  note keep the full `cor:all-different-csp` **Partial**.
+- **Ending state and next target:** this second verified increment is ready
+  to commit and push. Implement a repeated rank driver that retains the
+  remaining symbol stream and target, applies the checked membership test
+  against each tail, compares the symbol with the target using the binary
+  comparison API, and increments only for a new smaller symbol. Prove exact
+  agreement with the recurrence and charge all copying and loop costs before
+  claiming polynomial-time ranking. Retention/composition with the original
+  sections, deduplicated primal edges, objective rows, and prime selection
+  still remain before the full corollary is complete.
+- **Run time:** 2026-09-15 05:32 AEST (2026-09-14 19:32 UTC).

@@ -29,3 +29,4 @@ import PhdThesisLean.PrecisionGrowth
 import PhdThesisLean.SparseMedoid
 import PhdThesisLean.SubsetSummary
 import PhdThesisLean.AllDifferentCSPSymbolMembership
+import PhdThesisLean.AllDifferentCSPSymbolRankStep

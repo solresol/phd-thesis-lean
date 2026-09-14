@@ -404,6 +404,16 @@ lengths are covered; every non-output stack is empty at halt. Both loaded
 words are reversed, which preserves equality and avoids a separate reversal
 pass. This is a local membership machine, not yet the repeated deduplication
 or ranking driver or its composition from the complete compiler input.
+`AllDifferentCSPSymbolRankStep.lean` connects that machine result to the next
+loop. `DomainSymbolMembership.contains_extracted` identifies membership with
+the semantic union of domains; `dedup_cons` uses the returned bit to skip
+repeated symbols, and `rank_cons` counts a smaller symbol only at its final
+source-order occurrence. `input_cons_length` proves that taking the head as
+the query removes exactly one field delimiter from the original stream.
+`tailMembership_outputsInTime` therefore bounds this local query by six times
+the square of that stream's length. `dedup_fields_length_le` proves that
+removing duplicates cannot increase the raw binary field length. These are
+checked recurrence and size contracts; the repeated machine remains pending.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
