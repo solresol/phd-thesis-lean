@@ -414,6 +414,17 @@ the query removes exactly one field delimiter from the original stream.
 the square of that stream's length. `dedup_fields_length_le` proves that
 removing duplicates cannot increase the raw binary field length. These are
 checked recurrence and size contracts; the repeated machine remains pending.
+`AllDifferentCSPSymbolComparison.lean` now constructs the aligned binary
+input needed by the rank loop's comparison. Its seven-stack loader reads the
+checked tagged symbol/target pair, restores each word's original bit order,
+aligns corresponding bit positions with explicit padding on the exhausted
+side, and restores the complete output order. `domainSymbolAlignment_outputsInTime`
+and `domainSymbolAlignmentComputableInPolyTime` give a `4s+5` bound in the
+complete serialized pair length; `domainSymbolAlignment_output_length_le`
+proves that alignment does not enlarge that wire. Empty words (zero), unequal
+bit lengths, and cleanup of every work stack are included. This constructs
+comparison input; the strict comparison composition and repeated rank loop
+remain separate obligations.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

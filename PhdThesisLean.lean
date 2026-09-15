@@ -30,3 +30,4 @@ import PhdThesisLean.SparseMedoid
 import PhdThesisLean.SubsetSummary
 import PhdThesisLean.AllDifferentCSPSymbolMembership
 import PhdThesisLean.AllDifferentCSPSymbolRankStep
+import PhdThesisLean.AllDifferentCSPSymbolComparison

@@ -3667,3 +3667,46 @@
   sections, deduplicated primal edges, objective rows, and prime selection
   still remain before the full corollary is complete.
 - **Run time:** 2026-09-15 05:32 AEST (2026-09-14 19:32 UTC).
+
+### 2026-09-16 — load serialized symbol comparisons into the checked binary kernel
+
+- **Starting state:** clean `main` at `55e71e50c3ee6170060aa628a3b2ecdb1f1a821d`;
+  fetch confirmed equality with `origin/main`. The active thesis remained at
+  `f1107f5` with twelve existing dirty files, including the current all-different
+  proof; its status and binary diff were snapshotted and left untouched.
+- **Read-only dependency review:** the sibling is clean at published
+  `11479ccca957fe8d460d3fc7b4a5dcf1f2fa5e1c`. Its new `FrameExtraction` kernel
+  extracts a length-framed Boolean payload while retaining a suffix; this is
+  a different input contract from the tagged symbol pair. The existing pinned
+  `BinaryNatPair` codec and `binaryLEComputableInPolyTime` supply the aligned
+  comparison boundary but no tagged-pair loader. Kept pin `ad20a2e` and reused
+  these APIs without editing the sibling or duplicating its comparison kernel.
+- **Checked increment:** added `AllDifferentCSPSymbolComparison.lean` and its
+  root import. `DomainSymbolComparison.finEncoding` reuses the checked tagged
+  pair of standard binary naturals. The seven-stack `SymbolComparisonLoader`
+  reads both words, restores their bit order, aligns corresponding positions,
+  and restores the final stream order. Exhausted sides carry explicit `none`
+  padding, including the two-zero empty-word case. All work stacks are empty
+  and finite control is reset at halt.
+- **New declarations:** `domainSymbolAlignment_outputsInTime` and
+  `domainSymbolAlignmentComputableInPolyTime` prove exact canonical aligned
+  output in at most `4s+5` finite-machine steps for complete serialized input
+  length `s`. `domainSymbolAlignment_output_length_le` bounds the entire
+  output by that input length; the exact aligned length is the maximum of
+  the two bit lengths. No bound on numeric symbol magnitude is assumed.
+- **Proof corrections:** `rfl` did not unfold the imported `zipBits` empty
+  case; explicit simplification of that definition resolved both the length
+  base case and the terminal alignment configuration. No repeated failed
+  approach, unproved assumption, or placeholder was retained.
+- **Verification:** direct module check passed without warnings; full
+  `lake build` passed (3166 jobs). All 243 nonempty-format axiom reports use
+  only `propext`, `Classical.choice`, and `Quot.sound`; all 36 project Lean
+  files passed the comment/string-aware prohibited-code scan. `git diff --check`
+  passed. README and theorem status describe the constructed loading boundary
+  and keep `cor:all-different-csp` **Partial**.
+- **Ending state and next target:** this verified increment is ready to commit
+  and push. Compose strict comparison using the existing less-or-equal kernel,
+  then connect that computed bit and tail membership to the rank recurrence.
+  The repeated rank driver, retained-section composition, deduplicated edges,
+  objective emission, and final prime-selection composition remain pending.
+- **Run time:** 2026-09-16 05:23 AEST (2026-09-15 19:23 UTC).
