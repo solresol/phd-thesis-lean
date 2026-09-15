@@ -3710,3 +3710,56 @@
   The repeated rank driver, retained-section composition, deduplicated edges,
   objective emission, and final prime-selection composition remain pending.
 - **Run time:** 2026-09-16 05:23 AEST (2026-09-15 19:23 UTC).
+
+### 2026-09-16 — compose strict symbol comparison with a complete linear bound
+
+- **Starting state:** the loader increment was committed and pushed as
+  `145940f2136e0d13e2b924edccbbc86b94a385ae`. HEAD, `origin/main`, and live
+  remote main agreed before this increment.
+- **Checked increment:** `alignedSymbolLessComputableInPolyTime` reuses
+  `binaryLEComputer`, with explicit finite-alphabet equivalences swapping
+  aligned components and complementing the kernel's result. This proves
+  strict comparison of the original symbol and target without introducing a
+  second arithmetic implementation. The decoded result is exactly
+  `DomainSymbolComparison.less`, including zero and equal inputs.
+- **Complete local runtime:** `domainSymbolLessComputableInPolyTime` uses
+  the pinned `compositionMachine_outputsInTime` execution theorem to compose
+  the loader and comparison kernel. Its explicit `9s+10` bound includes all
+  loading, alignment, reversal, and intermediate transfer costs for serialized
+  pair length `s`. The proof combines `4s+5` loading, `m+1` comparison, and
+  `4m+4` transfer, with checked aligned length `m ≤ s`.
+  `domainSymbolLess_time` exposes that exact polynomial evaluation. The output
+  equivalence converts the kernel bit to the standard Boolean meaning; the
+  theorem does not omit that recoding.
+- **Rank correspondence and size:** `DomainSymbolComparison.rank_cons`
+  connects the now-checked strict-comparison and membership bits to the
+  semantic rank recurrence. `input_head_length` proves the exact equation
+  between the complete target/symbol query, its comparison pair, the head
+  delimiter, and remaining raw fields. `input_length_le_rank_query` gives
+  the resulting local size bound without assuming small numeric values.
+  These contracts do not assert that a machine already retains or repeatedly
+  extracts those pairs.
+- **Proof corrections:** the Boolean negation needed parentheses around the
+  whole negated value in an equality: otherwise Lean parsed the equality
+  under `!` and coerced it to a Boolean. Literal polynomial coefficients
+  simplify with `Polynomial.eval_ofNat`; `eval_natCast` alone left the
+  coefficients opaque to `omega`. Explicit rewriting staged the aligned
+  swap before applying the imported execution theorem. Corrected module
+  checks contain no warnings, unfinished proofs, or unexpected axioms.
+- **Verification:** direct module check and final full `lake build` passed
+  (3166 jobs). All 249 nonempty-format axiom reports use only `propext`,
+  `Classical.choice`, and `Quot.sound`; all 36 project Lean files passed the
+  comment/string-aware prohibited-code scan; `git diff --check` passed.
+  README, theorem status, and module correspondence remain synchronized, and
+  `cor:all-different-csp` remains **Partial**.
+- **Preservation:** the active thesis's binary diff and twelve-file status
+  inventory exactly match their starting snapshots. The read-only sibling
+  remains clean at `11479cc`; the dependency pin remains `ad20a2e`.
+- **Ending state and best next step:** this second verified increment is ready
+  to commit and push. Build the repeated rank driver: retain the target and
+  remaining source, copy the head/tail query for membership, stage the checked
+  symbol/target pair for strict comparison, and increment only for a smaller
+  symbol absent from its tail. Charge all retention/copying and loop costs.
+  Then compose ranks with the preserved compiler sections; deduplicated primal
+  edges, objective emission, and final prime selection still remain.
+- **Run time:** 2026-09-16 05:29 AEST (2026-09-15 19:29 UTC).

@@ -423,8 +423,18 @@ and `domainSymbolAlignmentComputableInPolyTime` give a `4s+5` bound in the
 complete serialized pair length; `domainSymbolAlignment_output_length_le`
 proves that alignment does not enlarge that wire. Empty words (zero), unequal
 bit lengths, and cleanup of every work stack are included. This constructs
-comparison input; the strict comparison composition and repeated rank loop
-remain separate obligations.
+comparison input from the complete serialized pair.
+`alignedSymbolLessComputableInPolyTime` reuses the upstream less-or-equal
+kernel with explicit alphabet recodings that swap the aligned components and
+complement the result. `domainSymbolLessComputableInPolyTime` composes that
+kernel with the loader and proves an explicit `9s+10` bound, including the
+complete intermediate transfer. Its encoded Boolean is exactly `symbol < target`.
+`DomainSymbolComparison.rank_cons` connects that computed bit and the checked
+membership bit to the existing rank recurrence. `input_head_length` charges
+both comparison words and the remaining fields to the complete target/symbol
+query; `input_length_le_rank_query` gives the corresponding comparison-size
+bound. Extracting and retaining these queries inside a repeated finite-machine
+rank driver, then composing from the complete compiler input, remain pending.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

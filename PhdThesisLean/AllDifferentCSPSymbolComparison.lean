@@ -312,8 +312,120 @@ theorem domainSymbolAlignment_output_length_le (input : DomainSymbolComparison.I
     DomainSymbolComparison.input_length]
   omega
 
+private theorem swap_zipBits (left right : List Bool) :
+    (BinaryNatPair.zipBits left right).map Prod.swap = BinaryNatPair.zipBits right left := by
+  induction left generalizing right with
+  | nil =>
+      induction right with
+      | nil => simp [BinaryNatPair.zipBits]
+      | cons bit right ih => simp [BinaryNatPair.zipBits, ih]
+  | cons bit left ih =>
+      cases right with
+      | nil => simp [BinaryNatPair.zipBits, ih]
+      | cons other right => simp [BinaryNatPair.zipBits, ih]
+
+/-- Reuse the upstream less-or-equal kernel. Swapping each aligned cell and
+complementing its Boolean alphabet implements strict comparison without a new
+arithmetic kernel. Both recodings are explicit finite-alphabet equivalences. -/
+noncomputable def alignedSymbolLessComputableInPolyTime :
+    @TM2ComputableInPolyTime (ℕ × ℕ) Bool BinaryNatPair.finEncoding
+      finEncodingBoolBool DomainSymbolComparison.less where
+  tm := binaryLEComputer
+  inputAlphabet := Equiv.prodComm (Option Bool) (Option Bool)
+  outputAlphabet := Equiv.boolNot
+  time := Polynomial.X + 1
+  outputsFun input := by
+    simp only [Polynomial.eval_add, Polynomial.eval_X, Polynomial.eval_one]
+    change TM2OutputsInTime binaryLEComputer
+      ((BinaryNatPair.encode input).map Prod.swap)
+      (some [!(decide (input.1 < input.2))]) ((BinaryNatPair.encode input).length + 1)
+    rw [BinaryNatPair.encode, swap_zipBits]
+    have hn : (!(decide (input.1 < input.2))) = decide (input.2 ≤ input.1) := by
+      by_cases h : input.1 < input.2
+      · have h' : ¬input.2 ≤ input.1 := by omega
+        simp [h, h']
+      · have h' : input.2 ≤ input.1 := by omega
+        simp [h, h']
+    rw [hn]
+    simpa [BinaryNatPair.encode, SymbolComparisonLoader.zipBits_length,
+      Nat.max_comm] using binaryLE_outputsInTime (input.2, input.1)
+
+/-- Compare a serialized symbol with its target in `9s+10` steps. The bound
+includes loading, canonical alignment, the complete intermediate transfer,
+and the upstream comparison. The output alphabet decodes the kernel bit to
+exactly `symbol < target`. -/
+noncomputable def domainSymbolLessComputableInPolyTime :
+    @TM2ComputableInPolyTime DomainSymbolComparison.Input Bool
+      DomainSymbolComparison.finEncoding finEncodingBoolBool DomainSymbolComparison.less where
+  toTM2ComputableAux := compositionAux
+    domainSymbolAlignmentComputableInPolyTime.toTM2ComputableAux
+    alignedSymbolLessComputableInPolyTime.toTM2ComputableAux
+  time := 9 * Polynomial.X + 10
+  outputsFun input := by
+    let first := domainSymbolAlignmentComputableInPolyTime.toTM2ComputableAux
+    let second := alignedSymbolLessComputableInPolyTime.toTM2ComputableAux
+    have hsecond := alignedSymbolLessComputableInPolyTime.outputsFun input
+    simp only [alignedSymbolLessComputableInPolyTime, Polynomial.eval_add,
+      Polynomial.eval_X, Polynomial.eval_one] at hsecond
+    have h := compositionMachine_outputsInTime first second
+      (DomainSymbolComparison.finEncoding.encode input) (BinaryNatPair.encode input)
+      [!DomainSymbolComparison.less input]
+      (4 * (DomainSymbolComparison.finEncoding.encode input).length + 5)
+      ((BinaryNatPair.encode input).length + 1)
+      (domainSymbolAlignment_outputsInTime input) (by exact hsecond)
+    change TM2OutputsInTime (compositionMachine first second)
+      (List.map id (DomainSymbolComparison.finEncoding.encode input))
+      (some [!DomainSymbolComparison.less input]) _
+    rw [List.map_id]
+    apply evalsToInTimeMono h
+    simp only [Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_ofNat,
+      Polynomial.eval_X]
+    have hs := domainSymbolAlignment_output_length_le input
+    omega
+
+/-- The complete comparison, including transfer, has this explicit linear bound. -/
+theorem domainSymbolLess_time (s : ℕ) :
+    domainSymbolLessComputableInPolyTime.time.eval s = 9 * s + 10 := by
+  simp [domainSymbolLessComputableInPolyTime]
+
+namespace DomainSymbolComparison
+
+/-- Both Boolean branches now have checked finite-machine implementations;
+this recurrence specifies how the future repeated rank driver combines them. -/
+theorem rank_cons (symbol value : ℕ) (symbols : List ℕ) :
+    DomainSymbols.rank (symbol :: symbols) value = DomainSymbols.rank symbols value +
+      if less (symbol, value) && !DomainSymbolMembership.contains (symbol, symbols) then 1 else 0 :=
+  DomainSymbolMembership.rank_cons symbol symbols value
+
+/-- Exact size of the rank query before taking its first symbol. The target
+bits and the candidate bits are both charged to the same complete wire. -/
+theorem input_head_length (symbol value : ℕ) (symbols : List ℕ) :
+    (DomainSymbolMembership.finEncoding.encode (value, symbol :: symbols)).length =
+      (finEncoding.encode (symbol, value)).length + 1 +
+        (SourceOrderRawFields.encode symbols).length := by
+  simp [finEncoding, DomainSymbolMembership.finEncoding, finEncodingNatBool, encodingNatBool,
+    SourceOrderRawFields.finEncoding, SourceOrderRawFields.encode,
+    Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+
+/-- Extracting a comparison pair fits inside the original target/symbol wire.
+This size identity does not supply the retaining extraction machine. -/
+theorem input_length_le_rank_query (symbol value : ℕ) (symbols : List ℕ) :
+    (finEncoding.encode (symbol, value)).length + 1 ≤
+      (DomainSymbolMembership.finEncoding.encode (value, symbol :: symbols)).length := by
+  rw [input_head_length]
+  omega
+
+end DomainSymbolComparison
+
 #print axioms domainSymbolAlignment_outputsInTime
 #print axioms domainSymbolAlignmentComputableInPolyTime
 #print axioms domainSymbolAlignment_output_length_le
+
+#print axioms alignedSymbolLessComputableInPolyTime
+#print axioms domainSymbolLessComputableInPolyTime
+#print axioms domainSymbolLess_time
+#print axioms DomainSymbolComparison.rank_cons
+#print axioms DomainSymbolComparison.input_head_length
+#print axioms DomainSymbolComparison.input_length_le_rank_query
 
 end PhdThesisLean.AllDifferentCSPMachine
