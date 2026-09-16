@@ -3808,3 +3808,53 @@
   loop, empty-list branch, accumulator, full-input composition, deduplicated
   edges, objective emission, and final prime-selection composition remain.
 - **Run time:** 2026-09-17 05:25 AEST (2026-09-16 19:25 UTC).
+
+### 2026-09-17 — execute both rank predicates and retain a strictly smaller query
+
+- **Starting state:** the preparation increment was committed and pushed as
+  `7a0fa6063938b366779dbc78e51e86f0e187984e`. HEAD, `origin/main`, and the
+  live remote main ref agreed before this increment.
+- **Checked increment:** added `AllDifferentCSPRankPredicates.lean` and its
+  root import. `rankPredicatesComputableInPolyTime` composes the checked
+  preparation with `domainSymbolMembershipComputableInPolyTime` and
+  `domainSymbolLessComputableInPolyTime`. The pinned upstream
+  `MachineAdapters.pairReductionComputableInPolyTime` and
+  `pairRightComputableInPolyTime` preserve all unconsumed data. The exact result
+  is `(symbol ∈ tail, (symbol < target, (target, tail)))`, with Boolean
+  predicates and the canonical nested-pair encoding. The composed polynomial
+  accounts for copies, predicate runs, transfers, and output reassembly; the
+  preparation pass's `3s+5` bound is not claimed for this whole composition.
+- **Rank and size correspondence:** `RankPredicates.rank_step` identifies the
+  two machine-produced bits with the rank recurrence: count a smaller symbol
+  only when it does not occur in the tail. `remaining_length` proves the
+  retained wire loses exactly the head symbol's binary length plus its
+  delimiter; `remaining_length_lt` therefore holds even for a zero head.
+  `output_length` counts the two Boolean cells exactly, and `output_length_le`
+  bounds the entire result by `s+1` for original rank-query length `s`.
+- **Proof corrections:** output composition initially stopped at the local
+  `remaining` encoding alias and `RankPredicates.outputFinEncoding`; unfolding
+  both in the final `simpa` resolved it. The Boolean-length proof needs
+  `encodeBool` unfolded. Adding `Nat.add_comm` to this simplification left
+  `1+(1+n)=2+n`; the smaller `simp` set closes the original goal directly.
+  An unnecessary following `omega` caused `No goals to be solved` in one full
+  build and was removed. The subsequent complete build is the final evidence.
+- **Verification:** final `lake build` passed (3168 jobs). All 258
+  nonempty-format axiom reports use only `propext`, `Classical.choice`, and
+  `Quot.sound`; all 38 project Lean files passed the comment/string-aware
+  prohibited-code scan. Both new modules are warning-free, and
+  `git diff --check` passed. README, theorem status, and new module
+  correspondence are synchronized; `cor:all-different-csp` remains **Partial**.
+- **Preservation:** active thesis status and binary diff exactly match the
+  starting twelve-file snapshots. The read-only sibling is still clean at
+  `4409f67`; its status and binary diff are unchanged. The dependency remains
+  pinned to `ad20a2e`, with no toolchain changes.
+- **Ending state and best next step:** this second increment is verified for
+  commit and push. Build the finite repeated rank loop over the shrinking
+  target/tail wire: handle empty lists, retain a binary or unary accumulator,
+  use the checked predicate bits to increment, and charge all loop/control
+  and accumulator costs. Prove agreement with `DomainSymbols.rank`, then
+  compose with the retained compiler sections. Primal-edge deduplication,
+  objective emission, and final prime-selection composition remain pending.
+  No new missing upstream API was established; the blocker is the still
+  unconstructed loop, rather than either local predicate or input staging.
+- **Run time:** 2026-09-17 05:28 AEST (2026-09-16 19:28 UTC).

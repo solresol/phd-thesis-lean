@@ -442,8 +442,19 @@ a `3s+5` bound for the eight-stack preparation pass in complete input length
 `s`, including every copy, ordering pass, and cleanup. Zero symbols, empty
 tails, repeated values, and arbitrary binary magnitudes are included.
 `RankQueries.output_length` proves the exact output equation `output + 2 = 2s`.
-Calling both predicates while retaining the next query, the repeated counting
-loop with its empty-list branch, and full-input composition remain pending.
+`AllDifferentCSPRankPredicates.lean` now calls both predicates while preserving
+that next query. `rankPredicatesComputableInPolyTime` composes preparation,
+query membership, and strict comparison with the checked upstream pair-left
+and pair-right adapters. Its result is exactly
+`(symbol ∈ tail, (symbol < target, (target, tail)))`, with Boolean predicates
+and all copying, transfers, and reassembly included in the polynomial bound.
+`RankPredicates.rank_step` connects those exact outputs to canonical rank:
+add one only when the symbol is smaller than the target and absent from the
+tail. `remaining_length` proves that the retained input loses precisely the
+head's bit length plus its delimiter; `remaining_length_lt` includes zero
+heads. The complete predicate output is at most `s+1` cells. These are local
+nonempty-iteration results; the repeated counting loop, empty-list branch,
+accumulator, and full-input composition remain pending.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
