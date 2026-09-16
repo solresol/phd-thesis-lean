@@ -129,8 +129,11 @@ in linear bit/delimiter time and composes it from actual Boolean compiler input,
 retaining scopes and the variable count through the upstream pair-left API.
 `AllDifferentCSPSymbolMembership` decides serialized symbol membership in
 `6(s+1)^2` steps, including field loading, upstream query-preserving binary
-comparison, and cleanup. Repeated deduplication, the machine proof for rank
-computation, and full compiler composition remain outstanding.
+comparison, and cleanup. `AllDifferentCSPRankQueries` constructs the membership,
+strict-comparison, and retained next-iteration queries from the checked nonempty
+rank wire in `3s+5` steps, including all copies and cleanup. Repeated
+deduplication, the machine proof for rank computation, and full compiler
+composition remain outstanding.
 -/
 
 namespace BinaryNatLists

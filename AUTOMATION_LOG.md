@@ -3763,3 +3763,48 @@
   Then compose ranks with the preserved compiler sections; deduplicated primal
   edges, objective emission, and final prime selection still remain.
 - **Run time:** 2026-09-16 05:29 AEST (2026-09-15 19:29 UTC).
+
+### 2026-09-17 — prepare all predicate inputs for one canonical-rank iteration
+
+- **Starting state:** clean `main` at `579f819f2af9ddc0dc3de5d9b88b24c889a0e30e`;
+  fetch confirmed equality with `origin/main` and live remote main. The active
+  thesis remained at `f1107f5`, with twelve existing dirty files, including
+  the current all-different proof. Its status and binary diff were snapshotted.
+- **Read-only dependency review:** `lean-np-hardness` was clean at published
+  `4409f67`. Its new `FrameComparisonMachine` composes framed extraction and
+  query-preserving equality, but that framed/preloaded interface differs from
+  the current tagged source-order rank query. Reused the already pinned
+  `ad20a2e` encoding and composition APIs; no dependency or sibling edits.
+- **Checked increment:** added `AllDifferentCSPRankQueries.lean` and the root
+  import. `RankQueries.inputFinEncoding` uses exactly the existing
+  `(target, symbol :: tail)` wire; its decoder rejects an empty symbol list.
+  The eight-stack `RankQueryMachine.computer` copies each target, symbol, and
+  tail cell into two finite buffers and emits the canonical nested pair
+  `((symbol, tail), ((symbol, target), (target, tail)))`. No pre-split queries
+  or free input copies are assumed. Every work stack is empty at halt.
+- **New declarations:** `rankQueries_outputsInTime` and
+  `rankQueriesComputableInPolyTime` prove the complete preparation in at most
+  `3s+5` steps for actual serialized rank-input length `s`.
+  `RankQueries.output_length` proves the exact equation `output + 2 = 2s`:
+  every payload cell is copied twice and the consumed head delimiter is
+  discarded. Zero targets/symbols, empty tails, repetitions, and unbounded
+  binary magnitudes are included in the checked proofs.
+- **Proof corrections:** `EvalsToInTime.refl` needs explicit function and
+  configuration arguments. Final output simplification left partially applied
+  `tag` functions under `List.map`; `rfl` closed the remaining definitional
+  equality. A redundant sequencing linter warning was removed. Failed-check
+  axiom output was discarded; the corrected direct check has no `sorryAx`.
+- **Verification:** direct module check passed without warnings; full
+  `lake build` passed (3167 jobs). All 253 nonempty-format axiom reports use
+  only `propext`, `Classical.choice`, and `Quot.sound`; the comment/string-aware
+  prohibited-code scan passed all 37 project Lean files. `git diff --check`
+  passed. README, theorem status, and source correspondence were synchronized;
+  `cor:all-different-csp` remains **Partial**. The thesis binary diff and sibling
+  status still match their starting snapshots.
+- **Ending state and next target:** this increment is verified for commit and
+  push. Next compose membership and comparison through the existing pair
+  adapters while retaining `(target, tail)`, connect their outputs to
+  `rank_cons`, and prove that the retained wire strictly shrinks. The repeated
+  loop, empty-list branch, accumulator, full-input composition, deduplicated
+  edges, objective emission, and final prime-selection composition remain.
+- **Run time:** 2026-09-17 05:25 AEST (2026-09-16 19:25 UTC).

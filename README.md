@@ -433,8 +433,17 @@ complete intermediate transfer. Its encoded Boolean is exactly `symbol < target`
 membership bit to the existing rank recurrence. `input_head_length` charges
 both comparison words and the remaining fields to the complete target/symbol
 query; `input_length_le_rank_query` gives the corresponding comparison-size
-bound. Extracting and retaining these queries inside a repeated finite-machine
-rank driver, then composing from the complete compiler input, remain pending.
+bound. `AllDifferentCSPRankQueries.lean` now constructs all three queries from
+the original target/nonempty-symbol-list wire: `(symbol, tail)` for membership,
+`(symbol, target)` for comparison, and `(target, tail)` for the next iteration.
+Its decoder checks nonemptiness without adding a header or assuming a pre-split
+input. `rankQueries_outputsInTime` and `rankQueriesComputableInPolyTime` prove
+a `3s+5` bound for the eight-stack preparation pass in complete input length
+`s`, including every copy, ordering pass, and cleanup. Zero symbols, empty
+tails, repeated values, and arbitrary binary magnitudes are included.
+`RankQueries.output_length` proves the exact output equation `output + 2 = 2s`.
+Calling both predicates while retaining the next query, the repeated counting
+loop with its empty-list branch, and full-input composition remain pending.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
