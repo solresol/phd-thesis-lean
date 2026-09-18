@@ -461,9 +461,23 @@ smaller and absent from its tail. `rankAccumulator_outputsInTime` and
 finite-machine steps in the full predicate/query/accumulator wire length.
 Every copy and order-restoration pass is charged, all work stacks are empty
 at halt, and zero accumulators and empty remaining symbol lists are included.
-This is a local accumulator pass; composition into a full iteration, the
-repeated counting machine, empty-list control, and full-input composition
-remain pending.
+`rankIterationComputableInPolyTime` now composes query preparation, both
+predicates, and this accumulator update from the original nonempty query and
+its unary tally. It reuses the pinned generic pair-left and sequential-machine
+APIs, charging all intermediate copies and transfers to the complete input.
+`RankIteration.rank_invariant` preserves the tally plus the remaining canonical
+rank. `output_length_balance` charges the consumed head's binary length and
+its delimiter against the optional tally cell; `output_length_le` proves the
+complete retained state never grows. Exactly one symbol disappears even when
+the complete wire length stays constant (a counted zero-valued symbol).
+`RankIteration.finish` is an executable recursive specification with an
+empty-list branch; `finish_one_eq_rank` and `finish_extracted_eq_relabelValue`
+prove its exact canonical-rank and thesis-relabelling semantics. Its tally is
+bounded by the initial tally plus the number of explicit occurrences, not by
+symbol magnitudes. These results do not yet supply a finite machine for the
+repeated loop: initialization, empty-list control, repeated invocation, final
+output, and their combined runtime remain to be constructed and then composed
+with the retained compiler sections.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

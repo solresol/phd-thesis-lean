@@ -3908,3 +3908,57 @@
   finite repeated driver, empty-list control, and full compiler composition
   remain pending.
 - **Run time:** 2026-09-18 01:20:47 UTC.
+
+
+### 2026-09-18 — compose a complete rank iteration and prove its counting invariant
+
+- **Starting state:** the preceding accumulator increment was committed and
+  pushed as `4e54067bfd4b16c0d97086a5cbba731b962baca6`. Local HEAD,
+  `origin/main`, and the live remote main ref agreed. Only this run's next
+  untracked iteration module remained in progress.
+- **Checked increment:** added `AllDifferentCSPRankIteration.lean` and root
+  import. `rankIterationComputableInPolyTime` lifts the checked predicate
+  machine over a retained unary accumulator with upstream
+  `pairReductionComputableInPolyTime`, then composes the conditional update
+  through `compositionComputableInPolyTime`. The source is the original
+  nonempty target/symbol-list query paired with its tally; its output is
+  exactly the target/tail query and updated tally. The polynomial charges
+  preparation, both predicates, all copies, transfers, and reassembly.
+  The preceding pass's `2s` bound is not claimed for this full iteration.
+- **Semantic and size evidence:** `RankIteration.rank_invariant` preserves
+  tally plus remaining canonical rank. `remaining_symbols_length` removes
+  exactly one symbol. `output_length_balance` gives the exact equation
+  `output + headBits + 1 = input + contribution`; `output_length_le` proves
+  nonexpansion of the complete state including the tally. A counted zero head
+  can leave the wire length equal, so termination uses remaining list length.
+- **Executable loop specification:** `RankIteration.finish` tail-recursively
+  applies this step and returns the tally for an empty list. `finish_add_one`
+  proves its accumulator invariant; `finish_one_eq_rank` and
+  `finish_extracted_eq_relabelValue` identify the result with canonical rank
+  and the thesis compiler's relabelling. `finish_le_count_add_length` bounds
+  the unary result by starting tally plus explicit occurrences, independently
+  of symbol magnitude. Kernel-checked examples cover repetitions, zero values,
+  and empty lists. These are semantic proofs for executable recursion, not a
+  finite-machine running-time theorem for the whole repeated loop.
+- **Verification and corrections:** the targeted module build passed on its
+  first attempt (3142 jobs). Removed one unused `Nat.add_left_comm` simp
+  argument; the final full `lake build` then passed (3170 jobs). All 269
+  reported axiom lists use only `propext`, `Classical.choice`, and `Quot.sound`.
+  Both new modules are warning-free. All 40 project Lean sources passed the
+  comment/string-aware prohibited-code scan, and `git diff --check` passed.
+  README and THEOREM_STATUS record the checked iteration and remaining driver
+  boundary; the full `cor:all-different-csp` stays **Partial**.
+- **Preservation:** the active thesis remains at `f1107f5`; its twelve dirty
+  files and binary diff match the starting snapshot exactly. The separately
+  advanced sibling is clean at `7f83b99` and was only read by this task.
+  Dependency pin `ad20a2e` and all toolchains are unchanged.
+- **Ending state and best next step:** this increment is verified for commit
+  and push. Construct a finite repeated driver that initializes tally one,
+  detects empty symbol lists while retaining the query, invokes the checked
+  iteration otherwise, and returns the final tally. Use strict symbol-count
+  decrease and the nonexpanding full-state bound to charge every repetition,
+  transfer, branch, and cleanup. Then compose canonical relabelling with the
+  retained compiler sections. Primal-edge deduplication, objective emission,
+  and final prime-selection composition still remain. No new missing upstream
+  API was established; the finite loop/control construction is still pending.
+- **Run time:** 2026-09-18 01:24:22 UTC.
