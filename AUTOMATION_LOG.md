@@ -3858,3 +3858,53 @@
   No new missing upstream API was established; the blocker is the still
   unconstructed loop, rather than either local predicate or input staging.
 - **Run time:** 2026-09-17 05:28 AEST (2026-09-16 19:28 UTC).
+
+
+### 2026-09-18 — conditionally update the rank accumulator in linear time
+
+- **Starting state:** clean `main` at
+  `d88106f97672b44f6cfca86f0eff325ae0461ad8`; fetch and live remote lookup
+  confirmed upstream parity. Read AGENTS, status, relevant README/source
+  correspondence, prior log/memory, and the active all-different theorem and
+  proof. The active thesis stayed at `f1107f5` with twelve existing dirty
+  files; its binary diff SHA-256 is unchanged.
+- **Read-only dependency review:** sibling `lean-np-hardness` started clean at
+  `c0a50ea`. Its certificate-count initialization and zero test retain a framed
+  binary count; that interface does not implement our source-order rank loop.
+  Its separate task advanced it to `7f83b99` during this run, adding framed
+  comparison with count retention. Reviewed that interface too; it still leaves
+  traversal control separate. No sibling edits or dependency/toolchain changes
+  were made here. Reused pinned `ad20a2e` encodings and machine APIs.
+- **Checked increment:** added `AllDifferentCSPRankAccumulator.lean` and root
+  import. `RankAccumulator.update` consumes membership and strict-order bits,
+  retains the target/tail query, and adds one unary cell exactly for a smaller
+  symbol absent from its tail. The concrete three-stack machine handles empty
+  queries, zero tallies, both Boolean choices, ordering, and complete cleanup.
+- **Declarations:** `RankAccumulator.input_length` and `output_length` charge
+  all predicate bits, query cells, and unary tally cells. The headline
+  `rankAccumulator_outputsInTime` and `rankAccumulatorComputableInPolyTime`
+  prove a bound of `2s` finite-machine steps in the complete input wire length.
+  This is the conditional update pass, not the runtime of the whole rank loop.
+- **Proof corrections:** Lean rejects `simp [← unaryDecodeNat]` because a
+  definition cannot be refolded by that modifier; used the checked
+  `unaryEncodeNat_eq_replicate_true` lemma. The zero-count execution case
+  needed `unaryEncodeNat` reduced before the machine-step simplifier.
+  `convert` discharged the output configuration definitionally, so the next
+  goal was the arithmetic time equation, not another configuration equality.
+  Removed an extra `omega` after a closing `simp`, plus unused simp arguments.
+  The first failed direct check was stopped after these errors appeared;
+  failed-build axiom reports are not completion evidence.
+- **Verification:** final `lake build` passed (3169 jobs). All 262 reported
+  axiom lists use only `propext`, `Classical.choice`, and `Quot.sound`; the new
+  module has no warnings. The comment/string-aware prohibited-code scan passed
+  all 40 current project Lean sources, including the next unimported working
+  module; only the accumulator increment is claimed checked here.
+  `git diff --check` passed. README and THEOREM_STATUS are synchronized, with
+  `cor:all-different-csp` still **Partial**.
+- **Ending state and next target:** this increment is verified for commit and
+  push. Compose the retained-accumulator predicate pass with this machine,
+  prove the rank invariant and nonexpansion of the full serialized state, and
+  connect its recursive specification to the semantic canonical rank. The
+  finite repeated driver, empty-list control, and full compiler composition
+  remain pending.
+- **Run time:** 2026-09-18 01:20:47 UTC.

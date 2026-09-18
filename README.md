@@ -452,9 +452,18 @@ and all copying, transfers, and reassembly included in the polynomial bound.
 add one only when the symbol is smaller than the target and absent from the
 tail. `remaining_length` proves that the retained input loses precisely the
 head's bit length plus its delimiter; `remaining_length_lt` includes zero
-heads. The complete predicate output is at most `s+1` cells. These are local
-nonempty-iteration results; the repeated counting loop, empty-list branch,
-accumulator, and full-input composition remain pending.
+heads. The complete predicate output is at most `s+1` cells.
+`AllDifferentCSPRankAccumulator.lean` adds the concrete three-stack conditional
+accumulator machine. It consumes the two predicate bits, retains the exact
+remaining query, and adds one unary tally mark exactly when the symbol is
+smaller and absent from its tail. `rankAccumulator_outputsInTime` and
+`rankAccumulatorComputableInPolyTime` bound this complete update by `2s`
+finite-machine steps in the full predicate/query/accumulator wire length.
+Every copy and order-restoration pass is charged, all work stacks are empty
+at halt, and zero accumulators and empty remaining symbol lists are included.
+This is a local accumulator pass; composition into a full iteration, the
+repeated counting machine, empty-list control, and full-input composition
+remain pending.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
