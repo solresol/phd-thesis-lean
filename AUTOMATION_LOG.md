@@ -3962,3 +3962,49 @@
   and final prime-selection composition still remain. No new missing upstream
   API was established; the finite loop/control construction is still pending.
 - **Run time:** 2026-09-18 01:24:22 UTC.
+
+
+### 2026-09-19 — initialize the rank loop from the complete query
+
+- **Starting state:** clean `main` at
+  `21e5ef05f44d1ff0b5890c3d67a363402020b236`. Fetch, local tracking ref,
+  and live remote main agreed. Read AGENTS, status, relevant README and Lean
+  source correspondence, prior log/memory, and the active thesis statement
+  and proof. The thesis was at `f1107f5` with twelve pre-existing dirty files;
+  its binary diff SHA-256 was
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Read-only dependency review:** sibling `lean-np-hardness` was clean at
+  `7f83b99`. Reviewed its certificate-count initialization/test and framed
+  comparison interface: these retain an extracted binary certificate count,
+  whereas our rank state has exhaustion-delimited source fields and a unary
+  accumulator. They do not directly implement this rank control pass.
+  Reused pinned `ad20a2e` encodings and machine APIs; made no sibling edits,
+  dependency changes, or toolchain changes.
+- **Checked increment:** added `AllDifferentCSPRankInitialization.lean` and
+  its root import. `RankInitialization.seed` appends tally one to the complete
+  target/symbol query. The concrete three-stack machine retains every query
+  cell, restores source order, and clears its work stacks, including for the
+  entirely empty encoding of target zero and no symbols.
+- **Declarations:** `rankInitialization_outputsInTime` and
+  `rankInitializationComputableInPolyTime` prove a `2s+2` bound in the actual
+  query wire length. `RankInitialization.output_length` proves exactly one
+  added cell; `finish_initialize` connects the constructed state to the
+  already checked semantic canonical rank. This is initialization, not the
+  full finite repeated loop.
+- **Failed approach and correction:** Lean reserves the identifier
+  `initialize` as a command; declaring `def initialize` produced parser errors
+  and downstream unknown identifiers. Renamed it `seed`, then rebuilt.
+  Removed an unnecessary `<;>` tactic linter warning. Failed-build axiom
+  reports were discarded; only the subsequent successful audits count.
+- **Verification:** targeted build passed (3143 jobs), then full `lake build`
+  passed (3171 jobs). All 273 reported axiom lists contain only `propext`,
+  `Classical.choice`, and `Quot.sound`. The new module has no warnings.
+  The comment/string-aware prohibited-code scan passed all 42 project Lean
+  sources (including the next unimported control module, not claimed checked
+  here). `git diff --check` passed. README and THEOREM_STATUS agree with the
+  build; `cor:all-different-csp` remains **Partial**.
+- **Ending state and next step:** verified initializer ready for commit and
+  push. Next check the empty-list control pass while retaining the complete
+  target/symbol/tally state, especially zero-valued symbol fields. Repeated
+  iteration, final tally output, and full compiler composition remain open.
+- **Run time:** 2026-09-18 19:22:37 UTC (2026-09-19 05:22:37 AEST).

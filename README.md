@@ -474,10 +474,15 @@ the complete wire length stays constant (a counted zero-valued symbol).
 empty-list branch; `finish_one_eq_rank` and `finish_extracted_eq_relabelValue`
 prove its exact canonical-rank and thesis-relabelling semantics. Its tally is
 bounded by the initial tally plus the number of explicit occurrences, not by
-symbol magnitudes. These results do not yet supply a finite machine for the
-repeated loop: initialization, empty-list control, repeated invocation, final
-output, and their combined runtime remain to be constructed and then composed
-with the retained compiler sections.
+symbol magnitudes. `AllDifferentCSPRankInitialization.lean` now constructs
+the initial state from the complete target/symbol query. Its
+`rankInitializationComputableInPolyTime` appends the unary tally one while
+preserving every query cell in `2s+2` finite-machine steps, with exactly one
+additional output cell. The empty query (zero target, empty symbol list) is
+included. `RankInitialization.finish_initialize` connects this starting state
+to the semantic one-based rank. The finite repeated driver, empty-list control,
+final output, and their combined runtime remain to be constructed and then
+composed with the retained compiler sections.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
