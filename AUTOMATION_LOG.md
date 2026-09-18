@@ -4008,3 +4008,64 @@
   target/symbol/tally state, especially zero-valued symbol fields. Repeated
   iteration, final tally output, and full compiler composition remain open.
 - **Run time:** 2026-09-18 19:22:37 UTC (2026-09-19 05:22:37 AEST).
+
+
+### 2026-09-19 — check rank-loop entry, empty-list testing, and tally exit
+
+- **Starting state:** initializer committed and pushed as
+  `0353503840b39778c075bb9e631857f62fbb348d`. Local HEAD, `origin/main`, and
+  the live remote main ref agreed. Only the next untracked control module
+  remained in progress.
+- **Checked control increment:** added `AllDifferentCSPRankControl.lean`.
+  `rankControl_outputsInTime` and `rankControlComputableInPolyTime` prove
+  that the concrete three-stack machine emits a nonempty-symbol-list bit and
+  the unchanged target/symbol/tally state in `2s+2` steps for its full encoded
+  length `s`. All copies, order restoration, and work-stack cleanup are
+  included. `RankControl.output_length` gives exactly one added output cell.
+- **Branch correspondence:** `RankControlMachine.source_present` proves
+  that detecting source-field tags computes the exact branch bit. A zero
+  symbol has no binary payload but still has its delimiter; it must and does
+  select the nonempty branch. `RankControl.nonempty_encode` identifies the
+  retained nonempty wire definitionally with the existing checked iteration
+  input. `inspect_nil` and `inspect_cons` specify both outcomes, including
+  zero tallies and arbitrary target/symbol magnitudes.
+- **Checked entry composition:** `rankEntryComputableInPolyTime` reuses the
+  pinned upstream sequential-machine API to compose initialization and the
+  test from the original target/symbol query. The composed polynomial includes
+  the intermediate transfer; the local `2s+2` bounds are not claimed for this
+  combined entry machine.
+- **Checked exit increment:** added `AllDifferentCSPRankFinalization.lean`.
+  `rankFinalization_outputsInTime` and
+  `rankFinalizationComputableInPolyTime` project the unary tally and clear the
+  complete query in `s+1` steps. `output_length_le` proves nonexpansion.
+  `result_eq_finish_of_empty` connects that output to the recursive rank
+  result only when the checked nonempty-list bit is false. Projecting an
+  arbitrary nonempty state's tally is not claimed to compute its final rank.
+- **Proof corrections:** removed one unused encoding abbreviation from the
+  test's simp list. In the exit proof, simplification left
+  `List.filterMap (fun _ => none) query` unevaluated under reverse/append.
+  Proved this concrete discarded-query list equals `[]` using the standard
+  `List.filterMap_eq_nil_iff` simplification, then supplied that equality to
+  the final wire normalization. The subsequent successful audit excludes all
+  failed-build axiom reports.
+- **Verification:** targeted control build passed (3144 jobs), and the final
+  exit module build passed (3145 jobs). Final full `lake build` passed
+  (3173 jobs); all 283 reported axiom lists use only `propext`,
+  `Classical.choice`, and `Quot.sound`. All three new modules are warning-free.
+  The comment/string-aware prohibited-code scan passed all 43 project Lean
+  sources; `git diff --check` passed. Root imports, README and THEOREM_STATUS
+  are synchronized; the full `cor:all-different-csp` remains **Partial**.
+- **Preservation:** thesis HEAD remains `f1107f5` and its binary diff SHA-256
+  matches the starting snapshot exactly; all twelve unrelated dirty files
+  are preserved. The sibling remains clean at `7f83b99`. Neither repository
+  was edited by this task. Dependency pin `ad20a2e` and toolchains unchanged.
+- **Ending state and best next step:** entry, nonempty testing, and tally exit
+  are checked and ready for commit/push. Implement the finite driver that
+  consumes the branch bit, invokes `rankIterationComputableInPolyTime` on
+  the unchanged nonempty wire, transfers the resulting state back to the
+  test, and calls finalization on the empty branch. Bound repetitions by
+  strict symbol-count decrease and use the existing full-state nonexpansion
+  to bound each pass and all transfers. No missing upstream API was newly
+  established. Composition with retained compiler sections, primal-edge
+  deduplication, objective emission, and prime selection remains afterward.
+- **Run time:** 2026-09-18 19:27:14 UTC (2026-09-19 05:27:14 AEST).

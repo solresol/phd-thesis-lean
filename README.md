@@ -480,8 +480,22 @@ the initial state from the complete target/symbol query. Its
 preserving every query cell in `2s+2` finite-machine steps, with exactly one
 additional output cell. The empty query (zero target, empty symbol list) is
 included. `RankInitialization.finish_initialize` connects this starting state
-to the semantic one-based rank. The finite repeated driver, empty-list control,
-final output, and their combined runtime remain to be constructed and then
+to the semantic one-based rank. `AllDifferentCSPRankControl.lean` now checks
+whether symbols remain while retaining the complete query and tally.
+`rankControlComputableInPolyTime` emits that bit and the unchanged state in
+`2s+2` steps, with exactly one added output cell. `source_present` proves that
+a zero symbol's delimiter still selects the nonempty branch, and
+`RankControl.nonempty_encode` identifies that branch's retained wire exactly
+with the existing iteration input. `rankEntryComputableInPolyTime` composes
+initialization and testing from the original query, including transfers.
+`AllDifferentCSPRankFinalization.lean` supplies
+`rankFinalizationComputableInPolyTime`, returning the unary tally and clearing
+the query in `s+1` steps without increasing output length.
+`result_eq_finish_of_empty` identifies that tally with the recursive result
+only when the checked nonempty-list bit is false. These are entry, test, and
+exit passes; the finite driver that branches, repeatedly invokes the checked
+iteration, transfers each resulting state back to the test, and proves a total
+polynomial runtime remains to be constructed. That rank machine must then be
 composed with the retained compiler sections.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.

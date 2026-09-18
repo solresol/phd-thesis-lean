@@ -36,3 +36,5 @@ import PhdThesisLean.AllDifferentCSPRankPredicates
 import PhdThesisLean.AllDifferentCSPRankAccumulator
 import PhdThesisLean.AllDifferentCSPRankIteration
 import PhdThesisLean.AllDifferentCSPRankInitialization
+import PhdThesisLean.AllDifferentCSPRankControl
+import PhdThesisLean.AllDifferentCSPRankFinalization
