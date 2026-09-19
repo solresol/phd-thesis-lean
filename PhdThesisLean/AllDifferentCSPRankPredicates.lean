@@ -6,7 +6,8 @@ import PhdThesisLean.AllDifferentCSPRankQueries
 The checked preparation machine constructs all input copies. The upstream
 pair adapters then run membership and strict comparison without losing the
 next target/tail query. Their polynomial bounds include transfers and output
-reassembly. Loop control and rank accumulation are not yet implemented.
+reassembly. `AllDifferentCSPRankAccumulator` and `AllDifferentCSPRankLoop`
+compose these predicates with accumulation and repeated finite control.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

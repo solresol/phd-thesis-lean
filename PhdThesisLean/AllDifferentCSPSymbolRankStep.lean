@@ -5,8 +5,8 @@ import PhdThesisLean.AllDifferentCSPSymbolMembership
 
 The checked membership machine returns the branch used to skip a repeated
 symbol. A smaller symbol adds one rank position only at its final occurrence.
-These recurrence and encoded-size lemmas specify the next repeated driver;
-they do not assert a finite-machine running time for deduplication or rank.
+These recurrence and encoded-size lemmas support the repeated driver and
+polynomial runtime proved in `AllDifferentCSPRankLoop`.
 The full thesis corollary `cor:all-different-csp` remains partial.
 -/
 

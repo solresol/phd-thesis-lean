@@ -7,7 +7,8 @@ The two checked predicate bits contribute one exactly when the symbol is
 smaller and absent from its tail. This finite machine consumes both bits,
 copies the complete remaining query, and conditionally adds one unary cell.
 Its linear bound includes every transfer and clears all work stacks.
-The repeated rank driver and the full CSP corollary remain pending.
+`AllDifferentCSPRankLoop` composes the repeated driver; the full CSP corollary
+still requires composition across all compiler sections.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

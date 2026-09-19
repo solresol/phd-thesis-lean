@@ -6,7 +6,8 @@ import PhdThesisLean.AllDifferentCSPRankInitialization
 The machine emits a nonempty-list bit followed by the unchanged target,
 source-order symbol fields, and unary tally. A zero symbol still has its field
 delimiter and is therefore distinguished from an empty list. This supplies a
-checked control pass; repeated invocation of the rank iteration is still open.
+checked control pass; `AllDifferentCSPRankLoopMachine` reuses its source-field
+criterion in the scan that loads each repeated rank iteration.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

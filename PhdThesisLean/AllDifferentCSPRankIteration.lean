@@ -7,7 +7,8 @@ Compose query preparation, both predicates, and conditional accumulation using
 the pinned checked machine adapters. The entire retained state does not grow,
 and exactly one symbol disappears per iteration. The executable recursive
 specification agrees with canonical rank, including its empty-list branch;
-this is not yet a finite-machine implementation of the repeated loop.
+`AllDifferentCSPRankLoop` supplies its repeated finite-machine implementation
+and total polynomial bound.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

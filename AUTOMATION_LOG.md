@@ -4117,3 +4117,61 @@
   relabelling, edge deduplication, objective emission, and final prime
   selection composition remain afterward.
 - **Run time:** 2026-09-19 19:25:11 UTC (2026-09-20 05:25:11 AEST).
+
+### 2026-09-20 — prove total polynomial-time canonical rank
+
+- **Starting state:** finite loop controller committed and pushed as
+  `cf7fd08c41a3bad713fa7a6a27651c5509e402c3`; local HEAD, `origin/main`, and
+  live remote main agreed. Worktree was clean before this increment.
+- **Increment:** added `AllDifferentCSPRankLoop.lean`. `state_length` gives
+  the exact target-bits/source-fields/unary-tally size. `symbols_length_le_state`
+  charges every occurrence to its delimiter, including zero-valued fields.
+  `RankLoop.run_bounded` inducts on the remaining symbol list and reuses
+  `RankIteration.output_length_le` plus the upstream
+  `MachineRuntime.polynomial_eval_mono`. This proves actual repeated finite
+  execution, including every loaded body call and return to the next scan.
+- **Total runtime:** `RankLoop.outputsInTime` and
+  `rankLoopComputableInPolyTime` prove at most
+  `(s+1) * (P(s) + 4s + 4)` steps from a complete encoded query/tally state
+  of length `s`, where `P` is the already checked iteration polynomial.
+  The bound includes all scans, loading, body calls, return transfers,
+  final target disposal, and tally output. The number of symbols decreases
+  strictly even when the full wire does not. Every work stack is empty at halt.
+- **Canonical-rank composition:** `canonicalRankComputableInPolyTime`
+  composes the initializer and full loop through the pinned checked sequential
+  API. Its input is the original checked serialized `(target, symbols)` query;
+  its output is the exact one-based rank in `unaryFinEncodingNat`.
+  `canonicalRank_extracted_outputsInTime` specializes that actual machine
+  execution to `ExplicitSystem.relabelValue` on the extracted domain symbols.
+  Its full polynomial charges initialization and the intermediate transfer;
+  the preceding `(s+1)*(P(s)+4s+4)` formula is specifically the state-loop bound.
+  Empty lists, zero target/symbols/tallies, duplicates and arbitrary binary
+  magnitudes are covered by the general execution proof.
+- **Boundary:** the local rank machine is now complete. Its specialized
+  theorem starts from an already serialized target/extracted-symbol query.
+  It does not yet construct all queries from, or preserve and relabel, the
+  complete compiler sections. Primal-edge deduplication, encoded objective
+  emission, and final prime-selection composition also remain; the thesis
+  `cor:all-different-csp` remains **Partial**.
+- **Proof corrections:** the exact size equation needed `Nat.add_assoc`;
+  after destructuring a state, `change symbols.length ≤ _` exposes the list
+  projection to `omega`. The repeated finite-execution induction and its
+  arithmetic runtime bound checked without a new API blocker. Discarded the
+  earlier failed-check axiom reports. No new generic foundation was duplicated.
+- **Verification:** direct new-module check and final full `lake build` passed
+  (3175 jobs). All 292 reported axiom lists use only `propext`,
+  `Classical.choice`, and `Quot.sound`. Both new modules are warning-free;
+  comment/string-aware prohibited-code scanning passed all 45 project Lean
+  sources and `git diff --check` passed. Root imports, README correspondence,
+  theorem status, and rank pipeline source comments synchronized.
+- **Preservation:** active thesis remains at `f1107f5`, with all twelve dirty
+  files and the exact starting binary-diff hash preserved. Read-only sibling
+  remains clean at `d7a1bc1`; dependency pin and toolchains are unchanged.
+- **Ending state and best next step:** complete local rank theorem ready for
+  commit/push. Build a query-staging pass over `CountedSymbolSections.Value`
+  that copies each target with the retained complete symbol list, invokes
+  `canonicalRankComputableInPolyTime`, and emits the relabelled indexed
+  occurrence while preserving scopes, variable count, and remaining source.
+  Charge copying and rank-output conversion and prove exact agreement with
+  the existing canonical relabelled domains before full compiler composition.
+- **Run time:** 2026-09-19 19:30:29 UTC (2026-09-20 05:30:29 AEST).

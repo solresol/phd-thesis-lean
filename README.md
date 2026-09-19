@@ -376,8 +376,8 @@ their set, including repeated values within and between domains.
 smaller values, count them, and add one) with the semantic compiler's rank.
 `rank_eq_iff`, `rank_lt_domainEntryPrime`, and `relabeled_domain` connect it
 to equality preservation, the selected prime, and each exact relabeled domain.
-These are checked semantic contracts; a finite-machine rank implementation
-and its running-time proof remain outstanding.
+These semantic contracts connect to the complete local rank machine described
+below. Its composition across retained compiler sections remains outstanding.
 `AllDifferentCSPSymbolMachine.lean` now implements the extraction step.
 `domainSymbolExtractionComputableInPolyTime` retains the exact occurrence
 wire and extracts every symbol field in source order in at most `3s+3`
@@ -402,8 +402,8 @@ query-preserving equality kernel, and counts loading, comparison, restoration,
 and final cleanup. Empty lists, zero, repeated symbols, and unequal bit
 lengths are covered; every non-output stack is empty at halt. Both loaded
 words are reversed, which preserves equality and avoids a separate reversal
-pass. This is a local membership machine, not yet the repeated deduplication
-or ranking driver or its composition from the complete compiler input.
+pass. This local membership machine is reused inside the complete rank driver
+below; composition from the complete compiler input remains open.
 `AllDifferentCSPSymbolRankStep.lean` connects that machine result to the next
 loop. `DomainSymbolMembership.contains_extracted` identifies membership with
 the semantic union of domains; `dedup_cons` uses the returned bit to skip
@@ -413,7 +413,7 @@ the query removes exactly one field delimiter from the original stream.
 `tailMembership_outputsInTime` therefore bounds this local query by six times
 the square of that stream's length. `dedup_fields_length_le` proves that
 removing duplicates cannot increase the raw binary field length. These are
-checked recurrence and size contracts; the repeated machine remains pending.
+checked recurrence and size contracts used by the complete rank loop below.
 `AllDifferentCSPSymbolComparison.lean` now constructs the aligned binary
 input needed by the rank loop's comparison. Its seven-stack loader reads the
 checked tagged symbol/target pair, restores each word's original bit order,
@@ -501,9 +501,21 @@ next scan with all body and scratch stacks empty. Its complete cycle cost is
 `t` are the complete input and output wire lengths. `exit_run` checks the
 empty branch in `2s+2` steps, including target disposal and tally output.
 The driver fuses the existing source-field test with its loading scan and
-uses the same checked zero-field criterion. The total repeated execution and
-polynomial runtime proof remain open; then the rank machine must be composed
-with the retained compiler sections.
+uses the same checked zero-field criterion. `AllDifferentCSPRankLoop.lean` proves the complete repeated execution.
+`RankLoop.run_bounded` uses strict source-list decrease and nonexpanding full
+state to bound every cycle by the same input size; `RankLoop.outputsInTime`
+proves a total bound of `(s+1) * (P(s) + 4s + 4)` for the complete state length
+`s`, including all control, loading, return transfers, and the final exit.
+`rankLoopComputableInPolyTime` packages this finite machine under the checked
+state and unary-result encodings. `canonicalRankComputableInPolyTime` composes
+it with initialization from the original serialized target/symbol query and
+returns the exact one-based rank. Its full polynomial also charges that
+initialization and intermediate transfer. `canonicalRank_extracted_outputsInTime`
+identifies the machine output with `ExplicitSystem.relabelValue` on extracted
+domain symbols. Empty lists, zero values, repetitions, arbitrary binary
+magnitudes, and cleanup of all work stacks are covered. This completes the
+local rank machine; constructing all rank queries while retaining and
+relabelling the complete compiler sections remains open.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
