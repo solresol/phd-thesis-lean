@@ -4069,3 +4069,51 @@
   established. Composition with retained compiler sections, primal-edge
   deduplication, objective emission, and prime selection remains afterward.
 - **Run time:** 2026-09-18 19:27:14 UTC (2026-09-19 05:27:14 AEST).
+
+### 2026-09-20 — execute a complete rank cycle inside finite loop control
+
+- **Starting state:** clean `main` at `97f6f25e94c7356d6c66ee40a62cb5286a262f8a`;
+  fetched `origin`, verified `0 0` ahead/behind and matching live remote main.
+  Read AGENTS, current status/README, the Lean rank pipeline and supporting
+  modules, prior log/memory, and the active thesis corollary/proof. Thesis
+  HEAD is `f1107f5`, with twelve unrelated dirty files and binary diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Read-only sibling review:** `lean-np-hardness` is clean at `d7a1bc1`.
+  Its new `CertificatePredecessor.natural_evalsToInTime` and
+  `list_tail_evalsToInTime` preserve framed traversal data but do not supply
+  this tagged rank loop. Reviewed the checked embedding, composition, transfer,
+  and polynomial-monotonicity APIs. Kept dependency pin `ad20a2e`; neither
+  sibling nor thesis was edited.
+- **Increment:** added `AllDifferentCSPRankLoopMachine.lean`. Its finite
+  controller reuses `rankIterationComputableInPolyTime` as its complete body.
+  `body_run` proves exact execution with a reached body halt redirected to
+  the live collection continuation. `enter_run` scans the preserved state,
+  uses the existing `source_present` criterion (including zero delimiters),
+  and loads the body in original order. `return_run` restores the body's
+  output and clears its output/scratch stacks before the next scan.
+  `iteration_cycle` checks the whole cycle in `P(s) + 2s + 2t + 4` steps for
+  complete input/output wire lengths `s,t` and the existing body polynomial P.
+  `exit_run` returns the exact unary tally from the empty branch in `2s+2`
+  steps; every non-output stack is empty. Zero target/tally are covered.
+- **Proof corrections:** used `stackContents` after accidentally reusing the
+  reserved parser token `stacks`. Alphabet equivalences point from machine
+  alphabets to encoded alphabets, so loading uses `.symm` and collection uses
+  the forward equivalence. Dependent single-stack contents need the same
+  equality transport as `initList`/`haltList`. For the return wire, explicitly
+  typed `List.append` avoids an alias-related HAppend elaboration failure;
+  `List.append_eq`, `List.map_id_fun'`, and `← List.map_reverse` normalize it.
+  Unfold the two local encoding aliases before arithmetic compares lengths.
+  Failed-check axiom reports were discarded; only successful audits count.
+- **Verification:** direct module check and full `lake build` passed (3174
+  jobs). All 286 reported axiom lists use only `propext`, `Classical.choice`,
+  and `Quot.sound`; the new module is warning-free. Comment/string-aware
+  prohibited-code scan passed all 44 project Lean sources; diff checks passed.
+  Root imports, README, and THEOREM_STATUS synchronized. The full
+  `cor:all-different-csp` remains **Partial**.
+- **Ending state and next step:** checked finite cycles and exit ready for
+  commit/push. Next induct on the remaining symbol list, reuse full-state
+  nonexpansion and upstream polynomial monotonicity, charge every cycle and
+  final scan, and package the complete repeated rank machine. Full compiler
+  relabelling, edge deduplication, objective emission, and final prime
+  selection composition remain afterward.
+- **Run time:** 2026-09-19 19:25:11 UTC (2026-09-20 05:25:11 AEST).

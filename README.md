@@ -492,11 +492,18 @@ initialization and testing from the original query, including transfers.
 `rankFinalizationComputableInPolyTime`, returning the unary tally and clearing
 the query in `s+1` steps without increasing output length.
 `result_eq_finish_of_empty` identifies that tally with the recursive result
-only when the checked nonempty-list bit is false. These are entry, test, and
-exit passes; the finite driver that branches, repeatedly invokes the checked
-iteration, transfers each resulting state back to the test, and proves a total
-polynomial runtime remains to be constructed. That rank machine must then be
-composed with the retained compiler sections.
+only when the checked nonempty-list bit is false.
+`AllDifferentCSPRankLoopMachine.lean` now supplies the finite loop controller.
+`RankLoopMachine.iteration_cycle` scans a nonempty state, loads and runs the
+existing checked iteration, restores its output in order, and returns to the
+next scan with all body and scratch stacks empty. Its complete cycle cost is
+`P(s) + 2s + 2t + 4`, where `P` is the checked iteration polynomial and `s`,
+`t` are the complete input and output wire lengths. `exit_run` checks the
+empty branch in `2s+2` steps, including target disposal and tally output.
+The driver fuses the existing source-field test with its loading scan and
+uses the same checked zero-field criterion. The total repeated execution and
+polynomial runtime proof remain open; then the rank machine must be composed
+with the retained compiler sections.
 Canonical relabelling, deduplicated edge construction, objective emission, and
 composition with prime selection remain before the full corollary is complete.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
