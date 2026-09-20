@@ -713,6 +713,20 @@ bare build checks both the contact theorem and the imported inherited module.
 The inherited trivial executable has been removed so verification does not
 require native compilation of all mathlib imports.
 
+
+`AllDifferentCSPOccurrenceQuery.lean` now constructs the next rank query from
+the existing occurrence/symbol wire, whose decoder checks that an occurrence
+is present. `occurrenceQueryComputableInPolyTime` removes that head record,
+pairs its value with the complete symbol list, and retains its variable index,
+the exact remaining occurrence stream, and a second copy of the complete
+symbol list in at most `3s+6` finite-machine steps. The bound uses the full
+input wire length and includes copying, order restoration, and cleanup.
+`OccurrenceQuery.output_length` proves `output + 6 = input + symbols`;
+`output_length_le` consequently bounds the complete result by twice its input.
+Zero indices/values, empty tails, repeated symbols, and arbitrary binary
+magnitudes are covered. Ranking this query while retaining the complete
+compiler sections, binary rank emission, and the outer occurrence loop remain.
+
 ## Source theorem catalogue
 
 The current statement-by-statement audit, including pending and partial

@@ -4175,3 +4175,49 @@
   Charge copying and rank-output conversion and prove exact agreement with
   the existing canonical relabelled domains before full compiler composition.
 - **Run time:** 2026-09-19 19:30:29 UTC (2026-09-20 05:30:29 AEST).
+
+## 2026-09-21 — stage the next retained occurrence rank query
+
+- **Starting commit:** `bd8f58806d8ade22aef0012268e79943b520bec7`; clean
+  `main`, fetched `origin/main` unchanged. Read AGENTS, theorem status, README
+  correspondence, active rank/encoding/section modules, prior log and memory,
+  and the active thesis corollary/proof at `sudoku-via-padic-regression/body.tex`
+  lines 530–537. Thesis HEAD remains `f1107f5` with twelve existing dirty files;
+  initial binary-diff SHA-256 is
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Read-only upstream review:** sibling `lean-np-hardness` is clean at
+  `181e969`, with a new ordered certificate-count transfer kernel. Its binary
+  count layout does not supply CSP occurrence query staging. Reused the pinned
+  `ad20a2e` pair codecs and machine composition/adapter APIs; no sibling edits,
+  dependency changes, or duplicated generic composition foundations.
+- **Checked increment:** added `AllDifferentCSPOccurrenceQuery.lean`.
+  `OccurrenceQuery.inputFinEncoding` decoder-checks a nonempty occurrence list
+  on exactly the existing occurrence/symbol wire. The seven-stack finite
+  machine constructs `(value, fullSymbols)` and retains `(index, tail,
+  fullSymbols)`. `occurrenceQuery_outputsInTime` and
+  `occurrenceQueryComputableInPolyTime` prove `3s+6` steps in complete input
+  length, including all copies, source-order restoration, and stack cleanup.
+  `output_length` proves `output + 6 = input + symbols`; the complete output
+  is at most `2s`. Zero indices/values, empty remaining records/symbol lists,
+  repetitions, and arbitrary binary magnitudes are covered.
+- **Verification:** full `lake build` passed (3176 jobs). The four new audits
+  and all 296 reported axiom lists use only `propext`, `Classical.choice`, and
+  `Quot.sound`. New module is warning-free; comment/string-aware project
+  prohibited-code scan and `git diff --check` passed. README, theorem status,
+  and root import synchronized; `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / useful API evidence:** unfolding `encodeNat` on
+  symbolic values in the length proof exhausted 200000 heartbeats. Reused
+  `DomainOccurrenceFieldBlock.outputEncode_eq_prefix` instead, leaving numeric
+  fields opaque and closing the residual arithmetic with `omega`. Direct
+  five-step unfolding stopped at `TM2.step`; replaced it with five explicit
+  checked one-step transitions. Parenthesized the complete suffix passed to
+  `header_run` to align append grouping. After `rw [input_length]`, `dsimp only`
+  exposes tuple projections before `omega`. All failed-build audit reports
+  were discarded; only the final successful build is evidence.
+- **Ending state / next step:** query preparation is checked and ready for
+  commit/push. Compose it with canonical rank through the existing pair-left
+  adapter, retain scopes and the variable count, and prove the emitted rank
+  agrees with thesis relabelling. Binary record emission and the outer
+  occurrence loop, primal-edge deduplication, objective rows, and final
+  prime-selection composition remain open.
+- **Run time:** 2026-09-20 19:25 UTC (2026-09-21 05:25 AEST).
