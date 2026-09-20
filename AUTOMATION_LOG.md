@@ -4221,3 +4221,55 @@
   occurrence loop, primal-edge deduplication, objective rows, and final
   prime-selection composition remain open.
 - **Run time:** 2026-09-20 19:25 UTC (2026-09-21 05:25 AEST).
+
+## 2026-09-21 — compute an occurrence rank while retaining complete sections
+
+- **Starting commit:** `370f3777a67df62ba9ec64e0fbb2203c77d7e4c5`, the
+  preceding verified query-staging increment. Its local HEAD, tracking ref,
+  and live remote main were verified equal after push.
+- **Checked increment:** added `AllDifferentCSPOccurrenceRank.lean`.
+  `occurrenceRankComputableInPolyTime` composes preparation and the complete
+  canonical-rank machine through the pinned generic pair-left adapter. It
+  emits the exact unary rank while retaining the index, remaining occurrence
+  stream, and complete source symbol list. `countedOccurrenceRankComputableInPolyTime`
+  additionally preserves all scopes and the original variable count.
+  `CountedOccurrenceRank.input_encode_eq_source` proves the input wire is
+  exactly the existing nonempty counted-symbol-section encoding, without a
+  preassembled query. `step_eq_relabelValue` proves exact index/rank agreement
+  with the thesis compiler on its produced source sections.
+- **Size and next-loop evidence:** `OccurrenceQuery.rank_le_length_add_one`
+  bounds the tally by explicit symbols, independent of numeric magnitudes.
+  `ranked_length_le` and the complete section `output_length_le` bound output
+  by twice the input. `remaining_step` retains exactly the tail/symbols/scopes/
+  count; `remaining_length` removes one occurrence. The stronger
+  `remaining_encoded_length_balance` removes the head's index/value bit lengths
+  plus six format cells, and `remaining_encoded_length_lt` proves strict wire
+  decrease even for zero indices and values. These bounds concern the next
+  source separately from any future accumulated emitted records.
+- **Verification:** direct module checks passed without errors or warnings.
+  Final full `lake build` passed (3177 jobs). The ten new audit commands report
+  nine accepted axiom lists and one axiom-free declaration; all 305 reported
+  axiom lists in the full build use only `propext`, `Classical.choice`, and
+  `Quot.sound`. The comment/string-aware scan passed all 47 project Lean
+  files; `git diff --check` passed. Concrete duplicate/zero examples also check.
+- **Documentation:** root imports, README, theorem status, and semantic/
+  encoding/rank source correspondence comments now describe the complete
+  local rank and this one-occurrence composition. Corrected stale comments
+  that still called the local rank machine unproved. The full corollary
+  remains **Partial**, and the `3s+6` staging cost is explicitly separate from
+  the complete composed polynomial and its adapter/transfer costs.
+- **Failed approaches / blockers:** the second module, including the stronger
+  retained-wire decrease lemma, checked on its first attempts. No new missing
+  upstream API blocker was established. The rank is still unary; this result
+  does not yet emit binary occurrence records or execute the outer loop.
+- **Preservation:** thesis HEAD `f1107f5`, all twelve dirty-file statuses, and
+  binary-diff hash match the initial snapshot exactly. The read-only sibling
+  remains clean at `181e969`; the dependency pin and toolchains are unchanged.
+- **Ending state / best next step:** verified second increment ready for
+  commit/push; final ref parity is recorded in automation memory. Implement a
+  finite pass that converts the unary rank to canonical binary, emits the
+  exact `[3,0,index,rank]` record, and preserves the remaining counted sections.
+  Then iterate using strict retained-source decrease, charging copied symbols
+  and accumulated output against the initial source size. Primal-edge
+  deduplication, objective rows, and final prime-selection composition remain.
+- **Run time:** 2026-09-20 19:30 UTC (2026-09-21 05:30 AEST).

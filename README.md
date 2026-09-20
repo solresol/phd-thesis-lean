@@ -514,10 +514,38 @@ initialization and intermediate transfer. `canonicalRank_extracted_outputsInTime
 identifies the machine output with `ExplicitSystem.relabelValue` on extracted
 domain symbols. Empty lists, zero values, repetitions, arbitrary binary
 magnitudes, and cleanup of all work stacks are covered. This completes the
-local rank machine; constructing all rank queries while retaining and
-relabelling the complete compiler sections remains open.
-Canonical relabelling, deduplicated edge construction, objective emission, and
-composition with prime selection remain before the full corollary is complete.
+local rank machine. The following step stages its query from the retained
+compiler sections and computes the rank of their next occurrence.
+
+`AllDifferentCSPOccurrenceQuery.lean` now constructs the next rank query from
+the existing occurrence/symbol wire, whose decoder checks that an occurrence
+is present. `occurrenceQueryComputableInPolyTime` removes that head record,
+pairs its value with the complete symbol list, and retains its variable index,
+the exact remaining occurrence stream, and a second copy of the complete
+symbol list in at most `3s+6` finite-machine steps. The bound uses the full
+input wire length and includes copying, order restoration, and cleanup.
+`OccurrenceQuery.output_length` proves `output + 6 = input + symbols`;
+`output_length_le` consequently bounds the complete result by twice its input.
+Zero indices/values, empty tails, repeated symbols, and arbitrary binary
+magnitudes are covered.
+`AllDifferentCSPOccurrenceRank.lean` composes that preparation with the complete
+rank machine. `occurrenceRankComputableInPolyTime` returns the exact unary rank
+while preserving the index, remaining records, and full symbol list.
+`countedOccurrenceRankComputableInPolyTime` carries the complete scopes and
+original variable count through the same step using the pinned pair-left API.
+`CountedOccurrenceRank.input_encode_eq_source` proves its input is exactly the
+existing nonempty counted-symbol-section wire; no preassembled query is assumed.
+`step_eq_relabelValue` identifies the emitted index/rank pair with the thesis
+compiler's canonical relabelling when the source is compiler-produced.
+`remaining_step` and `remaining_length` preserve all remaining data and remove
+exactly one occurrence. `remaining_encoded_length_balance` proves that the next
+source loses the head's index/value bits plus six record-format cells, so its
+encoded length strictly decreases even for zeros. The complete output,
+including the unary rank, is at most twice the input length.
+All adapter and transfer costs are included in the composed polynomial.
+The rank remains unary. Binary record emission, the outer occurrence loop,
+primal-edge deduplication, objective rows, and final prime-selection composition
+remain open; the full corollary is still **Partial**.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
@@ -712,20 +740,6 @@ GitHub Actions build check. `PhdThesisLean` is an explicit default target, so a
 bare build checks both the contact theorem and the imported inherited module.
 The inherited trivial executable has been removed so verification does not
 require native compilation of all mathlib imports.
-
-
-`AllDifferentCSPOccurrenceQuery.lean` now constructs the next rank query from
-the existing occurrence/symbol wire, whose decoder checks that an occurrence
-is present. `occurrenceQueryComputableInPolyTime` removes that head record,
-pairs its value with the complete symbol list, and retains its variable index,
-the exact remaining occurrence stream, and a second copy of the complete
-symbol list in at most `3s+6` finite-machine steps. The bound uses the full
-input wire length and includes copying, order restoration, and cleanup.
-`OccurrenceQuery.output_length` proves `output + 6 = input + symbols`;
-`output_length_le` consequently bounds the complete result by twice its input.
-Zero indices/values, empty tails, repeated symbols, and arbitrary binary
-magnitudes are covered. Ranking this query while retaining the complete
-compiler sections, binary rank emission, and the outer occurrence loop remain.
 
 ## Source theorem catalogue
 

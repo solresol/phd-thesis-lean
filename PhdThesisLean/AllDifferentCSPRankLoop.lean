@@ -136,7 +136,8 @@ noncomputable def canonicalRankComputableInPolyTime :
 
 /-- The full local rank machine returns the thesis compiler's exact relabelled
 value on its extracted symbols. The serialized query is the input boundary;
-assembling and retaining all compiler sections is a later composition. -/
+the occurrence-query and occurrence-rank modules perform its one-occurrence
+composition while retaining compiler sections. -/
 noncomputable def canonicalRank_extracted_outputsInTime (C : RuntimeSystem) (value : ℕ) :
     let query : DomainSymbolMembership.Input :=
       (value, DomainSymbols.extract (RuntimeStructuralView.ofRuntimeSystem C).domainOccurrences)

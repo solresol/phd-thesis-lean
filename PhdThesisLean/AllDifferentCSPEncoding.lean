@@ -131,9 +131,14 @@ retaining scopes and the variable count through the upstream pair-left API.
 `6(s+1)^2` steps, including field loading, upstream query-preserving binary
 comparison, and cleanup. `AllDifferentCSPRankQueries` constructs the membership,
 strict-comparison, and retained next-iteration queries from the checked nonempty
-rank wire in `3s+5` steps, including all copies and cleanup. Repeated
-deduplication, the machine proof for rank computation, and full compiler
-composition remain outstanding.
+rank wire in `3s+5` steps, including all copies and cleanup. The checked
+`AllDifferentCSPRankLoop` now computes the complete canonical unary rank.
+`AllDifferentCSPOccurrenceQuery` stages the next occurrence's query in `3s+6`
+steps while retaining its index, remaining records, and full symbol list.
+`AllDifferentCSPOccurrenceRank` composes that preparation and rank computation
+while carrying all scopes and the variable count through checked pair adapters.
+Binary rank-record emission, the outer occurrence loop, edge deduplication,
+objective emission, and full compiler composition remain outstanding.
 -/
 
 namespace BinaryNatLists
