@@ -153,9 +153,10 @@ steps while retaining its index, remaining records, and full symbol list.
 while carrying all scopes and the variable count through checked pair adapters.
 `AllDifferentCSPOccurrenceEmit` converts a computed tally to its exact binary
 occurrence record while retaining the remaining occurrences and symbols in
-`12(s+1)^2` steps. Composition with rank/scopes/count, the outer occurrence
-loop, edge deduplication, objective emission, and full compiler composition
-remain outstanding.
+`12(s+1)^2` steps. `AllDifferentCSPOccurrenceStep` composes query/rank/emission
+while retaining scopes/count, with exact record semantics and a strictly
+shrinking source. The outer occurrence loop, edge deduplication, objective
+emission, and full compiler composition remain outstanding.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

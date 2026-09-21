@@ -5,8 +5,9 @@ import PhdThesisLean.AllDifferentCSPOccurrenceQuery
 
 Query preparation and the complete canonical-rank machine compose through the
 upstream pair adapter. The scopes, variable count, remaining occurrences, and
-full symbol list survive. The result rank is unary; binary record emission and
-the outer occurrence loop remain separate obligations.
+full symbol list survive. The result rank is unary; `AllDifferentCSPOccurrenceEmit`
+and `AllDifferentCSPOccurrenceStep` supply and compose binary record emission.
+The outer occurrence loop remains a separate obligation.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

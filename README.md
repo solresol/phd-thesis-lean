@@ -551,8 +551,21 @@ carry propagation, order restoration, source copying, and stack cleanup.
 `OccurrenceEmit.output_length` accounts for exactly six record-format cells;
 `output_length_le` bounds the result by the input length plus six. Zero ranks
 and indices, empty retained sources, and binary carry growth are included.
-Composition with the rank calculation and retained scopes/count, the outer
-occurrence loop, primal-edge deduplication, objective rows, and final
+`AllDifferentCSPOccurrenceStep.lean` composes query staging, canonical ranking,
+and binary emission as `occurrenceStepComputableInPolyTime`.
+`countedOccurrenceStepComputableInPolyTime` carries scopes and the original
+variable count through that complete step on the existing nonempty counted
+section wire. The composed polynomial includes every adapter and transfer;
+`12(s+1)^2` is the emitter's bound alone. `output_length_balance` proves that
+the only wire-size change is replacing the old value's binary word by the
+rank's binary word, and `output_length_le` bounds the complete result by `2s`.
+`output_length_eq_record_add_remaining` separates the emitted record from the
+remaining source with no extra cells. The remaining source strictly shrinks;
+its full symbol list survives, and `record_eq_relabelValue_of_symbols` supplies
+the canonical-rank invariant for later suffixes as well as the initial input.
+`record_encode_eq` identifies the exact thesis record, and `record_rank_bounds`
+proves each actual emitted rank is positive and below `domainEntryPrime`.
+The outer occurrence loop, primal-edge deduplication, objective rows, and final
 prime-selection composition remain open; the full corollary is still **Partial**.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

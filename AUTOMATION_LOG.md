@@ -4324,3 +4324,65 @@
   and push; no source changes to the thesis or sibling repository. The full
   build remains in progress while the composition increment is prepared.
 - **Run time:** 2026-09-21 19:31 UTC (2026-09-22 05:31 AEST).
+
+## 2026-09-22 — compose a complete binary occurrence relabelling step
+
+- **Starting commit:** `e11cb3955eb01363cfc7ad50309d3d8c4c3ce805`, the
+  preceding emission increment. HEAD, `origin/main`, and the live remote ref
+  agreed after push. Its subsequently completed full `lake build` passed
+  (3178 jobs); all 308 reported axiom lists used only the three accepted
+  standard axioms, with four further declarations reported axiom-free.
+- **Checked increment:** added `AllDifferentCSPOccurrenceStep.lean`.
+  `occurrenceStepComputableInPolyTime` composes query staging, the complete
+  canonical rank machine, and binary record emission.
+  `countedOccurrenceStepComputableInPolyTime` retains scopes and the original
+  variable count via the pinned checked pair adapter. Its input is the
+  existing decoder-checked nonempty counted-symbol-section wire; no supplied
+  rank or preconstructed query is assumed. All transfer and adapter costs
+  are included in the composed polynomial. The `12(s+1)^2` bound belongs
+  only to the final emitter pass.
+- **Semantic and size evidence:** `record_encode_eq` identifies exactly the
+  thesis `[3,0,index,relabelValue value]` field block. `record_rank_bounds`
+  places every actual emitted rank strictly between zero and
+  `domainEntryPrime`. `record_eq_relabelValue_of_symbols` applies to later
+  suffixes using the retained original symbol list; `remaining_symbols`
+  preserves that invariant. `output_length_balance` proves that the only
+  length change is replacement of the original value bits by rank bits.
+  `output_length_le` bounds the whole result by `2s`, and
+  `output_length_eq_record_add_remaining` splits that total exactly into the
+  emitted block and remaining source. `record_encoded_length_le` bounds a
+  single emitted block; the remaining source strictly decreases, losing
+  exactly the original head's index/value bits and six format cells, while
+  `remaining_length` removes one occurrence. These are useful loop bounds;
+  no accumulated-output loop runtime theorem is asserted here.
+- **Verification:** both direct module checks passed without warnings. All
+  eleven new headline audits use only `propext`, `Classical.choice`, and
+  `Quot.sound`. The comment/string-aware prohibited-code scan passes all 48
+  project Lean files, and `git diff --check` passes. The final full `lake build`
+  passed (3179 jobs); all 319 reported axiom lists use only the accepted
+  standard axioms, with four additional declarations reported axiom-free.
+  Both new modules are warning-free.
+- **Proof experiments:** the smaller semantic experiment exposed a mismatch
+  between `OccurrenceQuery.ranked` and its expanded tuple in `omega` atoms;
+  unfolding that alias in both the length hypothesis and goal closed the
+  exact balance. The composed declaration needed `outputsFun` on its own
+  indented structure-update line for Lean's layout parser. All remaining
+  size, retention, suffix-relabelling, and prime-bound lemmas checked without
+  further errors. Failed-check axiom reports were discarded. No new upstream
+  API blocker was established.
+- **Documentation:** root imports, README, theorem status, and relevant source
+  correspondence comments now describe the complete one-occurrence binary
+  step. The full `cor:all-different-csp` remains **Partial**.
+- **Best next step:** implement the finite outer occurrence loop with an
+  emitted-record accumulator. Use strict remaining-source decrease to bound
+  iterations and every query by the initial source; use the separate emitted
+  record bound to charge accumulation and transfers. Prove exact relabelled
+  domain correspondence, then address primal-edge deduplication, objective
+  rows, and final prime-selection composition.
+- **Preservation / ending state:** the thesis remains at `f1107f5`, with the
+  same twelve dirty statuses and binary-diff hash as the starting snapshot.
+  The read-only sibling remains clean at `5cbd76f`; dependency pins and
+  toolchains are unchanged. The verified second increment is ready for
+  commit/push; final ref parity and commit identity are recorded in the
+  automation memory after pushing.
+- **Run time:** 2026-09-21 19:42:49 UTC (2026-09-22 05:42:49 AEST).
