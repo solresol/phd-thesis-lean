@@ -543,9 +543,17 @@ source loses the head's index/value bits plus six record-format cells, so its
 encoded length strictly decreases even for zeros. The complete output,
 including the unary rank, is at most twice the input length.
 All adapter and transfer costs are included in the composed polynomial.
-The rank remains unary. Binary record emission, the outer occurrence loop,
-primal-edge deduplication, objective rows, and final prime-selection composition
-remain open; the full corollary is still **Partial**.
+`AllDifferentCSPOccurrenceEmit.lean` now converts that unary rank and emits the
+exact canonical binary `[3,0,index,rank]` record while preserving the remaining
+occurrences and complete symbol list. `occurrenceEmitComputableInPolyTime`
+proves `12(s+1)^2` steps in the complete ranked-input wire length, including
+carry propagation, order restoration, source copying, and stack cleanup.
+`OccurrenceEmit.output_length` accounts for exactly six record-format cells;
+`output_length_le` bounds the result by the input length plus six. Zero ranks
+and indices, empty retained sources, and binary carry growth are included.
+Composition with the rank calculation and retained scopes/count, the outer
+occurrence loop, primal-edge deduplication, objective rows, and final
+prime-selection composition remain open; the full corollary is still **Partial**.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging

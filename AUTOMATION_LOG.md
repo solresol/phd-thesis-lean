@@ -4273,3 +4273,54 @@
   and accumulated output against the initial source size. Primal-edge
   deduplication, objective rows, and final prime-selection composition remain.
 - **Run time:** 2026-09-20 19:30 UTC (2026-09-21 05:30 AEST).
+
+## 2026-09-22 — emit the computed rank as an exact binary occurrence
+
+- **Starting commit:** `c1f7bc9a47901df51a6c463f4d4cc634fbaa56d3`; clean
+  `main`, fetched upstream unchanged and live remote equal. Read repository
+  instructions, theorem status, README correspondence, project module headers,
+  active occurrence/rank/encoding/section proofs, automation memory/log, and
+  the active thesis corollary/proof at `sudoku-via-padic-regression/body.tex`
+  lines 530–537. Thesis remains `f1107f5` with twelve existing dirty files;
+  binary-diff SHA-256 is
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Read-only sibling review:** `lean-np-hardness` is clean at `5cbd76f`.
+  Reviewed its new in-place certificate decrement/transfer, unary interval
+  counting, and pinned pair/composition APIs. The new decrement has a framed
+  binary-count interface, not this ranked occurrence wire. Reused upstream
+  canonical binary-successor correctness, natural bit-length bounds, checked
+  pair encodings, and composition foundations. Kept dependency `ad20a2e`;
+  no sibling edits or duplicated generic codec/composition API.
+- **Checked increment:** added `AllDifferentCSPOccurrenceEmit.lean`.
+  `occurrenceEmit_outputsInTime` and `occurrenceEmitComputableInPolyTime`
+  convert the unary rank, retain the original variable index, and emit exactly
+  `[3,0,index,rank]` while preserving all remaining occurrences and symbols.
+  The concrete six-stack machine includes binary carry propagation, both
+  bit-order restorations, source copying, and complete work-stack cleanup.
+  Its bound is `12(s+1)^2` steps for complete ranked-input wire length `s`.
+  Zero rank/index, empty retained source, and carry growth are covered.
+- **Size evidence:** `OccurrenceEmit.output_length` identifies every output
+  bit plus six record-format cells. `output_length_le` bounds the full result
+  by input length plus six, using canonical binary length at most unary tally
+  length; large original symbols are never charged by their numeric value.
+- **Verification:** direct Lean check passed without warnings; all three new
+  axiom audits use only `propext`, `Classical.choice`, and `Quot.sound`.
+  Comment/string-aware scan passed all 47 current project Lean sources, and
+  `git diff --check` passed. The full `lake build` is still rebuilding dependent
+  modules; its final result will be recorded with the next increment.
+  Root import, README, theorem status, and source correspondence synchronized;
+  `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / exact proof evidence:** inline `apply mono (by simpa`
+  continuation failed Lean's layout parser; moved the tactic onto an indented
+  line. `rfl` does not prove `encodeNat 0 = []`; `simp [encodeNat, encodeNum]`
+  does. `omega` initially treated local `index`/`source` lengths independently
+  from their defining expressions; `dsimp [index, source]` exposes them.
+  The corrected direct check passes. Failed-check axiom reports were discarded.
+- **Next step:** compose query/rank/emission and preserve scopes/count through
+  the checked pair adapter; prove exact replacement-size balance and thesis
+  record correspondence. The outer occurrence loop, primal-edge deduplication,
+  objective rows, and final prime-selection composition remain open.
+- **Ending state:** the direct-checked emission increment is ready for commit
+  and push; no source changes to the thesis or sibling repository. The full
+  build remains in progress while the composition increment is prepared.
+- **Run time:** 2026-09-21 19:31 UTC (2026-09-22 05:31 AEST).

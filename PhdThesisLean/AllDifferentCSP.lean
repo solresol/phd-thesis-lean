@@ -151,8 +151,11 @@ rank wire in `3s+5` steps, including all copies and cleanup. The checked
 steps while retaining its index, remaining records, and full symbol list.
 `AllDifferentCSPOccurrenceRank` composes that preparation and rank computation
 while carrying all scopes and the variable count through checked pair adapters.
-Binary rank-record emission, the outer occurrence loop, edge deduplication,
-objective emission, and full compiler composition remain outstanding.
+`AllDifferentCSPOccurrenceEmit` converts a computed tally to its exact binary
+occurrence record while retaining the remaining occurrences and symbols in
+`12(s+1)^2` steps. Composition with rank/scopes/count, the outer occurrence
+loop, edge deduplication, objective emission, and full compiler composition
+remain outstanding.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
