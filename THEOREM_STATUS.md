@@ -341,6 +341,14 @@ its full symbol list survives, and `record_eq_relabelValue_of_symbols` supplies
 the canonical-rank invariant for later suffixes as well as the initial input.
 `record_encode_eq` identifies the exact thesis record, and `record_rank_bounds`
 proves each actual emitted rank is positive and below `domainEntryPrime`.
+`AllDifferentCSPOccurrenceAccumulator.lean` adds the ordered-output update.
+`occurrenceAccumulatorComputableInPolyTime` appends the newly emitted binary
+record after all prior records while retaining the complete next source, in
+`2s+4` steps for the full input wire. The five-stack finite machine charges
+each routed cell and each order-restoration pass, clears every work stack,
+and handles empty prior output and zero-valued fields. `output_length` proves
+that this update adds no cells. Repeated rank calls and their accumulated
+output bound are still separate obligations.
 The outer occurrence loop, primal-edge deduplication, objective rows, and final
 prime-selection composition remain open; the full corollary is still **Partial**.
 

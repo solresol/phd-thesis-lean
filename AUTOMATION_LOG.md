@@ -4386,3 +4386,45 @@
   commit/push; final ref parity and commit identity are recorded in the
   automation memory after pushing.
 - **Run time:** 2026-09-21 19:42:49 UTC (2026-09-22 05:42:49 AEST).
+
+## 2026-09-23 — retain ordered emitted occurrences with a finite accumulator
+
+- **Starting commit:** `ee94d0bd377688931550c7780aac63984268f832`;
+  clean `main`, fetched upstream unchanged, live remote equal. Read instructions,
+  theorem status, relevant README correspondence, all project module summaries,
+  active occurrence/rank/encoding proofs, automation memory/log, and the active
+  thesis corollary/proof at `sudoku-via-padic-regression/body.tex` lines 530–537.
+  Thesis HEAD remains `f1107f5`, with twelve existing dirty statuses and
+  binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Read-only sibling review:** clean `lean-np-hardness` at `0e6e8a4`.
+  Reviewed its certificate comparison/decrement composition, checked pair
+  encoding and pair-left runtime, and polynomial composition. The certificate
+  wire does not supply this CSP accumulator. Reused the pinned pair encoding;
+  kept dependency `ad20a2e`, with no sibling edits or duplicated generic codec.
+- **Checked increment:** added `AllDifferentCSPOccurrenceAccumulator.lean`.
+  `occurrenceAccumulator_outputsInTime` and
+  `occurrenceAccumulatorComputableInPolyTime` append the new binary occurrence
+  after all prior emitted records while preserving the next occurrence/symbol
+  source. The five-stack finite machine routes and restores all tagged cells
+  in `2s+4` steps for complete input length `s`; every work stack is empty at
+  halt. Empty accumulators/sources, duplicates, and zero fields are included.
+  `OccurrenceAccumulator.output_length` proves exact size preservation.
+- **Verification:** direct module check and full `lake build` passed (3180
+  jobs). The three new axiom reports use only `propext`, `Classical.choice`,
+  and `Quot.sound`. Comment/string-aware prohibited-code scan and diff checks
+  passed. Root import, README, and theorem status describe the actual checked
+  boundary; the full corollary remains **Partial**.
+- **Proof experiments:** `stacks` is reserved syntax in this environment;
+  renamed the local helper `stackContents`. The size equation needed explicit
+  associativity. Final output simplification exposed erased-tag `filterMap`
+  terms; an explicitly typed all-`none` projection lemma, as in the prior
+  control proof, closes them without unfolding numeric encodings. Discarded
+  all failed-check audit output; the final check is warning-free.
+- **Ending state / next increment:** accumulator verified and ready for
+  commit/push. An untracked traversal module is in progress, intentionally
+  excluded from this increment. Compose the rank/emitter and accumulator,
+  prove ordered full traversal and a quadratic bound on every accumulated
+  state, then implement the repeated finite dispatcher and its total runtime.
+  Primal-edge deduplication, objective rows, and prime composition remain.
+- **Run time:** 2026-09-22 19:24 UTC (2026-09-23 05:24 AEST).
