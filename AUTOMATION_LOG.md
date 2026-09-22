@@ -4428,3 +4428,70 @@
   state, then implement the repeated finite dispatcher and its total runtime.
   Primal-edge deduplication, objective rows, and prime composition remain.
 - **Run time:** 2026-09-22 19:24 UTC (2026-09-23 05:24 AEST).
+
+## 2026-09-23 — compose ordered rank iteration and bound all traversal states
+
+- **Starting commit:** `ce302ebf38b1f24d484a0bd2980d558580e1b0f4`, the
+  preceding verified accumulator increment. Local HEAD, `origin/main`, and
+  live remote main agreed after its push. Its full 3180-job build passed;
+  all 322 axiom lists used only the accepted standard axioms, with four
+  further axiom-free reports.
+- **Checked increment:** added `AllDifferentCSPOccurrenceIteration.lean`.
+  `occurrenceIterationComputableInPolyTime` composes the complete occurrence
+  rank/emitter with the ordered accumulator using the pinned pair-left and
+  composition APIs. It retains all prior output, removes precisely one
+  source occurrence, and preserves the full symbol list. The composed
+  polynomial charges every adapter and transfer; `2s+4` belongs only to the
+  final accumulator pass.
+- **Size proof:** `step_length_balance` replaces exactly the old value bits
+  by rank bits. `budget` adds to the full serialized state a reserve of
+  `remaining occurrences * (symbol-list length + 1)`. `step_budget_le` shows
+  that this reserve pays for output growth. `iterate_length_le_quadratic`
+  bounds every executable traversal state by `2(s+1)^2` for original complete
+  wire length `s`, even with a nonempty initial accumulator.
+  `finish_encoded_length_le_quadratic` bounds the full final record stream
+  against the original occurrence/symbol wire, including every binary field
+  and record delimiter. This is a bit-size theorem, not a repeated-machine
+  runtime theorem.
+- **Semantic evidence:** `finish` executes the exact checked step recursively.
+  `finish_eq_append_map` preserves indices, source order, and repetitions;
+  `iterate_eq_finish` proves exhaustion after exactly one step per original
+  occurrence. `finish_extracted_eq_relabelValue` agrees with the thesis
+  compiler, and `finish_rank_bounds` puts every actual output rank strictly
+  between zero and the checked domain-entry prime. Executable examples cover
+  repeated shared symbols, zero-valued repeated occurrences, and empty input
+  retaining previous output.
+- **Verification:** final direct Lean check and full `lake build` passed
+  (3181 jobs). Eight new axiom lists use only `propext`, `Classical.choice`,
+  and `Quot.sound`; the exact-exhaustion theorem is axiom-free. All 330 lists
+  reported by the final build use only the accepted axioms, with five further
+  axiom-free reports. Comment/string-aware prohibited-code scan passes all
+  51 project Lean files, and diff checks pass. Both new modules are
+  warning-free. README, theorem-status catalogue/detail, and root imports
+  are synchronized; `cor:all-different-csp` remains **Partial**.
+- **Proof experiments:** `nlinarith` initially saw the expanded source and
+  step encodings as different atoms from the length-balance hypothesis;
+  stating the goal with those same encoding expressions using `change`
+  resolved it. The output-size `omega` proof needed `dsimp only at h` for
+  tuple projections after `iterate_eq_finish`. Broad composition `simpa`
+  unfolded only one side's pair encoding; `simpa only` with the composition
+  and step definitions retained definitional agreement. One intermediate
+  build failed before the tuple-projection correction; only the subsequent
+  successful checks/audits are completion evidence. No missing upstream API
+  blocker was established.
+- **Next target:** wrap this complete body in a finite scan/load/return/exit
+  dispatcher. Its state alphabet is `Sum (Sum (Option Bool) (Option Bool))
+  (Option Bool)`; `.inl (.inl _)` detects remaining occurrences, including
+  zero fields, and `.inr _` carries emitted output. Reuse the local checked
+  rank-loop embedding design, and bound each full cycle at the uniform
+  `B = 2(s+1)^2` using the decreasing budget. A prospective total bound is
+  `(s+1)*(P(B)+4B+4)`; it is not yet proved for this loop. Then add the
+  empty-accumulator entry and lift the complete traversal over scopes/count.
+  Primal-edge deduplication, objective emission, and final prime composition
+  remain separate obligations.
+- **Preservation / ending state:** thesis HEAD, twelve dirty statuses, and
+  binary-diff hash match the initial snapshot. The sibling remains clean at
+  `0e6e8a4`; dependency pins and toolchains are unchanged. The verified second
+  increment is ready for commit/push; final ref parity is recorded in
+  automation memory after pushing.
+- **Run time:** 2026-09-22 19:28 UTC (2026-09-23 05:28 AEST).

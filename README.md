@@ -571,8 +571,24 @@ record after all prior records while retaining the complete next source, in
 `2s+4` steps for the full input wire. The five-stack finite machine charges
 each routed cell and each order-restoration pass, clears every work stack,
 and handles empty prior output and zero-valued fields. `output_length` proves
-that this update adds no cells. Repeated rank calls and their accumulated
-output bound are still separate obligations.
+that this update adds no cells.
+`AllDifferentCSPOccurrenceIteration.lean` composes rank, binary emission, and
+ordered append as `occurrenceIterationComputableInPolyTime`, carrying all
+prior output through the checked pair adapter and charging its transfers.
+`step_length_balance` replaces only the old value bits by rank bits.
+`step_budget_le` reserves space for every remaining rank and proves that this
+full-state budget never increases. `iterate_length_le_quadratic` bounds every
+executable traversal state, including accumulated records, by `2(s+1)^2` in
+the original complete wire length; `finish_encoded_length_le_quadratic` gives
+the same bound for all final emitted records from an empty accumulator.
+`finish_eq_append_map` and `iterate_eq_finish` prove exact ordered traversal
+and exhaustion after one step per source occurrence. The compiler-specific
+`finish_extracted_eq_relabelValue` and `finish_rank_bounds` identify every
+final index/rank with the thesis relabelling and place each rank strictly
+between zero and `domainEntryPrime`. Duplicate and zero-valued occurrences
+survive; empty input preserves any prior output. These are a checked
+one-cycle machine and executable full-traversal semantics/size bounds. The
+repeated finite dispatcher and its total polynomial runtime remain open.
 The outer occurrence loop, primal-edge deduplication, objective rows, and final
 prime-selection composition remain open; the full corollary is still **Partial**.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
