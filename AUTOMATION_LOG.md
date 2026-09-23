@@ -4570,3 +4570,60 @@
   actual Boolean compiler input. Then construct deduplicated primal edges,
   objective rows, and final prime composition.
 - **Run time:** 2026-09-24 05:23:35 AEST.
+
+## 2026-09-24 — compose complete relabelling from Boolean compiler input
+
+- **Starting commit:** `19d571b82ba835e40da0e92e14661e5b0c33ca12`;
+  preceding runtime increment pushed, local/tracking/live remote agree.
+- **Checked increment:** `AllDifferentCSPOccurrenceInitialization.lean` tags
+  the existing occurrence/symbol wire into the exact loop state with an empty
+  accumulator. `occurrenceInitialization_outputsInTime` and its polynomial
+  witness include both copying passes and cleanup in `2s+2`; wire length is
+  preserved, including completely empty input.
+- **Compiler composition:** `AllDifferentCSPRelabelling.lean` composes entry
+  and the complete traversal, then uses the pinned pair-left adapter to
+  retain scopes and the original variable count. The headline
+  `runtimeCompilerRelabelledSectionsComputableInPolyTime` starts at actual
+  Boolean `RuntimeCompilerInput.finEncoding`, internally prepares source and
+  symbols, relabels every domain occurrence, and returns the existing checked
+  `CountedSections.finEncoding`. All preparation and adapter transfers belong
+  to the composed polynomial, beyond the loop's own displayed bound.
+- **Correspondence:** `domains_ofRuntimeSystem` gives the exact ordered map
+  to `C.toExplicitSystem.relabelValue`. Scopes, variable count, occurrence
+  order and repetitions survive; `recordCount_ofRuntimeSystem` retains the
+  exact occurrence-plus-scope count. `rank_bounds` proves every output rank
+  positive and below `domainEntryPrime`. `relabel_encoded_length_le` gives
+  the quadratic output-size bound. Checked examples include shared/repeated
+  symbols, empty intermediate domains, repeated scope entries, and a wholly
+  empty occurrence list retaining the original variable count.
+- **Verification:** targeted initialization build, direct relabelling check,
+  and final full `lake build` pass (3185 jobs). Twelve new audits and all 351
+  build axiom lists use only `propext`, `Classical.choice`, `Quot.sound`;
+  five further reports are axiom-free. All four new modules are warning-free.
+  Existing upstream prime-selector and three unchanged structural-module
+  linter warnings remain; they also occur in the preceding build. The
+  comment/string-aware scan passes all 55 project Lean source/config files,
+  and `git diff --check` passes. Root imports, README, theorem-status
+  catalogue/detail and stale source correspondence comments are synchronized.
+  Full `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / useful evidence:** the initializer's adapted run
+  proof left an empty-list append equality before the arithmetic goal.
+  Normalize that equality separately, then use arithmetic; applying a
+  no-progress simplifier to every goal fails. Removed one unnecessary
+  `change` tactic flagged by the linter. A final audit script initially
+  rejected all project warnings, then confirmed the three structural-module
+  warnings were unchanged before narrowing the new-module warning check.
+  Failed intermediate audits/builds were discarded; only final successful
+  checks count. No unresolved API blocker.
+- **Preservation:** thesis HEAD, twelve dirty statuses and binary-diff hash
+  match the starting snapshot. Sibling remains clean at `0360035`.
+  Dependency pins and toolchains are unchanged; no sibling edits.
+- **Ending state / next target:** three coherent verified increments complete;
+  this compiler-composition increment is ready for commit/push. Next build
+  deduplicated primal edges from retained scopes, with increasing endpoints
+  and exact agreement with `ExplicitSystem.primalEdges`. Objective emission
+  must also sort/deduplicate each relabelled domain to match `pinningRows`,
+  which uses a sorted finite set rather than the occurrence stream. Then
+  compose residual-row emission and the already checked prime-selection
+  machine into the final corollary. Final ref parity is recorded in run memory.
+- **Run time:** 2026-09-24 05:30:22 AEST.

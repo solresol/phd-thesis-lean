@@ -8,7 +8,8 @@ The rank recurrence needs a comparison of a symbol with the target value.
 The existing upstream comparator takes aligned canonical binary words. This
 loader constructs that alignment from a checked tagged pair, charging every
 load, reversal, and alignment step. The comparison kernel is reused unchanged.
-The repeated rank driver and the full all-different corollary remain pending.
+`AllDifferentCSPRankLoop` supplies the checked repeated rank driver. The full
+all-different corollary remains partial.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

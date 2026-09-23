@@ -155,8 +155,12 @@ while carrying all scopes and the variable count through checked pair adapters.
 occurrence record while retaining the remaining occurrences and symbols in
 `12(s+1)^2` steps. `AllDifferentCSPOccurrenceStep` composes query/rank/emission
 while retaining scopes/count, with exact record semantics and a strictly
-shrinking source. The outer occurrence loop, edge deduplication, objective
-emission, and full compiler composition remain outstanding.
+shrinking source. `AllDifferentCSPOccurrenceLoop` proves complete repeated
+execution using a quadratic bound on every intermediate serialized state.
+`AllDifferentCSPRelabelling` composes initialization and that loop from the
+actual compiler input, retaining scopes/count and emitting exact thesis ranks.
+Edge deduplication, objective emission, and final prime composition remain
+outstanding.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

@@ -600,8 +600,22 @@ on remaining occurrences, and `occurrenceLoopComputableInPolyTime` returns
 exactly the prior output followed by the ordered canonical-rank records.
 With initial bit length `s`, `B=2(s+1)^2` bounds every intermediate state and
 the complete machine takes at most `(s+1)*(P(B)+4B+4)` steps. This includes
-all body calls, dispatch scans, transfers and the final empty exit. Compiler
-entry from an empty accumulator still remains to be composed.
+all body calls, dispatch scans, transfers and the final empty exit.
+`AllDifferentCSPOccurrenceInitialization.lean` constructs the empty-accumulator
+state in `2s+2` steps, preserving the input wire length. The composed
+`occurrenceRelabellingComputableInPolyTime` starts at the existing
+occurrence/symbol encoding without requiring any preconstructed loop state.
+`AllDifferentCSPRelabelling.lean` then retains scopes and the original variable
+count through the checked pair adapter. Its headline
+`runtimeCompilerRelabelledSectionsComputableInPolyTime` starts at the actual
+Boolean `RuntimeCompilerInput.finEncoding` and returns the exact existing
+`CountedSections.finEncoding` with all domain values replaced by thesis ranks.
+`CountedRelabelledSections.domains_ofRuntimeSystem` proves that correspondence;
+scopes, occurrence order, repetitions, and variable count are preserved, and
+`rank_bounds` puts every output rank strictly between zero and the selected
+domain-entry prime. The complete composed runtime includes source preparation,
+symbol extraction, initialization, the whole loop and both retained-section
+adapters; the displayed loop polynomial alone is not the whole compiler cost.
 Primal-edge deduplication, objective rows, and final prime-selection composition
 remain open; the full corollary is still **Partial**.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

@@ -6,7 +6,7 @@ import PhdThesisLean.AllDifferentCSPOccurrenceEmit
 Compose query staging, canonical ranking, and binary record emission while
 preserving the remaining occurrences, full symbols, scopes, and variable count.
 The input is exactly the existing nonempty counted-symbol-section wire. This
-is the body of the future occurrence loop, not yet its repeated driver.
+supplies the body of the checked `AllDifferentCSPOccurrenceLoop` traversal.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

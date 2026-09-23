@@ -7,7 +7,8 @@ The complete checked step ranks the next occurrence and appends its binary
 record to the accumulated output. An executable traversal specifies all later
 states. A decreasing size budget bounds every such state quadratically in
 the initial wire length, even though output grows as the source shrinks.
-The repeated finite dispatcher and its total runtime remain separate work.
+`AllDifferentCSPOccurrenceLoopMachine` and `AllDifferentCSPOccurrenceLoop`
+supply the repeated finite dispatcher and its complete polynomial runtime.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

@@ -7,7 +7,8 @@ Query preparation and the complete canonical-rank machine compose through the
 upstream pair adapter. The scopes, variable count, remaining occurrences, and
 full symbol list survive. The result rank is unary; `AllDifferentCSPOccurrenceEmit`
 and `AllDifferentCSPOccurrenceStep` supply and compose binary record emission.
-The outer occurrence loop remains a separate obligation.
+`AllDifferentCSPOccurrenceLoop` supplies the complete repeated traversal;
+`AllDifferentCSPRelabelling` composes it from the actual compiler input.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine
