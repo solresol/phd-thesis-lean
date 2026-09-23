@@ -4536,4 +4536,37 @@
   state at `B=2(s+1)^2`, then charge at most `s+1` passes at `P(B)+4B+4`.
   Compiler entry, retained scopes/count, primal-edge deduplication, objective
   rows and final prime composition remain afterward.
-- **Run time:** 2026-09-23 19:23 UTC (2026-09-24 05:23 AEST).
+- **Run time:** 2026-09-23 19:21 UTC (2026-09-24 05:21 AEST).
+
+## 2026-09-24 — polynomial runtime for the complete occurrence loop
+
+- **Starting commit:** `f804ffb5d000196d33f61dcc197909b0d0c142dd`;
+  preceding dispatcher increment pushed, local/tracking/live remote agree.
+- **Checked increment:** `AllDifferentCSPOccurrenceLoop.lean` proves actual
+  repeated finite execution, including every body call and transfer.
+  `run_bounded` inducts on the remaining occurrences while carrying a bound
+  on the decreasing size budget. It does not assume wire lengths decrease:
+  ranks can require more bits than the original values. `outputsInTime` and
+  `occurrenceLoopComputableInPolyTime` charge at most `s+1` passes at
+  `P(B)+4B+4`, where `s` is original complete input bit length,
+  `B=2(s+1)^2`, and `P` is the already checked whole-body polynomial.
+  The output is exactly prior accumulated records followed by the ordered
+  canonical-rank mapping. Empty input preserves prior accumulated output.
+- **Verification:** standalone Lean check and full `lake build` pass
+  (3183 jobs), with five new accepted axiom audits. All 339 build axiom lists
+  use only `propext`, `Classical.choice`, `Quot.sound`; five further reports
+  are axiom-free. Project prohibited-code scan and diff checks pass; no new
+  warnings. Root imports, README and theorem-status catalogue/detail agree.
+  Full `cor:all-different-csp` remains **Partial**.
+- **Proof approach:** the budget invariant made the runtime induction check
+  on its first attempt. Polynomial composition supplies the uniform quadratic
+  size substitution without turning a semantic operation count into runtime.
+  No new failed approach or missing API blocker. Corrected the previous log's
+  manually entered minute to its observed run time.
+- **Ending state / next target:** verified complete traversal ready for commit
+  and push. A separate untracked initializer is in progress and excluded.
+  Add the finite empty-accumulator initializer, compose it with the loop,
+  retain scopes/count using the existing pair adapter, and connect the
+  actual Boolean compiler input. Then construct deduplicated primal edges,
+  objective rows, and final prime composition.
+- **Run time:** 2026-09-24 05:23:35 AEST.

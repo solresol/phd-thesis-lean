@@ -593,8 +593,15 @@ survive; empty input preserves any prior output.
 return transfer. `iteration_cycle` charges `P(s)+2s+2t+4` steps for a cycle
 with input/output lengths `s,t` and body polynomial `P`. `exit_run` scans the
 exhausted state and returns the accumulated records in `2s+2` steps, discarding
-the retained symbols and clearing every work stack. The repeated traversal's
-total polynomial runtime and compiler entry still remain to be composed.
+the retained symbols and clearing every work stack.
+`AllDifferentCSPOccurrenceLoop.lean` completes the repeated runtime proof.
+`OccurrenceLoop.run_bounded` carries the decreasing budget through induction
+on remaining occurrences, and `occurrenceLoopComputableInPolyTime` returns
+exactly the prior output followed by the ordered canonical-rank records.
+With initial bit length `s`, `B=2(s+1)^2` bounds every intermediate state and
+the complete machine takes at most `(s+1)*(P(B)+4B+4)` steps. This includes
+all body calls, dispatch scans, transfers and the final empty exit. Compiler
+entry from an empty accumulator still remains to be composed.
 Primal-edge deduplication, objective rows, and final prime-selection composition
 remain open; the full corollary is still **Partial**.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
