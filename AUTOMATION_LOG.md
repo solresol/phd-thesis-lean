@@ -4495,3 +4495,45 @@
   increment is ready for commit/push; final ref parity is recorded in
   automation memory after pushing.
 - **Run time:** 2026-09-22 19:28 UTC (2026-09-23 05:28 AEST).
+
+## 2026-09-24 — finite dispatcher for complete occurrence relabelling
+
+- **Starting commit:** `5abf42e92b744ed3a15b439879d08b57c09e49d3`;
+  clean `main`, fetched upstream unchanged, HEAD/tracking/live remote agree.
+  Read instructions, current theorem status/correspondence, active Lean
+  traversal and rank-loop proofs, recent journal/memory, and the active thesis
+  corollary/proof in `sudoku-via-padic-regression/body.tex`.
+- **Read-only context:** thesis remains `f1107f5` with twelve dirty files and
+  binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  Sibling `lean-np-hardness` is clean at `0360035`; reviewed its new certificate
+  membership accumulation, checked pair-left polynomial adapter and composition
+  APIs. It provides no reusable complete occurrence dispatcher. Reused the
+  existing pinned APIs and local rank-loop design; dependency stays `ad20a2e`.
+- **Checked increment:** `AllDifferentCSPOccurrenceLoopMachine.lean` wraps the
+  checked rank/binary-emission/accumulation body in finite scan/load/collect/
+  restore/exit control. `source_present` detects remaining occurrences by
+  their tagged cells, including zero-field delimiters. `body_run` embeds the
+  body with its exact checked cost. `iteration_cycle` includes every scan and
+  transfer in `P(s)+2s+2t+4`, for full input/output bit lengths `s,t`.
+  `exit_run` returns all accumulated binary records in `2s+2`, preserving
+  source order, discarding retained symbols, and clearing all work stacks.
+  Empty source/output and prior nonempty accumulation are included.
+- **Verification:** direct module check and full `lake build` pass (3182 jobs).
+  Four new axiom audits use only `propext`, `Classical.choice`, `Quot.sound`;
+  every reported build audit uses only these standard axioms. The
+  comment/string-aware project Lean scan and diff check pass. No new warnings.
+  Root imports, README and theorem-status catalogue/detail are synchronized;
+  full `cor:all-different-csp` stays **Partial**.
+- **Failed approach / useful evidence:** arithmetic automation treated the
+  nonempty state and body-input wire lengths as different atoms. An explicit
+  definitional equality between these lengths resolves the cycle bound.
+  Failed intermediate audit output is not completion evidence; the corrected
+  check and full build are the evidence above. No missing upstream API blocker.
+- **Ending state / next target:** finite cycle/exit verified, ready for commit
+  and push. The separate untracked full-runtime module is in progress and
+  excluded from this increment. Use the decreasing budget to bound every
+  state at `B=2(s+1)^2`, then charge at most `s+1` passes at `P(B)+4B+4`.
+  Compiler entry, retained scopes/count, primal-edge deduplication, objective
+  rows and final prime composition remain afterward.
+- **Run time:** 2026-09-23 19:23 UTC (2026-09-24 05:23 AEST).

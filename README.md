@@ -586,11 +586,17 @@ and exhaustion after one step per source occurrence. The compiler-specific
 `finish_extracted_eq_relabelValue` and `finish_rank_bounds` identify every
 final index/rank with the thesis relabelling and place each rank strictly
 between zero and `domainEntryPrime`. Duplicate and zero-valued occurrences
-survive; empty input preserves any prior output. These are a checked
-one-cycle machine and executable full-traversal semantics/size bounds. The
-repeated finite dispatcher and its total polynomial runtime remain open.
-The outer occurrence loop, primal-edge deduplication, objective rows, and final
-prime-selection composition remain open; the full corollary is still **Partial**.
+survive; empty input preserves any prior output.
+`AllDifferentCSPOccurrenceLoopMachine.lean` now supplies the finite dispatcher.
+`source_present` detects remaining occurrence cells, including zero fields;
+`body_run` embeds the complete checked body and redirects its halt to the
+return transfer. `iteration_cycle` charges `P(s)+2s+2t+4` steps for a cycle
+with input/output lengths `s,t` and body polynomial `P`. `exit_run` scans the
+exhausted state and returns the accumulated records in `2s+2` steps, discarding
+the retained symbols and clearing every work stack. The repeated traversal's
+total polynomial runtime and compiler entry still remain to be composed.
+Primal-edge deduplication, objective rows, and final prime-selection composition
+remain open; the full corollary is still **Partial**.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
