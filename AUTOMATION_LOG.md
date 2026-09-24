@@ -4627,3 +4627,49 @@
   compose residual-row emission and the already checked prime-selection
   machine into the final corollary. Final ref parity is recorded in run memory.
 - **Run time:** 2026-09-24 05:30:22 AEST.
+
+## 2026-09-25 — ordered primal-edge enumeration from retained scopes
+
+- **Starting commit:** `ee324a7a7aef4491ac45062e63c66a446ec5a3cf`;
+  clean `main`, fetched upstream unchanged, local/tracking/live remote agree.
+  Read instructions, status, relevant README and Lean sources, recent log and
+  automation memory, and the active thesis corollary and proof in
+  `sudoku-via-padic-regression/body.tex`.
+- **Read-only context:** active thesis remains `f1107f5`, with twelve dirty
+  statuses and binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  Sibling `lean-np-hardness` is clean at `d0e4df6`; reviewed its count-controlled
+  certificate membership loop, pair encoding/exchange/adapters and existing
+  binary nested-list codec. The new loop has preloaded count/query inputs and
+  a framed certificate body, not a serialized two-endpoint scope scanner.
+  No generic foundations duplicated or sibling files edited; pin stays `ad20a2e`.
+- **Checked increment:** `AllDifferentCSPPrimalEdges.lean` defines the executable
+  co-occurrence predicate and bounded lexicographic pair scan. The scan tests
+  each pair once and keeps only increasing endpoints sharing a scope, avoiding
+  an extra sorting/deduplication pass. `enumerate_eq_sorted_primalEdges` proves
+  exact ordered agreement with the semantic compiler, not just equal sets.
+  `enumerate_nodup`, `enumerate_length_le` and `enumerate_relabelledSections`
+  check uniqueness, at most `n^2` output records, and the retained-section
+  input boundary. The result also matches the total semantic front end on
+  out-of-range scope indices; repeated/overlapping scopes, repeated entries,
+  self-pairs, empty scopes and zero variables are covered.
+- **Verification:** standalone Lean check and full `lake build` pass (3186 jobs).
+  Four new standard-axiom audits and one axiom-free audit pass; all 355 build
+  axiom lists use only `propext`, `Classical.choice`, `Quot.sound`, with six
+  axiom-free reports. Comment/string-aware scan passes all 56 project Lean
+  sources/configs; new module has no warnings; `git diff --check` passes.
+  Root import, README and theorem-status catalogue/detail are synchronized.
+  The full `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / useful APIs:** `List.Pairwise.imp` has implicit element
+  arguments when used as a term. An unrestricted simplifier with `Fin.lt_def`
+  and `Fin.le_def` looped against the reverse default simp lemmas; restricted
+  `simp only` followed by definitional equality closes the order bridge.
+  `Finset.map_sort`, `List.toFinset_sort` and strict `Pairwise.nodup` prove exact
+  order without changing the executable scan to semantic finite-set sorting.
+  Failed intermediate checks do not count as evidence.
+- **Ending state / next target:** verified increment ready for commit/push.
+  Add the checked serialized negative-row target and its actual bit-size bound;
+  then realize the bounded pair/co-occurrence scan as a finite machine. The
+  list-length bound is not a runtime theorem. Sorted/deduplicated domain rows,
+  complete objective emission and final prime composition also remain open.
+- **Run time:** 2026-09-24 19:21 UTC (2026-09-25 05:21 AEST).

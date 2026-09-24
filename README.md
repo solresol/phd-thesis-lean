@@ -618,6 +618,18 @@ symbol extraction, initialization, the whole loop and both retained-section
 adapters; the displayed loop polynomial alone is not the whole compiler cost.
 Primal-edge deduplication, objective rows, and final prime-selection composition
 remain open; the full corollary is still **Partial**.
+
+`AllDifferentCSPPrimalEdges.lean` now defines an executable bounded pair scan
+from the retained variable count and scope lists. `PrimalEdgeEnumeration.enumerate`
+emits increasing endpoints in strict lexicographic order, so scope repetitions,
+shared edges and repeated entries cannot duplicate an edge. The theorem
+`enumerate_eq_sorted_primalEdges` identifies the exact ordered list with the
+semantic compiler's sorted primal graph, including its treatment of out-of-range
+scope entries. `enumerate_relabelledSections` connects the scan input to the
+completed relabelling stage. `enumerate_length_le` bounds the list by `n^2`
+for `n` explicitly listed variables. These are executable semantics and size
+results; a finite-machine implementation and bit-level runtime for this scan
+remain open, alongside objective emission and final prime composition.
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging

@@ -50,3 +50,4 @@ import PhdThesisLean.AllDifferentCSPOccurrenceLoopMachine
 import PhdThesisLean.AllDifferentCSPOccurrenceLoop
 import PhdThesisLean.AllDifferentCSPOccurrenceInitialization
 import PhdThesisLean.AllDifferentCSPRelabelling
+import PhdThesisLean.AllDifferentCSPPrimalEdges
