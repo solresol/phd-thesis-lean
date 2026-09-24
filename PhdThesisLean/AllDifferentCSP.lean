@@ -159,8 +159,13 @@ shrinking source. `AllDifferentCSPOccurrenceLoop` proves complete repeated
 execution using a quadratic bound on every intermediate serialized state.
 `AllDifferentCSPRelabelling` composes initialization and that loop from the
 actual compiler input, retaining scopes/count and emitting exact thesis ranks.
-Edge deduplication, objective emission, and final prime composition remain
-outstanding.
+`AllDifferentCSPPrimalEdges` specifies an executable bounded pair scan and
+proves exact ordered agreement with the deduplicated semantic primal graph.
+`AllDifferentCSPNegativeRows` reuses the scope-section finite machine to emit
+the exact negative residual-row section from checked endpoint pairs in quadratic
+bit-level time, with a cubic section-size bound in original compiler-input length.
+Constructing the edges by a finite machine, positive rows, complete objective
+assembly and final prime composition remain outstanding.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.

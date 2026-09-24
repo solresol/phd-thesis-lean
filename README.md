@@ -630,6 +630,24 @@ completed relabelling stage. `enumerate_length_le` bounds the list by `n^2`
 for `n` explicitly listed variables. These are executable semantics and size
 results; a finite-machine implementation and bit-level runtime for this scan
 remain open, alongside objective emission and final prime composition.
+
+`AllDifferentCSPNegativeRows.lean` adds checked endpoint-pair and negative-row
+section encodings by reusing the counted-row codecs. Its
+`negativeRowsComputableInPolyTime` reuses the complete scope-tagging machine:
+`[2,i,j]` becomes the exact raw negative residual row `[3,1,i,j]` in at most
+`20(s+1)^2` steps for the supplied edge-stream wire length `s`. Decoders check
+pair arity, tags and row exhaustion. `NegativeRows.rows_enumerate_eq` and
+`outputEncode_enumerate_eq` give exact agreement with the semantic compiler's
+ordered negative rows; `pinningWeight_eq_edgeCount` also connects edge counting
+to its positive pinning weight. `outputEncode_length` charges exactly two added
+cells per edge. `compiler_output_length_le_cubic` bounds the whole negative
+section by `9(s+1)^3` in the actual Boolean compiler-input length. The finite
+emitter starts with an already enumerated edge list: construction of that list,
+positive rows, full objective assembly and prime composition remain open.
+The next pair-scan machine needs a length-bounded variable count, for example a
+unary count retained from the original domain rows. An arbitrary intermediate
+binary count does not justify polynomial time for scanning all `n^2` pairs.
+
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
@@ -729,9 +747,10 @@ checked header-removal transducer and a composed raw-field view of the compact
 payload. The tagged structural target also has a checked raw encoding and a
 linear finite-machine bridge to its canonical Boolean encoding. The complete
 structural compiler now constructs that raw target and frames it, using checked
-binary indices, countdowns, row counting, and header staging. Canonical
-relabelling, primal-edge deduplication, encoded objective emission, and final
-whole-compiler assembly remain.
+binary indices, countdowns, row counting, and header staging. The later
+relabelling stage is also complete. Finite-machine edge construction, positive
+residual-row emission and final whole-compiler assembly remain; negative-row
+emission from a supplied edge list is now checked.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -963,9 +982,11 @@ The copied statements are grouped by mathematical contribution:
   under the checked exhaustion-delimited payload encoding.
   `runtimeCompilerStructuralViewComputableInPolyTime` now additionally composes
   row counting, binary-header staging, raw reversal, and Boolean framing from
-  the actual compiler input to the original structural encoding. Canonical
-  relabelling, edge deduplication, encoded objective rows, and composition with
-  prime selection remain open;
+  the actual compiler input to the original structural encoding. Complete
+  relabelling now also composes from that input. The bounded edge scan agrees
+  with the exact sorted primal graph, and negative-row emission from supplied
+  pairs is checked. Finite-machine edge construction, positive rows, complete
+  objective assembly and composition with prime selection remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

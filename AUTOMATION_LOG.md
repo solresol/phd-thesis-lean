@@ -4673,3 +4673,64 @@
   list-length bound is not a runtime theorem. Sorted/deduplicated domain rows,
   complete objective emission and final prime composition also remain open.
 - **Run time:** 2026-09-24 19:21 UTC (2026-09-25 05:21 AEST).
+
+## 2026-09-25 — reuse the checked finite machine for negative residual rows
+
+- **Starting commit:** `ddedc17642dcf193778ce42a742d18e9bc258bfb`;
+  preceding edge-enumeration increment pushed, with local/tracking/live remote
+  ref parity verified.
+- **Checked increment:** `AllDifferentCSPNegativeRows.lean` gives endpoint-pair
+  and negative-row sections checked `FinEncoding`s over the existing raw
+  bit/delimiter alphabet. Decoders reuse counted-row and scope parsing, then
+  verify exact pair arity. `negativeRows_outputsInTime` and
+  `negativeRowsComputableInPolyTime` reuse `ScopeSectionMachine.computer`
+  unchanged: source fields `[2,i,j]` become `[3,1,i,j]`, the exact negative
+  residual-row format, in `20(s+1)^2` finite-machine steps for supplied edge
+  input length `s`. All copying, row-length updates and cleanup are included;
+  empty streams and arbitrary binary endpoint magnitudes are supported.
+- **Correspondence and size:** `NegativeRows.rows_enumerate_eq` and
+  `outputEncode_enumerate_eq` prove exact ordered agreement with semantic
+  `unequalRows`, including its negative-row constructor/tag.
+  `pinningWeight_eq_edgeCount` proves emitted edge count plus one equals the
+  semantic positive pinning weight. `outputEncode_length` counts exactly two
+  additional cells per edge. `compiler_output_length_le_cubic` bounds the
+  complete raw negative-row section by `9(s+1)^3` in the original Boolean
+  compiler input length, charging every endpoint bit and delimiter.
+- **Verification:** final full `lake build` passes (3187 jobs). Seven new
+  headline audits pass; all 362 build axiom lists use only `propext`,
+  `Classical.choice`, `Quot.sound`, with six additional axiom-free reports.
+  The comment/string-aware scan passes all 57 project Lean sources/configs.
+  Both new modules are warning-free; the three existing structural-module
+  linter warnings and existing dependency warnings are unchanged. Diff checks
+  pass. Root imports, README, theorem-status catalogue/detail and relevant
+  source correspondence notes are synchronized. Full corollary stays **Partial**.
+- **Failed approaches / useful APIs:** preserve the induction hypothesis's
+  `mapM` shape with `change` before simplification; unfold `Function.comp_def`
+  when simplifying maps of row encoders. Kernel `rfl`/`decide` cannot reduce
+  the pinned natural encoding or `Nat.size` constants directly. Reuse
+  `BinaryNatLists.encodeNat_length_eq_size`, `Nat.size_pow`, `Nat.size_bit`
+  and `Nat.size_one`; use checked decoder round-trip lemmas for malformed-wire
+  examples instead of kernel evaluation through opaque parsers. Final full
+  build/audits supersede every failed exploratory check. No new machine
+  implementation or generic-codec duplication was needed for row emission.
+- **Precise remaining boundary:** this emitter starts with an already
+  enumerated edge list. The executable pair scan's `n^2` candidate count is
+  bounded by the original compiler input, but an unrestricted
+  `CountedSections.Value` carries `n` only in binary. A finite scan over every
+  pair cannot assume numeric `n` is bounded by that intermediate wire length.
+  Retain a unary variable count from the original domain rows (including empty
+  rows), or use another checked bounded interface, before the outer scan.
+  Useful existing implementation: `StructuralRowCountMachine.run rows` and
+  `runTime_le rows` already work for arbitrary counted rows, with quadratic
+  bit cost. They are private in `AllDifferentCSPRowCount.lean`; a CSP-specific
+  domain-count specialization in that file can reuse them without duplicating
+  a counter or modifying the read-only sibling. Then implement the two-endpoint
+  scope co-occurrence scan and bounded pair loop, compose the negative emitter,
+  and finish sorted/deduplicated positive domain rows, objective assembly and
+  the already checked prime selector.
+- **Preservation / ending state:** thesis remains at `f1107f5` with the same
+  twelve dirty statuses and binary-diff hash as at startup; sibling remains
+  clean at `d0e4df6`. Dependency/toolchain pins unchanged. Two verified increments
+  completed; this second increment is ready for commit/push. Final ref parity
+  is recorded in automation memory after pushing.
+- **Run time:** 2026-09-24 19:31 UTC (2026-09-25 05:31 AEST).
