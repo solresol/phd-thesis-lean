@@ -52,3 +52,4 @@ import PhdThesisLean.AllDifferentCSPOccurrenceInitialization
 import PhdThesisLean.AllDifferentCSPRelabelling
 import PhdThesisLean.AllDifferentCSPPrimalEdges
 import PhdThesisLean.AllDifferentCSPNegativeRows
+import PhdThesisLean.AllDifferentCSPBoundedSections

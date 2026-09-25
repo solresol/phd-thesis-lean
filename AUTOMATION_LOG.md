@@ -4777,3 +4777,59 @@
   that actual intermediate wire length. The edge scanner, sorted positive
   rows, complete objective assembly and final prime composition remain open.
 - **Run time:** 2026-09-26 05:22:20 AEST.
+
+## 2026-09-26 — retain the unary bound through complete relabelling
+
+- **Starting commit:** `cebf8393675b72c0af860eeedf6f233570b9fb56`;
+  the preceding domain-counter increment was pushed, and local HEAD,
+  tracking branch and live remote ref parity were verified.
+- **Increment:** added `AllDifferentCSPBoundedSections.lean`. Its checked
+  nested-pair encodings carry `((domain occurrences, unary variable count),
+  raw scopes)`. `boundedSourceSectionsComputableInPolyTime` attaches the
+  computed tally before expansion. `domainPayloadRelabellingComputableInPolyTime`
+  composes existing domain expansion, symbol extraction and the complete
+  canonical rank traversal. Two existing pair adapters retain the tally and
+  every scope cell; no generic finite-machine implementation is duplicated.
+- **Headline:** `runtimeCompilerBoundedRelabelledSectionsComputableInPolyTime`
+  starts at actual Boolean `RuntimeCompilerInput.finEncoding` and constructs
+  the complete bounded intermediate internally, including all preparation,
+  transfer, relabelling and cleanup costs in the composed polynomial.
+  `toCountedSections_ofRuntimeSystem` proves exact equality with established
+  relabelling semantics. Empty domains, zero variables and an empty occurrence
+  stream are explicitly covered by checked examples.
+- **Size boundary:** `encode_length` charges every domain and scope cell plus
+  every unary mark. `variableCount_le_encode_length` holds for all intermediate
+  values, without any provenance hypothesis. `candidates_length_le_square`
+  bounds the entire candidate grid by actual wire length squared;
+  `negativeRows_length_le_cubic` bounds its negative-row target by `9(s+1)^3`.
+  `edges_ofRuntimeSystem` connects to the exact semantic edge enumeration.
+  These are size/correspondence results, not a runtime proof for the absent
+  finite edge scanner.
+- **Verification:** direct module check and final full `lake build` pass
+  (3188 jobs). Ten new audits comprise eight standard-axiom reports and two
+  axiom-free reports. All 375 final build axiom lists use only `propext`,
+  `Classical.choice`, `Quot.sound`; eight further reports are axiom-free.
+  Comment/string-aware scan passes all 58 project Lean source/config files.
+  Both changed Lean modules are warning-free; existing upstream and three
+  structural-module warnings remain. Root import, README and theorem-status
+  catalogue/detail are synchronized; `git diff --check` passes. Full
+  `cor:all-different-csp` remains **Partial**.
+- **Failed approach / exact API evidence:** the first `encode_length` proof
+  left `CountedNatRows.rowPayloadFinEncoding.encode` folded and addition
+  associated differently. Unfolding `DomainFieldSection.rowPayloadFinEncoding`
+  and normalizing with `Nat.add_assoc` closed the goal; the scope alias then
+  became an unused simp argument and was removed. Final successful build and
+  audits supersede failed exploratory output. No unresolved API blocker.
+- **Preservation / ending state:** thesis HEAD, twelve dirty statuses and
+  binary-diff hash remain unchanged; sibling stays clean at `b089c13`.
+  Dependency/toolchain pins unchanged. Two verified increments completed;
+  this second increment is ready for commit/push. Final ref parity is recorded
+  in automation memory after pushing.
+- **Best next target:** implement the serialized two-endpoint co-occurrence
+  query and bounded pair loop on `BoundedRelabelledSections.finEncoding`.
+  It carries raw counted scopes and unary `n`, with `n` bounded by input
+  length for every intermediate value. Preserve the relabelled occurrences
+  for positive rows, then compose the existing negative-row emitter. Sorted
+  and deduplicated positive domain rows, complete objective assembly and
+  final prime-selector composition still remain.
+- **Run time:** 2026-09-26 05:25:28 AEST.

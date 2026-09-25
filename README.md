@@ -650,9 +650,20 @@ retains every domain cell and constructs the exact unary variable count in
 `20(s+1)^2` steps for payload length `s`, including empty domains.
 `completeDomainVariableCountComputableInPolyTime` includes removal of the
 checked outer count. `DomainCountedPayload.encode_retain_length_le` bounds
-the complete retained payload and tally by `2s`. The next composition must
-carry that tally with scopes and relabelled occurrences into the pair scan;
-an arbitrary intermediate binary count does not justify scanning `n^2` pairs.
+the complete retained payload and tally by `2s`.
+`AllDifferentCSPBoundedSections.lean` carries that computed tally and every raw
+scope through the complete domain-relabelling path using existing pair
+adapters. Its headline
+`runtimeCompilerBoundedRelabelledSectionsComputableInPolyTime` starts at the
+actual Boolean compiler input and produces exact thesis-ranked occurrences,
+the unary variable count, and unchanged scopes. `toCountedSections_ofRuntimeSystem`
+identifies the result with the established relabelling semantics.
+`variableCount_le_encode_length` holds for every value of this checked
+intermediate encoding, so `candidates_length_le_square` bounds the complete
+pair grid by its actual input length squared. `negativeRows_length_le_cubic`
+also bounds the negative-row target in this intermediate length. These size
+lemmas prepare the missing finite pair scanner; they do not assert its runtime.
+Empty domains, an empty occurrence stream, and zero variables are covered.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
