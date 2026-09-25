@@ -4734,3 +4734,46 @@
   completed; this second increment is ready for commit/push. Final ref parity
   is recorded in automation memory after pushing.
 - **Run time:** 2026-09-24 19:31 UTC (2026-09-25 05:31 AEST).
+
+## 2026-09-26 — derive a unary variable count from original domain rows
+
+- **Starting commit:** `780f10298ec2e75ec3af59dd23151ef2d53f80c2`;
+  clean `main`, fetched upstream unchanged; local/tracking/live remote agree.
+  Read instructions, current status/README, relevant Lean modules, recent log
+  and automation memory, and the active thesis corollary and proof.
+- **Read-only context:** thesis remains `f1107f5`, with twelve dirty statuses
+  and binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  Sibling `lean-np-hardness` is clean at `b089c13`; reviewed its complete
+  encoded-certificate membership machine and checked pair adapters. Membership
+  still expects a preloaded binary query and framed certificate, rather than
+  the raw two-endpoint scope interface. Existing pinned adapters suffice for
+  this increment; dependency/toolchain unchanged, sibling unedited.
+- **Increment:** extended `AllDifferentCSPRowCount.lean` with
+  `DomainCountedPayload.finEncoding` and `retain`, preserving original rows
+  and their exact unary length. `domainVariableCount_outputsInTime` and
+  `domainVariableCountComputableInPolyTime` reuse the unchanged existing
+  finite row counter in `20(s+1)^2` steps for raw payload length `s`.
+  `completeDomainVariableCountComputableInPolyTime` includes the checked
+  outer-header removal. Empty domains contribute one mark each; no domain
+  value or boundary is lost. `encode_retain_length_le` bounds the complete
+  pair by `2s`, charging the unary tally to explicit row fields.
+- **Verification:** direct Lean check and full `lake build` pass (3187 jobs).
+  Five new headline audits contain only `propext`, `Classical.choice`, and
+  `Quot.sound`. Final build audit and comment/string-aware prohibited-code
+  scan pass; all 57 project Lean source/config files checked. No warnings in
+  the changed module; existing dependency/structural linter warnings remain.
+  `git diff --check` passes. README and theorem-status catalogue/detail are
+  synchronized; full `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / APIs:** no failed Lean approach or unresolved API
+  blocker. The row counter's private `run` and `runTime_le` are reusable
+  within their existing file. `ScopeFieldSection.rowPayloadEncode_eq_block_inputs`
+  exposes the row delimiter needed to charge even empty domains. The initial
+  automation-memory read found `CODEX_HOME` unset; used the explicit supplied
+  `/Users/gregb/.codex/automations/daily-all-different-csp-formalization` path.
+- **Ending state / next target:** verified increment ready for commit/push.
+  Carry this computed unary tally and untouched scopes through the complete
+  domain-relabelling path, and prove the bounded pair grid is quadratic in
+  that actual intermediate wire length. The edge scanner, sorted positive
+  rows, complete objective assembly and final prime composition remain open.
+- **Run time:** 2026-09-26 05:22:20 AEST.

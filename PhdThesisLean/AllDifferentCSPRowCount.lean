@@ -15,6 +15,8 @@ singleton variable header. The result uses the standard tagged pair encoding.
 `AllDifferentCSPBinaryHeader` supplies binary conversion and raw staging as a
 separate pass. `AllDifferentCSPStructuralCompiler` composes the complete
 structural path from actual Boolean input through the original framing bridge.
+The same row traversal also counts original domain rows, retaining empty
+domains, to prepare a unary variable bound for primal-edge enumeration.
 -/
 
 namespace StructuralCountedPayload
@@ -592,5 +594,101 @@ noncomputable def runtimeCompilerStructuralCountedPayloadComputableInPolyTime :
 #print axioms StructuralRowCountMachine.computer
 #print axioms structuralRowCount_outputsInTime
 #print axioms structuralRowCountComputableInPolyTime
+
+namespace DomainCountedPayload
+
+/-- Retain the original domain rows with one unary mark per variable.
+Empty domains still contribute a mark, unlike domain-occurrence counting. -/
+def finEncoding : FinEncoding (List (List ℕ) × ℕ) :=
+  LeanNPHardness.PairEncoding.finEncoding
+    DomainFieldSection.rowPayloadFinEncoding unaryFinEncodingNat
+
+def retain (domains : List (List ℕ)) : List (List ℕ) × ℕ :=
+  (domains, domains.length)
+
+@[simp]
+theorem encode_retain (domains : List (List ℕ)) :
+    finEncoding.encode (retain domains) =
+      (DomainFieldSection.rowPayloadEncode domains).map Sum.inl ++
+        List.replicate domains.length (.inr true) := by
+  simp [finEncoding, LeanNPHardness.PairEncoding.finEncoding, retain,
+    DomainFieldSection.rowPayloadFinEncoding, unaryFinEncodingNat,
+    unaryEncodeNat_eq_replicate_true]
+
+theorem variableCount_le_payload_length (domains : List (List ℕ)) :
+    domains.length ≤ (DomainFieldSection.rowPayloadEncode domains).length := by
+  induction domains with
+  | nil => simp
+  | cons domain domains ih =>
+      simp only [ScopeFieldSection.rowPayloadEncode_eq_block_inputs,
+        List.flatMap_cons, List.length_append, List.length_cons] at ih ⊢
+      have positive : 0 < (ScopeFieldBlock.inputEncode domain).length := by
+        simp [ScopeFieldBlock.inputEncode, SourceOrderRawFields.encode]
+      omega
+
+theorem encode_retain_length (domains : List (List ℕ)) :
+    (finEncoding.encode (retain domains)).length =
+      (DomainFieldSection.rowPayloadEncode domains).length + domains.length := by
+  rw [encode_retain]
+  simp
+
+/-- The tally's full wire cost is bounded by the explicitly listed rows. -/
+theorem encode_retain_length_le (domains : List (List ℕ)) :
+    (finEncoding.encode (retain domains)).length ≤
+      2 * (DomainFieldSection.rowPayloadEncode domains).length := by
+  rw [encode_retain_length]
+  have h := variableCount_le_payload_length domains
+  omega
+
+example : retain [[], [17], []] = ([[], [17], []], 3) := rfl
+example : retain [] = ([], 0) := rfl
+
+end DomainCountedPayload
+
+/-- Reuse the same row-counting machine on original domains, before expansion
+can erase empty rows. Every binary field and countdown is charged. -/
+def domainVariableCount_outputsInTime (domains : List (List ℕ)) :
+    TM2OutputsInTime StructuralRowCountMachine.computer
+      (DomainFieldSection.rowPayloadEncode domains)
+      (some (DomainCountedPayload.finEncoding.encode (DomainCountedPayload.retain domains)))
+      (20 * ((DomainFieldSection.rowPayloadEncode domains).length + 1) ^ 2) := by
+  rw [TM2OutputsInTime, StructuralRowCountMachine.init_eq]
+  simp only [Option.map_some]
+  rw [StructuralRowCountMachine.halt_eq]
+  simpa only [DomainCountedPayload.encode_retain] using
+    StructuralRowCountMachine.mono (StructuralRowCountMachine.run domains)
+      (StructuralRowCountMachine.runTime_le domains)
+
+noncomputable def domainVariableCountComputableInPolyTime :
+    @TM2ComputableInPolyTime (List (List ℕ)) (List (List ℕ) × ℕ)
+      DomainFieldSection.rowPayloadFinEncoding DomainCountedPayload.finEncoding
+      DomainCountedPayload.retain where
+  tm := StructuralRowCountMachine.computer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl StructuralRowCountMachine.OutputSymbol
+  time := 20 * (Polynomial.X + 1) ^ 2
+  outputsFun domains := by
+    simpa [DomainFieldSection.rowPayloadFinEncoding, Equiv.refl,
+      Polynomial.eval_mul, Polynomial.eval_add, Polynomial.eval_pow,
+      Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X]
+      using domainVariableCount_outputsInTime domains
+
+/-- The caller supplies only the original checked counted domain section;
+header removal and unary variable counting are both performed internally. -/
+noncomputable def completeDomainVariableCountComputableInPolyTime :
+    @TM2ComputableInPolyTime (List (List ℕ)) (List (List ℕ) × ℕ)
+      DomainFieldSection.inputFinEncoding DomainCountedPayload.finEncoding
+      DomainCountedPayload.retain := by
+  let composed := compositionComputableInPolyTime _ _ _ _ _
+    domainRowPayloadStructuredComputableInPolyTime domainVariableCountComputableInPolyTime
+  exact { composed with
+    outputsFun := fun domains => by
+      simpa only [Function.comp_def, id_eq] using composed.outputsFun domains }
+
+#print axioms DomainCountedPayload.variableCount_le_payload_length
+#print axioms DomainCountedPayload.encode_retain_length_le
+#print axioms domainVariableCount_outputsInTime
+#print axioms domainVariableCountComputableInPolyTime
+#print axioms completeDomainVariableCountComputableInPolyTime
 
 end PhdThesisLean.AllDifferentCSPMachine

@@ -644,9 +644,15 @@ cells per edge. `compiler_output_length_le_cubic` bounds the whole negative
 section by `9(s+1)^3` in the actual Boolean compiler-input length. The finite
 emitter starts with an already enumerated edge list: construction of that list,
 positive rows, full objective assembly and prime composition remain open.
-The next pair-scan machine needs a length-bounded variable count, for example a
-unary count retained from the original domain rows. An arbitrary intermediate
-binary count does not justify polynomial time for scanning all `n^2` pairs.
+`AllDifferentCSPRowCount.lean` now reuses the existing row-counting machine
+on the original domain rows. `domainVariableCountComputableInPolyTime`
+retains every domain cell and constructs the exact unary variable count in
+`20(s+1)^2` steps for payload length `s`, including empty domains.
+`completeDomainVariableCountComputableInPolyTime` includes removal of the
+checked outer count. `DomainCountedPayload.encode_retain_length_le` bounds
+the complete retained payload and tally by `2s`. The next composition must
+carry that tally with scopes and relabelled occurrences into the pair scan;
+an arbitrary intermediate binary count does not justify scanning `n^2` pairs.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
