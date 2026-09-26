@@ -671,9 +671,23 @@ queries for one scope from a checked serialized endpoint-pair/scope input.
 most `3s+3` steps in the complete input length, including copying every scope
 cell twice, restoring both query orders and clearing all scratch stacks.
 `ScopeQueries.output_length` charges exactly one additional copy of the scope;
-`output_length_le` bounds the entire paired output by `2s`. This prepares the
-two membership calls on the same scope; their conjunction and the repeated
-scope/pair scans remain separate obligations.
+`output_length_le` bounds the entire paired output by `2s`.
+`AllDifferentCSPScopeCooccurrence.lean` composes this preparation with both
+existing serialized membership calls, the checked pair adapters, and a fixed
+finite conjunction of their two result cells.
+`scopeCooccurrenceComputableInPolyTime` supplies a genuine finite-machine
+polynomial bound for the complete one-scope predicate; copying, transfers and
+cleanup are included. `scopeCooccurrence_correct` identifies its answer with
+the singleton-scope predicate in the exact primal-edge enumeration.
+`ScopeCooccurrence.adjacent_cons` specifies the outer OR of these same-scope
+answers, and `query_length_le` bounds each bounded-pair/scope query by twice the
+full retained intermediate wire length. `scopeCooccurrence_steps_le` then
+bounds the actual composed predicate steps by its polynomial evaluated at `2s`.
+The pair scan still supplies the separate `i < j` condition. Checked examples
+distinguish endpoints in different scopes from a pair occurring in one scope, including
+zero, repeated entries and empty scopes. Extracting successive counted scopes
+and running the bounded pair loop remain open; neither the recurrence nor the
+query-size bound claims their finite-machine runtime.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

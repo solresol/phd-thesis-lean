@@ -4878,3 +4878,59 @@
   the bounded pair loop, positive rows, full objective assembly and prime
   composition remain open. Final push parity is recorded in automation memory.
 - **Run time:** 2026-09-26 19:23:05 UTC (27 September AEST).
+
+## 2026-09-27 — compose checked same-scope co-occurrence
+
+- **Starting commit:** `fcfdae2d763b473cba27b1ada14f56fea60cc6ab`;
+  preceding query-preparation increment pushed, with local/tracking/live remote
+  ref parity verified.
+- **Increment:** added `AllDifferentCSPScopeCooccurrence.lean`.
+  `scopeCooccurrenceComputableInPolyTime` composes preparation, both existing
+  serialized membership calls through the pinned pair-left/pair-right APIs,
+  and a fixed finite conjunction of their two result cells. The standard
+  `TM2ComputableInPolyTime` polynomial includes every copy, transfer and cleanup;
+  neither membership queries nor their answers are externally supplied.
+  `scopeCooccurrence_correct` identifies the result with the singleton-scope
+  predicate of the exact primal-edge enumeration.
+- **Correspondence and size:** `ScopeCooccurrence.evaluate_eq_true` says both
+  endpoints belong to that same scope; `adjacent_cons` and `adjacent_eq_any`
+  specify the future outer OR over scopes. `scope_length_le_payload` charges
+  each scope's raw fields to its complete counted section. `query_length_le`
+  bounds a query for bounded endpoints and any retained scope by twice the
+  entire bounded-intermediate encoding length `s`. `scopeCooccurrence_steps_le`
+  uses polynomial monotonicity to bound actual composed predicate steps by
+  its polynomial at `2s`. This does not include the still-unimplemented scope
+  extraction or traversal. Checked examples cover zero/equal endpoints, empty
+  scopes, repeated entries, large binary endpoints, and the crucial rejection
+  when the endpoints occur only in two different scopes.
+- **Verification:** direct Lean check passes, with seven headline audits using
+  only `propext`, `Classical.choice`, `Quot.sound`; no new module warnings.
+  Final `lake build` passes (3190 jobs); all 386 axiom lists use only these
+  three axioms, with eight additional axiom-free reports. Comment/string-aware
+  prohibited-code scan passes all 60 project Lean source/config files.
+  `git diff --check` passes. Existing dependency and three structural-module
+  linter warnings remain unchanged.
+  Root imports, README, theorem-status catalogue/detail are synchronized.
+  Full `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / exact API evidence:** Lean parses unparenthesized
+  `a = b || c` as a Boolean OR containing a coerced equality, not the intended
+  equality to the OR. Parenthesized the entire right side of `adjacent_cons`
+  and used restricted simplification. `EvalsToInTime` extends `EvalsTo`, so a
+  flat tuple literal was wrong; named `steps`, `evals_in_steps`, `steps_le_m`
+  fields construct it correctly. The one-step conjunction proof uses `change`
+  to expose the concrete machine step before simplification, avoiding a stuck
+  lifted `Option.bind`. Failed exploratory audit output is discarded; only
+  the successful final checks count. No unresolved API blocker.
+- **Preservation / next target:** sibling stays clean at `b089c13`; thesis stays
+  at `f1107f5` with the same twelve dirty statuses and binary-diff hash recorded
+  above. Dependency/toolchain pins unchanged. Next implement extraction of one
+  count-prefixed scope while retaining both endpoints and the remaining scopes,
+  then a finite OR traversal and bounded pair driver. Existing
+  `ScopeSectionMachine.values_run` / `row_run` demonstrate counted copying with
+  preserved tails, but are private in their module. Upstream
+  `countedRowPayload_outputsInTime` removes an outer count from a whole section;
+  it is not a one-row splitter. Preserve relabelled occurrences for positive
+  rows and compose the checked negative-row emitter after enumerating edges.
+  Sorted/deduplicated positive rows, full objective assembly and final prime
+  composition remain open. Final push parity is recorded in automation memory.
+- **Run time:** 2026-09-26 19:29:10 UTC (27 September AEST).
