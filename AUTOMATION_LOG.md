@@ -4833,3 +4833,48 @@
   and deduplicated positive domain rows, complete objective assembly and
   final prime-selector composition still remain.
 - **Run time:** 2026-09-26 05:25:28 AEST.
+
+## 2026-09-27 — construct both serialized endpoint queries for one scope
+
+- **Starting commit:** `b1bd7015f929e0daba782f685fe29c2c3e3d2ec3`;
+  clean `main`, fetched upstream unchanged, local/tracking/live remote agree.
+  Read instructions, current status/README, relevant Lean modules, recent log
+  and automation memory, and the active thesis corollary and proof.
+- **Read-only context:** thesis remains `f1107f5` with twelve dirty statuses and
+  binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  Sibling `lean-np-hardness` is clean at `b089c13`; reviewed complete certificate
+  membership, generic pair encodings/adapters, and Boolean aggregation. Its
+  newer membership dispatcher expects a preloaded query and framed certificate;
+  the already pinned local serialized raw-field membership API fits this scope
+  interface directly. Dependency/toolchain unchanged; sibling unedited.
+- **Increment:** added `AllDifferentCSPScopeQueries.lean` with checked nested-pair
+  input/output `FinEncoding`s. A four-stack finite machine routes binary
+  endpoints separately and duplicates the complete raw scope. It restores both
+  query orders and clears every work stack. `scopeQueries_outputsInTime` and
+  `scopeQueriesComputableInPolyTime` prove construction in at most `3s+3` steps
+  for complete input length `s`. Zero endpoints, empty scopes, arbitrary binary
+  magnitudes and repeated scope entries are covered by the general proof.
+  `ScopeQueries.output_length` charges one extra copy of the scope exactly;
+  `output_length_le` bounds the paired output by `2s`.
+- **Verification:** direct Lean check passes with four headline axiom reports
+  using only `propext`, `Classical.choice`, `Quot.sound`. Final `lake build`
+  passes (3189 jobs); all 379 axiom lists use only these three axioms, with
+  eight further axiom-free reports. Comment/string-aware prohibited-code scan
+  passes all 59 project Lean source/config files; `git diff --check` passes.
+  The new module is warning-free; existing dependency/structural warnings remain.
+  README, theorem-status catalogue/detail and root imports are synchronized.
+  The full `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / useful APIs:** `input_length` needed `Nat.add_assoc`.
+  Routing simplification left constant-none `filterMap`s; a helper specialised
+  to `Bool` did not match the still-folded encoding alphabet. A polymorphic
+  `List α → List β` constant-none helper closes both projections. The first
+  direct checks and exploratory full build failed on these proof details;
+  their placeholder-containing audit output is discarded. Only the final
+  successful checks count as evidence. No unresolved API blocker.
+- **Ending state / next target:** query preparation is verified; next compose
+  both existing serialized membership calls and finite Boolean conjunction
+  into a same-scope co-occurrence predicate. Parsing successive counted scopes,
+  the bounded pair loop, positive rows, full objective assembly and prime
+  composition remain open. Final push parity is recorded in automation memory.
+- **Run time:** 2026-09-26 19:23:05 UTC (27 September AEST).

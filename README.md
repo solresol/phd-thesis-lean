@@ -665,6 +665,16 @@ also bounds the negative-row target in this intermediate length. These size
 lemmas prepare the missing finite pair scanner; they do not assert its runtime.
 Empty domains, an empty occurrence stream, and zero variables are covered.
 
+`AllDifferentCSPScopeQueries.lean` now constructs both endpoint-membership
+queries for one scope from a checked serialized endpoint-pair/scope input.
+`scopeQueriesComputableInPolyTime` proves the finite routing machine takes at
+most `3s+3` steps in the complete input length, including copying every scope
+cell twice, restoring both query orders and clearing all scratch stacks.
+`ScopeQueries.output_length` charges exactly one additional copy of the scope;
+`output_length_le` bounds the entire paired output by `2s`. This prepares the
+two membership calls on the same scope; their conjunction and the repeated
+scope/pair scans remain separate obligations.
+
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging

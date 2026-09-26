@@ -53,3 +53,4 @@ import PhdThesisLean.AllDifferentCSPRelabelling
 import PhdThesisLean.AllDifferentCSPPrimalEdges
 import PhdThesisLean.AllDifferentCSPNegativeRows
 import PhdThesisLean.AllDifferentCSPBoundedSections
+import PhdThesisLean.AllDifferentCSPScopeQueries
