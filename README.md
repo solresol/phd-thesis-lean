@@ -685,9 +685,17 @@ full retained intermediate wire length. `scopeCooccurrence_steps_le` then
 bounds the actual composed predicate steps by its polynomial evaluated at `2s`.
 The pair scan still supplies the separate `i < j` condition. Checked examples
 distinguish endpoints in different scopes from a pair occurring in one scope, including
-zero, repeated entries and empty scopes. Extracting successive counted scopes
-and running the bounded pair loop remain open; neither the recurrence nor the
-query-size bound claims their finite-machine runtime.
+zero, repeated entries and empty scopes.
+
+`ScopeHead.inputFinEncoding` now checks a nonempty contiguous scope section,
+without requiring an externally supplied split. `scopeHeadComputableInPolyTime`
+reuses the existing source parser at its first-row entry point to separate the
+first counted scope from the exact remaining section in at most `20(s+1)^2`
+steps. Every work stack is clear at halt. `ScopeHead.output_length` proves
+that the split changes only alphabet tags, and `tail_length_lt` proves strict
+progress even when the removed scope is empty. Removing the isolated scope's
+count, retaining endpoints, repeating the predicate over scopes, and running
+the bounded pair loop remain separate tasks.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

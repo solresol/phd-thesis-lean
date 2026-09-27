@@ -65,6 +65,52 @@ theorem output_length_le_input (C : RuntimeSystem) :
 
 end RuntimeSourceSections
 
+namespace ScopeHead
+
+/-- A nonempty scope section, represented by its first scope and exact tail. -/
+abbrev Input := List ℕ × List (List ℕ)
+
+/-- The input is still the original contiguous counted-row stream. -/
+def inputFinEncoding : FinEncoding Input where
+  Γ := Option Bool
+  encode input := DomainFieldSection.rowPayloadEncode (input.1 :: input.2)
+  decode cells := do
+    let scopes ← DomainFieldSection.rowPayloadDecode cells
+    match scopes with
+    | [] => none
+    | scope :: rest => some (scope, rest)
+  decode_encode input := by simp
+  ΓFin := inferInstance
+
+/-- Separate the first counted scope from the untouched remaining section. -/
+def outputFinEncoding : FinEncoding Input :=
+  LeanNPHardness.PairEncoding.finEncoding ScopeFieldBlock.inputFinEncoding
+    ScopeFieldSection.rowPayloadFinEncoding
+
+theorem input_encode (input : Input) :
+    inputFinEncoding.encode input = ScopeFieldBlock.inputEncode input.1 ++
+      DomainFieldSection.rowPayloadEncode input.2 := by
+  simp [inputFinEncoding, ScopeFieldSection.rowPayloadEncode_eq_block_inputs]
+
+/-- The split changes only alphabet tags, adding or removing no cells. -/
+theorem output_length (input : Input) :
+    (outputFinEncoding.encode input).length =
+      (inputFinEncoding.encode input).length := by
+  rw [input_encode]
+  simp [outputFinEncoding, ScopeFieldBlock.inputFinEncoding,
+    DomainFieldSection.rowPayloadFinEncoding]
+
+/-- Removing even an empty scope strictly decreases the retained input. -/
+theorem tail_length_lt (input : Input) :
+    (ScopeFieldSection.rowPayloadFinEncoding.encode input.2).length <
+      (inputFinEncoding.encode input).length := by
+  rw [input_encode]
+  simp [ScopeFieldBlock.inputEncode, SourceOrderRawFields.encode,
+    DomainFieldSection.rowPayloadFinEncoding]
+  omega
+
+end ScopeHead
+
 namespace SourceSectionMachine
 
 inductive Counter
@@ -659,7 +705,88 @@ private theorem halt_eq (output : List Tagged) :
   | count counter => cases counter <;> rfl
   | _ => rfl
 
+/-- Reuse the existing counted parser, entering at its first-row phase.
+The initially empty outer counter makes it stop after that one row. -/
+def scopeHeadComputer : FinTM2 := { computer with main := .startRow }
+
+private def scopeHead_run (input : ScopeHead.Input) :
+    Run (cfg (some .startRow) none (ScopeHead.inputFinEncoding.encode input) [] [] [] [] [])
+      (cfg none none [] [] [] [] [] (ScopeHead.outputFinEncoding.encode input))
+      (rowTime input.1 + (DomainFieldSection.rowPayloadEncode input.2).length +
+        (ScopeHead.outputFinEncoding.encode input).length + 5) := by
+  let tail := DomainFieldSection.rowPayloadEncode input.2
+  let head := ((ScopeFieldBlock.inputEncode input.1).map
+    (Sum.inl : Option Bool → Tagged)).reverse
+  let output := ScopeHead.outputFinEncoding.encode input
+  have hout : output.reverse = (tail.map Sum.inr).reverse ++ head := by
+    simp [output, ScopeHead.outputFinEncoding, LeanNPHardness.PairEncoding.finEncoding,
+      ScopeFieldBlock.inputFinEncoding, DomainFieldSection.rowPayloadFinEncoding,
+      tail, head, List.reverse_append]
+  have hrow := row_run input.1 tail [] [] [] none (boundary_rows input.2)
+  have hpred := pred_run .rows [] [] tail [] head [] none
+  have hcheck : Run (cfg (some (.check .rows)) none tail [] [] [] head [])
+      (cfg (some .suffix) none tail [] [] [] head []) 1 := one (by split_step)
+  have hprefix := seq (seq hrow (by simpa [ccfg, head, binaryPredBits] using hpred)) hcheck
+  have hsuffix := suffix_run tail head [] none
+  have hfinish := finish_run output.reverse [] none
+  have hlast := seq hsuffix (by simpa [hout] using hfinish)
+  convert seq hprefix hlast using 1 <;>
+    simp [ScopeHead.input_encode, tail, head, ScopeHead.outputFinEncoding,
+      LeanNPHardness.PairEncoding.finEncoding, ScopeFieldBlock.inputFinEncoding,
+      DomainFieldSection.rowPayloadFinEncoding]
+  omega
+
+private theorem scopeHead_time_le (input : ScopeHead.Input) :
+    rowTime input.1 + (DomainFieldSection.rowPayloadEncode input.2).length +
+        (ScopeHead.outputFinEncoding.encode input).length + 5 ≤
+      20 * ((ScopeHead.inputFinEncoding.encode input).length + 1) ^ 2 := by
+  have hr := rowTime_le input.1
+  have hs : (ScopeHead.inputFinEncoding.encode input).length = rowSize input.1 +
+      (DomainFieldSection.rowPayloadEncode input.2).length := by
+    simp [ScopeHead.input_encode, rowSize]
+  have hrow : rowSize input.1 ≤ (ScopeHead.inputFinEncoding.encode input).length := by omega
+  have hsq := Nat.pow_le_pow_left hrow 2
+  rw [ScopeHead.output_length]
+  nlinarith
+
+private theorem scopeHead_init_eq (input : List (Option Bool)) :
+    initList scopeHeadComputer input = cfg (some .startRow) none input [] [] [] [] [] := by
+  simp only [initList, scopeHeadComputer, computer, cfg]
+  congr 1
+  funext k
+  cases k with
+  | count counter => cases counter <;> rfl
+  | _ => rfl
+
 end SourceSectionMachine
+
+/-- Extract exactly one counted scope and retain every remaining scope in
+quadratic time in the complete serialized input, with all work stacks clear. -/
+def scopeHead_outputsInTime (input : ScopeHead.Input) :
+    TM2OutputsInTime SourceSectionMachine.scopeHeadComputer
+      (ScopeHead.inputFinEncoding.encode input)
+      (some (ScopeHead.outputFinEncoding.encode input))
+      (20 * ((ScopeHead.inputFinEncoding.encode input).length + 1) ^ 2) := by
+  rw [TM2OutputsInTime, SourceSectionMachine.scopeHead_init_eq]
+  simp only [Option.map_some]
+  change SourceSectionMachine.Run _
+    (haltList SourceSectionMachine.computer _) _
+  rw [SourceSectionMachine.halt_eq]
+  exact SourceSectionMachine.mono (SourceSectionMachine.scopeHead_run input)
+    (SourceSectionMachine.scopeHead_time_le input)
+
+/-- A checked nonempty counted section becomes the exact first-scope/tail pair. -/
+noncomputable def scopeHeadComputableInPolyTime :
+    @TM2ComputableInPolyTime ScopeHead.Input ScopeHead.Input
+      ScopeHead.inputFinEncoding ScopeHead.outputFinEncoding id where
+  tm := SourceSectionMachine.scopeHeadComputer
+  inputAlphabet := Equiv.refl (Option Bool)
+  outputAlphabet := Equiv.refl SourceSectionMachine.Tagged
+  time := 20 * (Polynomial.X + 1) ^ 2
+  outputsFun input := by
+    simpa [Equiv.refl, Polynomial.eval_mul, Polynomial.eval_add,
+      Polynomial.eval_pow, Polynomial.eval_natCast, Polynomial.eval_one,
+      Polynomial.eval_X] using scopeHead_outputsInTime input
 
 /-- Exact splitting from the full raw source, including empty sections and rows,
 in quadratic time in the actual bit/delimiter input length. -/
@@ -738,6 +865,11 @@ noncomputable def runtimeCompilerDomainAndScopesComputableInPolyTime :
       simpa [Function.comp_def, RuntimeSourceSections.split] using composed.outputsFun C }
 
 #print axioms RuntimeSourceSections.inputEncode_eq_sections
+#print axioms ScopeHead.inputFinEncoding
+#print axioms ScopeHead.output_length
+#print axioms ScopeHead.tail_length_lt
+#print axioms scopeHead_outputsInTime
+#print axioms scopeHeadComputableInPolyTime
 #print axioms RuntimeSourceSections.output_length_le_input
 #print axioms SourceSectionMachine.computer
 #print axioms sourceSections_outputsInTime

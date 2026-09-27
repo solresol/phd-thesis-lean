@@ -4934,3 +4934,48 @@
   Sorted/deduplicated positive rows, full objective assembly and final prime
   composition remain open. Final push parity is recorded in automation memory.
 - **Run time:** 2026-09-26 19:29:10 UTC (27 September AEST).
+
+## 2026-09-28 — extract one counted scope with the existing parser
+
+- **Starting commit:** `9b563c720b1410c571eab84389c80f199467fce6`;
+  clean `main`, fetched upstream unchanged, local/tracking/live remote agree.
+  Read instructions, theorem status and relevant README/Lean sections, recent
+  automation log/memory, and the active thesis corollary and proof.
+- **Read-only context:** thesis stays at `f1107f5`, with twelve dirty statuses
+  and binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  Sibling `lean-np-hardness` is clean at `8fd9e1c`. Reviewed its newer serialized
+  membership loader and quadratic full-input bound, plus pinned pair adapters
+  and counted-row removal. The framed membership loader does not replace the
+  raw-field scope interface. Sibling unedited; dependency/toolchain unchanged.
+- **Increment:** added `ScopeHead.inputFinEncoding` and `outputFinEncoding`
+  in `AllDifferentCSPSourceSections.lean`. The checked input is one contiguous
+  nonempty row payload, not an externally provided split. Reused the existing
+  source parser with only its entry label changed to `startRow`: the initially
+  empty outer counter sends control to suffix copying after exactly one scope.
+  `scopeHead_outputsInTime` and `scopeHeadComputableInPolyTime` prove exact
+  head/tail separation in at most `20(s+1)^2` bit-level steps, with every work
+  stack cleared. No binary countdown or generic machine body is duplicated.
+- **Size/progress:** `ScopeHead.output_length` proves no cell is added or lost;
+  only the finite alphabet tags change. `tail_length_lt` proves strict progress
+  even for an empty first scope. Arbitrary binary values, empty tails and
+  repeated entries/rows are covered by the general machine proof.
+- **Verification:** direct module check passes; five new headline axiom audits
+  use only `propext`, `Classical.choice`, `Quot.sound`. The module is warning-free.
+  Full `lake build` passes (3190 jobs); all 391 axiom lists use only
+  these three standard axioms, with eight further axiom-free reports.
+  Comment/string-aware prohibited-code scan and `git diff --check` pass.
+  README and theorem-status catalogue/detail are synchronized; the full
+  `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / useful API evidence:** strict tail shrinkage needed
+  `omega` after simplifying lengths. Composing the reused suffix/restore runs
+  left the head/tail encoding folded; unfolding the pair encoding and the
+  local reversed head closed both output equality and cost accounting.
+  Failed exploratory audit output is discarded; only final successful checks
+  count. No unresolved blocker.
+- **Ending state / next target:** this splitter is ready for commit/push.
+  Next remove the isolated scope count using the pinned header-removal machine
+  and preserve both endpoints through the split. The finite OR traversal,
+  bounded pair loop, sorted/deduplicated positive rows, full objective assembly
+  and final prime composition remain open. Push parity goes in automation memory.
+- **Run time:** 2026-09-27 19:34:34 UTC (28 September AEST).
