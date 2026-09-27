@@ -694,8 +694,23 @@ first counted scope from the exact remaining section in at most `20(s+1)^2`
 steps. Every work stack is clear at halt. `ScopeHead.output_length` proves
 that the split changes only alphabet tags, and `tail_length_lt` proves strict
 progress even when the removed scope is empty. Removing the isolated scope's
-count, retaining endpoints, repeating the predicate over scopes, and running
-the bounded pair loop remain separate tasks.
+count and retaining both endpoints now compose as described below.
+
+`AllDifferentCSPScopePayload.lean` reuses the pinned counted-row header-removal
+machine with a new proof for one scope's arbitrary entry fields.
+`scopePayloadComputableInPolyTime` removes only that scope's count in at most
+`2s+1` steps, including empty scopes and complete cleanup.
+`AllDifferentCSPScopeExtraction.lean` composes the split and header removal,
+then uses the pinned pair adapters to retain both binary endpoints and every
+later scope. `scopeExtractionComputableInPolyTime` starts with one contiguous
+nonempty counted section and includes parsing, copying, transfers and cleanup
+in its standard finite-machine polynomial bound. `output_length_balance`
+charges precisely the removed count bits and delimiter; `remaining_length_lt`
+proves strict progress, and `query_length_le` bounds the next membership query
+by the actual incoming state length. `adjacent_step` connects the extracted
+head and unchanged tail to the exact primal-edge recurrence. The finite pass
+that routes and duplicates endpoints for the predicate and retained state,
+the repeated OR traversal, and the bounded pair driver remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

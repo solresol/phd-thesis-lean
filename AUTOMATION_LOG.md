@@ -4979,3 +4979,63 @@
   bounded pair loop, sorted/deduplicated positive rows, full objective assembly
   and final prime composition remain open. Push parity goes in automation memory.
 - **Run time:** 2026-09-27 19:34:34 UTC (28 September AEST).
+
+## 2026-09-28 — retain endpoints through complete one-scope extraction
+
+- **Starting commit:** `4fda2712a19f04ee394998349774972c1381d6a7`; the preceding counted-scope splitter
+  was pushed, with local/tracking/live remote ref parity verified.
+- **Increment:** added `AllDifferentCSPScopePayload.lean`. It reuses the
+  pinned `countedRowPayloadComputer` without changing or duplicating its
+  program. The existing public theorem accepts whole sections of rows;
+  `scopePayload_outputsInTime` and `scopePayloadComputableInPolyTime` instead
+  check the same machine on one counted scope with arbitrary entry fields.
+  The exact output removes only the length field and takes at most `2s+1`
+  steps, including empty scopes, reversal and scratch cleanup.
+- **Composition:** added `AllDifferentCSPScopeExtraction.lean`.
+  `scopeHeadPayloadComputableInPolyTime` composes the counted split and
+  pair-left header removal, preserving the exact remaining section.
+  `scopeExtractionComputableInPolyTime` then applies the pinned pair-right
+  adapter to preserve both binary endpoints. It starts at the contiguous
+  nonempty scope payload, including the endpoints in its input length, and
+  includes all parsing, copying, transfer and cleanup in a standard
+  `TM2ComputableInPolyTime` witness.
+- **Progress/correspondence:** `output_length_balance` charges precisely the
+  removed count bits and delimiter; `remaining_length_lt` proves strict
+  shrinkage even for empty scopes, and `query_length_le` bounds the pending
+  membership query by the actual original state length. `adjacent_step`
+  identifies the same-scope answer and unchanged tail question with the exact
+  primal-graph recurrence. Checked examples include empty scopes, zero and
+  repeated entries, large endpoints, and endpoints in separate scopes.
+  These lemmas do not claim that query routing or the repeated OR driver
+  has been implemented.
+- **Verification:** direct module checks and targeted payload build pass.
+  Final full `lake build` passes (3192 jobs); all 400 axiom lists use
+  only the three standard axioms, with eight further axiom-free reports.
+  Nine new headline audits use only `propext`, `Classical.choice`, `Quot.sound`
+  (the recurrence uses only `propext` and `Quot.sound`). Both new modules are
+  warning-free; existing dependency and three structural-module warnings
+  remain. The comment/string-aware forbidden-code scan passes all 62 project
+  Lean source/config files; `git diff --check` passes. Root imports, README
+  and theorem-status catalogue/detail are synchronized. The full
+  `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / exact APIs:** `stacks` is a reserved Lean token;
+  renamed the local configuration helper `stackContents`. The pinned TM2
+  configuration has no `TM2.Cfg.ext`, and no public
+  `MachineComposition.evalsToInTimeMono` is available here. Definitional
+  reduction followed by constructor congruence proves imported transitions;
+  a structure update of `steps_le_m` weakens the time bound. Query-size
+  simplification needed `Nat.add_assoc`. Broad simplification of composition
+  witnesses expanded only one side's tagged pair encoding; returning the
+  already definitionally equal witness directly (`exact composed/lifted`)
+  avoids the mismatch. Only final successful checks/audits count as evidence.
+- **Preservation / ending state:** sibling stays clean at `8fd9e1c`; thesis
+  stays at `f1107f5` with the same twelve dirty statuses and binary-diff hash
+  recorded above. Pins unchanged. Two verified increments completed; this
+  second increment is ready for commit/push. Final parity goes in automation memory.
+- **Best next target:** route the extracted endpoint/head/tail state into a
+  same-scope query and retained endpoint/tail state, duplicating the endpoints
+  with a checked finite pass. Compose the existing co-occurrence predicate,
+  Boolean OR accumulator and empty/nonempty control into an actual scope loop;
+  then build the bounded pair driver. Sorted/deduplicated positive rows, full
+  objective assembly and final prime selection composition remain open.
+- **Run time:** 2026-09-27 19:36:13 UTC (28 September AEST).

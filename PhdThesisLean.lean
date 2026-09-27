@@ -55,3 +55,5 @@ import PhdThesisLean.AllDifferentCSPNegativeRows
 import PhdThesisLean.AllDifferentCSPBoundedSections
 import PhdThesisLean.AllDifferentCSPScopeQueries
 import PhdThesisLean.AllDifferentCSPScopeCooccurrence
+import PhdThesisLean.AllDifferentCSPScopePayload
+import PhdThesisLean.AllDifferentCSPScopeExtraction
