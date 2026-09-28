@@ -723,7 +723,21 @@ No split, copied index or membership answer is supplied externally.
 `ScopeTest.output_length_balance` accounts for replacing the first counted
 scope with one Boolean cell, so the complete result never grows, including
 empty scopes. `result_eq_true` and `adjacent_step` give the exact same-scope
-semantics and primal-edge recurrence. The repeated OR traversal and bounded
+semantics and primal-edge recurrence.
+
+`AllDifferentCSPScopeAccumulator.lean` combines the old and tested answers by
+Boolean OR, copies the full retained state in order, and clears all scratch
+stacks in at most `2s+3` steps. It removes exactly one Boolean cell.
+`AllDifferentCSPScopeIteration.lean` composes extraction, query construction,
+both membership tests and accumulation as `scopeIterationComputableInPolyTime`.
+`nonempty_encode` proves that a nonempty loop state already has the exact
+iteration wire format. `adjacent_invariant` preserves the accumulated answer
+OR the remaining adjacency question. `output_length_balance` charges the
+precise counted head removed, and `output_length_lt` proves strict progress
+even for empty scopes. The executable recursion `finish` agrees with the exact
+primal-edge predicate by `finish_false_eq_adjacent`, including repeated and
+empty scopes. This semantic recursion is not yet a finite repeated dispatcher
+or a total machine-runtime theorem. The repeated scope traversal and bounded
 pair driver remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

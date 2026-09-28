@@ -191,7 +191,7 @@ private def left_run (left output : List Output) (state : State) :
       simpa [List.reverse_cons, List.append_assoc, Nat.add_assoc, Nat.add_comm,
         Nat.add_left_comm] using seq h (ih _ _)
 
-/-- Routing preserves each query's canonical order and clears both work stacks. -/
+/-- Routing preserves the query and continuation order and clears both work stacks. -/
 private def run (input : List Input) :
     Run (cfg (some .scan) (none, none) input [] [] [])
       (cfg none (none, none) [] [] []
@@ -240,7 +240,7 @@ private theorem routed_encode (input : ScopeRouting.Input) :
 
 end ScopeRoutingMachine
 
-/-- Construct both queries in at most `3s+3` finite-machine steps, including
+/-- Construct the query and continuation in at most `3s+3` finite-machine steps, including
 endpoint duplication, every head/tail cell and final cleanup. -/
 def scopeRouting_outputsInTime (input : ScopeRouting.Input) :
     TM2OutputsInTime ScopeRoutingMachine.computer (ScopeRouting.inputFinEncoding.encode input)

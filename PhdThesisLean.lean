@@ -59,3 +59,5 @@ import PhdThesisLean.AllDifferentCSPScopePayload
 import PhdThesisLean.AllDifferentCSPScopeExtraction
 import PhdThesisLean.AllDifferentCSPScopeRouting
 import PhdThesisLean.AllDifferentCSPScopeTest
+import PhdThesisLean.AllDifferentCSPScopeAccumulator
+import PhdThesisLean.AllDifferentCSPScopeIteration

@@ -5090,3 +5090,62 @@
   Bounded pair scanning, positive/full objective assembly and final prime
   selection composition remain open.
 - **Run time:** 2026-09-28 19:20:53 UTC (29 September AEST).
+
+## 2026-09-29 — compose one complete scope iteration with Boolean accumulation
+
+- **Starting commit:** `370aaa6c62a449e195c50829bddeb610cd839f69`; the preceding
+  routing/test increment was pushed, with local/tracking/live remote parity
+  verified and a clean worktree before this increment.
+- **Increment:** added `AllDifferentCSPScopeAccumulator.lean`. Its concrete
+  three-stack finite machine consumes the old and tested Boolean answers,
+  combines them with OR, restores the exact endpoint/tail state in order,
+  and halts with cleared scratch stacks. `scopeAccumulator_outputsInTime`
+  and `scopeAccumulatorComputableInPolyTime` prove a `2s+3` bound in complete
+  input wire length; `output_length_balance` proves exactly one cell is removed.
+- **Composition:** added `AllDifferentCSPScopeIteration.lean`.
+  `scopeIterationComputableInPolyTime` lifts the complete one-scope test through
+  the pinned pair-right adapter, preserving the old answer, then runs the
+  accumulator. This includes extraction, all endpoint copies, both membership
+  calls, transfers and cleanup. `nonempty_encode` proves an ordinary nonempty
+  loop state already has the exact required wire format. `adjacent_invariant`
+  preserves the accumulated answer OR the remaining primal-edge question.
+  `output_length_balance` accounts for precisely the complete counted head
+  removed; `output_length_lt` proves strict progress even for empty scopes.
+- **Semantic boundary:** executable `finish` recursively applies the checked
+  step. `finish_false_eq_adjacent` proves exact agreement with primal-edge
+  co-occurrence. Examples distinguish matches in one scope from endpoints in
+  different scopes, cover repeated entries and empty scopes, and preserve a
+  previously true answer. This recursion is not yet a finite repeated
+  dispatcher or a total runtime proof; the full corollary remains **Partial**.
+- **Verification:** direct iteration check and targeted accumulator build pass.
+  Full `lake build` passes (3196 jobs); all 418 axiom lists use only `propext`,
+  `Classical.choice`, `Quot.sound`, with eight additional axiom-free reports.
+  Nine new headline audits pass. Comment/string-aware forbidden-code scan
+  passes all 66 project Lean source/config files; `git diff --check` passes.
+  New modules are warning-free; existing warnings remain. Root imports,
+  README and theorem-status catalogue/detail are synchronized. Clarified two
+  routing comments to call its second output the continuation.
+- **Failed approaches / exact proof evidence:** commutative rewriting before
+  simplification left the trivial length goal `1 + (1 + n) = 2 + n`; removing
+  the unnecessary commutativity arguments let the standard simp set close it.
+  A following `omega` was then redundant and removed. For iteration lengths,
+  `omega` treated lengths under reducible `ScopeTest.inputFinEncoding` and
+  `ScopeExtraction.inputFinEncoding` (and the output aliases) as different
+  atoms. Explicit `dsimp only` of those encoding aliases before arithmetic
+  resolved this. Failed exploratory axiom output containing `sorryAx` is not
+  evidence; every final successful audit uses only the three standard axioms.
+  No unresolved API blocker.
+- **Preservation / ending state:** sibling remains clean at `453022e`; thesis
+  remains at `f1107f5`, with the same twelve dirty statuses and binary-diff hash
+  recorded above. Pins unchanged. This verified increment is ready for
+  commit/push; final parity is recorded in automation memory.
+- **Best next target:** implement the finite scope dispatcher using this
+  iteration witness. Scan the `Bool × (endpoint pair × counted scope payload)`
+  wire for scope-tagged cells; even an empty first scope has a delimiter.
+  Use `nonempty_encode` to load the body without an external split, reuse the
+  checked loop/transfer pattern, and charge every cycle using strict length
+  shrinkage. Exit must retain or emit the accumulated Boolean and clear all
+  endpoint/work stacks. Then initialize the scan for each bounded pair and
+  compose the existing negative-row emitter. Positive-row construction,
+  complete objective assembly and final prime composition remain open.
+- **Run time:** 2026-09-28 19:27:22 UTC (29 September AEST).
