@@ -708,9 +708,23 @@ in its standard finite-machine polynomial bound. `output_length_balance`
 charges precisely the removed count bits and delimiter; `remaining_length_lt`
 proves strict progress, and `query_length_le` bounds the next membership query
 by the actual incoming state length. `adjacent_step` connects the extracted
-head and unchanged tail to the exact primal-edge recurrence. The finite pass
-that routes and duplicates endpoints for the predicate and retained state,
-the repeated OR traversal, and the bounded pair driver remain open.
+head and unchanged tail to the exact primal-edge recurrence.
+
+`AllDifferentCSPScopeRouting.lean` now constructs both the predicate query and
+its continuation, duplicating the binary endpoints while preserving the exact
+head and tail order. `scopeRoutingComputableInPolyTime` proves `3s+3` steps
+including restoration and scratch cleanup. `ScopeRouting.output_length`
+charges exactly one extra copy of the two endpoints and bounds output by `2s`.
+`AllDifferentCSPScopeTest.lean` composes extraction, routing and the existing
+co-occurrence machine through the pinned pair-left adapter.
+`scopeTestComputableInPolyTime` starts at the unsplit nonempty counted section
+and returns the first scope's answer with both endpoints and the entire tail.
+No split, copied index or membership answer is supplied externally.
+`ScopeTest.output_length_balance` accounts for replacing the first counted
+scope with one Boolean cell, so the complete result never grows, including
+empty scopes. `result_eq_true` and `adjacent_step` give the exact same-scope
+semantics and primal-edge recurrence. The repeated OR traversal and bounded
+pair driver remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

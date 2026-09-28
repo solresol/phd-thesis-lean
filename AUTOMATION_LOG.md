@@ -5039,3 +5039,54 @@
   then build the bounded pair driver. Sorted/deduplicated positive rows, full
   objective assembly and final prime selection composition remain open.
 - **Run time:** 2026-09-27 19:36:13 UTC (28 September AEST).
+
+## 2026-09-29 — route and test one scope from the counted source
+
+- **Starting commit:** `00e1dab5f5c402116b622b54b60b19e8467bbda2`;
+  clean `main`, fetched upstream unchanged. Read instructions, current theorem
+  status, relevant README/Lean sources, recent automation memory/log, and the
+  active thesis corollary and proof.
+- **Read-only context:** thesis remains `f1107f5`, with twelve dirty statuses
+  and binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  Sibling `lean-np-hardness` is clean at `453022e`; reviewed its checked
+  pair-left/pair-right composition and newer canonical membership cleanup.
+  The latter uses the framed certificate interface and does not provide this
+  raw scope router. Reused the pinned pair adapters and composition unchanged;
+  sibling, thesis, dependency pin and toolchain are untouched.
+- **Increment:** added `AllDifferentCSPScopeRouting.lean`. Its concrete
+  four-stack finite machine duplicates the two binary endpoints and routes
+  the intact extracted scope and exact counted tail to the predicate and
+  continuation respectively. `scopeRouting_outputsInTime` and
+  `scopeRoutingComputableInPolyTime` prove `3s+3` steps, including all copying,
+  order restoration and scratch cleanup. `ScopeRouting.output_length` charges
+  exactly one extra endpoint copy; full output is at most `2s`.
+- **Composition:** added `AllDifferentCSPScopeTest.lean`.
+  `scopeTestComputableInPolyTime` composes extraction, routing and the existing
+  one-scope predicate using the pinned pair-left adapter. It starts with the
+  original contiguous nonempty counted scope section and both endpoints;
+  no split, copied endpoint or answer is assumed as an external input.
+  `result_eq_true` and `adjacent_step` establish exact same-scope semantics.
+  `output_length_balance` shows the complete result replaces the first counted
+  scope with one Boolean cell, hence never grows even for empty scopes.
+  Checked examples cover empty scopes, zero/repeated/large endpoints, and
+  rejection of endpoints occurring only in different scopes.
+- **Verification:** direct module checks and targeted routing build pass.
+  Full `lake build` passes (3194 jobs). Nine new headline audits pass;
+  all 409 build axiom lists use only `propext`, `Classical.choice`, `Quot.sound`,
+  with eight additional axiom-free reports. Comment/string-aware scan passes
+  all 64 project Lean source/config files; `git diff --check` passes. New
+  modules are warning-free; pre-existing warnings remain. Root imports,
+  README and theorem-status catalogue/detail are synchronized. The full
+  `cor:all-different-csp` remains **Partial**.
+- **Failed approaches / useful APIs:** no proof/API blocker. Removed three
+  redundant simp arguments for reducible encoding aliases. An initial direct
+  dependent check ran before the routing build produced its `.olean`; reran
+  after successful dependency completion. Only successful final checks count.
+- **Ending state / next target:** verified increment ready for commit/push;
+  parity is recorded in automation memory. Next compose Boolean OR
+  accumulation with this test, proving a strictly shrinking complete iteration,
+  then implement finite empty/nonempty control and repeated scope traversal.
+  Bounded pair scanning, positive/full objective assembly and final prime
+  selection composition remain open.
+- **Run time:** 2026-09-28 19:20:53 UTC (29 September AEST).
