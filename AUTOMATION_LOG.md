@@ -5197,3 +5197,52 @@
   loop. The bounded pair driver, positive rows, complete objective assembly,
   and final prime-selection composition remain open.
 - **Run time:** 2026-09-29 19:20 UTC (30 September AEST).
+
+## 2026-09-30 — initialized complete adjacency queries
+
+- **Starting commit:** `d536401d757ce3a15b383586d368d1a75210e02e`;
+  the preceding dispatcher/runtime increment was pushed, with clean tree and
+  local HEAD, tracking ref and live remote main all equal before this increment.
+- **Increment:** added `AllDifferentCSPScopeInitialization.lean`. Its finite
+  two-pass machine preserves the complete endpoint/counted-scope query and
+  prepends a false Boolean accumulator. `scopeInitialization_outputsInTime`
+  and `scopeInitializationComputableInPolyTime` prove `2s+2` steps with every
+  scratch stack cleared; `ScopeInitialization.output_length` proves exactly
+  one cell is added, even for zero endpoints and an empty scope section.
+- **Composition:** `scopeAdjacencyComputableInPolyTime` composes initialization
+  and the complete finite loop through the pinned generic composition API.
+  It computes `PrimalEdgeEnumeration.adjacent` from the bare serialized pair
+  and counted scopes, including all queries, scope tests, transfers and cleanup.
+  No externally supplied answer, scope split or prepared query is assumed.
+- **Bounded-call interface:** `scopeAdjacency_query_length_le` bounds the
+  entire query by twice the retained `BoundedRelabelledSections` wire length,
+  for endpoints below its unary variable tally. `scopeAdjacency_steps_le`
+  bounds each complete call by the composed polynomial at that doubled length.
+  These lemmas support the next pair scan; they do not supply its query-copying
+  or repeated-driver machines. Checked examples distinguish separate-scope
+  occurrences from a shared scope and cover empty lists/scopes, zero/equal
+  endpoints, repeated entries and a large binary endpoint.
+- **Verification:** direct module check and final full `lake build` pass
+  (3199 jobs). Seven new audits pass; full build has 435 standard-only axiom
+  lists and eight axiom-free reports, using only `propext`, `Classical.choice`,
+  `Quot.sound`. Comment/string-aware prohibited-code scan passes all 69 project
+  Lean source/config files; `git diff --check` passes. New modules have no
+  warnings; the existing dependency/three structural warnings remain.
+  Root imports, README, theorem-status catalogue/detail and one-scope
+  correspondence comments are synchronized. Full corollary stays **Partial**.
+- **Failed approaches / useful API:** no proof/API blocker. Replaced a
+  redundant `<;>` from the local initialization template with a direct `omega`
+  proof; final build is warning-free in the new module. Reused upstream
+  `compositionComputableInPolyTime`, `polynomial_eval_mono` and the checked
+  binary length bound, with no sibling/dependency edits.
+- **Preservation / ending:** sibling remains clean at `1856a95`; thesis remains
+  `f1107f5` with the same twelve dirty statuses and binary-diff hash recorded
+  above. Verified increment ready for commit/push; final parity is recorded in
+  automation memory.
+- **Best next target:** build the finite outer candidate-pair scan on
+  `BoundedRelabelledSections`: construct/copy each endpoint/scope query while
+  retaining the unary bound, full scopes, scan counters and emitted pairs;
+  call this adjacency witness, filter increasing endpoints, and advance the
+  bounded grid. Then compose negative-row emission. Positive-row construction,
+  full objective assembly and final prime-selection composition remain open.
+- **Run time:** 2026-09-29 19:25 UTC (30 September AEST).

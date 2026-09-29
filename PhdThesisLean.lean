@@ -63,3 +63,4 @@ import PhdThesisLean.AllDifferentCSPScopeAccumulator
 import PhdThesisLean.AllDifferentCSPScopeIteration
 import PhdThesisLean.AllDifferentCSPScopeLoopMachine
 import PhdThesisLean.AllDifferentCSPScopeLoop
+import PhdThesisLean.AllDifferentCSPScopeInitialization

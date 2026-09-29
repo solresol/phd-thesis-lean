@@ -746,8 +746,17 @@ at most `(s+1) * (P(s)+4s+4)` steps, where `P` is the checked iteration's
 polynomial and `s` is the original full state encoding length. The bound
 includes scans, loading, all body calls, return transfers, and final cleanup.
 `scopeLoop_adjacent_outputsInTime` proves exact adjacency from a false initial
-accumulator. Constructing that initial state from a bare endpoint/scope query
-and the bounded pair driver remain open.
+accumulator. `AllDifferentCSPScopeInitialization.lean` now constructs that
+false accumulator from the bare serialized endpoints and counted scope section
+in `2s+2` steps, adding exactly one cell. Its composed
+`scopeAdjacencyComputableInPolyTime` decides whether both endpoints occur in
+one common scope, including initialization, all scope tests and cleanup.
+`scopeAdjacency_query_length_le` bounds the complete query by twice the
+retained intermediate length for a pair bounded by its unary variable tally;
+`scopeAdjacency_steps_le` supplies a uniform polynomial bound for that call.
+Building each query while retaining the outer scan state and the bounded
+pair dispatcher remain open, followed by positive rows, full objective
+assembly and final prime-selection composition.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

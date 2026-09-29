@@ -6,8 +6,8 @@ import PhdThesisLean.AllDifferentCSPScopeQueries
 Prepare both membership queries, execute the existing raw-field membership
 machine twice through the checked pair adapters, and conjoin the two answers.
 All preparation, transfers and cleanup are included in the composed polynomial.
-This is the one-scope predicate; traversing counted scopes and the bounded pair
-grid still requires an outer finite dispatcher.
+This is the one-scope predicate. The scope-loop and initialization modules
+compose complete counted-scope traversal; the bounded pair grid remains open.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine
