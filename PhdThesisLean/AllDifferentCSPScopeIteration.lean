@@ -6,7 +6,7 @@ import PhdThesisLean.AllDifferentCSPScopeAccumulator
 Compose extraction, endpoint copying, same-scope membership testing and OR
 accumulation. Each iteration consumes one complete counted scope, including
 empty scopes, without losing either endpoint or any later scope. The finite
-repeated dispatcher and its total runtime remain separate obligations.
+repeated dispatcher and its total runtime are proved in the scope-loop modules.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine
@@ -70,7 +70,7 @@ theorem output_length_lt (input : Input) :
   have count := ScopePayload.input_length input.2.2.1
   omega
 
-/-- Executable specification of the future repeated dispatcher. -/
+/-- Executable specification realized by the checked scope-loop dispatcher. -/
 def finish (endpoints : ℕ × ℕ) : List (List ℕ) → Bool → Bool
   | [], answer => answer
   | scope :: scopes, answer => finish endpoints scopes (step (answer, endpoints, scope, scopes)).1
@@ -85,7 +85,7 @@ theorem finish_eq (endpoints : ℕ × ℕ) (scopes : List (List ℕ)) (answer : 
       exact adjacent_invariant (answer, endpoints, scope, scopes)
 
 /-- Starting with no match computes the exact existential co-occurrence predicate.
-This is semantic correspondence, not yet a repeated-machine runtime theorem. -/
+The scope-loop module supplies the separate repeated-machine runtime theorem. -/
 theorem finish_false_eq_adjacent (endpoints : ℕ × ℕ) (scopes : List (List ℕ)) :
     finish endpoints scopes false = PrimalEdgeEnumeration.adjacent scopes endpoints.1 endpoints.2 := by
   simpa using finish_eq endpoints scopes false

@@ -5149,3 +5149,51 @@
   compose the existing negative-row emitter. Positive-row construction,
   complete objective assembly and final prime composition remain open.
 - **Run time:** 2026-09-28 19:27:22 UTC (29 September AEST).
+
+## 2026-09-30 — finite repeated scope traversal and total runtime
+
+- **Starting commit:** `f7360d802ebb30a36eba67c4a8aa7d8509b5f18e`;
+  clean `main`, fetched upstream unchanged. Read repository instructions,
+  theorem catalogue, relevant README/Lean, active thesis corollary/proof,
+  and recent automation memory/log before choosing this increment.
+- **Read-only context:** sibling `lean-np-hardness` is clean at `1856a95`.
+  Reviewed its new framed membership polynomial witness, pair adapters and
+  checked composition/runtime APIs. The framed interface does not replace
+  this raw counted-scope dispatcher; reused the pinned iteration and polynomial
+  monotonicity without changing dependency `ad20a2e` or the toolchain. The local
+  rank loop provides the checked control/transfer pattern; no reusable generic
+  scope dispatcher was found upstream. Thesis remains at `f1107f5` with twelve
+  dirty statuses and binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Declarations/files:** added `AllDifferentCSPScopeLoopMachine.lean` with
+  finite scope-cell detection, body embedding, ordered entry/return transfers,
+  `iteration_cycle` and `exit_run`. `source_present` proves a counted empty
+  scope cannot be confused with an exhausted list. The body's halt returns
+  to the dispatcher; final exit emits the exact Boolean and clears every
+  endpoint, scratch and body stack.
+- Added `AllDifferentCSPScopeLoop.lean`: `scopes_length_le_state`,
+  `run_bounded`, `outputsInTime`, `scopeLoopComputableInPolyTime` and
+  `scopeLoop_adjacent_outputsInTime`. Every iteration strictly shrinks the
+  complete wire. Total runtime is `(s+1) * (P(s)+4s+4)` for original encoded
+  length `s` and the checked iteration polynomial `P`, including all scans,
+  calls, transfers and cleanup. With a false accumulator the exact result is
+  existential co-occurrence in one scope. No numeric-magnitude/unit-cell
+  substitution is made. README, theorem status, root imports and iteration
+  correspondence comments are synchronized; the full corollary is **Partial**.
+- **Checks:** direct module checks, targeted dispatcher build, and full
+  `lake build` pass (3198 jobs). Ten new headline audits use only `propext`,
+  `Classical.choice`, `Quot.sound`; full build has 428 standard-only axiom lists
+  and eight axiom-free reports. Comment/string-aware prohibited-code scan
+  passes all 68 project Lean source/config files; `git diff --check` passes.
+  New modules are warning-free; existing dependency/structural warnings remain.
+- **Failed experiment:** the scope-count induction initially left tuple
+  projections unreduced, so `omega` treated the tail's scope count as a
+  separate arithmetic atom. `dsimp only at tail` and the goal before arithmetic
+  resolves it. Removed redundant alias simp arguments. Only the successful
+  final checks/audits count as evidence; no unresolved API blocker.
+- **Ending state / next:** verified increment ready for commit/push; remote
+  parity is recorded in automation memory. Next construct the false initial
+  state from the bare endpoint/counted-scope query and compose it with this
+  loop. The bounded pair driver, positive rows, complete objective assembly,
+  and final prime-selection composition remain open.
+- **Run time:** 2026-09-29 19:20 UTC (30 September AEST).

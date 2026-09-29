@@ -736,9 +736,18 @@ OR the remaining adjacency question. `output_length_balance` charges the
 precise counted head removed, and `output_length_lt` proves strict progress
 even for empty scopes. The executable recursion `finish` agrees with the exact
 primal-edge predicate by `finish_false_eq_adjacent`, including repeated and
-empty scopes. This semantic recursion is not yet a finite repeated dispatcher
-or a total machine-runtime theorem. The repeated scope traversal and bounded
-pair driver remain open.
+empty scopes. `AllDifferentCSPScopeLoopMachine.lean` now supplies the finite
+dispatcher: it scans for counted scope cells, loads the complete iteration,
+returns its output in order, and clears all work stacks on exit. An empty
+scope has a count delimiter and cannot be mistaken for an exhausted list.
+`AllDifferentCSPScopeLoop.lean` proves the complete repeated execution.
+`scopeLoopComputableInPolyTime` computes the accumulated adjacency answer in
+at most `(s+1) * (P(s)+4s+4)` steps, where `P` is the checked iteration's
+polynomial and `s` is the original full state encoding length. The bound
+includes scans, loading, all body calls, return transfers, and final cleanup.
+`scopeLoop_adjacent_outputsInTime` proves exact adjacency from a false initial
+accumulator. Constructing that initial state from a bare endpoint/scope query
+and the bounded pair driver remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
