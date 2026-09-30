@@ -5246,3 +5246,45 @@
   bounded grid. Then compose negative-row emission. Positive-row construction,
   full objective assembly and final prime-selection composition remain open.
 - **Run time:** 2026-09-29 19:25 UTC (30 September AEST).
+
+
+## 2026-10-01 — construct both candidate queries and retain the full scan state
+
+- **Starting commit:** `bde860ebaee405ae9a731ffc74294fe36ffd51db`;
+  clean `main`, fetched upstream unchanged, local/tracking/live main equal.
+  Read instructions, theorem status, relevant README/Lean, the active thesis
+  corollary/proof, and recent automation memory/log before this increment.
+- **Read-only review:** sibling `lean-np-hardness` is clean at `0e178bb`.
+  Its new `BooleanCopy.whole_word` restores a separately loaded Boolean
+  certificate and ends at a live continuation, not canonical `haltList`.
+  It does not supply this mixed-alphabet CSP routing contract. Reused existing
+  pair encodings, composition/runtime APIs and local routing proof patterns;
+  dependency remains `ad20a2e`, with no sibling edits. Active thesis remains
+  `f1107f5` with twelve dirty statuses and unchanged binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Increment:** added `AllDifferentCSPPairQueries.lean`.
+  `PairQueries.inputFinEncoding` checks binary candidate endpoints, ranked
+  domain occurrences, the unary variable bound, intact scopes and accumulated
+  edge rows. `pairQueries_outputsInTime` and `pairQueriesComputableInPolyTime`
+  construct both strict-comparison and complete counted-scope queries while
+  retaining that entire state, in at most `4s+4` finite-machine steps.
+  All copies, ordered restoration, exhaustion transitions and scratch cleanup
+  are included. `output_length` charges two extra endpoint copies and one
+  scope-section copy; `output_length_le` bounds complete output by `3s`.
+- **Verification:** direct module check, targeted build (3175 jobs), and full
+  `lake build` (3200 jobs) pass. Six new audits pass: five use only `propext`,
+  `Classical.choice`, `Quot.sound`, and retention is axiom-free. The full build
+  has 440 standard-only axiom lists and nine axiom-free reports. Prohibited-code
+  scan and `git diff --check` pass. Root import, README and both theorem-status
+  correspondence locations are synchronized. New module warning-free; existing
+  dependency/structural warnings remain. Full corollary stays **Partial**.
+- **Failed approaches / blockers:** no proof/API failure in this increment.
+  The generic sibling copy kernel has a different input alphabet and endpoint
+  contract; no dependency upgrade or generic foundation duplication was needed.
+- **Ending state / next:** this verified increment is ready for commit/push;
+  parity is recorded in automation memory. The separate candidate-test module
+  is in progress and excluded from this commit. Next compose binary comparison,
+  full adjacency and conjunction while retaining state, then implement bounded
+  pair advancement and conditional edge emission. Positive rows, complete
+  objective assembly and final prime-selection composition remain open.
+- **Run time:** 2026-09-30 19:22 UTC (1 October AEST).

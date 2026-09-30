@@ -754,9 +754,16 @@ one common scope, including initialization, all scope tests and cleanup.
 `scopeAdjacency_query_length_le` bounds the complete query by twice the
 retained intermediate length for a pair bounded by its unary variable tally;
 `scopeAdjacency_steps_le` supplies a uniform polynomial bound for that call.
-Building each query while retaining the outer scan state and the bounded
-pair dispatcher remain open, followed by positive rows, full objective
-assembly and final prime-selection composition.
+`AllDifferentCSPPairQueries.lean` now constructs strict-order and complete
+adjacency queries from the serialized candidate-pair state. Its checked
+`PairQueries.inputFinEncoding` retains binary endpoints, ranked occurrences,
+the unary variable count, full scopes and previously emitted edge rows.
+`pairQueriesComputableInPolyTime` copies and restores every required cell in
+`4s+4` steps and clears all scratch stacks. `PairQueries.output_length` charges
+two extra endpoint copies and one complete scope copy; output is at most `3s`.
+Composing both candidate predicates with this retained state and implementing
+the bounded pair dispatcher remain open, followed by positive rows, full
+objective assembly and final prime-selection composition.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
