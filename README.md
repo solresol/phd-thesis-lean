@@ -761,8 +761,18 @@ the unary variable count, full scopes and previously emitted edge rows.
 `pairQueriesComputableInPolyTime` copies and restores every required cell in
 `4s+4` steps and clears all scratch stacks. `PairQueries.output_length` charges
 two extra endpoint copies and one complete scope copy; output is at most `3s`.
-Composing both candidate predicates with this retained state and implementing
-the bounded pair dispatcher remain open, followed by positive rows, full
+`AllDifferentCSPPairTest.lean` composes those queries with the existing binary
+comparison, full adjacency traversal and finite conjunction.
+`pairTestComputableInPolyTime` returns precisely the increasing-endpoint,
+same-scope filter while retaining the complete state, adding one answer cell.
+`accept_iff_mem_enumerate` identifies it with the checked edge enumeration for
+bounded candidates, and `accept_ofRuntimeSystem` connects it to the thesis
+primal graph. `state_length_le_cubic` bounds a candidate state with at most
+`n^2` bounded emitted edges by `12(s+1)^3` cells in the original retained-section
+length `s`; `pairTest_bounded_steps_le` supplies the corresponding uniform
+polynomial bound for a complete call. These are conditional bounds for the
+outer loop: initialization, bounded pair advancement, conditional edge emission
+and the repeated dispatcher remain open, followed by positive rows, full
 objective assembly and final prime-selection composition.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

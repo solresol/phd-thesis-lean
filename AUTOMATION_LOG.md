@@ -5288,3 +5288,56 @@
   pair advancement and conditional edge emission. Positive rows, complete
   objective assembly and final prime-selection composition remain open.
 - **Run time:** 2026-09-30 19:22 UTC (1 October AEST).
+
+
+## 2026-10-01 — compose the complete candidate-edge filter with state retention
+
+- **Starting commit:** `96bfbf2920815b3af56454d2ef0eeaad7fa9ce1a`;
+  query-routing increment pushed and local/tracking/live main parity verified.
+  Only the separately identified candidate-test work remained uncommitted.
+- **Increment:** added `AllDifferentCSPPairTest.lean`.
+  `pairQueryTestComputableInPolyTime` composes the existing serialized binary
+  strict comparison, complete initialized adjacency traversal, and finite
+  conjunction using the pinned pair adapters. `pairTestComputableInPolyTime`
+  composes query construction and retains all original scan state, so no
+  comparison, adjacency answer or duplicated source is supplied externally.
+  Preparation, all scope iterations, every transfer and cleanup are charged
+  in the standard `TM2ComputableInPolyTime` witness.
+- **Semantics and size:** `accept_eq_true` requires increasing endpoints in
+  one common scope; `accept_iff_mem_enumerate` identifies the exact existing
+  edge filter for bounded candidates. `accept_ofRuntimeSystem` connects it
+  directly to the thesis primal graph on compiler-produced sections.
+  `retained_eq` preserves the whole input, and `output_length` charges exactly
+  one added answer cell. `state_length_le_cubic` proves `12(s+1)^3` cells for
+  a bounded candidate with at most `n^2` bounded accumulated edges, measured
+  against immutable section length `s`; `pairTest_bounded_steps_le` bounds a
+  complete call by its polynomial at that cubic argument. These hypotheses
+  must still be established by the future outer dispatcher.
+- **Verification:** direct module check and full `lake build` pass (3201 jobs).
+  Ten new headline audits pass; nine use only `propext`, `Classical.choice`,
+  `Quot.sound`, while retention is axiom-free. Full build has 449 standard-only
+  axiom lists and ten axiom-free reports. The comment/string-aware prohibited
+  code scan passes all 71 Lean source/config files; `git diff --check` passes.
+  Examples cover separate scopes, overlapping/repeated scopes, empty scopes,
+  reverse/self-pairs, a large binary endpoint and an entirely empty state.
+  New modules warning-free; existing warnings unchanged. Root import, README,
+  theorem-status catalogue/detail and log synchronized. Corollary **Partial**.
+- **Failed approach / exact error:** the empty-state example's `by decide`
+  failed to synthesize `Decidable (evaluate ... = ...)` through the nested
+  output abbreviation. Its equality reduces definitionally, so `rfl` closes
+  the example without a new instance or computational shortcut. Removed an
+  unnecessary integer square hypothesis from the cubic natural-number proof;
+  bare `nlinarith` passes. No unresolved API blocker; failed exploratory
+  output is not counted as audit evidence.
+- **Preservation:** sibling remains clean at `0e178bb`; thesis remains
+  `f1107f5` with its same twelve dirty statuses and binary-diff hash above.
+  Dependency and toolchain unchanged. Verified increment ready for commit/push;
+  final remote parity is recorded in automation memory.
+- **Best next target:** build initialization and bounded pair advancement on
+  `PairQueries.Input`, with an empty-accumulator seed and explicit zero-variable
+  exit. Add conditional ordered edge-row emission from `PairTest.evaluate`,
+  then a finite repeated dispatcher maintaining bounded counters, at most
+  `n^2` accumulated rows, and a decreasing grid budget. Compose the existing
+  negative-row emitter only after that enumeration machine is checked.
+  Positive rows, complete objective assembly and final prime composition remain.
+- **Run time:** 2026-09-30 19:25 UTC (1 October AEST).
