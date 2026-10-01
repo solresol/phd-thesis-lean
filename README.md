@@ -771,9 +771,14 @@ primal graph. `state_length_le_cubic` bounds a candidate state with at most
 `n^2` bounded emitted edges by `12(s+1)^3` cells in the original retained-section
 length `s`; `pairTest_bounded_steps_le` supplies the corresponding uniform
 polynomial bound for a complete call. These are conditional bounds for the
-outer loop: initialization, bounded pair advancement, conditional edge emission
-and the repeated dispatcher remain open, followed by positive rows, full
-objective assembly and final prime-selection composition.
+outer loop. `AllDifferentCSPPairInitialization.lean` now constructs the exact
+zero-endpoint, empty-edge state in `2s+2` steps, preserving its wire length.
+`runtimeCompilerPairInitializationComputableInPolyTime` composes this from the
+actual Boolean compiler input, including complete domain relabelling and unary
+variable counting. `zero_edges` checks that zero variables yield no candidates,
+even if malformed scopes mention indices. Bounded pair advancement, conditional
+edge emission and the repeated dispatcher remain open, followed by positive
+rows, full objective assembly and final prime-selection composition.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

@@ -5341,3 +5341,42 @@
   negative-row emitter only after that enumeration machine is checked.
   Positive rows, complete objective assembly and final prime composition remain.
 - **Run time:** 2026-09-30 19:25 UTC (1 October AEST).
+
+
+## 2026-10-02 — initialize the bounded pair scan from the actual compiler input
+
+- **Starting commit:** `2fa57d87ebfe4f63bc08bc1c68824ac5112be8b7`, clean
+  `main`, fetched upstream unchanged (0/0 ahead/behind). Read repository
+  instructions, theorem status, relevant README/Lean, active thesis corollary
+  and proof, and recent automation memory/log.
+- **Read-only review:** sibling `lean-np-hardness` is clean at `560f0c3`.
+  `PreservingMembership.whole_list` retains a preloaded Boolean certificate
+  at a live continuation; loading and repeated dispatch remain absent. It
+  does not supply this mixed-alphabet CSP initial-state conversion. Reused
+  pinned encodings and checked composition APIs; dependency remains `ad20a2e`.
+  Active thesis remains `f1107f5` with twelve dirty files and unchanged
+  binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Increment:** added `AllDifferentCSPPairInitialization.lean`.
+  `pairInitialization_outputsInTime` and `pairInitializationComputableInPolyTime`
+  construct `((0,0), value, [])` with all original sections retained, in
+  `2s+2` finite-machine steps. Both copying passes, exhaustion checks and
+  canonical halt are charged; all scratch stacks are empty. Zero endpoints
+  and the empty accumulator add no cells. `zero_edges` covers zero variables
+  even with out-of-range scope entries. The composed
+  `runtimeCompilerPairInitializationComputableInPolyTime` starts at the actual
+  Boolean compiler input and includes preparation and domain relabelling.
+- **Verification:** direct Lean check and six headline axiom audits pass;
+  only `propext`, `Classical.choice`, `Quot.sound` occur, with retention
+  axiom-free. Full `lake build` passes (3202 jobs), the comment/string-aware prohibited-code
+  scan passes all 72 project Lean source/config files, and `git diff --check`
+  passes. New module warning-free; existing warnings unchanged. Root imports, README and both status
+  correspondence locations synchronized; corollary remains **Partial**.
+- **Proof repair:** simplification left `encodeNum 0` and the empty raw
+  `rowFields` encoding opaque. Explicitly unfolding `encodeNum`,
+  `CountedNatRows.rowFields` and `SourceOrderRawFields.encode` closes both
+  wire equalities. Failed exploratory diagnostics are not audit evidence.
+- **Next:** implement and verify bounded pair advancement and conditional
+  edge emission, then repeated finite dispatch. Positive rows, full objective
+  assembly and final prime composition remain open. No unresolved API blocker.
+- **Run time:** 2026-10-01 19:22 UTC (2 October AEST; rounded to minute).
