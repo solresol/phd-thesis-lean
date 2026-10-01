@@ -776,9 +776,22 @@ zero-endpoint, empty-edge state in `2s+2` steps, preserving its wire length.
 `runtimeCompilerPairInitializationComputableInPolyTime` composes this from the
 actual Boolean compiler input, including complete domain relabelling and unary
 variable counting. `zero_edges` checks that zero variables yield no candidates,
-even if malformed scopes mention indices. Bounded pair advancement, conditional
-edge emission and the repeated dispatcher remain open, followed by positive
-rows, full objective assembly and final prime-selection composition.
+even if malformed scopes mention indices. `AllDifferentCSPPairAdvance.lean`
+now defines the executable conditional emission and row-major counter step.
+`afterTest_invariant` preserves bounded counters, a bounded accumulated row
+count, sound edge membership and strict output order. `advance_budget` removes
+exactly one candidate from the grid budget; `run_position`, `run_exhausted` and
+`run_stable` prove that `n^2` steps visit the entire grid and then stop changing.
+`run_edges_eq` proves exact list equality with the existing deduplicated edge
+enumerator, and `run_ofRuntimeSystem` connects this to compiler-produced input.
+`iterate_length_le_cubic` bounds every state, including terminal and zero-variable
+states, by `12(s+1)^3`; `iterate_test_steps_le` bounds complete predicate calls
+uniformly in the original section length with no external invariant assumptions.
+The executable scan's cycle count is at most `s^2`. The finite implementation
+of counter advancement/conditional row emission and its repeated dispatcher
+still need to be checked and charged; the cycle count is not a complete machine
+runtime theorem. Positive rows, full objective assembly and final prime-selection
+composition also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

@@ -5380,3 +5380,61 @@
   edge emission, then repeated finite dispatch. Positive rows, full objective
   assembly and final prime composition remain open. No unresolved API blocker.
 - **Run time:** 2026-10-01 19:22 UTC (2 October AEST; rounded to minute).
+
+
+## 2026-10-02 — prove the bounded scan invariant and exact ordered edge output
+
+- **Starting commit:** `506204c10fa66ef0dcc4aad18143af75b0dfa183`;
+  initialization increment pushed, with HEAD/tracking/live main parity verified.
+- **Increment:** added `AllDifferentCSPPairAdvance.lean`. `afterTest` consumes
+  the actual retained-state Boolean test result, conditionally appends the
+  current pair, and advances the row-major binary endpoint values.
+  `afterTest_invariant` preserves bounded counters, at most one emitted row
+  per visited candidate, sound edge membership and strict lexicographic order.
+  `advance_budget` decreases the remaining grid budget by exactly one.
+  `run_position`, `run_exhausted`, `run_budget` and `run_stable` prove the
+  executable traversal visits exactly `n^2` candidates and then stays fixed.
+- **Exact semantics:** `run_pair_at` identifies the unique visit for every
+  bounded pair. `run_edges_eq` proves exact ordered list equality with
+  `BoundedRelabelledSections.edges`, not just inclusion; `run_ofRuntimeSystem`
+  connects this to the existing thesis primal-edge correspondence. Empty and
+  singleton grids, self/reverse pairs, overlapping/repeated scopes and
+  out-of-range scope entries are included. Terminal `(n,0)` requires no test.
+- **Bit-size / complexity boundary:** generalized the existing estimate to
+  `PairTest.state_length_le_cubic_of_le`, preserving its strict-bound API.
+  `iterate_length_le_cubic` now bounds every reached state by `12(s+1)^3`,
+  including terminal and zero-variable states, without supplied invariant
+  assumptions. `iterate_test_steps_le` supplies the full checked predicate
+  call bound at that cubic argument. `iterations_le_wire_square` bounds the
+  candidate count by `s^2` using the retained unary variable tally.
+  These are semantic iteration and size/call bounds, not a finite machine
+  for counter advancement, conditional emission or repeated dispatch.
+  The full corollary remains **Partial**.
+- **Verification:** direct Lean check and thirteen new module headline audits
+  pass; the generalized bound adds one audit. All use only `propext`,
+  `Classical.choice`, `Quot.sound`. The targeted initialization/dependency build
+  passes (3177 jobs). Full `lake build` passes (3203 jobs); all 73 project Lean
+  source/config files pass the prohibited-code scan; `git diff --check` passes.
+  Final build axiom lists contain only the three standard axioms above, with
+  no warnings in the new/changed pair modules. Root imports, README and both
+  status locations synchronized.
+- **Proof repairs:** a conditional projection needed explicit branch splitting
+  rather than `simp`; membership in a singleton needed `List.mem_singleton.mp`
+  before substitution. `omega` treated a let-bound state and an unannotated
+  inferred invariant as different arithmetic atoms; annotating `Invariant state`
+  fixed the alignment. For exact candidate visits, rewrite `Nat.min_eq_left`
+  before unfolding `ordinal`; unfolding first hides the syntactic rewrite
+  target. The final conditional uses the normalized endpoint bound `hb.1`.
+  Failed diagnostics are excluded from successful axiom evidence. No unresolved
+  Lean API blocker; no repeated failed approach from earlier runs.
+- **Next:** realize `PairAdvance.afterTest` as a finite serialized transition:
+  route/copy endpoint fields, append `[2,i,j]` only for a true result, increment
+  the inner endpoint or reset it while incrementing the outer endpoint, and
+  retain domains, unary bound and full scopes. Add serialized exhaustion
+  control and the repeated dispatcher, reusing the proved invariant, exact
+  output and grid budget. Then compose the checked negative-row emitter.
+  Positive rows, complete objective assembly and final prime composition remain.
+- **Preservation / ending:** sibling and active thesis are read-only; dependency
+  and toolchain unchanged. This verified increment is committed/pushed after
+  final checks; final hashes and remote parity are recorded in automation memory.
+- **Run time:** 2026-10-01 19:30 UTC (2 October AEST; rounded to minute).

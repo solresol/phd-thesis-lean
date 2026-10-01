@@ -61,10 +61,11 @@ theorem accept_ofRuntimeSystem (C : RuntimeSystem) (i j : Fin C.domains.length)
     BoundedRelabelledSections.edges_ofRuntimeSystem]
   exact PrimalEdgeEnumeration.mem_enumerate_iff_primalEdges C i j
 
-/-- A bounded candidate and at most a grid's worth of bounded emitted edges
-fit in a cubic number of cells in the immutable intermediate's wire length. -/
-theorem state_length_le_cubic (input : PairQueries.Input)
-    (hi : input.1.1 < input.2.1.1.2) (hj : input.1.2 < input.2.1.1.2)
+/-- Closed endpoint bounds also cover the terminal `(n,0)` state. A candidate
+and at most a grid's worth of bounded emitted edges fit in a cubic number of
+cells in the immutable intermediate's wire length. -/
+theorem state_length_le_cubic_of_le (input : PairQueries.Input)
+    (hi : input.1.1 ≤ input.2.1.1.2) (hj : input.1.2 ≤ input.2.1.1.2)
     (count : input.2.2.length ≤ input.2.1.1.2 ^ 2)
     (bounded : ∀ edge ∈ input.2.2,
       edge.1 < input.2.1.1.2 ∧ edge.2 < input.2.1.1.2) :
@@ -72,8 +73,8 @@ theorem state_length_le_cubic (input : PairQueries.Input)
       12 * ((BoundedRelabelledSections.finEncoding.encode input.2.1).length + 1) ^ 3 := by
   let s := (BoundedRelabelledSections.finEncoding.encode input.2.1).length
   have hn : input.2.1.1.2 ≤ s := BoundedRelabelledSections.variableCount_le_encode_length _
-  have hl := (BinaryNatLists.encodeNat_length_le input.1.1).trans (hi.le.trans hn)
-  have hr := (BinaryNatLists.encodeNat_length_le input.1.2).trans (hj.le.trans hn)
+  have hl := (BinaryNatLists.encodeNat_length_le input.1.1).trans (hi.trans hn)
+  have hr := (BinaryNatLists.encodeNat_length_le input.1.2).trans (hj.trans hn)
   have he := NegativeRows.outputEncode_length_le input.2.1.1.2 input.2.2 bounded
   have he' : (NegativeRows.inputEncode input.2.2).length ≤
       s ^ 2 * (2 * s + 7) := by
@@ -87,6 +88,16 @@ theorem state_length_le_cubic (input : PairQueries.Input)
   change (encodeNat input.1.1).length + (encodeNat input.1.2).length + s +
       (NegativeRows.inputEncode input.2.2).length ≤ 12 * (s + 1) ^ 3
   nlinarith
+
+/-- The active-candidate specialization of the closed-bound estimate. -/
+theorem state_length_le_cubic (input : PairQueries.Input)
+    (hi : input.1.1 < input.2.1.1.2) (hj : input.1.2 < input.2.1.1.2)
+    (count : input.2.2.length ≤ input.2.1.1.2 ^ 2)
+    (bounded : ∀ edge ∈ input.2.2,
+      edge.1 < input.2.1.1.2 ∧ edge.2 < input.2.1.1.2) :
+    (PairQueries.inputFinEncoding.encode input).length ≤
+      12 * ((BoundedRelabelledSections.finEncoding.encode input.2.1).length + 1) ^ 3 :=
+  state_length_le_cubic_of_le input hi.le hj.le count bounded
 
 example : accept ((0, 1), (([], 2), [[0], [1]]), []) = false := by decide
 example : accept ((0, 1), (([], 2), [[], [1, 0, 0], [0, 1]]), [(7, 8)]) = true := by decide
@@ -145,6 +156,7 @@ theorem pairTest_bounded_steps_le (input : PairQueries.Input)
         (12 * ((BoundedRelabelledSections.finEncoding.encode input.2.1).length + 1) ^ 3) :=
   pairTest_steps_le input _ (PairTest.state_length_le_cubic input hi hj count bounded)
 
+#print axioms PairTest.state_length_le_cubic_of_le
 #print axioms PairTest.state_length_le_cubic
 #print axioms pairTest_bounded_steps_le
 #print axioms PairTest.accept_eq_true
