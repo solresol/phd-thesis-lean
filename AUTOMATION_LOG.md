@@ -5438,3 +5438,51 @@
   and toolchain unchanged. This verified increment is committed/pushed after
   final checks; final hashes and remote parity are recorded in automation memory.
 - **Run time:** 2026-10-01 19:30 UTC (2 October AEST; rounded to minute).
+
+
+## 2026-10-03 — finite conditional edge emission with complete state retention
+
+- **Starting commit:** `c25b4387c08fa2be4b9b9ed7a0ab36b636826d54`, clean
+  `main`; fetched upstream unchanged, 0/0 ahead/behind. Read instructions,
+  status, relevant README and Lean modules, active thesis proof and recent
+  automation log/memory. `CODEX_HOME` was unset in the command environment;
+  read the supplied automation directory at `/Users/gregb/.codex/automations`.
+- **Read-only review:** sibling `lean-np-hardness` is clean at `24d007a`.
+  Its new `ReusableMembership.whole_query` extracts a framed Boolean query,
+  preserves a certificate and clears its workspace at a live continuation.
+  It supplies no mixed-alphabet conditional CSP edge-row emitter. Reused the
+  pinned pair encodings/runtime/composition APIs; dependency stays `ad20a2e`.
+  Thesis remains `f1107f5`, with the same twelve dirty files and binary-diff
+  SHA-256 `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Increment:** added `AllDifferentCSPPairEmit.lean`. `PairEmit.emit` consumes
+  the tested answer and conditionally appends exactly the counted `[2,i,j]`
+  edge row, retaining endpoints, domains, unary count, scopes and old edges.
+  `PairEmit.afterTest_eq` identifies the result with the retained portion of
+  the existing abstract advancement step. `pairEmit_outputsInTime` and
+  `pairEmitComputableInPolyTime` implement this with a concrete finite machine
+  in `4s+5` steps for the complete tested-state wire length. All copying,
+  endpoint restoration, delimiters, exhaustion transitions and scratch cleanup
+  are charged. `output_length` gives exact growth; `output_length_le` bounds
+  the entire output by `2s+5`. Empty binary words and both answer branches
+  are included; no supplied endpoint bound is required by the emitter.
+- **Verification:** direct module check and six new headline audits pass;
+  retention/abstract-step correspondence are axiom-free, the others use only
+  `propext`, `Classical.choice`, `Quot.sound`. Full `lake build` passes
+  (3204 jobs); comment/string-aware prohibited-code scan passes all 74 project
+  Lean/config sources, and `git diff --check` passes. New module warning-free.
+  Root import, README, both status locations and abstract-step notes updated.
+  Full corollary remains **Partial**.
+- **Proof repairs:** inferring a branch-joined `Run` through metavariables fixed
+  its start state to `false`; specifying the complete start/end/time type
+  before splitting the flag resolves it. Heterogeneous `++` inference failed
+  with `HAppend (List PairQueries.inputFinEncoding.Γ) (List Output)`; explicit
+  `List.append (α := Output)` resolves the reducible alphabet. `encodeNat 2`
+  is not definitionally `[false,true]`; rewrite `Num.ofNat'_bit/ofNat'_one`.
+  A polymorphic constant-none filter lemma clears discarded tagged sections.
+  Failed exploratory diagnostics are excluded from audit evidence.
+- **Next / ending:** commit/push this verified increment, then compose the
+  computed candidate test with emission and prove the reached-state size/call
+  bounds. Counter advancement, exhaustion control, repeated finite dispatch,
+  positive rows, full assembly and final prime composition remain open.
+  Post-push parity is recorded in automation memory.
+- **Run time:** 2026-10-02 19:26 UTC (3 October AEST; rounded to minute).

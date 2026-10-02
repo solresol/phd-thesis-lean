@@ -7,7 +7,8 @@ The executable step consumes the checked candidate test, conditionally appends
 one edge, and advances the lexicographic grid. The invariant bounds every
 state in the original retained wire length and tracks a decreasing grid
 budget; the completed scan equals the exact ordered primal-edge list. This is an executable specification with checked semantic/size lemmas;
-the finite counter/emission implementation and repeated dispatcher remain open.
+the finite counter implementation and repeated dispatcher remain open. The
+conditional emission machine is supplied separately by `AllDifferentCSPPairEmit`.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

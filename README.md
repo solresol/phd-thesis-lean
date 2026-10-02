@@ -787,10 +787,17 @@ enumerator, and `run_ofRuntimeSystem` connects this to compiler-produced input.
 `iterate_length_le_cubic` bounds every state, including terminal and zero-variable
 states, by `12(s+1)^3`; `iterate_test_steps_le` bounds complete predicate calls
 uniformly in the original section length with no external invariant assumptions.
-The executable scan's cycle count is at most `s^2`. The finite implementation
-of counter advancement/conditional row emission and its repeated dispatcher
-still need to be checked and charged; the cycle count is not a complete machine
-runtime theorem. Positive rows, full objective assembly and final prime-selection
+The executable scan's cycle count is at most `s^2`.
+`AllDifferentCSPPairEmit.lean` now realizes conditional edge emission as a finite
+machine. `pairEmitComputableInPolyTime` consumes the computed answer bit and
+appends exactly the counted `[2,i,j]` row when true, preserving endpoints,
+ranked domains, the unary bound, scopes and previous edge order. The bound
+`4s+5` includes every copy, all five row framing cells and scratch cleanup;
+`output_length_le` bounds the complete result by `2s+5`.
+`PairEmit.afterTest_eq` identifies this result as the exact retained portion of
+the abstract advancement step. Counter advancement, exhaustion control and the
+repeated dispatcher still need finite implementations and a total runtime
+proof. Positive rows, full objective assembly and final prime-selection
 composition also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
