@@ -5486,3 +5486,44 @@
   positive rows, full assembly and final prime composition remain open.
   Post-push parity is recorded in automation memory.
 - **Run time:** 2026-10-02 19:26 UTC (3 October AEST; rounded to minute).
+
+
+## 2026-10-03 — compose computed candidate filtering with edge emission
+
+- **Starting commit:** `36faa1d36052ff6826c02f1f79d8c0a49447f7f7`;
+  conditional-emission increment pushed, HEAD/tracking/live main parity checked.
+- **Increment:** added `AllDifferentCSPPairFilter.lean`.
+  `pairFilterComputableInPolyTime` composes the complete existing candidate
+  test with the finite emitter using the pinned checked composition API.
+  It starts with the serialized candidate state; comparison, full scope
+  traversal, answer construction, transfers, emission and cleanup are internal.
+  `mem_rows_iff_primalEdges` says precisely that each output row was already
+  accumulated or is the current pair accepted by the thesis primal graph.
+  `afterTest_eq` isolates the remaining counter change. `exhausted_eq` checks
+  unchanged terminal `(n,0)` states, including zero variables.
+- **Size/runtime:** `output_length_le_cubic` uses the proved abstract invariant
+  to bound the complete emitted state by `12(s+1)^3` before counter advance.
+  `pairFilter_iterate_steps_le` bounds all complete filter/emission calls along
+  the semantic scan by the checked composition polynomial at that cubic input
+  bound. This is not a finite repeated-dispatch or counter-advance theorem.
+  Full corollary remains **Partial**.
+- **Verification:** direct module check passes, then full `lake build` passes
+  (3205 jobs). Eight new audits use only standard axioms, two are axiom-free;
+  full build reports 478 standard-only axiom lists and 15 axiom-free reports.
+  All 75 project Lean/config sources pass the comment/string-aware prohibited
+  code scan, and `git diff --check` passes. Both new modules are warning-free.
+  Examples cover separate scopes, overlapping/repeated scopes, accepted pairs
+  and the empty state. Root import, README and both status locations updated.
+- **Failed approaches:** no proof/API failure in this composition increment;
+  removed a redundant simplifier argument flagged by the linter. No unresolved
+  Lean API blocker. Sibling remains clean at `24d007a`; active thesis dirty
+  diff is byte-for-byte unchanged, SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Next / ending:** implement the serialized row-major `nextPair` operation
+  and exhaustion check against the retained unary variable count, then build
+  repeated finite dispatch using `PairAdvance`'s invariant, decreasing budget,
+  exact output theorem and the checked filter/emission body. Compose the
+  existing negative-row emitter afterward. Positive rows, objective assembly
+  and final prime composition remain. Commit/push this verified increment;
+  final ref parity and clean-tree evidence are recorded in automation memory.
+- **Run time:** 2026-10-02 19:29 UTC (3 October AEST; rounded to minute).

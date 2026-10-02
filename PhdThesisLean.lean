@@ -69,3 +69,4 @@ import PhdThesisLean.AllDifferentCSPPairTest
 import PhdThesisLean.AllDifferentCSPPairInitialization
 import PhdThesisLean.AllDifferentCSPPairAdvance
 import PhdThesisLean.AllDifferentCSPPairEmit
+import PhdThesisLean.AllDifferentCSPPairFilter

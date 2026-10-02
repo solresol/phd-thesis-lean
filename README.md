@@ -795,8 +795,16 @@ ranked domains, the unary bound, scopes and previous edge order. The bound
 `4s+5` includes every copy, all five row framing cells and scratch cleanup;
 `output_length_le` bounds the complete result by `2s+5`.
 `PairEmit.afterTest_eq` identifies this result as the exact retained portion of
-the abstract advancement step. Counter advancement, exhaustion control and the
-repeated dispatcher still need finite implementations and a total runtime
+the abstract advancement step. `AllDifferentCSPPairFilter.lean` now composes
+testing and emission: `pairFilterComputableInPolyTime` computes its own decision
+from serialized endpoints and scopes, with all transfers included.
+`mem_rows_iff_primalEdges` gives the exact old-or-new edge membership condition
+on compiler-produced sections. `output_length_le_cubic` preserves the original
+`12(s+1)^3` bound after filtering a reached active state, before counter advance;
+`pairFilter_iterate_steps_le` uniformly bounds complete calls along the semantic
+scan. `exhausted_eq` confirms that filtering the terminal `(n,0)` state changes
+nothing, including zero variables. Counter advancement, exhaustion control and
+the repeated dispatcher still need finite implementations and a total runtime
 proof. Positive rows, full objective assembly and final prime-selection
 composition also remain open.
 
