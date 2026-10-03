@@ -4,8 +4,9 @@ import PhdThesisLean.AllDifferentCSPPairEmit
 # Compute the candidate decision and emit the accepted row
 
 Compose the complete scope/ordering test with conditional emission. No answer
-bit or copied query is supplied externally. Counter advancement and repeated
-finite dispatch remain open; this is the checked filtering/emission body.
+bit or copied query is supplied externally. `AllDifferentCSPPairStepBranches`
+composes each checked counter action after this body. Branch selection and
+repeated finite dispatch remain open.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine
@@ -84,7 +85,7 @@ noncomputable def pairFilterComputableInPolyTime :
     pairTestComputableInPolyTime pairEmitComputableInPolyTime
 
 /-- Every call along the semantic scan has a uniform original-input polynomial
-bound. This does not supply the missing finite counter/dispatcher machine. -/
+bound. This does not supply the missing finite branch selector or dispatcher. -/
 theorem pairFilter_iterate_steps_le (value : BoundedRelabelledSections.Value) (k : ℕ) :
     (pairFilterComputableInPolyTime.outputsFun (PairAdvance.run value k)).steps ≤
       pairFilterComputableInPolyTime.time.eval

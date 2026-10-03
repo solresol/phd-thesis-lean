@@ -810,8 +810,17 @@ the first. They reuse the pinned successor and pair adapters, preserving every
 retained section and edge. The reset pass takes `2s+2` steps including cleanup;
 either continuation adds at most one encoded cell. `PairCounters.nextPair_eq`
 identifies the two actions with the branches of the abstract row-major step.
-Choosing the branch, exhaustion control and the repeated dispatcher still need
-finite implementations and a total runtime proof. Positive rows, full objective assembly and final prime-selection
+`AllDifferentCSPPairStepBranches.lean` composes each counter action with the
+complete computed filter and emitter. `pairInnerStepComputableInPolyTime` and
+`pairOuterStepComputableInPolyTime` execute those complete branches, including
+all transfers. `run_succ_eq` identifies the correct branch with the next
+semantic scan state; its invariant, one-candidate budget decrease and cubic
+wire bound follow without a new assumed invariant. `final_outer` proves the
+last active outer call reaches `(n,0)` with exactly the complete ordered edge
+list, for every positive `n`. Both complete branch calls have uniform polynomial
+bounds in the original retained-section length. Choosing the branch, exhaustion
+control and the repeated dispatcher still need finite implementations and a
+total runtime proof. Positive rows, full objective assembly and final prime-selection
 composition also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

@@ -5564,4 +5564,54 @@
   retained bound, exhaustion control, repeated finite dispatch, positive rows,
   objective assembly and final prime composition remain. Commit/push this
   checked increment; remote parity is checked immediately after the push.
-- **Run time:** 2026-10-03 18:26 UTC (4 October AEDT; rounded to minute).
+- **Run time:** 2026-10-03 18:23 UTC (4 October AEDT; rounded to minute).
+
+
+## 2026-10-04 — compose complete candidate-step branches
+
+- **Starting commit:** `29d41cf52b1b3b5e295464533d11b07d09d47359`;
+  first counter increment pushed, clean tree and HEAD/tracking/live main parity
+  verified. Corrected that entry's rounded run timestamp from 18:26 to 18:23 UTC.
+- **Increment:** added `AllDifferentCSPPairStepBranches.lean`.
+  `pairInnerStepComputableInPolyTime` and `pairOuterStepComputableInPolyTime`
+  compose the complete computed candidate test and conditional emitter with
+  each checked counter action. No predicate answer or intermediate state is
+  supplied externally to either machine. Each is an unconditional branch
+  implementation; selecting the appropriate one is still a machine obligation.
+  `afterTest_eq`, `advance_eq_inner`, `advance_eq_outer` and `run_succ_eq`
+  connect the branches exactly to the existing scan specification.
+  `inner_invariant`, `outer_invariant`, `budget` and `run_succ_length_le`
+  preserve the invariant, exact one-candidate budget decrease and `12(s+1)^3`
+  reached-state wire bound under the appropriate branch condition.
+  `final_outer` proves that the last active outer call reaches `(n,0)` with
+  exactly the complete ordered edge list for every positive variable count.
+  Separate singleton examples check the last call's rejecting self-pair case.
+- **Runtime:** both complete branch calls have uniform bounds given by their
+  checked composition polynomials evaluated at `12(s+1)^3` for original
+  retained-section length `s`. All comparison, scope traversal, emission,
+  arithmetic and transfer costs are internal. This does not claim free branch
+  selection, a finite repeated driver or its full runtime.
+- **Verification:** direct new-module check and full `lake build` pass (3207
+  jobs). Eleven new headline audits contain only propext/Classical.choice/
+  Quot.sound or are axiom-free; the full build reports 495 standard-only axiom
+  lists and 18 axiom-free declarations. All 77 project Lean/config files pass
+  the comment/string-aware prohibited-code scan; diff check passes. Both new
+  modules are warning-free. README, both status locations, root import and
+  correspondence comments synchronised; corollary stays **Partial**.
+- **Failed approach / repair:** direct `nlinarith` could not infer that the last
+  candidate's second endpoint is `n-1` from `i*n+j = n^2-1`. A smaller explicit
+  equality `i*n+j+1 = n^2` proved by `omega`, plus
+  `Nat.mul_le_mul_right n (Nat.succ_le_of_lt hi)`, closes the arithmetic proof.
+  The failed diagnostic's `sorryAx` output is excluded from successful audits;
+  no source placeholder or unresolved Lean error remains.
+- **Boundaries / ending:** sibling remains clean and unchanged at `f90d512`;
+  active thesis dirty diff has the same SHA-256 recorded above. Commit/push
+  this second verified increment and check all three refs; final ref/clean-tree
+  evidence is recorded in automation memory.
+- **Best next step:** implement finite selection of the row-major branch from
+  `j+1 < n` and exhaustion from `i < n`, using the retained unary variable
+  bound and existing binary arithmetic. Then implement the repeated dispatcher
+  using these complete branch machines, the decreasing budget, cubic wire
+  invariant and exact final edge theorem; compose negative-row emission.
+  Positive rows, objective assembly and final prime composition remain open.
+- **Run time:** 2026-10-03 18:29:31 UTC (4 October AEDT).
