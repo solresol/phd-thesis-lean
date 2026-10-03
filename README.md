@@ -803,9 +803,15 @@ on compiler-produced sections. `output_length_le_cubic` preserves the original
 `12(s+1)^3` bound after filtering a reached active state, before counter advance;
 `pairFilter_iterate_steps_le` uniformly bounds complete calls along the semantic
 scan. `exhausted_eq` confirms that filtering the terminal `(n,0)` state changes
-nothing, including zero variables. Counter advancement, exhaustion control and
-the repeated dispatcher still need finite implementations and a total runtime
-proof. Positive rows, full objective assembly and final prime-selection
+nothing, including zero variables. `AllDifferentCSPPairCounters.lean` now implements both counter actions.
+`pairInnerCounterComputableInPolyTime` increments the second binary endpoint;
+`pairOuterCounterComputableInPolyTime` resets it to canonical zero and increments
+the first. They reuse the pinned successor and pair adapters, preserving every
+retained section and edge. The reset pass takes `2s+2` steps including cleanup;
+either continuation adds at most one encoded cell. `PairCounters.nextPair_eq`
+identifies the two actions with the branches of the abstract row-major step.
+Choosing the branch, exhaustion control and the repeated dispatcher still need
+finite implementations and a total runtime proof. Positive rows, full objective assembly and final prime-selection
 composition also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

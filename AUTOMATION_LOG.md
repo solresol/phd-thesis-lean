@@ -5527,3 +5527,41 @@
   and final prime composition remain. Commit/push this verified increment;
   final ref parity and clean-tree evidence are recorded in automation memory.
 - **Run time:** 2026-10-02 19:29 UTC (3 October AEST; rounded to minute).
+
+## 2026-10-04 — checked inner and outer binary counter actions
+
+- **Starting commit:** `8f8c29ec1de73e3092b434fa3a3dc3ac1904756d`;
+  clean main, fetched upstream unchanged, local/tracking/live refs equal.
+  Read instructions, theorem status, current pair modules and relevant README,
+  recent log/memory, and the active thesis corollary/proof.
+- **Reuse review:** sibling `lean-np-hardness` read-only, clean at `f90d512`.
+  Its latest retained query-count work is for certificate membership, not this
+  mixed-alphabet counter state. Reused binary successor, pair-left, pair-right
+  and sequential composition at the existing pinned dependency `ad20a2e`;
+  no sibling/dependency changes. Active thesis stays at `f1107f5`, its twelve
+  dirty files preserved; binary-diff SHA-256 is
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Increment:** added `AllDifferentCSPPairCounters.lean`.
+  `pairCounterReset_outputsInTime` and `pairCounterResetComputableInPolyTime`
+  prove the concrete three-stack reset removes precisely the second endpoint
+  in `2s+2` steps, retaining all other bits in order and clearing scratch space.
+  `pairInnerCounterComputableInPolyTime` increments the second binary endpoint;
+  `pairOuterCounterComputableInPolyTime` resets it and increments the first.
+  Both reuse the checked successor kernel and adapters, including transfers.
+  `resetSecond_length` gives exact deleted length; `inner_length_le` and
+  `outer_length_le` bound growth by one cell. `nextPair_eq` identifies both
+  actions with the abstract branches. No branch-selection/loop claim yet.
+- **Verification:** direct module check and full `lake build` pass (3206 jobs).
+  Nine new audits are standard-only or axiom-free. All 76 project Lean/config
+  sources pass the comment/string-aware prohibited-code scan; diff check passes.
+  Examples cover carry across 7 to 8, retained empty scopes and prior edges.
+  Root import, README, both status locations and correspondence comment updated;
+  full corollary remains **Partial**. No failed proof approach or unresolved API
+  error; standalone unary-to-binary conversion was not found in the pinned API,
+  so no unverified conversion was assumed for branch selection.
+- **Next / ending:** compose filtering with each counter action and relate the
+  complete branches to `afterTest` and `advance`. Choosing between them from the
+  retained bound, exhaustion control, repeated finite dispatch, positive rows,
+  objective assembly and final prime composition remain. Commit/push this
+  checked increment; remote parity is checked immediately after the push.
+- **Run time:** 2026-10-03 18:26 UTC (4 October AEDT; rounded to minute).
