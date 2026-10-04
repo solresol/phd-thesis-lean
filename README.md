@@ -818,9 +818,16 @@ semantic scan state; its invariant, one-candidate budget decrease and cubic
 wire bound follow without a new assumed invariant. `final_outer` proves the
 last active outer call reaches `(n,0)` with exactly the complete ordered edge
 list, for every positive `n`. Both complete branch calls have uniform polynomial
-bounds in the original retained-section length. Choosing the branch, exhaustion
-control and the repeated dispatcher still need finite implementations and a
-total runtime proof. Positive rows, full objective assembly and final prime-selection
+bounds in the original retained-section length.
+`AllDifferentCSPPairBound.lean` now computes a binary copy of the retained unary
+variable count. Its preparation pass takes `3s+3` steps, preserves the complete
+scan state, and feeds the existing structural-header machine with an empty
+payload. `unaryBoundComputableInPolyTime` reuses that machine's checked carry
+loop in `8(n+1)^2` steps for unary length `n`; no new arithmetic machine is
+assumed. `pairBoundComputableInPolyTime` composes preparation and counting,
+including transfers and cleanup; its complete output has at most `2s+1` cells.
+Choosing the branch, exhaustion control and the repeated dispatcher still need
+finite implementations and a total runtime proof. Positive rows, full objective assembly and final prime-selection
 composition also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

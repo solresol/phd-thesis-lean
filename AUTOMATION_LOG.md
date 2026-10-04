@@ -5615,3 +5615,42 @@
   invariant and exact final edge theorem; compose negative-row emission.
   Positive rows, objective assembly and final prime composition remain open.
 - **Run time:** 2026-10-03 18:29:31 UTC (4 October AEDT).
+
+## 2026-10-05 — compute a retained binary bound for pair-scan control
+
+- **Starting commit:** `5c030f5ecf84d4149c595cbf5303e7e712196a71`, clean
+  main, fetched upstream unchanged, HEAD/tracking/live main equal. Read
+  instructions, theorem status, relevant README/Lean sources, recent log and
+  memory, and the active thesis corollary and proof.
+- **Read-only review:** sibling `lean-np-hardness` is clean at `0cdd680`.
+  Its new membership outer-decrement kernel does not provide this CSP bound
+  conversion. The pinned `ad20a2e` APIs supply binary arithmetic, pair adapters
+  and sequential composition; dependency and sibling unchanged. Found the
+  required unary counting proof in our existing `StructuralBinaryHeaderMachine`;
+  reuse its complete machine with empty payload rather than duplicate arithmetic.
+  Active thesis remains at `f1107f5`, twelve dirty files preserved; binary diff
+  SHA-256 `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Increment:** `UnaryBoundEncoding` supplies checked unary-tagged and raw
+  binary natural encodings. `unaryBound_outputsInTime` and
+  `unaryBoundComputableInPolyTime` reuse the structural-header machine in
+  `8(n+1)^2` steps, including zero and all binary carry cases.
+  New `AllDifferentCSPPairBound.lean` copies the actual retained unary field in
+  `3s+3` steps without changing any original state cell. The composed
+  `pairBoundComputableInPolyTime` returns the binary bound paired with the exact
+  original state, charging all transfers and scratch cleanup. `binary_length`
+  is exact; `binary_length_le` bounds the complete output by `2s+1`.
+- **Verification:** direct header and pair-bound checks pass; full `lake build`
+  passes (3208 jobs). Nine new audits are standard-only or axiom-free. The
+  comment/string-aware scan passes all 78 project Lean/config sources; diff
+  check passes. README, both status locations and root import synchronized;
+  `cor:all-different-csp` remains **Partial**.
+- **Failed diagnostic:** an initial dependent-module check ran before the
+  updated header `.olean` finished building, so new declarations were unknown.
+  Awaiting the dependency build and rerunning resolves all diagnostics without
+  proof changes. Failed output is excluded from successful axiom evidence.
+- **Next / ending:** use the computed bound to construct retained comparison
+  queries for `i<n` and `j+1<n`, then implement conditional/repeated finite
+  dispatch. Positive rows, complete objective assembly and final prime
+  composition remain open. Commit/push this verified increment and check
+  local/tracking/live ref parity before continuing.
+- **Run time:** 2026-10-04 18:24 UTC (5 October AEDT; rounded to minute).

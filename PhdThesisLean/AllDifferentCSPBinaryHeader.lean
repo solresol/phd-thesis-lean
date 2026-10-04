@@ -313,6 +313,75 @@ private theorem halt_eq (output : List (Option Bool)) :
 
 end StructuralBinaryHeaderMachine
 
+namespace UnaryBoundEncoding
+
+/-- The existing header machine's unary-only input, with no payload cells. -/
+def inputFinEncoding : FinEncoding ℕ where
+  Γ := StructuralBinaryHeaderMachine.Tagged
+  encode n := (unaryEncodeNat n).map Sum.inr
+  decode bits := unaryFinEncodingNat.decode (LeanNPHardness.PairEncoding.rightSymbols bits)
+  decode_encode n := by simp [unaryFinEncodingNat]
+  ΓFin := inferInstance
+
+/-- One reversed binary field, including its terminating delimiter. -/
+def outputFinEncoding : FinEncoding ℕ where
+  Γ := Option Bool
+  encode n := RawNatList.segment (encodeNat n)
+  decode bits := (RawNatList.parse bits).bind fun fields =>
+    match fields with
+    | [word] => some (decodeNat word)
+    | _ => none
+  decode_encode n := by
+    have h := RawNatList.parse_segments [encodeNat n]
+    simp only [List.flatMap_cons, List.flatMap_nil, List.append_nil,
+      List.reverse_singleton] at h
+    rw [h]
+    simp
+  ΓFin := inferInstance
+
+theorem input_length (n : ℕ) : (inputFinEncoding.encode n).length = n := by
+  simp [inputFinEncoding, unaryEncodeNat_eq_replicate_true]
+
+theorem output_length (n : ℕ) :
+    (outputFinEncoding.encode n).length = (encodeNat n).length + 1 := by
+  simp [outputFinEncoding, RawNatList.segment]
+
+end UnaryBoundEncoding
+
+/-- Reuse the complete structural-header machine with an empty payload.
+The unary marks are actually counted; the binary answer is not supplied. -/
+def unaryBound_outputsInTime (n : ℕ) :
+    TM2OutputsInTime StructuralBinaryHeaderMachine.computer
+      (UnaryBoundEncoding.inputFinEncoding.encode n)
+      (some (UnaryBoundEncoding.outputFinEncoding.encode n))
+      (8 * (n + 1) ^ 2) := by
+  rw [TM2OutputsInTime, StructuralBinaryHeaderMachine.init_eq]
+  simp only [Option.map_some]
+  rw [StructuralBinaryHeaderMachine.halt_eq]
+  have h := StructuralBinaryHeaderMachine.mono
+    (StructuralBinaryHeaderMachine.run [] n)
+    (StructuralBinaryHeaderMachine.runTime_le [] n)
+  simpa [UnaryBoundEncoding.inputFinEncoding, UnaryBoundEncoding.outputFinEncoding,
+    unaryEncodeNat_eq_replicate_true, RawNatList.segment, List.reverse_cons,
+    List.map_reverse] using h
+
+noncomputable def unaryBoundComputableInPolyTime :
+    @TM2ComputableInPolyTime ℕ ℕ UnaryBoundEncoding.inputFinEncoding
+      UnaryBoundEncoding.outputFinEncoding id where
+  tm := StructuralBinaryHeaderMachine.computer
+  inputAlphabet := Equiv.refl StructuralBinaryHeaderMachine.Tagged
+  outputAlphabet := Equiv.refl (Option Bool)
+  time := 8 * (Polynomial.X + 1) ^ 2
+  outputsFun n := by
+    simpa [Equiv.refl, UnaryBoundEncoding.input_length, Polynomial.eval_mul,
+      Polynomial.eval_pow, Polynomial.eval_add, Polynomial.eval_natCast,
+      Polynomial.eval_X, Polynomial.eval_one] using unaryBound_outputsInTime n
+
+#print axioms UnaryBoundEncoding.inputFinEncoding
+#print axioms UnaryBoundEncoding.outputFinEncoding
+#print axioms unaryBound_outputsInTime
+#print axioms unaryBoundComputableInPolyTime
+
 /-- Convert the internally computed tally, insert the exact binary count, and
 reverse into the existing raw structural format in at most `8(s+1)^2` steps. -/
 def structuralBinaryHeader_outputsInTime (view : AllDifferentCSPEncoding.RuntimeStructuralView) :
