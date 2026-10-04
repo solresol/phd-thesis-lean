@@ -85,7 +85,7 @@ noncomputable def pairFilterComputableInPolyTime :
     pairTestComputableInPolyTime pairEmitComputableInPolyTime
 
 /-- Every call along the semantic scan has a uniform original-input polynomial
-bound. This does not supply the missing finite branch selector or dispatcher. -/
+bound. Conditional invocation and repeated finite dispatch remain separate. -/
 theorem pairFilter_iterate_steps_le (value : BoundedRelabelledSections.Value) (k : ℕ) :
     (pairFilterComputableInPolyTime.outputsFun (PairAdvance.run value k)).steps ≤
       pairFilterComputableInPolyTime.time.eval

@@ -826,8 +826,18 @@ payload. `unaryBoundComputableInPolyTime` reuses that machine's checked carry
 loop in `8(n+1)^2` steps for unary length `n`; no new arithmetic machine is
 assumed. `pairBoundComputableInPolyTime` composes preparation and counting,
 including transfers and cleanup; its complete output has at most `2s+1` cells.
-Choosing the branch, exhaustion control and the repeated dispatcher still need
-finite implementations and a total runtime proof. Positive rows, full objective assembly and final prime-selection
+`AllDifferentCSPPairControl.lean` now implements both control predicates:
+`pairActiveComputableInPolyTime` computes `i<n`, and
+`pairContinuesComputableInPolyTime` computes `j+1<n`, from the complete original
+state. The bound conversion, endpoint copy, successor, binary comparison,
+transfers and cleanup are internal. The finite query router costs `5s+5` for
+its bound-bearing input; each completed test adds exactly one answer cell and
+preserves the original state. `PairControl.advance_eq` identifies the two
+computed answers with the exact scan recurrence; `run_active_iff` proves
+exhaustion occurs after precisely `n^2` cycles, including zero variables.
+Both complete tests have uniform polynomial bounds in the original retained
+section length. Conditional invocation of the selected branch, repeated finite
+dispatch and their total runtime proof remain open. Positive rows, full objective assembly and final prime-selection
 composition also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

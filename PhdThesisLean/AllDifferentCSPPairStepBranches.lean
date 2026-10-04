@@ -6,8 +6,9 @@ import PhdThesisLean.AllDifferentCSPPairCounters
 Each branch computes the candidate test, conditionally emits its edge and
 updates the counters, with every stage executed by a checked finite machine.
 The semantic branch conditions identify their outputs with the established
-scan recurrence. A finite selector and exhaustion dispatcher are still needed;
-these two unconditional machines do not assert that those conditions are free.
+scan recurrence. `AllDifferentCSPPairControl` computes the selection and
+exhaustion predicates. A finite dispatcher must still invoke the chosen branch
+and repeat it; these unconditional machines do not supply that control flow.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

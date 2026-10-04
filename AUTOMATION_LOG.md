@@ -5654,3 +5654,50 @@
   composition remain open. Commit/push this verified increment and check
   local/tracking/live ref parity before continuing.
 - **Run time:** 2026-10-04 18:24 UTC (5 October AEDT; rounded to minute).
+
+## 2026-10-05 — finite continuation and exhaustion predicates
+
+- **Starting commit:** `273e82b5fabaf9ff36ddd29785517ca5f60029a3`;
+  bound-conversion increment pushed, clean tree and HEAD/tracking/live main
+  parity verified before this second increment.
+- **Increment:** added `AllDifferentCSPPairControl.lean`. A finite six-stack
+  router copies the selected endpoint and reverses the computed raw bound into
+  the checked binary-comparison input while retaining every original state
+  cell. `pairControlRoute_outputsInTime` bounds all routing and cleanup by
+  `5s+5` for its complete bound-bearing input.
+  `pairActiveComputableInPolyTime` computes `i<n` from the original pair state;
+  `pairContinuesComputableInPolyTime` computes `j+1<n`. Both include unary-bound
+  construction, all routing, successor where needed, binary comparison,
+  transfers and cleanup through the pinned composition/pair-adapter APIs.
+- **Correspondence/runtime:** each test adds exactly one answer cell and retains
+  the original state unchanged. `PairControl.advance_eq` identifies the two
+  computed answers with the existing exact step recurrence; `run_active_iff`
+  proves that the active answer holds exactly for the first `n^2` semantic
+  cycles, including zero variables. Both `*_iterate_steps_le` theorems bound
+  complete control calls by their composition polynomials at `12(s+1)^3` for
+  original retained-section length `s`, without new invariant assumptions.
+  Kernel-reduced examples cover empty/singleton bounds, row wrapping, binary
+  carry, retained edges and an endpoint far beyond the supplied bound.
+- **Verification:** direct new-module checking and full `lake build` pass
+  (3209 jobs). Ten new headline audits are standard-only or axiom-free; the
+  complete build reports 512 standard-only axiom lists and 20 axiom-free
+  declarations. Comment/string-aware prohibited-code scan passes all 79
+  project Lean/config sources; diff check passes, and new modules are warning
+  free. Root import, README, both status locations and older pair-module
+  correspondence comments are synchronized. Corollary remains **Partial**.
+- **Proof repair:** tuple-valued examples did not synthesize `Decidable` through
+  the output abbreviation. Their equalities reduce definitionally, so `rfl`
+  checks them directly; no decidability instance or evaluation axiom added.
+  The finite-machine and recurrence proofs passed without an API blocker.
+- **Preservation / ending:** sibling stays clean at `0cdd680`, no dependency
+  change. Active thesis dirty diff retains SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  Commit/push this verified increment, then verify HEAD, tracking and live main;
+  final parity and clean-tree evidence are recorded in automation memory.
+- **Next:** implement the finite conditional dispatcher: test active, halt with
+  retained state if false, otherwise test continuation and invoke the checked
+  inner/outer complete step. Repeat using the decreasing `PairAdvance.budget`,
+  cubic reached-state bound and original-input call bounds. Then compose the
+  existing negative-row emitter. Positive rows, complete objective assembly
+  and final prime composition remain open.
+- **Run time:** 2026-10-04 18:32 UTC (5 October AEDT; rounded to minute).
