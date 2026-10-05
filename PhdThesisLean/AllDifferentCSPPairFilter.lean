@@ -5,8 +5,8 @@ import PhdThesisLean.AllDifferentCSPPairEmit
 
 Compose the complete scope/ordering test with conditional emission. No answer
 bit or copied query is supplied externally. `AllDifferentCSPPairStepBranches`
-composes each checked counter action after this body. Branch selection and
-repeated finite dispatch remain open.
+composes each checked counter action after this body.
+`AllDifferentCSPPairDispatch` supplies branch selection and invocation; repeated finite dispatch remains open.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

@@ -7,8 +7,8 @@ Each branch computes the candidate test, conditionally emits its edge and
 updates the counters, with every stage executed by a checked finite machine.
 The semantic branch conditions identify their outputs with the established
 scan recurrence. `AllDifferentCSPPairControl` computes the selection and
-exhaustion predicates. A finite dispatcher must still invoke the chosen branch
-and repeat it; these unconditional machines do not supply that control flow.
+exhaustion predicates. `AllDifferentCSPPairDispatch` supplies checked conditional
+invocation; repeating that complete dispatch remains a separate obligation.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

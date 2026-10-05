@@ -6,8 +6,8 @@ import PhdThesisLean.AllDifferentCSPPairFilter
 Reuse the checked binary successor and pair adapters for endpoint arithmetic.
 A finite filtering pass resets the second endpoint to canonical zero while
 preserving all other state. Both row-major continuations are thus genuine
-polynomial-time machines; choosing a continuation and repeated dispatch remain
-separate obligations.
+polynomial-time machines. `AllDifferentCSPPairDispatch` chooses and invokes
+the continuation; repeated dispatch remains a separate obligation.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

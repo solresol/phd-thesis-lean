@@ -5743,3 +5743,55 @@
   negative-row composition, positive rows, objective assembly and final prime
   composition remain. Final ref parity is checked after the push.
 - **Run time:** 2026-10-05 18:26 UTC (6 October AEDT; rounded to minute).
+
+## 2026-10-06 — complete finite selection and exhaustion dispatch
+
+- **Starting commit:** `6ad77e87f705f43a177c3416985847ff21f46457`;
+  conditional-controller increment pushed, local/tracking/live main parity
+  verified. The only draft was this run's untracked dispatcher.
+- **Increment:** added `AllDifferentCSPPairDispatch.lean`.
+  `PairDecisionEraseMachine.outputsInTime` and
+  `pairDecisionEraseComputableInPolyTime` remove precisely the temporary
+  Boolean answer in `2s+2` steps while preserving every state cell in order
+  and clearing scratch storage.
+  `PairDispatch.selectedComputableInPolyTime` computes continuation and applies
+  complementary gates around the existing complete inner/outer branches.
+  Both retain the original choice, so exactly one body is invoked.
+  `PairDispatch.computableInPolyTime` additionally computes exhaustion and
+  skips that whole active step when finished, implementing exactly
+  `PairAdvance.advance` on every checked input, with no externally supplied
+  predicate, reached-state invariant or endpoint-bound assumption.
+- **Runtime / next-step contract:** `iterate_steps_le` and
+  `run_step_outputsInTime` bound complete dispatched calls by the checked
+  composition polynomial at `12(s+1)^3`, for original retained-section bit
+  length `s`. The latter returns exactly `PairAdvance.run value (k+1)` from
+  `run value k`; all tests, calls, arithmetic, row emission, transfers and
+  cleanup are charged. These are single-call results, not a repeated-machine
+  or full compiler runtime theorem.
+- **Verification:** direct dispatcher check and full `lake build` pass (3211
+  jobs). Six new headline audits are standard-only. The full successful build
+  reports 523 standard-only axiom lists and 20 axiom-free declarations.
+  Comment/string-aware prohibited-code scan passes all 81 Lean/config sources;
+  diff check passes. New modules warning-free. Kernel-reduced examples cover
+  zero/singleton bounds, binary carry, row wrapping, repeated/empty scopes,
+  retained prior edges and an exhausted out-of-range pair that would otherwise
+  pass the edge predicate. Root import, README, both status locations and
+  pair-module correspondence comments synchronized; corollary stays **Partial**.
+- **Diagnostic:** the first composition check needed record-field tactic
+  indentation after `outputsFun := ...`; both compositions then checked
+  without a type/API or mathematical blocker. Failed diagnostic axiom reports
+  are excluded from the successful audit. The final full build passed after
+  correspondence-comment updates, checking the committed sources exactly.
+- **Preservation:** sibling remains clean at
+  `02422be8f0acac7775e4b6f56f0a8c780c6b293b`; pinned dependency unchanged.
+  Active thesis dirty diff retains SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Ending / best next step:** commit/push this complete single-step machine,
+  then implement the repeated finite driver using computed active tests,
+  `PairDispatch.run_step_outputsInTime`, `PairAdvance.budget`, the cubic
+  reached-state bound and the exact final edge theorem. Charge the final
+  exhausted test and every inter-call transfer. Compose negative-row emission
+  afterward. Positive rows, objective assembly and final prime composition
+  remain open. Final clean-tree and three-ref parity are recorded in automation
+  memory after pushing.
+- **Run time:** 2026-10-05 18:30:32 UTC (6 October AEDT).

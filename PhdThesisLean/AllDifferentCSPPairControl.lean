@@ -6,7 +6,8 @@ import PhdThesisLean.AllDifferentCSPPairBound
 The bound is counted from the retained unary input. A finite router reverses
 its raw binary field and copies the selected endpoint, retaining the complete
 original state. Checked successor/comparison machines then compute `i < n`
-or `j + 1 < n`. These predicates do not yet dispatch the step machines.
+or `j + 1 < n`. The checked
+`AllDifferentCSPPairDispatch` composition invokes the selected step machine.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine
@@ -40,7 +41,7 @@ theorem output_length (inner : Bool) (state : PairQueries.Input) :
   simp [PairTest.outputFinEncoding, evaluate, finEncodingBoolBool, encodeBool, Nat.add_comm]
 
 /-- The computed decisions identify exactly the established scan recurrence.
-Invoking the chosen branch and repeating it still needs a finite dispatcher. -/
+`AllDifferentCSPPairDispatch` invokes that branch; repetition remains open. -/
 theorem advance_eq (state : PairQueries.Input) :
     PairAdvance.advance state =
       if (evaluate false state).1 then

@@ -6,11 +6,13 @@ import PhdThesisLean.AllDifferentCSPPairInitialization
 The executable step consumes the checked candidate test, conditionally appends
 one edge, and advances the lexicographic grid. The invariant bounds every
 state in the original retained wire length and tracks a decreasing grid
-budget; the completed scan equals the exact ordered primal-edge list. This is an executable specification with checked semantic/size lemmas;
+budget; the completed scan equals the exact ordered primal-edge list. This is
+an executable specification with checked semantic/size lemmas;
 the two finite counter actions are supplied by `AllDifferentCSPPairCounters`.
 `AllDifferentCSPPairControl` computes the branch and exhaustion predicates.
-Conditional invocation and repeated dispatch remain open. The conditional
-emission machine is supplied separately by `AllDifferentCSPPairEmit`.
+`AllDifferentCSPPairDispatch` supplies one complete conditional finite step.
+Repeated dispatch remains open. The conditional emission machine is supplied
+separately by `AllDifferentCSPPairEmit`.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine
@@ -285,7 +287,8 @@ theorem run_stable (value : BoundedRelabelledSections.Value) (k : ℕ)
   simp only [advance, run_retained, if_neg hn]
 
 /-- The unary bound makes the number of candidates polynomial in actual wire
-length. This is a cycle count; finite dispatch costs still require a machine. -/
+length. This is a cycle count; the repeated finite driver and total runtime
+remain separate from the checked single-step dispatcher. -/
 theorem iterations_le_wire_square (value : BoundedRelabelledSections.Value) :
     value.1.2 ^ 2 ≤ (BoundedRelabelledSections.finEncoding.encode value).length ^ 2 :=
   Nat.pow_le_pow_left (BoundedRelabelledSections.variableCount_le_encode_length value) 2

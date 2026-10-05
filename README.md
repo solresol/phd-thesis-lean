@@ -843,7 +843,20 @@ in `2s+2` steps without entering the body; `call_run` invokes a supplied checked
 state transformer with its original step count plus `2s+2t+4` routing steps for
 input/output lengths `s,t`. `computableInPolyTime` uses the pinned generic
 output-size bound to include all routing and scratch cleanup in a polynomial.
-The concrete continuation/exhaustion compositions and repeated driver remain.
+`AllDifferentCSPPairDispatch.lean` composes the actual continuation test with
+complementary gates that preserve the original answer, so exactly one complete
+inner/outer branch runs. `PairDispatch.selectedComputableInPolyTime` removes
+the temporary answer using a checked `2s+2` erasure pass.
+`PairDispatch.computableInPolyTime` additionally computes exhaustion and gates
+that whole active step, implementing exactly `PairAdvance.advance` on every
+checked state. Exhausted states retain every cell, including arbitrary stored
+edges; no external decision or well-formedness assumption is required.
+`run_step_outputsInTime` gives the exact next semantic state with all dispatch,
+body, transfer and cleanup costs bounded by one fixed polynomial evaluated at
+`12(s+1)^3` in original retained-section length `s`. Kernel-reduced examples
+cover zero/singleton bounds, carry, wrapping, duplicate scopes and an exhausted
+state whose endpoints would otherwise pass the edge test. Repeated finite
+dispatch and its total runtime proof remain open.
 Positive rows, full objective assembly and final prime-selection composition
 also remain open.
 

@@ -6,7 +6,8 @@ import PhdThesisLean.AllDifferentCSPPairAdvance
 The finite machine consumes the computed answer bit and appends the exact
 counted `[2,i,j]` edge row only when accepted. Endpoint words, ranked domains,
 unary variable bound, scopes and old edges survive in source order. Counter
-advancement and repeated dispatch remain separate obligations.
+advancement and selection are composed in `AllDifferentCSPPairDispatch`;
+repeated dispatch remains a separate obligation.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine
