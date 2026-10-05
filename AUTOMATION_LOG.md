@@ -5701,3 +5701,45 @@
   existing negative-row emitter. Positive rows, complete objective assembly
   and final prime composition remain open.
 - **Run time:** 2026-10-04 18:32 UTC (5 October AEDT; rounded to minute).
+
+## 2026-10-06 — checked conditional calls on retained pair state
+
+- **Starting commit:** `3ecf599edbc52844cafbfb0410975918d598ba78`;
+  clean main, fetched upstream unchanged, local/tracking/live main equal.
+  Read instructions, theorem status, relevant README and Lean sources, recent
+  log/memory, and the active thesis corollary and proof.
+- **Read-only review:** sibling `lean-np-hardness` clean at `02422be`.
+  Its latest count-controlled membership loop offers a useful halt-redirection
+  pattern, but no conditional-call API for this CSP state. Reused the pinned
+  `ad20a2e` finite-machine interfaces and generic output-size polynomial;
+  sibling and dependency unchanged. Active thesis remains at `f1107f5`, twelve
+  dirty files preserved; binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Increment:** added `AllDifferentCSPPairGate.lean`. Its finite controller
+  reads the actual tagged Boolean and either invokes a checked state transformer
+  or restores every input cell without entering it. `source_present` checks
+  that only the answer cell triggers the call. `skip_run` costs `2s+2`;
+  `call_run` adds `2s+2t+4` transfer/control steps to the original body runtime,
+  for complete input/output lengths `s,t`. Both clear all work stacks.
+  `outputsInTime` and `computableInPolyTime` use the existing generic output-size
+  polynomial to bound all transfers. This is a conditional-call primitive;
+  concrete continuation/exhaustion composition is the next increment.
+- **Verification:** direct module check and full `lake build` pass (3210 jobs).
+  Five new headline audits use only propext/Classical.choice/Quot.sound; the
+  full successful build reports 517 standard-only lists and 20 axiom-free
+  declarations. Comment/string-aware prohibited-code scan and diff check pass.
+  New module warning-free; README, both status locations and root import
+  synchronized. Full corollary remains **Partial**.
+- **Diagnostics:** adapting the existing local call embedding initially left
+  partial function applications in simp lists, which must instead name the
+  declarations to unfold. Formatting also exposed application-parenthesis and
+  tactic-layout errors; these were repaired without changing the machine or
+  its bound. All failed-build axiom reports were excluded from audit evidence.
+  No unresolved Lean error remains in this increment.
+- **Ending / next:** commit and push this checked conditional controller, then
+  compose both branch gates with the actual continuation/exhaustion predicates
+  and a checked answer-erasure pass. A draft dispatcher is deliberately excluded
+  from this commit until its own build/audits pass. Repeated finite dispatch,
+  negative-row composition, positive rows, objective assembly and final prime
+  composition remain. Final ref parity is checked after the push.
+- **Run time:** 2026-10-05 18:26 UTC (6 October AEDT; rounded to minute).

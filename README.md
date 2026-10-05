@@ -836,9 +836,16 @@ preserves the original state. `PairControl.advance_eq` identifies the two
 computed answers with the exact scan recurrence; `run_active_iff` proves
 exhaustion occurs after precisely `n^2` cycles, including zero variables.
 Both complete tests have uniform polynomial bounds in the original retained
-section length. Conditional invocation of the selected branch, repeated finite
-dispatch and their total runtime proof remain open. Positive rows, full objective assembly and final prime-selection
-composition also remain open.
+section length.
+`AllDifferentCSPPairGate.lean` now provides checked conditional calls on the
+Boolean/pair-state wire. `PairGateMachine.skip_run` returns every cell unchanged
+in `2s+2` steps without entering the body; `call_run` invokes a supplied checked
+state transformer with its original step count plus `2s+2t+4` routing steps for
+input/output lengths `s,t`. `computableInPolyTime` uses the pinned generic
+output-size bound to include all routing and scratch cleanup in a polynomial.
+The concrete continuation/exhaustion compositions and repeated driver remain.
+Positive rows, full objective assembly and final prime-selection composition
+also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
