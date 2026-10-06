@@ -11,7 +11,7 @@ an executable specification with checked semantic/size lemmas;
 the two finite counter actions are supplied by `AllDifferentCSPPairCounters`.
 `AllDifferentCSPPairControl` computes the branch and exhaustion predicates.
 `AllDifferentCSPPairDispatch` supplies one complete conditional finite step.
-Repeated dispatch remains open. The conditional emission machine is supplied
+`AllDifferentCSPPairLoop` proves repeated finite dispatch and its total runtime. The conditional emission machine is supplied
 separately by `AllDifferentCSPPairEmit`.
 -/
 
@@ -287,8 +287,8 @@ theorem run_stable (value : BoundedRelabelledSections.Value) (k : ℕ)
   simp only [advance, run_retained, if_neg hn]
 
 /-- The unary bound makes the number of candidates polynomial in actual wire
-length. This is a cycle count; the repeated finite driver and total runtime
-remain separate from the checked single-step dispatcher. -/
+length. This cycle count is used by `AllDifferentCSPPairLoop` to bound the
+complete repeated finite machine, separately from a single-step call. -/
 theorem iterations_le_wire_square (value : BoundedRelabelledSections.Value) :
     value.1.2 ^ 2 ≤ (BoundedRelabelledSections.finEncoding.encode value).length ^ 2 :=
   Nat.pow_le_pow_left (BoundedRelabelledSections.variableCount_le_encode_length value) 2

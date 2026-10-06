@@ -99,8 +99,8 @@ def edges (value : Value) : List (ℕ × ℕ) :=
 theorem edges_ofRuntimeSystem (C : RuntimeSystem) :
     edges (ofRuntimeSystem C) = PrimalEdgeEnumeration.ofRuntimeSystem C := rfl
 
-/-- Size of the future negative-row output in this intermediate input length.
-A size theorem does not supply the still-missing edge-scan runtime. -/
+/-- Size of the negative-row output in this intermediate input length.
+`AllDifferentCSPPairLoop` separately supplies the edge-scan runtime. -/
 theorem negativeRows_length_le_cubic (value : Value) :
     (NegativeRows.outputEncode (edges value)).length ≤
       9 * ((finEncoding.encode value).length + 1) ^ 3 := by

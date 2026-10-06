@@ -41,7 +41,8 @@ theorem output_length (inner : Bool) (state : PairQueries.Input) :
   simp [PairTest.outputFinEncoding, evaluate, finEncodingBoolBool, encodeBool, Nat.add_comm]
 
 /-- The computed decisions identify exactly the established scan recurrence.
-`AllDifferentCSPPairDispatch` invokes that branch; repetition remains open. -/
+`AllDifferentCSPPairDispatch` invokes that branch; `AllDifferentCSPPairLoop`
+proves the complete repeated runtime. -/
 theorem advance_eq (state : PairQueries.Input) :
     PairAdvance.advance state =
       if (evaluate false state).1 then

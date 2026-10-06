@@ -5832,4 +5832,50 @@
   construct the entry control bit from the actual compiler input. Edge
   projection/negative-row composition, positive rows, full objective assembly
   and final prime composition remain afterward.
-- **Run time:** 2026-10-06 18:22 UTC (7 October AEDT; rounded to minute).
+- **Run time:** 2026-10-06 18:21 UTC (7 October AEDT; rounded to minute).
+
+## 2026-10-07 — complete polynomial-time pair enumeration
+
+- **Starting commit:** `c90610e5639771637d8d27980f2575e581bed483`, first
+  controller increment pushed with local/tracking/live ref parity. The only
+  uncommitted work is this run's next increments.
+- **Increment:** new `AllDifferentCSPPairLoop.lean` checks the entire repeated
+  driver. Its `inputFinEncoding` decodes and checks the exact canonical seed
+  and active answer, with one extra cell over the retained sections.
+  `run_eq_result` identifies the terminal counters, retained data and ordered
+  edge list. `flagged_length_le` bounds every complete reached state.
+  `run_bounded` inducts on the remaining grid budget, calls the actual finite
+  controller, and charges every body/transfer cycle and the final false exit.
+- **Runtime / actual input:** `outputsInTime` and `computableInPolyTime` give
+  `(s^2+1)*(P(B)+4B+4)`, with `B=12(s+1)^3+1` and actual checked entry length
+  `s`; `P` is the complete body polynomial. `entryComputableInPolyTime`
+  constructs zero endpoints, empty edges and active control internally.
+  `pairEnumerationComputableInPolyTime` includes that entry work.
+  `runtimeCompilerPairEnumerationComputableInPolyTime` composes from the
+  actual Boolean compiler input to terminal `(n,0)`, all ranked sections and
+  exactly the deduplicated semantic primal graph. No budget, predicate bit or
+  reached-state invariant is assumed from a caller; the displayed loop bound
+  is not substituted for the complete composed machine's polynomial.
+- **Verification:** direct module check and full `lake build` pass (3213
+  jobs); nine new headline audits use only standard axioms. Source scan and
+  diff checks pass. Root import, README, both status locations and pair-path
+  source comments synchronized. Full corollary remains **Partial**.
+- **Diagnostics / resolutions:** naive equality synthesis for the nested
+  `PairTest.Output` failed, even after unfolding aliases. A minimal trace
+  identified the exact reason: instance-result size `160 >= 128`, not a
+  missing equality decision. Caching the smaller section `DecidableEq`
+  instance locally lets standard executable equality synthesize, without
+  classical decision or a raised global limit. Encoding round-trip uses the
+  actual `outputFinEncoding.decode_encode` field, not a nonexistent
+  `FinEncoding.decode_encode` constant. Explicitly typing the final monotone
+  runtime target prevents metavariable inference from retaining the smaller
+  source bound. Failed diagnostic axiom reports are excluded from evidence.
+  No unresolved Lean error remains.
+- **Next:** project the terminal counters away and compose the existing
+  negative-row machine, retaining ranked sections. That separate draft has
+  passed its direct check but is excluded until its own full build/commit.
+  Positive rows must match the semantic sorted, deduplicated per-variable
+  domains; compute the exact `edges.length + 1` pinning weight before emitting
+  them. Positive rows, full objective assembly and prime composition remain.
+- **Ending:** complete repeated scan verified; commit/push with three-ref parity checked afterward. Full build reports 537 standard-only axiom lists and 20 axiom-free declarations.
+- **Run time:** 2026-10-06 18:41:34 UTC (7 October AEDT).

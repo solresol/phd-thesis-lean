@@ -616,8 +616,9 @@ scopes, occurrence order, repetitions, and variable count are preserved, and
 domain-entry prime. The complete composed runtime includes source preparation,
 symbol extraction, initialization, the whole loop and both retained-section
 adapters; the displayed loop polynomial alone is not the whole compiler cost.
-Primal-edge deduplication, objective rows, and final prime-selection composition
-remain open; the full corollary is still **Partial**.
+The pair-loop composition below now constructs deduplicated primal edges.
+Objective-row composition and final prime-selection assembly remain open;
+the full corollary is still **Partial**.
 
 `AllDifferentCSPPrimalEdges.lean` now defines an executable bounded pair scan
 from the retained variable count and scope lists. `PrimalEdgeEnumeration.enumerate`
@@ -627,9 +628,10 @@ shared edges and repeated entries cannot duplicate an edge. The theorem
 semantic compiler's sorted primal graph, including its treatment of out-of-range
 scope entries. `enumerate_relabelledSections` connects the scan input to the
 completed relabelling stage. `enumerate_length_le` bounds the list by `n^2`
-for `n` explicitly listed variables. These are executable semantics and size
-results; a finite-machine implementation and bit-level runtime for this scan
-remain open, alongside objective emission and final prime composition.
+for `n` explicitly listed variables. These executable semantics and size
+results are realized by the complete finite pair loop below, with a checked
+polynomial runtime from actual compiler input. Objective emission and final
+prime composition remain separate.
 
 `AllDifferentCSPNegativeRows.lean` adds checked endpoint-pair and negative-row
 section encodings by reusing the counted-row codecs. Its
@@ -642,8 +644,9 @@ ordered negative rows; `pinningWeight_eq_edgeCount` also connects edge counting
 to its positive pinning weight. `outputEncode_length` charges exactly two added
 cells per edge. `compiler_output_length_le_cubic` bounds the whole negative
 section by `9(s+1)^3` in the actual Boolean compiler-input length. The finite
-emitter starts with an already enumerated edge list: construction of that list,
-positive rows, full objective assembly and prime composition remain open.
+emitter starts with an already enumerated edge list. The pair loop below now
+constructs that list inside its retained terminal state; projection into this
+emitter, positive rows, full objective assembly and prime composition remain.
 `AllDifferentCSPRowCount.lean` now reuses the existing row-counting machine
 on the original domain rows. `domainVariableCountComputableInPolyTime`
 retains every domain cell and constructs the exact unary variable count in
@@ -861,8 +864,22 @@ Its body erases the old answer, invokes the complete dispatcher and computes
 new active control. `iteration_cycle` charges the full body plus `2s+2t+4`
 steps for input/output lengths `s,t`; `exit_run` removes the false answer and
 returns the entire terminal state in `2s+2` steps. Every return restores wire
-order and clears all scratch stacks. The total repeated runtime proof and
-composition from actual compiler input remain open.
+order and clears all scratch stacks.
+`AllDifferentCSPPairLoop.lean` proves the total repeated runtime. The checked
+internal entry encoding retains the complete initialized state plus one active
+bit, rejecting a different state in its decoder. `PairLoop.run_bounded`
+charges all remaining grid cells and the final false-answer exit. At complete
+entry length `s`, every flagged working state is bounded by `B=12(s+1)^3+1`,
+and the loop takes at most `(s^2+1)*(P(B)+4B+4)` steps, where `P` is the checked
+complete-body polynomial. `PairLoop.entryComputableInPolyTime` constructs the
+zero counters, empty edge list and computed control bit; it is composed with
+the loop in `pairEnumerationComputableInPolyTime`.
+`runtimeCompilerPairEnumerationComputableInPolyTime` starts from actual Boolean
+compiler input and returns terminal counters `(n,0)`, all retained ranked
+sections, and exactly the deduplicated primal-edge list. The full composition
+includes preparation and entry costs, beyond the displayed loop polynomial.
+Zero variables, empty/overlapping/repeated scopes and arbitrary binary values
+are covered. Projection into the negative-row emitter remains to be composed.
 Positive rows, full objective assembly and final prime-selection composition
 also remain open.
 
@@ -966,9 +983,9 @@ payload. The tagged structural target also has a checked raw encoding and a
 linear finite-machine bridge to its canonical Boolean encoding. The complete
 structural compiler now constructs that raw target and frames it, using checked
 binary indices, countdowns, row counting, and header staging. The later
-relabelling stage is also complete. Finite-machine edge construction, positive
-residual-row emission and final whole-compiler assembly remain; negative-row
-emission from a supplied edge list is now checked.
+relabelling and finite-machine edge-construction stages are also complete.
+Connecting retained edges to negative-row emission, constructing positive rows
+and assembling the whole compiler remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It

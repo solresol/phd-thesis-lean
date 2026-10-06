@@ -216,7 +216,7 @@ theorem iterate_steps_le (value : BoundedRelabelledSections.Value) (k : ℕ) :
       (PairAdvance.iterate_length_le_cubic value k))
 
 /-- Exact next-state output with every dispatch cost bounded in the original
-retained-section length. This is the body contract for the remaining loop. -/
+retained-section length. The complete repeated runtime is proved in `AllDifferentCSPPairLoop`. -/
 noncomputable def run_step_outputsInTime
     (value : BoundedRelabelledSections.Value) (k : ℕ) :
     TM2OutputsInTime computableInPolyTime.tm

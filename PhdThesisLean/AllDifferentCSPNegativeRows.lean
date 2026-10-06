@@ -8,8 +8,9 @@ exactly the tag and length needed by a negative residual row: `[2,i,j]`
 becomes `[3,1,i,j]` in raw fields. Reuse that finite machine, with decoders that
 check pair arity, instead of building another copying/tagging implementation.
 
-The edge list must already be supplied. Polynomial-time construction of that
-list from retained scopes is still open. This machine emits the raw negative
+This interface starts with an edge list. `AllDifferentCSPPairLoop` now
+constructs that list inside the retained terminal state in polynomial time;
+projection from that state into this emitter remains separate. This machine emits the raw negative
 row section; complete objective headers, positive rows and framing are later
 assembly stages.
 -/
