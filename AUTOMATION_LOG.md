@@ -5879,3 +5879,58 @@
   them. Positive rows, full objective assembly and prime composition remain.
 - **Ending:** complete repeated scan verified; commit/push with three-ref parity checked afterward. Full build reports 537 standard-only axiom lists and 20 axiom-free declarations.
 - **Run time:** 2026-10-06 18:41:34 UTC (7 October AEDT).
+
+## 2026-10-07 — exact negative rows from the actual compiler input
+
+- **Starting commit:** `6ee7501b436fe1b5abed94d2fdaf27cf8099b814`, complete
+  pair-enumeration increment pushed with local/tracking/live ref parity.
+- **Increment:** new `AllDifferentCSPPairFinalization.lean`.
+  `PairFinalizationMachine.outputsInTime` and
+  `pairFinalizationComputableInPolyTime` project away only the scan endpoints
+  in `2s+2` steps, preserve the complete ranked sections and edge stream in
+  order, and clear scratch stacks. `runtimeCompilerGraphSectionsComputableInPolyTime`
+  composes the full graph construction and that projection from the actual
+  Boolean compiler input.
+  `runtimeCompilerNegativeSectionsComputableInPolyTime` then reuses the pinned
+  generic pair-right adapter and existing negative-row emitter, preserving all
+  ranked sections while turning the constructed edges into negative rows.
+  It does not require a supplied edge list, control bit or semantic invariant.
+- **Correspondence / size:** `GraphSections.negative_encode` identifies the
+  exact paired output with retained ranked data plus the semantic compiler's
+  ordered `unequalRows`, including every row tag, count and binary endpoint.
+  `negative_length_le_cubic` bounds the complete paired output by
+  `10(s+1)^3` in the retained-section input length `s`, not merely a row count.
+  This is a raw negative section; positive rows, complete objective headers,
+  final framing and prime composition remain separate.
+- **Verification:** isolated projection and complete-module Lean checks pass;
+  full `lake build` passes (3214 jobs). Six new headline audits use only
+  `propext`, `Classical.choice` and `Quot.sound`. All 84 Lean/config sources
+  pass the comment/string-aware prohibited-code scan; diff checks pass.
+  Root import, README and both status locations synchronized; the full
+  corollary stays **Partial**.
+- **Diagnostics / resolutions:** an output-alphabet alias through
+  `retainedFinEncoding.Γ` prevented synthesis of `HAppend` for the projected
+  list; the transparent `Sum PairQueriesMachine.Bounded (Option Bool)` alias
+  makes the same checked alphabet explicit. A minimal `nlinarith` experiment
+  could not prove `s ≤ (s+1)^3`; the proof now uses `Nat.le_pow` and linear
+  arithmetic. A temporary module cache used for checking during the full
+  rebuild initially shadowed other modules in the same namespace; supplying
+  its sibling object links fixed the isolated check. The final full build
+  uses the normal project cache. Failed diagnostic audits are excluded.
+  No unresolved Lean error remains.
+- **Preservation:** sibling remains clean at
+  `b450a5afce5eaabfe0297a1612677c1cc8e386b8`; pinned dependency unchanged.
+  Active thesis remains at `f1107f5` with its original twelve dirty files and
+  binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Ending / best next step:** checked graph and negative-row construction now
+  compose from actual compiler input, preserving the ranked sections. Count
+  the checked edge rows to construct `edges.length + 1`, using
+  `NegativeRows.pinningWeight_eq_edgeCount`, and build positive-row emission
+  against the semantic sorted, deduplicated per-variable domains. Repeated
+  stored occurrences must not become duplicate positive rows. Then assemble
+  the full objective with the existing selected-prime machine and framing.
+  Commit/push and final clean-tree/three-ref parity are verified afterward and
+  recorded in automation memory.
+- **Full audit:** 543 standard-only axiom lists and 20 axiom-free declarations; new module warning-free.
+- **Run time:** 2026-10-06 18:43:40 UTC (7 October AEDT).

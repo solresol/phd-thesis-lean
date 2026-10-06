@@ -617,7 +617,7 @@ domain-entry prime. The complete composed runtime includes source preparation,
 symbol extraction, initialization, the whole loop and both retained-section
 adapters; the displayed loop polynomial alone is not the whole compiler cost.
 The pair-loop composition below now constructs deduplicated primal edges.
-Objective-row composition and final prime-selection assembly remain open;
+Positive-row emission and final objective/prime assembly remain open;
 the full corollary is still **Partial**.
 
 `AllDifferentCSPPrimalEdges.lean` now defines an executable bounded pair scan
@@ -630,8 +630,8 @@ scope entries. `enumerate_relabelledSections` connects the scan input to the
 completed relabelling stage. `enumerate_length_le` bounds the list by `n^2`
 for `n` explicitly listed variables. These executable semantics and size
 results are realized by the complete finite pair loop below, with a checked
-polynomial runtime from actual compiler input. Objective emission and final
-prime composition remain separate.
+polynomial runtime from actual compiler input. Positive-row emission and final
+objective/prime composition remain separate.
 
 `AllDifferentCSPNegativeRows.lean` adds checked endpoint-pair and negative-row
 section encodings by reusing the counted-row codecs. Its
@@ -644,9 +644,10 @@ ordered negative rows; `pinningWeight_eq_edgeCount` also connects edge counting
 to its positive pinning weight. `outputEncode_length` charges exactly two added
 cells per edge. `compiler_output_length_le_cubic` bounds the whole negative
 section by `9(s+1)^3` in the actual Boolean compiler-input length. The finite
-emitter starts with an already enumerated edge list. The pair loop below now
-constructs that list inside its retained terminal state; projection into this
-emitter, positive rows, full objective assembly and prime composition remain.
+emitter starts with an already enumerated edge list. The pair loop and
+projection below now construct that list and compose this emitter from actual
+compiler input. Positive rows, full objective assembly and prime composition
+remain.
 `AllDifferentCSPRowCount.lean` now reuses the existing row-counting machine
 on the original domain rows. `domainVariableCountComputableInPolyTime`
 retains every domain cell and constructs the exact unary variable count in
@@ -879,9 +880,20 @@ compiler input and returns terminal counters `(n,0)`, all retained ranked
 sections, and exactly the deduplicated primal-edge list. The full composition
 includes preparation and entry costs, beyond the displayed loop polynomial.
 Zero variables, empty/overlapping/repeated scopes and arbitrary binary values
-are covered. Projection into the negative-row emitter remains to be composed.
-Positive rows, full objective assembly and final prime-selection composition
-also remain open.
+are covered.
+
+`AllDifferentCSPPairFinalization.lean` removes only the scan counters in
+`2s+2` steps. `runtimeCompilerGraphSectionsComputableInPolyTime` returns the
+ranked sections paired with the exact ordered graph.
+`runtimeCompilerNegativeSectionsComputableInPolyTime` composes the checked
+pair-right negative-row emitter from the actual Boolean compiler input,
+preserving every ranked section. `GraphSections.negative_encode` identifies
+the complete paired wire with the semantic compiler's ordered `unequalRows`;
+`negative_length_le_cubic` bounds that whole paired output by `10(s+1)^3` in
+the retained-section input length, including both retained data and rows.
+Positive rows still require sorted, deduplicated per-variable domains and the
+computed pinning weight. Full objective assembly and final prime-selection
+composition also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
@@ -984,8 +996,8 @@ linear finite-machine bridge to its canonical Boolean encoding. The complete
 structural compiler now constructs that raw target and frames it, using checked
 binary indices, countdowns, row counting, and header staging. The later
 relabelling and finite-machine edge-construction stages are also complete.
-Connecting retained edges to negative-row emission, constructing positive rows
-and assembling the whole compiler remain.
+The graph-to-negative-row composition is also complete, retaining ranked
+sections. Positive rows and whole-compiler assembly remain.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
