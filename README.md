@@ -855,8 +855,14 @@ edges; no external decision or well-formedness assumption is required.
 body, transfer and cleanup costs bounded by one fixed polynomial evaluated at
 `12(s+1)^3` in original retained-section length `s`. Kernel-reduced examples
 cover zero/singleton bounds, carry, wrapping, duplicate scopes and an exhausted
-state whose endpoints would otherwise pass the edge test. Repeated finite
-dispatch and its total runtime proof remain open.
+state whose endpoints would otherwise pass the edge test.
+`AllDifferentCSPPairLoopMachine.lean` supplies the finite repeated controller.
+Its body erases the old answer, invokes the complete dispatcher and computes
+new active control. `iteration_cycle` charges the full body plus `2s+2t+4`
+steps for input/output lengths `s,t`; `exit_run` removes the false answer and
+returns the entire terminal state in `2s+2` steps. Every return restores wire
+order and clears all scratch stacks. The total repeated runtime proof and
+composition from actual compiler input remain open.
 Positive rows, full objective assembly and final prime-selection composition
 also remain open.
 

@@ -5795,3 +5795,41 @@
   remain open. Final clean-tree and three-ref parity are recorded in automation
   memory after pushing.
 - **Run time:** 2026-10-05 18:30:32 UTC (6 October AEDT).
+
+## 2026-10-07 — finite repeated pair-scan controller
+
+- **Starting commit:** `00aa630cccaf4a7446a169e66b6749186b8477f5`, clean
+  `main`; fetch and live remote check confirmed all three refs agree.
+  Read instructions, status, relevant README/Lean modules, recent automation
+  log/memory and the active thesis corollary/proof.
+- **Read-only upstream review:** sibling `lean-np-hardness` is clean at
+  `b450a5a`; its counted membership loop supplies a useful halt-redirection
+  pattern but no generic checked loop for this CSP state. Reused the pinned
+  `ad20a2e` composition and runtime APIs and the existing local scope-controller
+  proof pattern. No sibling or dependency edits. The active thesis's twelve
+  dirty files remain untouched, with binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Increment:** new `AllDifferentCSPPairLoopMachine.lean` implements the
+  repeated finite controller. `body` composes answer erasure, the complete
+  dispatcher and recomputation of active control. `source_present` ensures
+  only the tagged answer chooses repetition; payload bits cannot select it.
+  `body_run` embeds the checked body and redirects its halt to collection.
+  `iteration_cycle` includes all body steps plus `2s+2t+4` routing/control
+  steps for its complete input/output wire lengths. `exit_run` removes the
+  false answer and returns every terminal state cell in `2s+2` steps, with
+  every scratch stack empty. No semantic iteration count is treated as a
+  machine runtime theorem.
+- **Verification:** direct module check and full `lake build` pass (3212
+  jobs). Five new headline audits use only `propext`, `Classical.choice` and
+  `Quot.sound`. Comment/string-aware source scan and `git diff --check` pass.
+  Root import, README and both status locations synchronized; full corollary
+  remains **Partial**.
+- **Failures/blockers:** none in the controller check. Total repeated runtime
+  and actual-input composition are being checked as a separate increment;
+  that draft is excluded from this commit.
+- **Next:** use `run_active_iff`, the decreasing remaining grid budget and
+  cubic reached-wire bound to charge all cycles and the final exit, then
+  construct the entry control bit from the actual compiler input. Edge
+  projection/negative-row composition, positive rows, full objective assembly
+  and final prime composition remain afterward.
+- **Run time:** 2026-10-06 18:22 UTC (7 October AEDT; rounded to minute).
