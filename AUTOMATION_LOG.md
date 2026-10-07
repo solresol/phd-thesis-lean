@@ -5934,3 +5934,44 @@
   recorded in automation memory.
 - **Full audit:** 543 standard-only axiom lists and 20 axiom-free declarations; new module warning-free.
 - **Run time:** 2026-10-06 18:43:40 UTC (7 October AEDT).
+
+## 2026-10-08 — exact edge counting from actual compiler input
+
+- **Starting commit:** `bc3392b601d3a13e21ec137522b01bbe1f63579f`, clean
+  `main`. Fetch confirmed no upstream advance, with ahead/behind 0/0.
+  Read instructions, status, relevant README/Lean modules, recent automation
+  log/memory, and the active thesis corollary and proof (lines 530–537).
+- **Read-only foundation review:** sibling is clean at
+  `62c73ce7079465944cca5456762f14963a6558e6`; its latest serialized repeated
+  membership loader is a future membership primitive, not a graph counter or
+  sorting API. Reused the pinned `ad20a2e` pair-right and sequential composition
+  APIs, plus the existing checked local row counter. No sibling/dependency
+  changes. Active thesis remains at `f1107f5`, with twelve dirty files and
+  binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Increment:** new `AllDifferentCSPEdgeCount.lean`. `EdgeCount.outputsInTime`
+  uses the existing binary-countdown row machine on exact two-endpoint rows,
+  retaining every endpoint and producing one unary mark per edge in
+  `20(s+1)^2` steps for actual edge-stream bit/delimiter length `s`.
+  `encode_retain_length_le` bounds the whole output by `2s` cells.
+  `runtimeCompilerCountedGraphSectionsComputableInPolyTime` includes actual
+  Boolean-input graph construction and preserves every ranked section.
+  `CountedGraphSections.count_eq` identifies the generated count plus one
+  with the semantic pinning weight. Empty edges and repeated-scope examples
+  are kernel checked; the counting pass itself preserves supplied duplicates,
+  while the composed graph constructor already deduplicates edges.
+- **Verification:** direct module check and full `lake build` pass (3215
+  jobs). Six new headline audits use only `propext`, `Classical.choice` and
+  `Quot.sound`. Comment/string-aware prohibited-code scan and `git diff --check`
+  pass. README, both status locations, root import and previous negative-row
+  correspondence comment synchronized; full corollary remains **Partial**.
+- **Failures/blockers:** none in this increment. A binary-weight follow-on
+  passed its separate direct Lean check but is excluded from this commit.
+  The correspondence-comment edit rebuilt the downstream dependency chain;
+  temporary isolated checks did not replace the required full build.
+- **Ending / next step:** commit/push exact counting with three-ref parity,
+  then construct the binary `edgeCount + 1` field and retain it through
+  negative-row emission. Positive-row sorting/deduplication, final objective
+  headers/framing and selected-prime composition remain open. The follow-on
+  will reuse the checked binary-header counter and pair adapters.
+- **Run time:** 2026-10-07 18:31:02 UTC (8 October AEDT).

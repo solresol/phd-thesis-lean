@@ -10,8 +10,9 @@ check pair arity, instead of building another copying/tagging implementation.
 
 This interface starts with an edge list. `AllDifferentCSPPairLoop` now
 constructs that list inside the retained terminal state in polynomial time;
-projection from that state into this emitter remains separate. This machine emits the raw negative
-row section; complete objective headers, positive rows and framing are later
+`AllDifferentCSPPairFinalization` composes projection and this emitter from
+the actual compiler input. `AllDifferentCSPEdgeCount` retains the graph and
+constructs its exact unary count. This machine emits the raw negative row section; complete objective headers, positive rows and framing are later
 assembly stages.
 -/
 

@@ -891,6 +891,14 @@ preserving every ranked section. `GraphSections.negative_encode` identifies
 the complete paired wire with the semantic compiler's ordered `unequalRows`;
 `negative_length_le_cubic` bounds that whole paired output by `10(s+1)^3` in
 the retained-section input length, including both retained data and rows.
+`AllDifferentCSPEdgeCount.lean` reuses the complete row counter on the
+constructed graph. `EdgeCount.outputsInTime` retains every endpoint and emits
+one unary mark per edge in `20(s+1)^2` steps; the complete result is at most
+`2s` cells. `runtimeCompilerCountedGraphSectionsComputableInPolyTime` composes
+this pass from actual Boolean compiler input, retaining every ranked section.
+`CountedGraphSections.count_eq` identifies its computed tally plus one with
+the semantic pinning weight. Binary weight construction is the next stage.
+
 Positive rows still require sorted, deduplicated per-variable domains and the
 computed pinning weight. Full objective assembly and final prime-selection
 composition also remain open.
@@ -1232,8 +1240,9 @@ The copied statements are grouped by mathematical contribution:
   the actual compiler input to the original structural encoding. Complete
   relabelling now also composes from that input. The bounded edge scan agrees
   with the exact sorted primal graph, and negative-row emission from supplied
-  pairs is checked. Finite-machine edge construction, positive rows, complete
-  objective assembly and composition with prime selection remain open;
+  pairs is checked. Complete finite-machine edge construction and exact unary
+  edge counting now compose from actual input. Positive rows, binary pinning
+  weight, complete objective assembly and prime composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of
