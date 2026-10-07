@@ -80,3 +80,4 @@ import PhdThesisLean.AllDifferentCSPPairLoopMachine
 import PhdThesisLean.AllDifferentCSPPairLoop
 import PhdThesisLean.AllDifferentCSPPairFinalization
 import PhdThesisLean.AllDifferentCSPEdgeCount
+import PhdThesisLean.AllDifferentCSPPinningWeight

@@ -5975,3 +5975,63 @@
   headers/framing and selected-prime composition remain open. The follow-on
   will reuse the checked binary-header counter and pair adapters.
 - **Run time:** 2026-10-07 18:31:02 UTC (8 October AEDT).
+
+## 2026-10-08 — binary pinning weight and weighted negative sections
+
+- **Starting commit:** `926699844b6ec1eaabf2c9d2bdc18ad6133de6ee`, exact
+  edge-count increment pushed with local/tracking/live main parity. The only
+  uncommitted work was this run's binary-weight follow-on.
+- **Increment:** new `AllDifferentCSPPinningWeight.lean`. The finite
+  preparation machine preserves all edge cells, retags unary count marks for
+  the existing binary-header counter, appends one mark, restores wire order,
+  and clears scratch stacks in `2s+2` steps. The existing checked pair-right
+  adapter and binary-header machine implement
+  `pinningWeightBinaryComputableInPolyTime`, including every binary carry.
+  `pinningWeightComputableInPolyTime` first runs the row counter, so the caller
+  supplies neither an edge count nor a weight. The output is a checked raw
+  reversed binary field with its delimiter, ready for later assembly.
+- **Actual input / correspondence:**
+  `runtimeCompilerWeightedNegativeSectionsComputableInPolyTime` composes from
+  actual Boolean compiler input through graph construction, edge counting,
+  binary weight construction and negative-row emission. All ranked sections
+  are retained. `WeightedGraphSections.encode_eq` proves exact correspondence
+  with semantic ordered `unequalRows` and `pinningWeight`; no semantic
+  invariant is supplied externally. The complete composed polynomial includes
+  graph construction and all inter-machine transfers, beyond the local
+  preparation bound.
+- **Size / edge cases:** `PinningWeight.binary_length_le` charges every graph
+  bit, weight bit and delimiter within `2s+2` cells of the edge input length.
+  `WeightedGraphSections.encode_length_le_cubic` bounds the whole retained
+  section/negative-row/weight output by `11(s+1)^3+2` in retained-section wire
+  length. Kernel examples cover empty graphs (weight one), repeated and
+  overlapping scopes, repeated values, empty domains, and the carry from
+  three edges to binary weight four. These total syntax examples do not assert
+  the semantic theorem's nonempty-domain premise for empty-domain instances.
+- **Verification:** corrected standalone module check and full `lake build`
+  pass (3216 jobs). Nine new headline audits use only `propext`,
+  `Classical.choice`, `Quot.sound`; the full build reports 558 standard-only
+  lists and 20 axiom-free declarations. All 86 Lean/config sources pass the
+  comment/string-aware prohibited-code scan, and `git diff --check` passes.
+  New module warning-free. Root import, README and both status locations
+  synchronized. `cor:all-different-csp` remains **Partial**.
+- **Diagnostics:** the first direct check left only the size-equation goal
+  `a + (b + 1) = a + b + 1`; adding `Nat.add_assoc` closes it. Failed axiom
+  reports are excluded from verification evidence. For the cubic bound,
+  `Nat.pow_le_pow_left` followed by `Nat.pow_le_pow_right` supplies the small
+  square-to-cube inequality. The temporary isolated-cache runner initially
+  searched `/tmp`, while macOS `tempfile` used its per-user temporary directory;
+  resolving it with `tempfile.gettempdir()` fixed the runner. Final full build
+  used the normal cache. No unresolved Lean error remains.
+- **Preservation:** sibling remains clean at `62c73ce`; no dependency edits.
+  The active thesis's twelve dirty files and binary-diff SHA-256 remain
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Ending / best next step:** commit/push weighted negative sections with
+  three-ref parity checked afterward. Next construct positive rows in exactly
+  `ExplicitSystem.pinningRows` order: increasing variable, then increasing
+  distinct relabelled value. `DomainSymbols.relabeled_domain` supplies the
+  exact per-variable set correspondence and
+  `CountedRelabelledSections.domains_ofRuntimeSystem` supplies the retained
+  occurrence correspondence. Emitting every stored occurrence would duplicate
+  positive rows; prove normalization before emission. Complete objective
+  headers/row assembly, final framing, and selected-prime composition remain.
+- **Run time:** 2026-10-07 18:33:38 UTC (8 October AEDT).

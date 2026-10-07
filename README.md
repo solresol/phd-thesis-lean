@@ -897,11 +897,24 @@ one unary mark per edge in `20(s+1)^2` steps; the complete result is at most
 `2s` cells. `runtimeCompilerCountedGraphSectionsComputableInPolyTime` composes
 this pass from actual Boolean compiler input, retaining every ranked section.
 `CountedGraphSections.count_eq` identifies its computed tally plus one with
-the semantic pinning weight. Binary weight construction is the next stage.
+the semantic pinning weight.
 
-Positive rows still require sorted, deduplicated per-variable domains and the
-computed pinning weight. Full objective assembly and final prime-selection
-composition also remain open.
+`AllDifferentCSPPinningWeight.lean` constructs that weight. Its finite
+preparation pass appends one tally mark and routes the count in `2s+2` steps,
+retaining every edge cell. `pinningWeightBinaryComputableInPolyTime` reuses the
+checked binary-header machine and pair-right adapter to count the marks into
+an exact reversed raw binary field, including its delimiter. The complete
+`runtimeCompilerWeightedNegativeSectionsComputableInPolyTime` starts from
+actual Boolean compiler input and returns all ranked sections, the exact
+negative rows and the internally computed binary pinning weight.
+`WeightedGraphSections.encode_eq` identifies both row and weight fields with
+the semantic compiler, while `encode_length_le_cubic` bounds the entire output
+by `11(s+1)^3+2` in the complete retained-section length `s`. Empty graphs have
+weight one; repeated scopes do not inflate the count; binary carry is included.
+
+Positive rows still require sorted, deduplicated per-variable domains. Full
+objective headers/row assembly, final framing and selected-prime composition
+also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
@@ -1241,8 +1254,9 @@ The copied statements are grouped by mathematical contribution:
   relabelling now also composes from that input. The bounded edge scan agrees
   with the exact sorted primal graph, and negative-row emission from supplied
   pairs is checked. Complete finite-machine edge construction and exact unary
-  edge counting now compose from actual input. Positive rows, binary pinning
-  weight, complete objective assembly and prime composition remain open;
+  edge counting now compose from actual input, together with exact binary
+  pinning-weight construction and negative-row emission. Positive rows, full
+  objective assembly/framing and prime composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of
