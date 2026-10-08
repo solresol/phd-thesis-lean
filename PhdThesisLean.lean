@@ -82,3 +82,5 @@ import PhdThesisLean.AllDifferentCSPPairFinalization
 import PhdThesisLean.AllDifferentCSPEdgeCount
 import PhdThesisLean.AllDifferentCSPPinningWeight
 import PhdThesisLean.AllDifferentCSPPositiveEnumeration
+import PhdThesisLean.AllDifferentCSPPositiveBlock
+import PhdThesisLean.AllDifferentCSPPositiveRows

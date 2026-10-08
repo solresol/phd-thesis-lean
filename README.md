@@ -923,8 +923,23 @@ no pair repeats and output count cannot exceed stored occurrence count.
 `candidates_length_le_wire_quadratic` bounds that grid by `s(s+1)` in the
 complete retained-section wire length. This is an executable specification
 and semantic/order proof, not yet a finite-machine runtime theorem for the
-positive scan. Its repeated machine, positive-row emission, full objective
-headers/row assembly, final framing and selected-prime composition remain open.
+positive scan.
+
+`AllDifferentCSPPositiveBlock.lean` adds a concrete finite machine and checked
+input/output encodings for one positive row. `positiveBlock_outputsInTime`
+and `positiveBlockComputableInPolyTime` preserve all binary index, rank and
+weight fields, prefix exactly `[4,0]`, and clear scratch stacks in `2s+2`
+steps. The complete output adds exactly five cells to the three-field input.
+`AllDifferentCSPPositiveRows.lean` checks concatenated positive-row blocks;
+its decoder rejects negative rows and wrong arities.
+`PositiveRows.outputEncode_ofRuntimeSystem` identifies the exact raw output
+from weighted ranked sections with the semantic compiler's ordered pinning
+rows. `outputEncode_length_le_wire_quadratic` bounds that whole positive
+section by `11(s+1)^2` in the complete weighted-section wire length, including
+the binary weight field. This is a wire-size theorem; the repeated positive
+scan, shared-weight staging and emission still need their complete machine
+runtime proof. Full objective headers/row assembly, final framing and
+selected-prime composition also remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

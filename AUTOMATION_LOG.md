@@ -6079,10 +6079,74 @@
   the initial full build exposed that omitted unfolding. Corrected build
   passes; failed axiom diagnostics are excluded from validation evidence.
 - **Ending / next step:** commit/push this complete specification and
-  correspondence increment, then finish the separately staged local positive
+  correspondence increment, then finish the separately developed local positive
   row emitter. Its finite block check has passed but it is not included here.
   The next whole-machine task is membership testing over retained ranked pairs,
   rectangular iteration with the proved occurrence-count bound, and shared
   binary-weight staging. Full objective assembly/framing and prime composition
   remain afterward.
 - **Run time:** 2026-10-08 18:27:00 UTC (9 October AEDT).
+
+
+## 2026-10-09 — finite positive-row emitter and checked complete section
+
+- **Starting commit:** `a8e0eb8529c28c2fdbf7b4a67f1ad36f88b33e1a`, the
+  enumeration increment pushed with local/tracking/live main parity. Only
+  this run's positive-emitter follow-on was untracked.
+- **Finite machine:** `AllDifferentCSPPositiveBlock.lean` adds checked
+  three-field input and `[4,0,index,rank,weight]` output encodings.
+  `positiveBlock_outputsInTime` and `positiveBlockComputableInPolyTime` prove
+  a concrete three-stack finite machine copies all arbitrary binary fields,
+  emits the exact constant header, restores source order and clears work
+  stacks in `2s+2` steps. `outputEncode_eq_row` identifies its output with the
+  existing counted residual-row wire; exactly five cells are added. This is
+  a domain-specific emitter, not a new generic machine foundation.
+- **Complete raw target:** `AllDifferentCSPPositiveRows.lean` concatenates
+  those blocks and supplies a round-tripping `FinEncoding` for the whole
+  positive list. The decoder rejects negative tags and wrong arities.
+  `rows_ofRuntimeSystem` and `outputEncode_ofRuntimeSystem` identify the
+  construction from actual weighted ranked sections with the semantic
+  compiler's exact ordered pinning rows, including the internally computed
+  weight. `outputEncode_length_le_wire_quadratic` charges the entire section
+  within `11(s+1)^2` in complete weighted-section wire length, for every value
+  of that input type. Every index, rank and weight bit is included.
+- **Boundary:** this is a genuine machine runtime theorem for one block, plus
+  complete list encoding, correspondence and output-size theorems. Repeated
+  positive membership selection, shared-weight copying and emission still
+  lack their composed finite machine. No runtime is inferred from the size
+  or candidate-count bounds. The full corollary remains **Partial**.
+- **Verification:** direct block check, targeted block build (3114 jobs), and
+  final full `lake build` (3219 jobs) pass. The nine new headline audits use
+  only `propext`, `Classical.choice`, `Quot.sound`; final build reports 574
+  standard-only axiom lists plus 20 axiom-free declarations. All 89 project
+  Lean/config sources pass `python3 /tmp/csp_verify_sources.py`, which removes
+  comments/strings before scanning prohibited tokens and also rejects native
+  decision/compiler-trust bypasses. `git diff --check` passes; all three new
+  modules are warning-free. Kernel examples exercise malformed count/tag/arity,
+  complete section round trips, binary weight four, empty output/domains,
+  repeated values/scopes and shared ranks. Empty-domain examples concern total
+  syntax and do not assert the semantic nonempty-domain premise.
+- **Diagnostics:** `stacks` is a reserved parser token in this import context;
+  renamed the helper `stackContents`. The first dependent direct check ran
+  before the block `.olean` existed; building that prerequisite resolved it.
+  Bare function arguments do not unfold under `simp`; use
+  `List.flatMap_congr` and simplify each block explicitly. Broad `simp` on
+  `mapM` fused the mapped decoder and hid the induction hypothesis; targeted
+  `simp only` preserves it. After decoder round-trip rewriting, apply
+  `parseRows` directly so the `Option` bind reduces definitionally. Failed
+  diagnostics are not counted as audit evidence. No Lean error remains.
+- **Preservation / ending:** sibling is still clean at
+  `67a9332095a3bd938fa71ac708a63d6cc911ff30`; active thesis still has the same
+  twelve dirty files and binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  No dependency edits. Root imports, README and both status locations are
+  synchronized. Commit/push this verified increment and check three-ref parity.
+- **Best next step:** reuse the existing counted-row machine to retain a
+  unary occurrence tally; implement exact membership of `(index,rank)` in
+  retained ranked records, then a rectangular finite driver over variables
+  and ranks through that tally. Stage the shared binary weight for each
+  accepted pair and invoke the checked block emitter. Reuse the existing
+  pair adapters and finite-call/loop patterns, charging all transfers and
+  cleanup. Complete objective headers, row assembly/framing and selected-prime
+  composition remain afterward.
+- **Run time:** 2026-10-08 18:34:16 UTC (9 October AEDT).
