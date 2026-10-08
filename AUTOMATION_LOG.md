@@ -6035,3 +6035,54 @@
   positive rows; prove normalization before emission. Complete objective
   headers/row assembly, final framing, and selected-prime composition remain.
 - **Run time:** 2026-10-07 18:33:38 UTC (8 October AEDT).
+
+
+## 2026-10-09 — ordered distinct positive-row enumeration
+
+- **Starting commit:** `44aa76683d7544208d815c5ba16f17b2dc234e22`, clean
+  `main`; fetch confirmed local/tracking/live refs agree, with no advance.
+  Read instructions, status, relevant README and Lean sources, recent log and
+  automation memory, and the active thesis corollary/proof.
+- **Sibling and preservation:** reviewed `lean-np-hardness` read-only at
+  `67a9332`. Its new canonical repeated-membership output includes backup
+  cleanup and a serialized-bit bound, but supplies no ranked pair membership
+  or positive-row scan. Existing pinned pair/composition APIs remain reused;
+  no dependency changes. Active thesis remains at `f1107f5`; twelve dirty
+  files and binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`
+  are preserved.
+- **Increment:** `AllDifferentCSPPositiveEnumeration.lean` defines a
+  rectangular variable/rank scan, bounded by stored occurrence count rather
+  than original symbol magnitude. `retained_mem` and `values_eq_sorted_domain`
+  identify its membership and increasing order with the semantic domains.
+  `rows_eq_pinningRows` proves exact ordered positive rows, including the
+  existing computed edge count plus one as weight. Repetitions are removed
+  without a sorting pass; empty domains preserve later indices.
+- **Bounds:** `enumerate_nodup` and `enumerate_length_le` prove no duplicate
+  pairs and no increase in row count; `enumerate_eq_filter` relates the
+  executable scan to its explicit candidate grid, and
+  `candidates_length_le_wire_quadratic` bounds the grid by `s(s+1)` in full
+  retained-section encoded length. This is not a finite-machine runtime proof
+  for the positive scan. The corollary remains **Partial**.
+- **Verification:** direct Lean check and full `lake build` pass (3217 jobs).
+  Seven new headline axiom audits use only `propext`, `Classical.choice`, and
+  `Quot.sound`. Comment/string-aware source scan and `git diff --check` pass;
+  new module has no warnings. Kernel examples include repeated and unsorted
+  symbols, shared ranks, intervening/trailing empty domains, repeated scopes,
+  no occurrences, and zero variables. Root import, README and both theorem
+  status locations are synchronized.
+- **Diagnostics:** this pin lacks `List.Subset.length_le`,
+  `List.Nodup.length_le_of_subset`, and `List.flatMap_congr_left`; use finset
+  cardinality monotonicity and `List.flatMap_congr`. An offset lower-bound
+  lemma excludes later occurrences from the current empty/initial row.
+  The grid/filter identity needs `Function.comp_def` after `List.filter_map`;
+  the initial full build exposed that omitted unfolding. Corrected build
+  passes; failed axiom diagnostics are excluded from validation evidence.
+- **Ending / next step:** commit/push this complete specification and
+  correspondence increment, then finish the separately staged local positive
+  row emitter. Its finite block check has passed but it is not included here.
+  The next whole-machine task is membership testing over retained ranked pairs,
+  rectangular iteration with the proved occurrence-count bound, and shared
+  binary-weight staging. Full objective assembly/framing and prime composition
+  remain afterward.
+- **Run time:** 2026-10-08 18:27:00 UTC (9 October AEDT).

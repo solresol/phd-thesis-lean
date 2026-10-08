@@ -912,9 +912,19 @@ the semantic compiler, while `encode_length_le_cubic` bounds the entire output
 by `11(s+1)^3+2` in the complete retained-section length `s`. Empty graphs have
 weight one; repeated scopes do not inflate the count; binary carry is included.
 
-Positive rows still require sorted, deduplicated per-variable domains. Full
-objective headers/row assembly, final framing and selected-prime composition
-also remain open.
+`AllDifferentCSPPositiveEnumeration.lean` now specifies an executable scan of
+variable indices and ranks bounded by the stored occurrence count.
+`PositiveEnumeration.rows_eq_pinningRows` proves exact equality with the
+semantic compiler's ordered positive rows, using the computed edge count plus
+one as weight. Repeated entries produce one row, and empty domains preserve
+later variable indices. `enumerate_nodup` and `enumerate_length_le` prove that
+no pair repeats and output count cannot exceed stored occurrence count.
+`enumerate_eq_filter` connects the scan to its explicit candidate grid;
+`candidates_length_le_wire_quadratic` bounds that grid by `s(s+1)` in the
+complete retained-section wire length. This is an executable specification
+and semantic/order proof, not yet a finite-machine runtime theorem for the
+positive scan. Its repeated machine, positive-row emission, full objective
+headers/row assembly, final framing and selected-prime composition remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
