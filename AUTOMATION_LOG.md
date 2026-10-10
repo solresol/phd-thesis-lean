@@ -6150,3 +6150,48 @@
   cleanup. Complete objective headers, row assembly/framing and selected-prime
   composition remain afterward.
 - **Run time:** 2026-10-08 18:34:16 UTC (9 October AEDT).
+
+
+## 2026-10-10 — compute the positive scan occurrence bound
+
+- **Starting commit:** `8f9a6d309cab790f0b0e7efe84d8fb78decaa1f6`, clean
+  and synchronized after fetch. Read instructions, theorem status, relevant
+  README/Lean sources, previous automation entries and the active thesis
+  corollary/proof. Active thesis remains at `f1107f5` with twelve user-modified
+  files, binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Read-only sibling review:** `lean-np-hardness` is clean at `5f74efd`.
+  `CanonicalQueryMembership.computableInPolyTime` now packages repeated natural
+  membership from `FramedNatListQueries.finEncoding`. It does not directly
+  consume our tagged `(variable,rank)` occurrences. Reused the pinned counted
+  row machine and generic pair/composition APIs; no sibling or dependency edits.
+- **Increment:** added `AllDifferentCSPOccurrenceCount.lean`.
+  `OccurrenceCount.occurrenceWire_eq_rows` identifies the exact occurrence wire
+  with counted tagged rows; `outputsInTime` and `computableInPolyTime` reuse
+  the existing finite traversal in `20(s+1)^2` steps, retaining every bit and
+  counting repeated entries separately. Scratch stacks are empty at halt.
+  `runtimeCompilerCountedPositiveSectionsComputableInPolyTime` composes from
+  actual Boolean compiler input through weight/negative-row construction,
+  preserving unary variable count, scopes, negative rows and binary weight.
+- **Correspondence/bounds:** `CountedPositiveSections.count_eq` proves the
+  tally is exactly `domainEntryCount`. `positiveRows_eq` preserves exact ordered
+  semantic positive rows; the whole retained output at most doubles input
+  size. `gridSize_le_wire_quadratic` bounds the rectangular candidate count
+  by `s(s+1)` for every encoded intermediate value. This candidate bound is
+  not the positive scan's runtime. The full corollary remains **Partial**.
+- **Verification:** direct module check and full `lake build` pass (3220 jobs).
+  Eight new headline audits use only standard axioms; final full build has
+  582 standard-only axiom lists and 20 axiom-free reports. Final module
+  build is warning-free. `git diff --check` and comment/string-aware source
+  scan pass. Kernel examples cover empty domains and repeated/shared values.
+  Root import, README and both theorem-status locations are synchronized.
+- **Diagnostics:** a tagged-pair wire's length is not definitionally the sum
+  of component lengths; replace `rfl` with the checked pair-encoding length
+  simplification. Removed unused simp arguments. Earlier failed diagnostics
+  are excluded from the accepted axiom evidence; no Lean error remains.
+- **Ending / next step:** commit and push this verified increment, then check
+  local/tracking/live ref parity. A separate untracked weight-staging machine
+  is under validation and is excluded from this commit. Next implement exact
+  pair membership and rectangular traversal, preserving the common weight
+  across accepted rows; final objective/framing/prime composition remains.
+- **Run time:** 2026-10-10 00:06:55 UTC.

@@ -941,6 +941,19 @@ scan, shared-weight staging and emission still need their complete machine
 runtime proof. Full objective headers/row assembly, final framing and
 selected-prime composition also remain open.
 
+`AllDifferentCSPOccurrenceCount.lean` reuses the checked row-counting machine
+on the exact tagged ranked-occurrence wire in `20(s+1)^2` steps. The composed
+`runtimeCompilerCountedPositiveSectionsComputableInPolyTime` starts from the
+actual Boolean compiler input, counts every stored occurrence, and retains the
+unary variable count, scopes, negative rows and binary weight.
+`CountedPositiveSections.count_eq` identifies the computed tally with the
+original domain-entry count; repeated entries contribute separate tally marks.
+The complete retained output is at most twice its weighted-section input
+length, and `gridSize_le_wire_quadratic` bounds both numerical scan dimensions
+by the actual encoded length for every intermediate value. This constructs
+the positive scan's bound; membership traversal, repeated row emission and
+final objective/prime assembly still remain.
+
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
