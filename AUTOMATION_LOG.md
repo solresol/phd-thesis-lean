@@ -6235,3 +6235,55 @@
   while extracting one complete ordered occurrence, then implement exact pair
   comparison and repeated traversal. Objective/framing/prime composition remains.
 - **Run time:** 2026-10-10 18:15:55 UTC.
+
+
+## 2026-10-11 — exact membership contract and retained occurrence extraction
+
+- **Starting commit:** `94476e17cfce2a1ef99bf4089610530cb1bb17a6`, pushed
+  with local/tracking/live main parity. Continued the same run's read-only
+  sibling/thesis review; no dependency or external repository writes.
+- **Increment:** added `AllDifferentCSPPositiveMembership.lean`.
+  `PositiveMembership.contains_cons` requires both query fields to match one
+  occurrence, and `enumerate_eq_filter` connects this exact predicate to the
+  existing ordered positive enumeration. `input_length_le_sections` charges
+  both canonical binary query words and the entire retained occurrence stream
+  to the original positive-section encoding.
+- **Finite-machine reuse:** checked nonempty-stream and ordered-record codecs
+  identify the existing occurrence wire with counted rows `[0,index,rank]`.
+  `PositiveOccurrenceHead.computableInPolyTime` reuses the already-checked
+  counted-row extractor and count-removal machine, unchanged. The generic
+  pair-right adapter yields `positiveMembershipExtractionComputableInPolyTime`,
+  preserving both candidate fields and every remaining occurrence.
+  `output_length_balance` removes exactly three count cells;
+  `remaining_length_balance` charges both removed binary fields plus six
+  header/delimiter cells and implies strict progress even for zero fields.
+  `contains_step` gives the exact OR recurrence for the future controller.
+- **Evidence boundary:** this is polynomial-time extraction, not yet a
+  polynomial-time pair-membership decision or repeated positive scan. The
+  corollary remains **Partial**; root imports, README and both theorem-status
+  locations record the precise boundary.
+- **Verification:** full `lake build` succeeds (3222 jobs), all 92 project
+  Lean/config files pass the comment/string-aware prohibited-declaration and
+  bypass scan, and `git diff --check` passes. Eleven new headline audits pass;
+  the full build reports 600 standard-only axiom lists and 20 axiom-free
+  declarations. Both new modules are warning-free. Kernel examples distinguish
+  same-record matches from cross-record false positives, repeated occurrences,
+  empty input and zero fields; codec examples reject wrong tags and arities.
+- **Diagnostics:** pointwise `contains` simplification is needed beneath the
+  filter function (`congr 1; funext query`); add `Nat.add_assoc` for tagged-pair
+  lengths. `encodeNat 0` and `encodeNat 3` do not reduce by `rfl` through
+  `Num.ofNat'`; use `Num.ofNat'_zero`, `_bit`, and `_one` before simplification.
+  These exact constants close the size balances. Diagnostic failures are not
+  counted as audit evidence, and no Lean error remains.
+- **Preservation / ending:** sibling remains clean at `a2e19f3`; thesis retains
+  its twelve dirty files and unchanged binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  Commit and push this complete extraction increment and check three-ref parity.
+- **Best next step:** route the extracted ordered fields into two equality
+  calls, combine the answers with AND, and then implement the OR traversal
+  over occurrence records. Reuse the upstream query-preserving equality kernel
+  and existing finite-call/loop patterns. The candidate grid must visit each
+  variable/rank pair once, preserve the shared weight, and call the now-checked
+  row-with-weight emitter only on hits. Full objective/row framing and prime
+  composition remain afterward.
+- **Run time:** 2026-10-10 18:18:20 UTC.

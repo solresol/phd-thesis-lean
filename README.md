@@ -967,6 +967,20 @@ bound for every bounded candidate in the retained positive-scan state.
 Repeated membership/selection and positive-row traversal, followed by full
 objective/framing/prime composition, remain open.
 
+`AllDifferentCSPPositiveMembership.lean` checks the exact ordered-pair
+membership predicate. `contains_cons` requires both fields to match the same
+occurrence, and `enumerate_eq_filter` connects it to positive-row selection.
+`positiveMembershipExtractionComputableInPolyTime` reuses the existing counted
+row extractor and count-removal machine to expose one `[0,index,rank]` payload
+while retaining both candidate fields and the exact remaining occurrence
+stream. Its checked decoders reject incorrect tags and arities. Extraction
+removes exactly three row-count cells; `remaining_length_balance` charges
+both removed binary words plus six header/delimiter cells, proving strict
+progress even for zero-valued fields. `input_length_le_sections` bounds the
+whole candidate query by the retained positive-section wire length. This is
+checked finite-machine extraction; the ordered-pair comparison and repeated
+membership controller still need to be implemented before the positive scan.
+
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
 outputs. `raw_encode_eq_reversed_sections` identifies their reverse staging
