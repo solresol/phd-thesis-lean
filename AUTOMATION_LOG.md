@@ -6195,3 +6195,43 @@
   pair membership and rectangular traversal, preserving the common weight
   across accepted rows; final objective/framing/prime composition remains.
 - **Run time:** 2026-10-10 00:06:55 UTC.
+
+
+## 2026-10-11 — stage and retain each positive row's common weight
+
+- **Starting commit:** `5dbe730489a5df8a2346abd988443c3fe32fbb04`, on
+  `main`, matching fetched `origin/main`. The prior run left only the untracked
+  `AllDifferentCSPPositiveWeight.lean` draft; resumed it within this task.
+  Read instructions, status, relevant README/Lean sources, automation memory
+  and log, and active thesis corollary/proof. Thesis remains at `f1107f5`
+  with twelve user-modified files and binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Read-only sibling review:** clean `lean-np-hardness` at `a2e19f3`;
+  repeated natural-membership and reusable-certificate APIs do not directly
+  consume our tagged variable/rank records. Reused the pinned pair-left,
+  composition and runtime-monotonicity APIs. No sibling/dependency edits.
+- **Increment:** repaired and integrated `AllDifferentCSPPositiveWeight.lean`.
+  `positiveWeightPrepare_outputsInTime` copies/restores the binary weight,
+  stages both endpoint delimiters, and clears scratch stacks in `3s+5` steps.
+  `positiveRowWithWeightComputableInPolyTime` composes the checked local emitter
+  while retaining the original weight. `PositiveWeight.row_encode` identifies
+  the exact counted pinning row; `output_length_le` gives `2s+7` for the full
+  row/weight output; `positiveRowWithWeight_steps_le` bounds every bounded
+  candidate's complete call using the retained positive-section wire length.
+- **Verification:** direct module check, full `lake build` (3221 jobs), source
+  prohibited-declaration/bypass scan and `git diff --check` pass. Seven new
+  audits use only `propext`, `Classical.choice`, `Quot.sound`. The final new
+  module is warning-free. Root import, README and both theorem-status locations
+  are synchronized; the corollary remains **Partial**.
+- **Diagnostics:** the inherited draft's nested `seq` calls disagreed only in
+  output-list append association; normalize `List.append_assoc` before composing.
+  The final conversion creates both structural and arithmetic goals; solve
+  arithmetic first or simplify the structural goal. Unconditional `simp` or
+  a subsequent tactic after a closed goal caused diagnostic-only failures.
+  Earlier error/sorryAx output is excluded from accepted audit evidence.
+- **Ending / next step:** commit and push this verified weight increment;
+  verify local/tracking/live ref parity. The new untracked membership-extraction
+  module is still being checked and is excluded. Next retain the candidate
+  while extracting one complete ordered occurrence, then implement exact pair
+  comparison and repeated traversal. Objective/framing/prime composition remains.
+- **Run time:** 2026-10-10 18:15:55 UTC.

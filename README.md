@@ -937,8 +937,8 @@ from weighted ranked sections with the semantic compiler's ordered pinning
 rows. `outputEncode_length_le_wire_quadratic` bounds that whole positive
 section by `11(s+1)^2` in the complete weighted-section wire length, including
 the binary weight field. This is a wire-size theorem; the repeated positive
-scan, shared-weight staging and emission still need their complete machine
-runtime proof. Full objective headers/row assembly, final framing and
+scan and repeated emission still need their complete machine runtime proof;
+shared-weight staging for one selected row is checked below. Full objective headers/row assembly, final framing and
 selected-prime composition also remain open.
 
 `AllDifferentCSPOccurrenceCount.lean` reuses the checked row-counting machine
@@ -953,6 +953,19 @@ length, and `gridSize_le_wire_quadratic` bounds both numerical scan dimensions
 by the actual encoded length for every intermediate value. This constructs
 the positive scan's bound; membership traversal, repeated row emission and
 final objective/prime assembly still remain.
+
+`AllDifferentCSPPositiveWeight.lean` now stages the graph compiler's common
+binary weight for one selected `(variable, rank)` pair. The concrete
+`positiveWeightPrepare_outputsInTime` machine copies and restores the weight
+in `3s+5` steps for complete input length `s`, including all field delimiters
+and cleanup. `positiveRowWithWeightComputableInPolyTime` composes this pass
+with the checked positive-row emitter while retaining the original weight.
+`PositiveWeight.row_encode` identifies the emitted component with the exact
+counted pinning row; the full row/weight output has at most `2s+7` cells.
+`positiveRowWithWeight_steps_le` gives a uniform complete-call polynomial
+bound for every bounded candidate in the retained positive-scan state.
+Repeated membership/selection and positive-row traversal, followed by full
+objective/framing/prime composition, remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
