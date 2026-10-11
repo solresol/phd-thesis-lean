@@ -990,8 +990,23 @@ while preserving all four binary words and both field separators.
 machinery once per coordinate and conjoins the answers, including all parsing,
 transfers and cleanup. `PositivePairQuery.equal_eq_true` proves that its result
 is true exactly when the ordered pairs agree. Zero coordinates and arbitrary
-binary magnitudes are covered. Full counted-record testing, OR accumulation,
-and the repeated membership/positive scan remain separate obligations.
+binary magnitudes are covered. Counted-record testing and OR accumulation
+now compose as described below; repeated membership remains open.
+
+`AllDifferentCSPPositiveTest.lean` composes extraction, candidate copying and
+same-record comparison from the original contiguous counted occurrence wire.
+`positiveTestComputableInPolyTime` returns that Boolean plus the unchanged
+candidate and exact tail. `AllDifferentCSPPositiveIteration.lean` reuses the
+checked finite OR accumulator in `2s+3` steps and composes the complete
+`positiveIterationComputableInPolyTime`. Each iteration removes precisely the
+head's two binary words and six structural cells, so it strictly shrinks even
+when both fields are zero. `PositiveIteration.contains_invariant` proves that
+the accumulated answer OR membership in the remaining tail stays unchanged.
+`finish_false_eq_contains` verifies the executable recurrence, including empty
+and repeated records and cross-record false positives. This recurrence is
+not yet a repeated finite-machine runtime theorem: the dispatcher, false-bit
+initialization, positive candidate scan/emission and final objective/prime
+assembly remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

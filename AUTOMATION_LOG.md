@@ -6329,3 +6329,51 @@
   with OR accumulation to consume exactly one occurrence. The repeated
   dispatcher, positive grid/emission and final objective/prime assembly remain.
 - **Run time:** 2026-10-11 18:23 UTC (12 October AEDT).
+
+## 2026-10-12 — complete one-occurrence test and membership iteration
+
+- **Starting commit:** `ac6158bcc76856fcfda164a16e4d6c6419795fba`, pushed
+  with HEAD/tracking/live main parity. Continued the same read-only sibling and
+  active-thesis review; no external repository or dependency edits.
+- **Increment:** added `AllDifferentCSPPositiveTest.lean` and
+  `AllDifferentCSPPositiveIteration.lean`. `positiveTestComputableInPolyTime`
+  composes counted-record extraction, candidate routing and exact pair
+  comparison from the original contiguous nonempty occurrence stream. It
+  returns one Boolean plus the unchanged candidate and exact tail.
+- **Accumulation:** `positiveAccumulator_outputsInTime` reuses the existing
+  finite OR machine on the identical wire alphabet in `2s+3` steps.
+  `positiveIterationComputableInPolyTime` composes the entire iteration with
+  the old answer retained through testing. `output_length_balance` charges
+  precisely the two removed head words and six structural cells. Every
+  iteration strictly shrinks, including a zero/zero head.
+- **Semantics:** `PositiveIteration.contains_invariant` preserves accumulated
+  answer OR remaining membership. `finish_false_eq_contains` verifies the
+  executable recurrence, including empty and repeated records and rejection
+  of cross-record false positives. This is not yet the repeated finite
+  dispatcher or its runtime theorem; the corollary remains **Partial**.
+- **Verification:** targeted test build, direct iteration check and final
+  full `lake build` pass (3226 jobs). Sixteen new audits pass (one axiom-free;
+  the others standard-only); the final build reports 627 standard-only axiom
+  lists and 21 axiom-free declarations. All four new modules are warning-free.
+  The comment/string-aware scan covers all 96 project Lean/config sources,
+  with no prohibited declarations or proof bypasses; `git diff --check` passes.
+  README, both status locations and root imports are synchronized.
+- **Diagnostics:** `omega` initially treated the abbreviated test input
+  encoding and extraction encoding as different length atoms; explicitly
+  unfold `PositiveTest.inputFinEncoding` before arithmetic. Removed unused
+  simp arguments from the accumulator's encoding-reuse proofs. No errors
+  remain; earlier diagnostic axiom output is not accepted evidence.
+- **Preservation / ending:** sibling remains clean at `c443dcd`; the thesis
+  retains its twelve dirty files and unchanged binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+  Commit and push this complete increment, then verify local/tracking/live
+  main equality and a clean working tree.
+- **Best next step:** instantiate a finite repeated membership controller
+  using the checked scope-loop call/return pattern. `nonempty_encode` already
+  identifies each nonempty loop state with the complete iteration input;
+  `output_length_lt` gives a uniform original-bit-length bound on all calls.
+  Detect occurrence cells, return to the scan after each call, clear query
+  fields at exit and construct the initial false accumulator. Then implement
+  the bounded variable/rank grid, weight-retaining positive emission and final
+  objective/framing/selected-prime composition.
+- **Run time:** 2026-10-11 18:26 UTC (12 October AEDT).
