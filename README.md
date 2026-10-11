@@ -977,9 +977,21 @@ stream. Its checked decoders reject incorrect tags and arities. Extraction
 removes exactly three row-count cells; `remaining_length_balance` charges
 both removed binary words plus six header/delimiter cells, proving strict
 progress even for zero-valued fields. `input_length_le_sections` bounds the
-whole candidate query by the retained positive-section wire length. This is
-checked finite-machine extraction; the ordered-pair comparison and repeated
-membership controller still need to be implemented before the positive scan.
+whole candidate query by the retained positive-section wire length. The
+ordered-pair comparison is now checked below; repeated membership remains open.
+
+`AllDifferentCSPPositiveRouting.lean` reuses the existing finite scope router
+to copy the candidate and retain the exact occurrence tail in `3s+3` steps.
+`AllDifferentCSPPositiveComparison.lean` parses the checked `[0,index,rank]`
+head into two separate singleton queries in another `3s+3` finite steps.
+`PositiveQueries.output_length_balance` removes exactly the zero-tag delimiter
+while preserving all four binary words and both field separators.
+`positivePairMatchComputableInPolyTime` executes the existing binary equality
+machinery once per coordinate and conjoins the answers, including all parsing,
+transfers and cleanup. `PositivePairQuery.equal_eq_true` proves that its result
+is true exactly when the ordered pairs agree. Zero coordinates and arbitrary
+binary magnitudes are covered. Full counted-record testing, OR accumulation,
+and the repeated membership/positive scan remain separate obligations.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

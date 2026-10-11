@@ -7,7 +7,8 @@ A positive row is selected only when both fields match the same retained
 occurrence. Reuse the checked counted-row extractor to expose one ordered
 `[0, index, rank]` record, retaining the query and exact remaining stream.
 This constructs the next comparison input with a genuine polynomial bound;
-the pair comparison and repeated membership controller remain separate.
+the pair comparison is composed in `AllDifferentCSPPositiveComparison`, while
+the repeated membership controller remains separate.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

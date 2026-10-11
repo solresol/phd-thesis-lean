@@ -6287,3 +6287,45 @@
   row-with-weight emitter only on hits. Full objective/row framing and prime
   composition remain afterward.
 - **Run time:** 2026-10-10 18:18:20 UTC.
+
+## 2026-10-12 — exact ordered-pair comparison from the extracted record
+
+- **Starting commit:** `ffa076d1e8a8e2679ff2babbddd85db423417f00`, clean
+  `main`, matching fetched `origin/main`; no fast-forward was needed. Read
+  instructions, theorem status, relevant README/Lean sources, automation memory
+  and log, and the active thesis corollary/proof. Thesis remains at `f1107f5`
+  with the same twelve user edits and binary-diff SHA-256
+  `b6318d9412925b69a2affddec98bd9c09d0dabd6b2924882dab0cd2408c582ac`.
+- **Read-only sibling review:** clean `lean-np-hardness` at `c443dcd`.
+  Inspected the reusable certificate/repeated natural-membership interfaces
+  and query-preserving binary equality kernel. The newer packed-literal loader
+  does not consume our ordered occurrence wire; reused the already-pinned
+  equality, pair adapters and composition APIs. No sibling/dependency edits.
+- **Increment:** added `AllDifferentCSPPositiveRouting.lean` and
+  `AllDifferentCSPPositiveComparison.lean`. The existing finite scope router
+  duplicates the candidate and retains the exact tail in `3s+3` steps.
+  A finite four-stack parser builds two distinct singleton membership queries
+  from `[0,index,rank]` in another `3s+3` steps, removing exactly the zero-tag
+  delimiter. The existing membership machine calls upstream preserving binary
+  equality once per singleton. `positivePairMatchComputableInPolyTime` composes
+  both calls and the checked Boolean AND, including transfers and cleanup.
+  `PositivePairQuery.equal_eq_true` proves exact ordered-pair equality.
+- **Verification:** direct comparison check and full `lake build` pass
+  (3224 jobs). Twelve new headline axiom audits use only `propext`,
+  `Classical.choice` and `Quot.sound`. New modules are warning-free. Kernel
+  examples cover zero coordinates, swapped fields, unequal ranks and million-
+  valued fields. Prohibited-declaration/bypass scan and `git diff --check`
+  pass. README, root imports and both status locations are synchronized;
+  `cor:all-different-csp` remains **Partial**.
+- **Diagnostics:** `matches` is reserved Lean syntax, so the predicate is
+  named `equal`. A local `phase` definition shadowed the state component in
+  case analysis; unfold it and split `currentPhase` instead. The scan proof
+  needs explicit reversal of zero/singleton `Option.toList`; field-prefix
+  routing also needs the empty-suffix specialization and flatMap normalization.
+  All diagnostics are resolved; failed-run axiom output is excluded.
+- **Ending / next:** commit and push this verified comparison increment and
+  verify local/tracking/live parity. The untracked test/iteration modules are
+  subsequent work and excluded. Next compose extraction, routing and comparison
+  with OR accumulation to consume exactly one occurrence. The repeated
+  dispatcher, positive grid/emission and final objective/prime assembly remain.
+- **Run time:** 2026-10-11 18:23 UTC (12 October AEDT).

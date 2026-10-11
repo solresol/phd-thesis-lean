@@ -87,3 +87,5 @@ import PhdThesisLean.AllDifferentCSPPositiveRows
 import PhdThesisLean.AllDifferentCSPOccurrenceCount
 import PhdThesisLean.AllDifferentCSPPositiveWeight
 import PhdThesisLean.AllDifferentCSPPositiveMembership
+import PhdThesisLean.AllDifferentCSPPositiveRouting
+import PhdThesisLean.AllDifferentCSPPositiveComparison
