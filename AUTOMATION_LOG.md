@@ -6377,3 +6377,38 @@
   the bounded variable/rank grid, weight-retaining positive emission and final
   objective/framing/selected-prime composition.
 - **Run time:** 2026-10-11 18:26 UTC (12 October AEDT).
+
+
+## 2026-10-12 — daily automation handover from udara to raksasa
+
+- **Synchronization:** safely fast-forwarded the clean local `main` from
+  `ffa076d1e8a8e2679ff2babbddd85db423417f00` to udara's clean, fully pushed
+  `aa6c2d77a0d2c3fcf8b899ab0515d43e0ac5a616`. Udara had no uncommitted or
+  unpushed work and no executing run of this automation.
+- **Automation:** migrated `daily-all-different-csp-formalization`
+  ("Daily all-different CSP formalization") to the local Codex project at
+  `/home/gregb/devel/phd-thesis-lean`. Preserved the full prompt, daily
+  05:15 Australia/Sydney schedule, `gpt-6-astra` model, `xhigh` reasoning,
+  local execution, and default notification behavior; changed only the
+  prompt's host-specific project and read-only sibling paths.
+- **Continuity:** copied the complete automation `memory.md` from udara,
+  verifying its original SHA-256 as
+  `9c15886124be037667e1de02f6b76082518f88fdc5063a64468a2d19ee2878e1`,
+  then appended a local handover note. Cloned the read-only review sibling
+  `/home/gregb/devel/lean-np-hardness` at
+  `1acf1d301fa8afc493d5bd5c2c97f8e428990d1a`, matching udara's current
+  sibling checkout. The thesis project's pinned dependency remains
+  `ad20a2e92ec5eb85379ac31df255671416f83b3d`; no dependency versions changed.
+- **Verification:** restored the pinned package cache and ran a successful
+  full `lake build` locally (3226 jobs) with Lean `4.27.0-rc1`. Verified the
+  local automation's configuration and scheduler database agree on the
+  prompt, project, active status, and next scheduled date (13 October).
+  Activated it locally before pausing udara's copy. Backed up udara's
+  original configuration and scheduler row, then verified its configuration
+  and database both report `PAUSED` with no next run. Existing run history
+  remains on udara.
+- **Boundary / next:** this is an operational handover, with no new
+  mathematical claim. `cor:all-different-csp` remains **Partial**. Resume the
+  finite repeated membership controller from the preceding research entry;
+  the complete one-occurrence iteration and its strict wire shrinkage are
+  already checked.
