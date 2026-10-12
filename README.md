@@ -964,7 +964,7 @@ with the checked positive-row emitter while retaining the original weight.
 counted pinning row; the full row/weight output has at most `2s+7` cells.
 `positiveRowWithWeight_steps_le` gives a uniform complete-call polynomial
 bound for every bounded candidate in the retained positive-scan state.
-The repeated membership loop is checked below. Initialization, positive-row
+The initialized membership decision is checked below. Positive-row
 selection/traversal and full objective/framing/prime composition remain open.
 
 `AllDifferentCSPPositiveMembership.lean` checks the exact ordered-pair
@@ -1014,8 +1014,18 @@ traverses every occurrence, returning the accumulated answer OR exact pair
 membership. If `P(s)` bounds one checked body call, the complete loop costs at
 most `(s+1)*(P(s)+4s+4)` in its original encoded state length `s`. This includes
 all transfers and final query cleanup, even for empty lists or zero fields.
-False-bit initialization, positive candidate scan/emission and final
-objective/prime assembly remain open.
+`AllDifferentCSPPositiveInitialization.lean` now reuses the scope initializer
+on the identical serialized alphabet, adding the false answer in at most
+`2s+2` steps with exactly one extra encoded cell.
+`positiveMembershipComputableInPolyTime` composes this pass and the complete
+loop from the original serialized candidate and counted occurrence list.
+`PositiveInitialization.result_ofRuntimeSystem` identifies acceptance exactly
+with membership in that variable's canonical relabelled domain.
+`positiveMembership_steps_le` bounds every candidate call by the same polynomial
+in the complete retained positive-section length. Empty lists, zero fields,
+repeated records, swapped fields and large binary values are checked.
+The finite positive candidate scan, retained-weight emission and final
+objective/framing/prime assembly remain open; `cor:all-different-csp` is partial.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

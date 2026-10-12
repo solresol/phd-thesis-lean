@@ -6459,3 +6459,45 @@
   original serialized query. The bounded variable/rank grid, retained-weight
   positive-row emission and final objective/framing/prime assembly remain.
 - **Run time:** 2026-10-12 18:29 UTC (13 October AEDT).
+
+## 2026-10-13 — initialized serialized positive-membership decision
+
+- **Starting commit:** `28a6698ef0e064d52d4a61e0c936d78427b9a6a2`, verified
+  pushed with equal local HEAD, tracking branch and live remote main. Continued
+  the same reviewed thesis/sibling context without external repository edits.
+- **Increment:** added `AllDifferentCSPPositiveInitialization.lean`.
+  `positiveInitialization_outputsInTime` reuses the existing scope initializer
+  on the identical tagged alphabet, constructing the false accumulator in at
+  most `2s+2` steps and adding exactly one encoded cell.
+  `positiveMembershipComputableInPolyTime` composes initialization and complete
+  repeated occurrence testing from the original serialized candidate/list.
+  The caller supplies neither an answer bit nor extracted/split records.
+- **Correspondence and call bound:** `PositiveInitialization.result_ofRuntimeSystem`
+  proves that acceptance on the actual counted positive sections is exactly
+  membership in the queried variable's canonical relabelled domain.
+  `positiveMembership_steps_le` bounds all bounded candidate calls by one
+  polynomial evaluated at the complete retained positive-section wire length.
+  Query construction and retention for the next grid point remain separate.
+- **Verification:** targeted module build and final full `lake build` pass
+  (3230 jobs). All nine new headline audits use only `propext`,
+  `Classical.choice`, `Quot.sound`; the final build has 647 standard-only axiom
+  reports and 21 axiom-free reports. The new module is warning-free. Kernel
+  examples cover empty input, zero/zero records, repetitions, swapped fields,
+  large binary fields and rejection of cross-record false positives.
+  Comment/string-aware prohibited/bypass scan passes all 100 project Lean/config
+  sources; `git diff --check` passes. README, both status locations and root
+  imports are synchronized. No failed approach or unresolved Lean diagnostic
+  occurred in this increment.
+- **Preservation:** sibling remains clean at `1acf1d3`; the thesis retains
+  its two pre-existing untracked paths and no tracked diff. No dependency
+  changes. `cor:all-different-csp` remains **Partial**.
+- **Ending / best next step:** commit and push this initialized decision and
+  verify three-ref parity. Implement a positive-query constructor that copies
+  `(index, rank)` and the occurrence stream while retaining the complete
+  `CountedPositiveSections` state. Compose this checked membership decision
+  and the weight-retaining row emitter inside a finite rectangular scan over
+  `index < variableCount`, `rank ≤ occurrenceCount`. Preserve one visit per
+  candidate and emit only on hits; then assemble/frame the whole objective
+  and selected-prime header. Existing `PairQueries`, `PairGateMachine`, binary
+  counter and pair-adapter APIs are useful starting points.
+- **Run time:** 2026-10-12 18:31 UTC (13 October AEDT).
