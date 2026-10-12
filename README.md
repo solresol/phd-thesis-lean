@@ -964,8 +964,8 @@ with the checked positive-row emitter while retaining the original weight.
 counted pinning row; the full row/weight output has at most `2s+7` cells.
 `positiveRowWithWeight_steps_le` gives a uniform complete-call polynomial
 bound for every bounded candidate in the retained positive-scan state.
-Repeated membership/selection and positive-row traversal, followed by full
-objective/framing/prime composition, remain open.
+The repeated membership loop is checked below. Initialization, positive-row
+selection/traversal and full objective/framing/prime composition remain open.
 
 `AllDifferentCSPPositiveMembership.lean` checks the exact ordered-pair
 membership predicate. `contains_cons` requires both fields to match the same
@@ -978,7 +978,7 @@ removes exactly three row-count cells; `remaining_length_balance` charges
 both removed binary words plus six header/delimiter cells, proving strict
 progress even for zero-valued fields. `input_length_le_sections` bounds the
 whole candidate query by the retained positive-section wire length. The
-ordered-pair comparison is now checked below; repeated membership remains open.
+ordered-pair comparison and repeated traversal are now checked below.
 
 `AllDifferentCSPPositiveRouting.lean` reuses the existing finite scope router
 to copy the candidate and retain the exact occurrence tail in `3s+3` steps.
@@ -990,8 +990,8 @@ while preserving all four binary words and both field separators.
 machinery once per coordinate and conjoins the answers, including all parsing,
 transfers and cleanup. `PositivePairQuery.equal_eq_true` proves that its result
 is true exactly when the ordered pairs agree. Zero coordinates and arbitrary
-binary magnitudes are covered. Counted-record testing and OR accumulation
-now compose as described below; repeated membership remains open.
+binary magnitudes are covered. Counted-record testing, OR accumulation and
+repeated traversal now compose as described below.
 
 `AllDifferentCSPPositiveTest.lean` composes extraction, candidate copying and
 same-record comparison from the original contiguous counted occurrence wire.
@@ -1003,10 +1003,19 @@ head's two binary words and six structural cells, so it strictly shrinks even
 when both fields are zero. `PositiveIteration.contains_invariant` proves that
 the accumulated answer OR membership in the remaining tail stays unchanged.
 `finish_false_eq_contains` verifies the executable recurrence, including empty
-and repeated records and cross-record false positives. This recurrence is
-not yet a repeated finite-machine runtime theorem: the dispatcher, false-bit
-initialization, positive candidate scan/emission and final objective/prime
-assembly remain open.
+and repeated records and cross-record false positives.
+
+`AllDifferentCSPRecordLoopMachine.lean` factors the existing scope dispatcher
+into one shared finite controller for the exact CSP record alphabet. Both scope
+and positive-occurrence loops reuse its scan, call, return and cleanup proofs.
+`PositiveLoopMachine.iteration_cycle` runs the complete ordered-pair test and
+returns its exact shortened state. `positiveLoopComputableInPolyTime` now
+traverses every occurrence, returning the accumulated answer OR exact pair
+membership. If `P(s)` bounds one checked body call, the complete loop costs at
+most `(s+1)*(P(s)+4s+4)` in its original encoded state length `s`. This includes
+all transfers and final query cleanup, even for empty lists or zero fields.
+False-bit initialization, positive candidate scan/emission and final
+objective/prime assembly remain open.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

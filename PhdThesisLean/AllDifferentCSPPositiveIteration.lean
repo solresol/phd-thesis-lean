@@ -6,8 +6,8 @@ import PhdThesisLean.AllDifferentCSPScopeAccumulator
 
 Reuse the checked Boolean accumulator, then compose it with extraction and
 same-record comparison. The exact tail and both candidate fields survive.
-The executable finish recurrence is verified, but a finite repeated dispatcher
-and its total runtime are still required for polynomial-time membership.
+The executable finish recurrence is verified here. The repeated finite
+dispatcher and its total runtime are checked in `AllDifferentCSPPositiveLoop`.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

@@ -6412,3 +6412,50 @@
   finite repeated membership controller from the preceding research entry;
   the complete one-occurrence iteration and its strict wire shrinkage are
   already checked.
+
+## 2026-10-13 — repeated finite positive-membership traversal
+
+- **Starting commit:** `46ca14975b6b286e5f4e0500fb1aa39df8114153`, clean
+  `main`, matching fetched `origin/main`; no fast-forward was needed. Read
+  instructions, status, relevant README/Lean sources, automation log/memory,
+  and the active thesis corollary/proof. The active local thesis is now
+  `ca5ce9aa141bd02f5db17f5372e8961edb65d2da`, with no tracked diff and two
+  pre-existing untracked paths (`proofs/.lake/`, `things-to-read.txt`).
+- **Read-only sibling review:** local and live remote `lean-np-hardness` both
+  remain `1acf1d301fa8afc493d5bd5c2c97f8e428990d1a`, clean. Reviewed the
+  certificate membership loop, finite machine control/runtime, encoding and
+  composition APIs. The certificate loop requires a different preloaded wire;
+  reused the pinned `ad20a2e` composition/runtime APIs and our existing CSP
+  controller. No sibling, thesis or dependency edits.
+- **Increment:** factored the existing scope controller into
+  `AllDifferentCSPRecordLoopMachine.lean`. Its statement lifting and transition
+  program are unchanged apart from the explicit body parameter. Scope and
+  positive loops now share scan, load, component execution, return, and cleanup
+  proofs. `AllDifferentCSPScopeLoopMachine.lean` retains the existing scope
+  execution interface and downstream polynomial results.
+- **New checked declarations:** `PositiveLoopMachine.iteration_cycle` and
+  `exit_run` instantiate this controller for ordered occurrence tests.
+  `PositiveLoop.run_bounded`, `outputsInTime`, and
+  `positiveLoopComputableInPolyTime` prove complete repeated execution with
+  bound `(s+1)*(P(s)+4s+4)` for original state length `s` and checked body
+  polynomial `P`. `positiveLoop_contains_outputsInTime` returns exact ordered
+  pair membership from an initially false accumulated answer, including empty
+  streams, repeated occurrences and zero fields. All body transfers and final
+  query/scratch cleanup are included.
+- **Verification:** targeted loop build and full `lake build` pass. All twelve
+  new headline axiom audits use only `propext`, `Classical.choice`, `Quot.sound`.
+  The new/refactored modules are warning-free. The comment/string-aware scan
+  passes all 99 project Lean/config sources; `git diff --check` passes. Root
+  imports, README and both status locations are synchronized; the corollary
+  remains **Partial**.
+- **Resolved diagnostics:** generalized `fill_run` with an empty scratch list
+  needs an explicit `body` argument. Applied definitions are not valid simp
+  lemmas; retain bare definition names in simp lists. After controller
+  specialization the input already unfolds to the nonempty output encoding,
+  so rewriting `nonempty_encode` backwards is unnecessary. All are resolved;
+  failed-check axiom output was discarded.
+- **Ending / next:** commit and push this verified traversal increment, then
+  reuse the exact false-bit initializer and compose membership from the
+  original serialized query. The bounded variable/rank grid, retained-weight
+  positive-row emission and final objective/framing/prime assembly remain.
+- **Run time:** 2026-10-12 18:29 UTC (13 October AEDT).
