@@ -6543,3 +6543,56 @@
   adapter, preserving all state and proving exact domain acceptance and a
   uniform polynomial bound for future bounded-grid calls.
 - **Run time:** 2026-10-13 18:24 UTC (14 October AEDT).
+
+## 2026-10-14 — complete positive candidate test with retained state
+
+- **Starting commit:** `a9ef713d41b7e6b26d55bd3eb7f3848c76637ba2`, confirmed
+  pushed with equal HEAD, tracking branch and live remote main. Continued the
+  same reviewed thesis/sibling context without external repository changes.
+- **Increment:** added `AllDifferentCSPPositiveCandidateTest.lean`.
+  `positiveCandidateTestComputableInPolyTime` composes the exact query
+  constructor with complete serialized membership through the pinned generic
+  pair-left adapter. It returns `(acceptance, original state)`, adding exactly
+  one answer cell and retaining candidates, both bounds, scopes, negative
+  rows, common weight and accumulated positive rows. Query copying, false
+  initialization, all occurrence comparisons, transfers and cleanup are
+  included in the genuine finite-machine polynomial witness.
+- **Correspondence and bounds:** `accept_ofRuntimeSystem` proves acceptance
+  exactly when the queried rank belongs to this variable's canonical
+  relabelled domain, without a candidate-bound hypothesis. `filter_eq_enumerate`
+  recovers the existing ordered positive enumeration. `rows_length_le` charges
+  all three binary fields and eight structural cells per stored row.
+  `state_length_le_cubic` gives `16(s+1)^3` in complete immutable-section wire
+  length for closed candidate bounds and at most a grid of bounded rows with
+  the shared weight. `positiveCandidateTest_bounded_steps_le` gives one
+  original-section polynomial bound for complete tests under those invariants.
+  Proving their preservation in a repeated finite scan remains outstanding.
+- **Verification:** direct module check and final full `lake build` pass
+  (3232 jobs). All ten new audits use only `propext`, `Classical.choice`,
+  `Quot.sound`; both new modules are warning-free. Kernel examples cover
+  empty input, zero coordinates, repeated occurrences, a retained positive
+  row, swapped fields, million-valued binary fields and cross-record false
+  positives. Comment/string-aware scan passes all 102 project Lean/config
+  sources; `git diff --check` passes. Root imports, README and both status
+  locations are synchronized; the corollary remains **Partial**.
+- **Resolved diagnostics:** the filter correspondence requires explicit
+  enumeration arguments so Lean can infer the lambda's retained section.
+  For the binary-weight length bound, `dsimp` expands pair encodings beyond
+  the named length lemma; use `simp only` on encoding definitions and the
+  pair-length/weight-length equations instead. Both errors resolved; failed
+  diagnostic audit output was discarded.
+- **Preservation / ending:** sibling remains clean at `1acf1d3`; active thesis
+  retains its two existing untracked paths and no tracked diff. No dependency
+  changes. Commit and push this verified increment, then verify three-ref
+  agreement and a clean worktree. The automation memory records the resulting
+  final commit and successful push.
+- **Best next step:** conditionally append the exact counted pinning row on
+  this computed acceptance bit, using the retained binary weight and existing
+  `positiveRowWithWeightComputableInPolyTime`/`PositiveBlock` emitter. Preserve
+  the complete `PositiveCandidateQueries.Input`, then implement rectangular
+  counter advance (`index < variableCount`, `rank ≤ occurrenceCount`), seed,
+  finite gate/loop and reached-state invariants. Existing pair-scan gates and
+  counters are checked patterns, but the positive scan has unequal dimensions
+  and inclusive rank bound. Whole objective framing and selected-prime
+  composition remain afterward; do not redo completed membership proofs.
+- **Run time:** 2026-10-13 18:27 UTC (14 October AEDT).

@@ -96,3 +96,4 @@ import PhdThesisLean.AllDifferentCSPPositiveLoopMachine
 import PhdThesisLean.AllDifferentCSPPositiveLoop
 import PhdThesisLean.AllDifferentCSPPositiveInitialization
 import PhdThesisLean.AllDifferentCSPPositiveCandidateQueries
+import PhdThesisLean.AllDifferentCSPPositiveCandidateTest

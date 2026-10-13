@@ -1033,6 +1033,19 @@ four-stack finite machine with bound `3s+3` in complete state length `s`.
 `output_length_le` bounds the output by `2s`; all scratch stacks are cleared.
 The caller supplies one serialized state, not an extracted occurrence query.
 
+`AllDifferentCSPPositiveCandidateTest.lean` composes that constructor with the
+complete membership decision through the checked generic pair-left adapter.
+`positiveCandidateTestComputableInPolyTime` returns the acceptance bit and the
+entire original state; its output adds exactly one cell.
+`PositiveCandidateTest.accept_ofRuntimeSystem` proves exact relabelled-domain
+acceptance, and `filter_eq_enumerate` recovers the existing positive scan in
+its precise candidate order. `state_length_le_cubic` bounds every state with
+closed candidate bounds and at most a grid of bounded, common-weight rows by
+`16(s+1)^3` in immutable-section wire length `s`, including all weight bits.
+`positiveCandidateTest_bounded_steps_le` then gives one polynomial bound for
+all such complete calls. Establishing those state invariants for a repeated
+finite scan and conditionally appending positive rows remain outstanding.
+
 The finite positive candidate scan, retained-weight emission and final
 objective/framing/prime assembly remain open; `cor:all-different-csp` is partial.
 
