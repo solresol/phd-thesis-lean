@@ -1024,6 +1024,15 @@ with membership in that variable's canonical relabelled domain.
 `positiveMembership_steps_le` bounds every candidate call by the same polynomial
 in the complete retained positive-section length. Empty lists, zero fields,
 repeated records, swapped fields and large binary values are checked.
+`AllDifferentCSPPositiveCandidateQueries.lean` now constructs the exact
+candidate/occurrence query while retaining the entire positive-scan state:
+both unary bounds, scopes, negative rows, common binary weight and accumulated
+positive rows. `positiveCandidateQueriesComputableInPolyTime` supplies a
+four-stack finite machine with bound `3s+3` in complete state length `s`.
+`PositiveCandidateQueries.output_length` charges exactly one query copy and
+`output_length_le` bounds the output by `2s`; all scratch stacks are cleared.
+The caller supplies one serialized state, not an extracted occurrence query.
+
 The finite positive candidate scan, retained-weight emission and final
 objective/framing/prime assembly remain open; `cor:all-different-csp` is partial.
 

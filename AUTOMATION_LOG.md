@@ -6501,3 +6501,45 @@
   and selected-prime header. Existing `PairQueries`, `PairGateMachine`, binary
   counter and pair-adapter APIs are useful starting points.
 - **Run time:** 2026-10-12 18:31 UTC (13 October AEDT).
+
+## 2026-10-14 — positive candidate query construction with complete retention
+
+- **Starting commit:** `01435824df1aec08855e3341a85b804525e1e6f5`, clean
+  `main`, equal to fetched `origin/main`; no fast-forward was needed. Read
+  instructions, status, relevant README and Lean sources, recent automation
+  log/memory and the active thesis corollary/proof. Active thesis remains at
+  `ca5ce9a`, with no tracked diff and the two existing untracked paths
+  `proofs/.lake/` and `things-to-read.txt`; preserved.
+- **Read-only sibling review:** local `lean-np-hardness` is still clean at
+  `1acf1d3`; live remote main has advanced to
+  `6f67a37303cb5e03083c908ce4ee616f43c38c96`. Reviewed its checked pair encoding,
+  pair-left adapter and machine-composition runtime APIs locally; they already
+  provide the needed composition. Did not fetch into or edit the sibling, and
+  the project dependency remains pinned at `ad20a2e`.
+- **Increment:** added `AllDifferentCSPPositiveCandidateQueries.lean`.
+  `positiveCandidateQueries_outputsInTime` and
+  `positiveCandidateQueriesComputableInPolyTime` construct the exact binary
+  candidate/count-prefixed occurrence query and retain the complete input.
+  Both unary bounds, scopes, negative rows, binary weight and accumulated
+  positive rows survive unchanged. The four-stack finite machine costs at
+  most `3s+3` in full state length; output adds exactly one query copy and is
+  bounded by `2s`. All scratch stacks are empty at halt.
+- **Verification:** targeted build and full `lake build` pass (3231 jobs).
+  Seven new audits pass, one axiom-free and six using only `propext`,
+  `Classical.choice`, `Quot.sound`; the new module is warning-free. The
+  comment/string-aware scan passes all 101 Lean/config sources; diff check
+  passes. Root imports, README and both status locations are synchronized;
+  `cor:all-different-csp` remains **Partial**.
+- **Resolved diagnostics:** `PositiveQueries.Output`, `prepare` and the
+  corresponding machine names already exist in the coordinate-comparison
+  module. Renamed the new interface to `PositiveCandidateQueries`; no old
+  declaration was modified. `variables` is reserved syntax, so use
+  `variableCount` in case patterns. The query-length simplifier closes the
+  goal directly; removed an unnecessary following `omega`. All diagnostics
+  resolved; failed-run axiom reports are excluded from evidence.
+- **Ending / next:** commit and push this checked increment and verify local,
+  tracking and live-ref agreement. Next compose query construction with the
+  already checked complete membership machine through the generic pair-left
+  adapter, preserving all state and proving exact domain acceptance and a
+  uniform polynomial bound for future bounded-grid calls.
+- **Run time:** 2026-10-13 18:24 UTC (14 October AEDT).
