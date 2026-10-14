@@ -97,3 +97,7 @@ import PhdThesisLean.AllDifferentCSPPositiveLoop
 import PhdThesisLean.AllDifferentCSPPositiveInitialization
 import PhdThesisLean.AllDifferentCSPPositiveCandidateQueries
 import PhdThesisLean.AllDifferentCSPPositiveCandidateTest
+import PhdThesisLean.ResidualMedoid
+import PhdThesisLean.StrictRefinement
+import PhdThesisLean.PolynomialResidualHardness
+import PhdThesisLean.NestedEasyHardEasy

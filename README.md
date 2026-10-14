@@ -75,6 +75,21 @@ family proves that the max loss attains its global minimum and that at least one
 minimiser has `n + 1` contacts, as required by
 `thm:max-contact-existence`.
 
+The nested easy–hard–easy family is formalised in
+[`PhdThesisLean/NestedEasyHardEasy.lean`](PhdThesisLean/NestedEasyHardEasy.lean)
+at the fixed prime `5`. Datasets are multisets of rows, so the nesting
+`A_G ≤ A'_G ≤ A''_G` is literal multiset inclusion and repeated copies are
+retained. `stage1_globalMin_iff` proves the unique optimum `β = 0` of `A_G`;
+`loss_A'` and `card_A'` identify the loss of `A'_G` with the fixed-prime
+Max-Cut objective on `5|E| + 2|V|` rows; and for every shell parameter
+`L ≥ 1`, `stage3_globalMin_iff` proves that the global minimisers of `A''_G`
+are exactly the grid `T^n`, with `stage3_optimum` and `loss_A''_optimum`
+giving the closed-form optimum `(c, …, c)` and its value
+`m_H 5^L + 4 n N 5^L`. Claims 1–3 of the thesis proof are separate lemmas.
+The bundle `nested_easy_hard_easy` corresponds to `thm:nested-easy-hard-easy`;
+coefficient vectors range over `ℚ_[5]` and multigraphs without self-loops are
+allowed.
+
 The medoid results are formalised in
 [`PhdThesisLean/Medoid.lean`](PhdThesisLean/Medoid.lean) and
 [`PhdThesisLean/SparseMedoid.lean`](PhdThesisLean/SparseMedoid.lean).
@@ -86,6 +101,22 @@ the full centre-and-slope ensemble, and proves `thm:sparse-medoid-representation
 `F x` is an ensemble output, is a medoid value, and is the output value of
 every medoid index. Thus duplicate indices are retained while the medoid value
 is unique, exactly as required for the thesis multiset.
+
+The applied taxonomy chapter's two arithmetic propositions are formalised in
+[`PhdThesisLean/ResidualMedoid.lean`](PhdThesisLean/ResidualMedoid.lean) and
+[`PhdThesisLean/StrictRefinement.lean`](PhdThesisLean/StrictRefinement.lean).
+`exists_medoid_multiset` proves `prop:chapter-residual-medoid`: for a nonempty
+finite multiset `R ⊂ ℚ_[p]`, the coordinate objective `∑_{r ∈ R} ‖r - a‖` has a
+global minimiser inside `R` (indexed-family and finset forms are included).
+`monotone_coordinate_update` proves `cor:chapter-monotone-update` for the
+additive binary-tag model with arbitrary finite row and tag types: an observed
+partial residual minimises the coordinate objective, and substituting it never
+increases the full fitting objective, via the bookkeeping identity
+`loss_update_eq`. `valuation_sum_eq_valuation_head` proves
+`prop:strict-refinement`: nonzero `p`-adic coefficients with strictly
+increasing valuations have every tail sum of valuation equal to its first term,
+with `tailSum_ne_zero` showing the tails are genuinely nonzero and a norm form
+that needs no nonvanishing hypothesis.
 
 The thresholded-loss coreset obstruction is formalised in
 [`PhdThesisLean/Coreset.lean`](PhdThesisLean/Coreset.lean). It proves the
@@ -1171,6 +1202,19 @@ proves that any exact global optimiser decides the source formula. The dense
 expansion has exactly `2n + m` observations, and both its output size and
 straightforward construction cost are proved quadratic in the documented
 unit-cell syntax model.
+
+The nonlinear boundary case is formalised in
+[`PhdThesisLean/PolynomialResidualHardness.lean`](PhdThesisLean/PolynomialResidualHardness.lean).
+Each clause becomes the product `V_C(x) = ∏ δ(λ; x)` of its literal-failure
+values, and `polyLoss` adds unary Boolean wells with weight `α`. On the unit
+ball `ℤ_p^n` the module proves the `1`-Lipschitz bound for each clause product,
+the snapping lemma `polyLoss_snap_lt`, Booleanity of every ball-minimiser, the
+value formula `α n + (number of false clauses)`, and the many-one reduction
+`compilePolynomial_correct` for every prime. `dyadic_no_tractability_transfer`
+is the `p = 2` specialisation required by
+`cor:sudoku-polynomial-dyadic-hardness`; `clausePolynomial_totalDegree_le` and
+`clausePolynomial_degreeOf_le` check literally that every clause residual is
+multilinear of degree at most three.
 
 This completes the concrete reduction premise of `cor:signed-nphard`.
 Mathlib at the pinned revision has finite encodings and structures for

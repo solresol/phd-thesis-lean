@@ -6596,3 +6596,33 @@
   and inclusive rank bound. Whole objective framing and selected-prime
   composition remain afterward; do not redo completed membership proofs.
 - **Run time:** 2026-10-13 18:27 UTC (14 October AEDT).
+
+## 2026-10-14 — parallel Claude campaign: taxonomy-chapter propositions
+
+- **Context:** Greg asked for a broad parallel formalisation push over the
+  active thesis while the nightly Codex loop continues on
+  `cor:all-different-csp`. Fast-forwarded local `main` to `ccf4695` first.
+  Coordinator integrates each agent module after review: root imports,
+  README, THEOREM_STATUS, this log, full `lake build`, hygiene scan, commit.
+- **Increment:** added `PhdThesisLean/ResidualMedoid.lean`
+  (`prop:chapter-residual-medoid`, `cor:chapter-monotone-update`) and
+  `PhdThesisLean/StrictRefinement.lean` (`prop:strict-refinement`) from the
+  e-commerce taxonomy chapter. The residual medoid is proved in multiset,
+  indexed-family and finset forms; the monotone update is proved for the
+  additive binary-tag model over arbitrary finite row/tag types with the exact
+  decomposition `loss_update_eq`. Strict refinement is proved in valuation and
+  norm forms with nonzero tails.
+- **Verification:** both modules pass `lake env lean` warning-free; axiom
+  audits report only `propext`, `Classical.choice`, `Quot.sound`. A new
+  "Supporting-statement formalisations" table in `THEOREM_STATUS.md` records
+  non-catalogue results as they land.
+- **Same campaign, second batch:** added
+  `PhdThesisLean/PolynomialResidualHardness.lean`
+  (`cor:sudoku-polynomial-dyadic-hardness`, now **Partial** with the full
+  semantic reduction, snapping, degree bounds and row count checked at every
+  prime and specialised to `p = 2`; NP-hardness transfer external) and
+  `PhdThesisLean/NestedEasyHardEasy.lean` (`thm:nested-easy-hard-easy`, now
+  **Partial**: multiset nesting, Stage 1 unique optimum, Stage 2 loss formula
+  and cardinality, Stage 3 grid characterisation and closed-form optimum for
+  every `L ≥ 1`; the Stage 2 hardness clause awaits the Max-Cut module). Both
+  modules pass `lake env lean` warning-free with standard-only axiom audits.
