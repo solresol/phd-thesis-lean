@@ -6758,3 +6758,57 @@
   invariants before constructing rectangular counter advance and its finite
   loop. Objective framing and selected-prime composition still follow.
 - **Run time:** 2026-10-14 18:22 UTC (15 October AEDT).
+
+## 2026-10-15 — complete positive candidate filtering and preserved row bounds
+
+- **Starting commit:** `8910e433916d61faeb5aacde38a8c8b9ef77fe87`, pushed
+  with matching HEAD, tracking branch and live remote main. Continued the
+  reviewed thesis/sibling context without external repository changes.
+- **Increment:** added `AllDifferentCSPPositiveCandidateFilter.lean`.
+  `positiveCandidateFilterComputableInPolyTime` composes the complete
+  serialized membership test with conditional emission through the pinned
+  generic sequential-machine API. The resulting call retains the candidate
+  and all immutable sections and appends exactly one shared-weight pinning
+  row on acceptance. Query copying, initialization, every occurrence test,
+  weight/coordinate copying, transfers and cleanup are included.
+- **Semantics and bounds:** `rows_ofRuntimeSystem` identifies emission exactly
+  with membership in this variable's canonical relabelled domain. `rows_eq`
+  and `rows_length` show that repeated occurrences do not multiply emitted
+  rows. `rows_bounded`, `rows_capacity` and `rows_nodup` preserve coordinate
+  bounds, the shared weight, available grid capacity and uniqueness under
+  explicit hypotheses. `state_length_le_cubic` preserves the `16(s+1)^3`
+  encoded-state bound after emission when a grid slot remains.
+  `positiveCandidateFilter_bounded_steps_le` charges every bounded complete
+  call against one polynomial in the original immutable-section wire length.
+  These are one-call results; a future scan must establish capacity and
+  freshness for every reached state.
+- **Verification:** direct module check and final full `lake build` pass
+  (7952 jobs). All ten new headline audits use only standard axioms
+  (`propext`, `Classical.choice`, `Quot.sound`, often fewer). Final full build
+  has 866 standard-only reports and 23 axiom-free reports; neither new module
+  has warnings. Kernel examples cover duplicate occurrences, cross-record
+  false positives with an existing row, zero coordinates/weight, and
+  million-valued rank and weight. Comment/string-aware prohibited/bypass
+  scan passes all 124 project Lean/config files; `git diff --check` passes.
+  README, both status locations and root imports are synchronized. The full
+  corollary remains **Partial**.
+- **Resolved diagnostic:** simplifying the cross-list clause of
+  `List.nodup_append` destructures the product-valued row and does not infer
+  freshness directly. Proved the clause explicitly by rewriting the singleton
+  membership and equality, then applying `fresh`. No unresolved diagnostic;
+  failed-check audit output was discarded.
+- **Preservation / ending:** sibling remains clean at `1acf1d3`; active thesis
+  retains only its two original untracked paths. No dependency changes.
+  Commit and push this verified composition and verify three-ref agreement;
+  the automation memory records the final hash and successful push.
+- **Best next step:** implement rectangular candidate advance and its reached
+  state invariant, using ordinal `index * (occurrenceCount + 1) + rank`.
+  Active candidates satisfy `index < variableCount`, `rank ≤ occurrenceCount`;
+  continue the inner scan when `rank < occurrenceCount`, otherwise increment
+  index and reset rank. The existing `PairCounters`, `PairControl`,
+  `PairAdvance` and `PairLoopMachine` provide checked patterns, but their
+  square bounds and retained alphabet are specialized and must be adapted
+  honestly. Establish capacity/freshness, seed the scan, add its finite gate
+  and loop, then assemble/frame the objective and selected prime. Do not
+  reprove completed candidate membership, conditional emission or composition.
+- **Run time:** 2026-10-14 18:24 UTC (15 October AEDT).

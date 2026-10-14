@@ -1137,9 +1137,24 @@ row order; all scratch stacks are empty at halt. `output_length` charges
 exactly the accepted row, including its eight tag/delimiter cells and every
 weight bit; `output_length_le` bounds the result by `2s+8`.
 
-The finite positive candidate scan, composition of testing with emission and
-final objective/framing/prime assembly remain open; `cor:all-different-csp`
-is partial.
+`AllDifferentCSPPositiveCandidateFilter.lean` composes the complete test and
+conditional emitter through the pinned generic sequential-machine API.
+`positiveCandidateFilterComputableInPolyTime` now computes one full candidate
+filter from its serialized state, including query copying, membership,
+weight copying, emission and all transfers. `rows_ofRuntimeSystem` identifies
+its output exactly with relabelled-domain membership. Repeated occurrences
+produce only one row per candidate. `rows_bounded`, `rows_capacity` and
+`rows_nodup` preserve the shared weight, coordinate bounds, grid capacity and
+uniqueness under their explicit input/freshness hypotheses.
+`PositiveCandidateFilter.state_length_le_cubic` preserves the `16(s+1)^3`
+bit bound after emission when a grid slot remains, and
+`positiveCandidateFilter_bounded_steps_le` bounds every complete call by one
+polynomial in the immutable-section wire length. The future finite scan must
+establish capacity and freshness for reached states.
+
+The rectangular candidate advance, initialization and repeated finite scan,
+plus final objective/framing/prime assembly, remain open;
+`cor:all-different-csp` is partial.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
