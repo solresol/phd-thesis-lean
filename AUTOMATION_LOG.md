@@ -6665,3 +6665,12 @@
   `#{τ | Λ'(τ) = Λ_x(τ)} ≤ D` with the probability form, and
   `prop:sudoku-robust-decoding` with Mathlib's `hammingDist`). Both
   warning-free with standard-only axiom audits.
+- **Same campaign, sixth batch:** added `PhdThesisLean/LargePrime.lean`
+  (`lem:large-prime-unit-residuals`, `lem:large-prime-stability`). The module
+  first proves a rank-general independent-contact refinement
+  (`rank_refinement`, no non-degeneracy hypothesis, via `affineRank` and
+  rational interpolants of maximal independent sets), builds the thesis's
+  prime-independent finite family `candidateFamily` with `|ℋ| ≤ C(k, d+1)`,
+  gives the explicit bound `primeBound`, and proves unit residuals, attainment
+  in the family, and stability of optimality across all large primes.
+  Warning-free, standard-only axiom audits.

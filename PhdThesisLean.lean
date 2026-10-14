@@ -109,3 +109,4 @@ import PhdThesisLean.EquidistributedSumRefinesMax
 import PhdThesisLean.SparseJunta
 import PhdThesisLean.SudokuSpecialCase
 import PhdThesisLean.SudokuDiagnostics
+import PhdThesisLean.LargePrime

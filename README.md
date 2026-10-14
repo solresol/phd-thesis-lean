@@ -49,6 +49,19 @@ for non-degenerate data:
 - the family of all such independent interpolants is finite; and
 - a global minimiser exists and is attained within that finite family.
 
+The large-prime lemmas are formalised in
+[`PhdThesisLean/LargePrime.lean`](PhdThesisLean/LargePrime.lean). Because the
+thesis allows degenerate predictor sets of affine dimension `d ≤ n`, the module
+first proves a rank-general independent-contact refinement
+(`rank_refinement`) and shows that every independent set admits a rational
+interpolant whose residuals do not depend on the chosen extension. The finite
+family `candidateFamily` of chosen interpolants over all independent
+`(d+1)`-subsets depends only on the data, and `large_prime_unit_residuals`
+proves that beyond the explicit bound `primeBound` the optimum is attained in
+that family with every residual of norm `0` or `1`; `large_prime_stability`
+proves that optimality within the family is the same for all sufficiently
+large primes, namely maximising the number of exactly fitted observations.
+
 The polynomial corollaries of the contact theorem are formalised in
 [`PhdThesisLean/PolynomialCorollary.lean`](PhdThesisLean/PolynomialCorollary.lean).
 `poly_corollary` transfers the contact theorem through the feature map

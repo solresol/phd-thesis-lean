@@ -927,6 +927,8 @@ recorded here once a statement-faithful Lean declaration exists.
 |---|---|---|
 | `prop:chapter-residual-medoid` | Complete | `ResidualMedoid.exists_medoid_multiset` (nonempty finite multiset in `ℚ_[p]`; the minimiser of `∑_{r∈R}‖r-a‖` lies in `R`), with `exists_medoid` and `exists_medoid_finset` for indexed families. |
 | `cor:chapter-monotone-update` | Complete | `ResidualMedoid.monotone_coordinate_update`: for the additive binary-tag model, an observed partial residual globally minimises the coordinate objective `F_j` and substituting it does not increase the full fitting objective (`loss_update_eq`). Rows and tags are arbitrary finite types; the current coefficient vector is arbitrary. |
+| `lem:large-prime-unit-residuals` | Complete | `LargePrime.large_prime_unit_residuals`: with `ℋ = candidateFamily X y` (chosen rational interpolants of all affinely independent `(d+1)`-subsets, `d+1 = affineRank X`, degenerate data allowed via the rank-general `rank_refinement`), there is an explicit data-only bound `primeBound X y` such that for every larger prime the optimum is attained in `ℋ` and every residual of every member has `p`-adic norm `0` or `1`. `card_candidateFamily_le` gives `|ℋ| ≤ C(k, d+1)`. |
+| `lem:large-prime-stability` | Complete | `LargePrime.large_prime_stability` and `large_prime_optimal_iff_most_contacts`: for primes above the bound, a member of `ℋ` is `q₁`-optimal iff `q₂`-optimal, and the optimal members are exactly those with the fewest misses (`loss_eq_missCount_of_large_prime`). |
 | `poly-corollary` | Complete | `PolynomialCorollary.poly_corollary`: a degree-`≤ n` minimiser of `∑ |P(xᵢ) − yᵢ|_p` over data with at least `n+1` distinct abscissae interpolates at least `n+1` points. `poly_corollary_of_minimizes` drops the unused thesis hypotheses `k ≥ n+1` and `xᵢ = xⱼ ⇒ yᵢ = yⱼ`; `n = 0` is covered uniformly. |
 | `poly-approxy` | Complete | `PolynomialCorollary.poly_approxy`: an optimal degree-`≤ n` `p`-adic approximant `Q` of `P` on a finite set of at least `n+1` points leaves a residual `P − Q` with at least `n+1` distinct rational zeros (`poly_approxy_filter` locates them inside the set). |
 | `cor:residual-simple-roots` | Complete | `PolynomialCorollary.residual_simple_roots`: a polynomial residual of degree `n+1` (thesis definition `IsPolynomialResidual`, with the standing hypothesis of at least `n+1` evaluation points) has `Nodup` roots. |
@@ -956,7 +958,6 @@ declarations.
 Additional active-thesis results still lacking direct Lean declarations fall
 into these groups:
 
-- the large-prime unit-residual and prime-stability lemmas;
 - the six-point regularisation finite-candidate lemma;
 - medoid/prefix-consensus equivalence;
 - the Sudoku row-swap locality lemma; and
