@@ -891,8 +891,13 @@ composition includes outer row counting, binary-header staging, and framing;
 `binaryPredComputableInPolyTime` already supplies its empty- and
 singleton-safe binary countdown operation.
 
-The headline catalogue therefore contains 24 statements: 15 complete, 2
-partial, and 7 pending. The qualified clause theorem is included in the
+The headline catalogue therefore contains 30 statements: 23 complete, 6
+partial, and 1 pending (`thm:max-polytime`). Every partial row has its
+mathematical reduction fully checked and lacks only the external complexity
+transfer (`thm:fixed-prime-hardness`, `cor:affine-hardness`,
+`thm:nested-easy-hard-easy`, `cor:sudoku-polynomial-dyadic-hardness`,
+`cor:signed-nphard`) or the remaining runtime machine composition
+(`cor:all-different-csp`). The qualified clause theorem is included in the
 complete count because its explicit Lean syntax captures the intended
 three-distinct-variable convention; a normalisation theorem for arbitrary
 3-CNF syntax would remove that qualification.
