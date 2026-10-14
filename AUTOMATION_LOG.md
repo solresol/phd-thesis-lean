@@ -6706,3 +6706,14 @@
   objective to the explicit `{0,1}` instance with `m + 2Mn` rows). Bonus:
   every global minimiser is Boolean. NP-hardness transfer external as before.
   With this the "still lacking" list in `THEOREM_STATUS.md` is empty.
+- **Same campaign, tenth batch:** added `PhdThesisLean/CNFNormalisation.lean`.
+  Arbitrary 3-CNF syntax (`GeneralCNF`: clauses of length `≤ 3` with repeated
+  literals, complementary literals and empty clauses allowed) is normalised
+  computably into the distinct-variable three-literal convention with three
+  fresh variables and at most eight clauses per source clause
+  (`normalise_satisfiable_iff`, `normalise_cellSize_le`). This transfers
+  `satisfiable_iff_minimum_value` and the fixed-prime reduction to general
+  input (`general_satisfiable_iff_minimum_value`,
+  `general_compileFixedPrime_correct`, a `392 · size²` cell reduction), so
+  `thm:3sat-clausewise` is now **Complete** without qualification. Warning-free,
+  standard-only axiom audits (one declaration is even `Classical.choice`-free).

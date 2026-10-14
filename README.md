@@ -1274,6 +1274,17 @@ inversion example with exact values. The Athanasius chapter's
 the medoid objective equals `m - (1 - p⁻¹)` times a convergent weighted
 prefix-agreement series, so medoids are exactly the prefix-score maximisers.
 
+Arbitrary 3-CNF syntax is handled by
+[`PhdThesisLean/CNFNormalisation.lean`](PhdThesisLean/CNFNormalisation.lean).
+`GeneralCNF` allows clauses of up to three literals with repeated literals,
+complementary literals, and empty clauses; `normalise` computably deletes
+repeated literals, drops tautologies, and pads short clauses with three fresh
+variables (at most eight clauses per source clause), and
+`normalise_satisfiable_iff` proves satisfiability is preserved and reflected.
+`general_satisfiable_iff_minimum_value` and `general_compileFixedPrime_correct`
+transfer the clause-wise theorem and the fixed-prime reduction to general
+input, so the distinct-variable convention is no longer an assumption.
+
 Clause erasure by positive hole-filling and the approximate-negation lemma are
 formalised in
 [`PhdThesisLean/ClauseErasure.lean`](PhdThesisLean/ClauseErasure.lean). For

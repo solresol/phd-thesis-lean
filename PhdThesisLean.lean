@@ -116,3 +116,4 @@ import PhdThesisLean.PowersOfTwoLandscape
 import PhdThesisLean.RegularisedCandidates
 import PhdThesisLean.PrefixConsensus
 import PhdThesisLean.PublishedMaxCut
+import PhdThesisLean.CNFNormalisation
