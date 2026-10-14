@@ -14,15 +14,15 @@ that no statement-faithful Lean theorem is currently present.
 | Thesis label | Status | Lean declaration or remaining work |
 |---|---|---|
 | `core-theorem` | Complete | `ContactTheorem.contact_theorem`; the underlying theorem is slightly stronger. |
-| `thm:fixed-prime-hardness` | Pending | Formalise the positive homogeneous Max-Cut reduction for every fixed prime. The existing fixed-prime module is a different signed 3-SAT reduction at \(p=5\). |
-| `cor:affine-hardness` | Pending | Formalise intercept pinning and inherit the preceding homogeneous result. |
+| `thm:fixed-prime-hardness` | Partial | `FixedPrimeMaxCut.fixed_prime_hardness` proves the complete Max-Cut reduction for every prime over `ℚ_[p]`: `local_boolean_snapping` (`lem:local-boolean-snapping`), the forcing objective `maxCutLoss` with `M_j = d_j + 1`, Booleanity of every global minimiser (`globalMin_boolean`), existence, the characterisation of global minimisers as embeddings of maximum cuts (`isGlobalMin_iff`), the Boolean value `∑ M_j + #monochromatic`, and the optimal value `∑ M_j + |E| - maxcut`. `homogeneousLoss_maxCutRows` identifies the objective with the homogeneous summed loss of an explicit `{0,1}`-valued row family of `5|E| + 2n` rows. Edges are an arbitrary finite index type (multigraphs allowed). The NP-hardness transfer (Max-Cut hardness and polynomial-time computability of the map) is external, as for `cor:signed-nphard`. |
+| `cor:affine-hardness` | Partial | `FixedPrimeMaxCut.intercept_pinning` proves `lem:intercept-pinning` for any integral instance (`L_aff(β,0) ≤ L_aff(β,c) - (T - r)‖c‖`, with `affineLoss_zero_lt` and `isGlobalMin_affine_iff` for `T ≥ r + 1`, and `affineRowLoss_pinnedRows` realising the pinning rows literally). `affine_hardness` then shows the affine minimisers of the pinned Max-Cut instance are exactly `(embed s, 0)` for maximum cuts `s`, with the same optimal value and `10|E| + 4n + 1` rows. Complexity transfer external. |
 | `thm:sparse-medoid-representation` | Complete | `SparseMedoid.sparse_medoid_representation`. |
 | `prop:medoid-robustness` | Complete | `Medoid.medoid_robustness`. |
 | `thm:threshold-coreset` | Complete | `Coreset.threshold_coreset`. |
 | `prop:subset-summary-lower-bound` | Complete | `SubsetSummary.bounded_information_subset_summaries` and its weighted/unweighted component theorems. |
 | `thm:max-polytime` | Pending | Formalise the Smith-normal-form algorithm, rational optimal witness, encoding, and polynomial running time. `MaxContact` proves attainment/contact, not this algorithmic theorem. |
 | `thm:equidistributed-sum-refines-max` | Pending | No corresponding Lean development yet. |
-| `thm:nested-easy-hard-easy` | Partial | `NestedEasyHardEasy.nested_easy_hard_easy` constructs the literal multiset nesting `A_G ≤ A'_G ≤ A''_G` over `ℚ_[5]` for any self-loop-free (multi)graph and proves all three stages: `stage1_globalMin_iff` (unique optimum `0`, loss `0`); `loss_A'` and `card_A'` (the loss of `A'_G` is exactly the fixed-prime Max-Cut objective, with `5|E|+2|V|` rows); and `stage3_globalMin_iff`, `stage3_optimum`, `loss_A''_optimum` (for every `L ≥ 1` the global minimisers of `A''_G` are exactly the grid `T^n`, with `(c,…,c)` optimal at the closed-form value `m_H 5^L + 4nN5^L`). Remaining: the Stage 2 NP-hardness clause inherits the external complexity transfer of `thm:fixed-prime-hardness`. |
+| `thm:nested-easy-hard-easy` | Partial | `NestedEasyHardEasy.nested_easy_hard_easy` constructs the literal multiset nesting `A_G ≤ A'_G ≤ A''_G` over `ℚ_[5]` for any self-loop-free (multi)graph and proves all three stages: `stage1_globalMin_iff` (unique optimum `0`, loss `0`); `loss_A'` and `card_A'` (the loss of `A'_G` is exactly the fixed-prime Max-Cut objective, with `5|E|+2|V|` rows); and `stage3_globalMin_iff`, `stage3_optimum`, `loss_A''_optimum` (for every `L ≥ 1` the global minimisers of `A''_G` are exactly the grid `T^n`, with `(c,…,c)` optimal at the closed-form value `m_H 5^L + 4nN5^L`). `NestedEasyHardEasyHardness.loss_A'_eq_maxCutLoss` identifies the Stage 2 loss with `FixedPrimeMaxCut.maxCutLoss`, so `stage2_globalMin_iff` and `stage2_optimal_value` give the Max-Cut characterisation of the hard stage; `nested_easy_hard_easy_with_hardness` bundles all three stages. Remaining: the Stage 2 NP-hardness clause inherits the external complexity transfer of `thm:fixed-prime-hardness`. |
 | `thm:discrete-regularised` | Complete | `DiscreteRegularization.discrete_regularized_regression`. |
 | `cor:discrete-algorithm` | Complete | `DiscreteRegularization.discrete_algorithm`. |
 | `thm:additive-contact` | Complete | `AdditiveContact.additive_contact_theorem`. |
@@ -927,6 +927,13 @@ recorded here once a statement-faithful Lean declaration exists.
 |---|---|---|
 | `prop:chapter-residual-medoid` | Complete | `ResidualMedoid.exists_medoid_multiset` (nonempty finite multiset in `ℚ_[p]`; the minimiser of `∑_{r∈R}‖r-a‖` lies in `R`), with `exists_medoid` and `exists_medoid_finset` for indexed families. |
 | `cor:chapter-monotone-update` | Complete | `ResidualMedoid.monotone_coordinate_update`: for the additive binary-tag model, an observed partial residual globally minimises the coordinate objective `F_j` and substituting it does not increase the full fitting objective (`loss_update_eq`). Rows and tags are arbitrary finite types; the current coefficient vector is arbitrary. |
+| `poly-corollary` | Complete | `PolynomialCorollary.poly_corollary`: a degree-`≤ n` minimiser of `∑ |P(xᵢ) − yᵢ|_p` over data with at least `n+1` distinct abscissae interpolates at least `n+1` points. `poly_corollary_of_minimizes` drops the unused thesis hypotheses `k ≥ n+1` and `xᵢ = xⱼ ⇒ yᵢ = yⱼ`; `n = 0` is covered uniformly. |
+| `poly-approxy` | Complete | `PolynomialCorollary.poly_approxy`: an optimal degree-`≤ n` `p`-adic approximant `Q` of `P` on a finite set of at least `n+1` points leaves a residual `P − Q` with at least `n+1` distinct rational zeros (`poly_approxy_filter` locates them inside the set). |
+| `cor:residual-simple-roots` | Complete | `PolynomialCorollary.residual_simple_roots`: a polynomial residual of degree `n+1` (thesis definition `IsPolynomialResidual`, with the standing hypothesis of at least `n+1` evaluation points) has `Nodup` roots. |
+| `cor:residual-rational-roots` | Complete | `PolynomialCorollary.residual_rational_roots`, `residual_splits`, `residual_roots_map`: a degree-`n+1` residual has exactly `n+1` distinct rational roots, factors into distinct linear factors over `ℚ`, and acquires no new roots in any field extension. |
+| `thm:widespread-equioptimal` | Complete | `PolynomialCorollary.widespread_equioptimal`: for `n+1` points with pairwise `p`-adically equidistant abscissae (`c ≠ 0`) and an interpolant of degree exactly `n` (`1 ≤ n`), the degree-`≤ n−1` minimisers are exactly the `n+1` distinct candidates `P − a∏_{i≠j}(X − xᵢ)`, each missing exactly one point, all with loss `|a|_p cⁿ`. The hypotheses `1 ≤ n` and `c ≠ 0` are implicit in the thesis and made explicit. |
+| `prop:3sat-hole-filling` | Complete | `ClauseErasure.clause_erasure`: for `p > 3`, filling the hole at `t_C` makes every clause well the constant `3` on Boolean inputs (`well_valueRange_embeddedBoolean`), the erased objective is the constant `αn + 3m` on `{0,1}^n`, and under the explicit domination hypothesis `4Δ < α` its global minimisers over `ℚ_[p]^n` are exactly the Boolean assignments. `well_at_mem`/`well_at_notMem`/`well_minimised_iff` are the well facts; `positiveLoss_globalMin_iff_maximizesSatisfied` is the positive-encoding analogue of `thm:3sat-clausewise`. |
+| approximate negation (unlabelled lemma, `app:approximate-negation`) | Complete | `ClauseErasure.approximate_negation`: replacing negated-literal coefficients by integers `≡ −1 (mod p)` preserves the clause residual norm on Boolean-labelled inputs for `p > 3`; `pow_sub_one_modEq_neg_one` covers `p^k − 1`, and `modifiedClausewiseLoss_embeddedBoolean` transfers the identity to the compiled clause-wise objective. |
 | `prop:strict-refinement` | Complete | `StrictRefinement.valuation_sum_eq_valuation_head` and `valuation_sum_univ_eq_valuation_head`: nonzero coefficients with strictly increasing `p`-adic valuations have every tail sum of valuation equal to its first term; `tailSum_ne_zero` shows the tails are nonzero, and `norm_sum_eq_norm_head` is the norm form without a nonvanishing hypothesis. |
 
 ## The active thesis contains more than the headline catalogue
@@ -947,17 +954,14 @@ Additional active-thesis results still lacking direct Lean declarations fall
 into these groups:
 
 - the large-prime unit-residual and prime-stability lemmas;
-- the polynomial-approximation corollary, the residual-root corollaries, and
-  the equioptimal interpolation theorem;
 - the six-point regularisation finite-candidate lemma;
 - the sparse-junta wrapper for the medoid representation;
-- clause erasure by positive hole-filling;
 - medoid/prefix-consensus equivalence;
 - the Sudoku locator fingerprint, robust-sublevel decoding, and row-swap
   locality propositions; and
 - the older \(p=2\) Max-Cut helper lemmas in the published-hardness chapter.
-  These would be subsumed by a proof of `thm:fixed-prime-hardness` rather than
-  needing to be copied one by one.
+  These are subsumed by `FixedPrimeMaxCut.lean`, which proves the same
+  reduction for every prime, rather than being copied one by one.
 
 The separate question about how many distinct solutions occur along a
 regularisation path remains an open research question in the thesis. It is not

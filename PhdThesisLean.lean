@@ -101,3 +101,7 @@ import PhdThesisLean.ResidualMedoid
 import PhdThesisLean.StrictRefinement
 import PhdThesisLean.PolynomialResidualHardness
 import PhdThesisLean.NestedEasyHardEasy
+import PhdThesisLean.FixedPrimeMaxCut
+import PhdThesisLean.NestedEasyHardEasyHardness
+import PhdThesisLean.PolynomialCorollary
+import PhdThesisLean.ClauseErasure

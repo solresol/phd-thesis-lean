@@ -49,6 +49,18 @@ for non-degenerate data:
 - the family of all such independent interpolants is finite; and
 - a global minimiser exists and is attained within that finite family.
 
+The polynomial corollaries of the contact theorem are formalised in
+[`PhdThesisLean/PolynomialCorollary.lean`](PhdThesisLean/PolynomialCorollary.lean).
+`poly_corollary` transfers the contact theorem through the feature map
+`x ↦ (x, …, xⁿ)` to polynomials of degree at most `n`, using the root bound on
+nonzero polynomials for non-degeneracy; `poly_approxy` gives at least `n + 1`
+distinct rational zeros of an optimal approximation residual;
+`residual_simple_roots` and `residual_rational_roots` prove that a degree
+`n + 1` residual has simple roots and splits into distinct rational linear
+factors; and `widespread_equioptimal` proves the equioptimal interpolation
+theorem from the polynomial optimisation section, exhibiting the `n + 1` tied
+minimisers explicitly.
+
 The additive generalisation is formalised in
 [`PhdThesisLean/AdditiveContact.lean`](PhdThesisLean/AdditiveContact.lean).
 For every monotone transform on nonnegative residual magnitudes that strictly
@@ -1193,6 +1205,18 @@ maximum-satisfaction assignments. It also proves the thesis equivalence
 between formula satisfiability and attainment of the value
 `α n - numberOfClauses`.
 
+Clause erasure by positive hole-filling and the approximate-negation lemma are
+formalised in
+[`PhdThesisLean/ClauseErasure.lean`](PhdThesisLean/ClauseErasure.lean). For
+`p > 3` the positive wells over the four consecutive clause-sum values take the
+value `|S| - 1` on `S` and `|S|` elsewhere; adding the well at the forbidden
+value makes every clause term the constant `3` on Boolean inputs, so the erased
+objective is constant there and, under the explicit domination hypothesis
+`4Δ < α`, its global minimisers are exactly the Boolean assignments
+(`clause_erasure`). `approximate_negation` shows that replacing negated-literal
+coefficients by integers congruent to `-1` modulo `p` preserves every clause
+residual norm on Boolean inputs.
+
 The fixed-prime reduction is formalised in
 [`PhdThesisLean/FixedPrimeHardness.lean`](PhdThesisLean/FixedPrimeHardness.lean).
 It defines finite 3-CNF syntax and explicit signed affine decision instances
@@ -1202,6 +1226,27 @@ proves that any exact global optimiser decides the source formula. The dense
 expansion has exactly `2n + m` observations, and both its output size and
 straightforward construction cost are proved quadratic in the documented
 unit-cell syntax model.
+
+The fixed-prime Max-Cut reduction of the published hardness chapter is
+formalised in
+[`PhdThesisLean/FixedPrimeMaxCut.lean`](PhdThesisLean/FixedPrimeMaxCut.lean)
+for every prime, over `ℚ_[p]`, with edges indexed by an arbitrary finite type.
+`local_boolean_snapping` proves `lem:local-boolean-snapping`; `maxCutLoss` is
+the forcing objective with multiplicities `M_j = d_j + 1`; `snap_lt` and
+`globalMin_boolean` show that every global minimiser is Boolean;
+`maxCutLoss_embed` gives the value `∑ M_j + #monochromatic edges`; and
+`isGlobalMin_iff` identifies the global minimisers with the Boolean embeddings
+of maximum cuts, so `fixed_prime_hardness` carries the full content of
+`thm:fixed-prime-hardness` apart from the external complexity transfer.
+`homogeneousLoss_maxCutRows` shows the objective is literally the homogeneous
+summed loss of an explicit `{0,1}`-valued row family with `5|E| + 2n` rows.
+`intercept_pinning` proves `lem:intercept-pinning` for any integral instance,
+and `affine_hardness` derives `cor:affine-hardness`: with `r + 1` pinning rows
+the affine minimisers are exactly `(embed s, 0)` for maximum cuts `s`. The
+published `p = 2` theorem is the special case `p = 2`.
+[`PhdThesisLean/NestedEasyHardEasyHardness.lean`](PhdThesisLean/NestedEasyHardEasyHardness.lean)
+identifies the Stage 2 dataset of the nested family with this objective, so
+`stage2_globalMin_iff` characterises its minimisers as maximum cuts.
 
 The nonlinear boundary case is formalised in
 [`PhdThesisLean/PolynomialResidualHardness.lean`](PhdThesisLean/PolynomialResidualHardness.lean).

@@ -6626,3 +6626,19 @@
   and cardinality, Stage 3 grid characterisation and closed-form optimum for
   every `L ≥ 1`; the Stage 2 hardness clause awaits the Max-Cut module). Both
   modules pass `lake env lean` warning-free with standard-only axiom audits.
+- **Same campaign, third batch:** added `PhdThesisLean/FixedPrimeMaxCut.lean`
+  (`lem:local-boolean-snapping`, `thm:fixed-prime-hardness`,
+  `lem:intercept-pinning`, `cor:affine-hardness`; the two headline rows move
+  from Pending to **Partial** with the complete reduction, snapping, both
+  semantic directions, pinning gadget and `{0,1}` row families of `5|E|+2n`
+  and `10|E|+4n+1` rows checked for every prime; complexity transfer external),
+  `PhdThesisLean/NestedEasyHardEasyHardness.lean` (coordinator-written link:
+  the Stage 2 loss of the nested family is `maxCutLoss`, so its minimisers are
+  exactly the maximum cuts), `PhdThesisLean/PolynomialCorollary.lean`
+  (`poly-corollary`, `poly-approxy`, `cor:residual-simple-roots`,
+  `cor:residual-rational-roots`, `thm:widespread-equioptimal`; the last makes
+  the implicit hypotheses `1 ≤ n` and `c ≠ 0` explicit) and
+  `PhdThesisLean/ClauseErasure.lean` (`prop:3sat-hole-filling` with an
+  explicit `4Δ < α` domination hypothesis for the "trivial problem" clause, and
+  the approximate-negation lemma). All pass `lake env lean` warning-free with
+  standard-only axiom audits.
