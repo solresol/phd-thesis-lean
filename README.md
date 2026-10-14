@@ -87,6 +87,17 @@ family proves that the max loss attains its global minimum and that at least one
 minimiser has `n + 1` contacts, as required by
 `thm:max-contact-existence`.
 
+The equidistributed sum-refines-max theorem is formalised in
+[`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
+when the predictor reductions are exactly equidistributed modulo `p`, every
+summed-loss minimiser is a max-loss minimiser
+(`equidistributed_sum_refines_max`, and `isGlobalMin_Linf_of_isGlobalMin_L1`
+without the no-exact-fit hypothesis). The proof is finite: a nonzero affine
+function on `𝔽_p^d` vanishes on at most a `1/p` fraction of points, and
+averaging over `p` intercept shifts replaces the Haar-measure argument. The
+sparse-junta corollary of the medoid representation theorem is
+[`PhdThesisLean/SparseJunta.lean`](PhdThesisLean/SparseJunta.lean).
+
 The nested easy–hard–easy family is formalised in
 [`PhdThesisLean/NestedEasyHardEasy.lean`](PhdThesisLean/NestedEasyHardEasy.lean)
 at the fixed prime `5`. Datasets are multisets of rows, so the nesting

@@ -105,3 +105,5 @@ import PhdThesisLean.FixedPrimeMaxCut
 import PhdThesisLean.NestedEasyHardEasyHardness
 import PhdThesisLean.PolynomialCorollary
 import PhdThesisLean.ClauseErasure
+import PhdThesisLean.EquidistributedSumRefinesMax
+import PhdThesisLean.SparseJunta

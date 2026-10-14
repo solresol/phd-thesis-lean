@@ -6642,3 +6642,15 @@
   explicit `4Δ < α` domination hypothesis for the "trivial problem" clause, and
   the approximate-negation lemma). All pass `lake env lean` warning-free with
   standard-only axiom audits.
+- **Same campaign, fourth batch:** added
+  `PhdThesisLean/EquidistributedSumRefinesMax.lean`
+  (`thm:equidistributed-sum-refines-max`, now **Complete**; the Lean proof is
+  purely finite — a counting lemma for nonzero affine functions on `𝔽_p^d` and
+  an average over `p` intercept shifts — replacing the thesis's compactness and
+  Haar-measure steps, and the no-exact-fit hypothesis turns out to be unused)
+  and `PhdThesisLean/SparseJunta.lean` (the sparse-junta corollary of the
+  medoid representation theorem, with the valuation and divisibility forms of
+  non-expansiveness proved equivalent). Both warning-free, standard axioms.
+- **In progress:** `SudokuSpecialCase.lean`, `SudokuDiagnostics.lean` and
+  `LargePrime.lean` are being written by further agents and will be reviewed,
+  wired in and committed in subsequent batches.
