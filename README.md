@@ -1216,6 +1216,25 @@ maximum-satisfaction assignments. It also proves the thesis equivalence
 between formula satisfiability and attainment of the value
 `α n - numberOfClauses`.
 
+Sudoku completion is formalised as a special case in
+[`PhdThesisLean/SudokuSpecialCase.lean`](PhdThesisLean/SudokuSpecialCase.lean).
+Cells are `Fin 81`; `PeerEdge` is the deduplicated peer graph with one edge
+per unordered pair of cells sharing a row, column or box (810 edges), and
+`degree_eq_twenty` establishes the degree-20 bound by kernel evaluation of the
+`81 × 81` peer relation. For `p > 9` the digit domains are unit-separated
+(`digit_difference_norm`, the thesis's `cor:sudoku-differences`), and
+`sudokuLoss_eq` unfolds the instantiated all-different objective to the
+displayed minimal objective. `sudoku_special_case` then proves
+`cor:sudoku-special-case` for `α > 20`: a global minimiser exists, the global
+minimisers are exactly the clue-respecting digit assignments of minimum
+peer-conflict count, and for satisfiable puzzles they are exactly the valid
+completions. The diagnostics propositions of the same chapter are in
+[`PhdThesisLean/SudokuDiagnostics.lean`](PhdThesisLean/SudokuDiagnostics.lean):
+`locator_fingerprint` bounds the collision count of a committed locator
+polynomial by its degree over any finite field, and `unique_nearest_dmin` and
+`separation_dmin` prove robust sublevel decoding with Mathlib's Hamming
+distance.
+
 Clause erasure by positive hole-filling and the approximate-negation lemma are
 formalised in
 [`PhdThesisLean/ClauseErasure.lean`](PhdThesisLean/ClauseErasure.lean). For

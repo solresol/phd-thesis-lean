@@ -6654,3 +6654,14 @@
 - **In progress:** `SudokuSpecialCase.lean`, `SudokuDiagnostics.lean` and
   `LargePrime.lean` are being written by further agents and will be reviewed,
   wired in and committed in subsequent batches.
+- **Same campaign, fifth batch:** added `PhdThesisLean/SudokuSpecialCase.lean`
+  (`cor:sudoku-special-case` and `cor:sudoku-differences`, now **Complete**:
+  the 81-cell deduplicated peer graph, the degree-20 bound by kernel `decide`
+  over the `81 × 81` peer relation, the unit-separated digit domains for
+  `p > 9`, the exact unfolding of the minimal objective, and the instantiation
+  of `all_different_correctness`; in a valid completion every unit contains
+  every digit once) and `PhdThesisLean/SudokuDiagnostics.lean`
+  (`prop:sudoku-locator-fingerprint` over any finite field, as a counting bound
+  `#{τ | Λ'(τ) = Λ_x(τ)} ≤ D` with the probability form, and
+  `prop:sudoku-robust-decoding` with Mathlib's `hammingDist`). Both
+  warning-free with standard-only axiom audits.
