@@ -6717,3 +6717,44 @@
   `general_compileFixedPrime_correct`, a `392 · size²` cell reduction), so
   `thm:3sat-clausewise` is now **Complete** without qualification. Warning-free,
   standard-only axiom audits (one declaration is even `Classical.choice`-free).
+
+## 2026-10-15 — conditional positive emission with complete state retention
+
+- **Starting state:** clean `main` at `ccf4695da6b7cfc603b2188bff901d9cfffbb2be`.
+  Fetch found ten upstream commits; safely fast-forwarded to
+  `c78a239` (the parallel thesis campaign) before editing. Read instructions,
+  current status/correspondence, recent log and automation memory, active CSP
+  sources and the active thesis corollary/proof. Baseline full build passed.
+- **Read-only context:** active thesis remains at `ca5ce9a`, with its existing
+  untracked `proofs/.lake/` and `things-to-read.txt` preserved. Sibling
+  `lean-np-hardness` remains clean at `1acf1d3`. Reviewed its checked pair
+  encoding, pair-left polynomial adapter and machine-composition runtime APIs;
+  kept this project's checked dependency pin `ad20a2e`. No sibling edits.
+- **Increment:** added `AllDifferentCSPPositiveCandidateEmit.lean`.
+  `positiveCandidateEmit_outputsInTime` and
+  `positiveCandidateEmitComputableInPolyTime` implement exact conditional
+  positive-row appending in `6s+7` finite-machine steps for the complete
+  tested-state wire length. The seven-stack machine copies both coordinates,
+  restores the reversed binary weight into row order and emits the existing
+  `[4,0,index,rank,weight]` format only on acceptance. All original fields and
+  earlier rows survive in order; all scratch stacks are empty at halt.
+  `output_length` charges precisely the additional row and `output_length_le`
+  bounds the full result by `2s+8`, including every weight bit and delimiter.
+- **Verification:** direct module check and full `lake build` pass (7951 jobs).
+  Five new headline audits pass: one axiom-free and four using only `propext`,
+  `Classical.choice`, `Quot.sound`. The new module is warning-free. Kernel
+  examples cover rejection with zero fields and accepted appending with a
+  million-valued weight and an existing row. The comment/string-aware scan
+  passes all 123 project Lean/config files; `git diff --check` passes.
+  README, both status locations and root imports are synchronized; the full
+  corollary remains **Partial**.
+- **Resolved diagnostics:** `section` is reserved Lean syntax; changed the
+  case-pattern variable to `sections`. Removed two unused simp arguments.
+  The initial shell command required `python3` rather than unavailable
+  `python`. No unresolved Lean error; failed-check audit output was discarded.
+- **Ending / next:** commit and push this verified emitter, then compose it
+  with the complete candidate test using the pinned generic sequential API.
+  Prove exact relabelled-domain emission and preservation of bounded-row
+  invariants before constructing rectangular counter advance and its finite
+  loop. Objective framing and selected-prime composition still follow.
+- **Run time:** 2026-10-14 18:22 UTC (15 October AEDT).

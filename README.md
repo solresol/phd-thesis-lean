@@ -1124,10 +1124,22 @@ closed candidate bounds and at most a grid of bounded, common-weight rows by
 `16(s+1)^3` in immutable-section wire length `s`, including all weight bits.
 `positiveCandidateTest_bounded_steps_le` then gives one polynomial bound for
 all such complete calls. Establishing those state invariants for a repeated
-finite scan and conditionally appending positive rows remain outstanding.
+finite scan remains outstanding.
 
-The finite positive candidate scan, retained-weight emission and final
-objective/framing/prime assembly remain open; `cor:all-different-csp` is partial.
+`AllDifferentCSPPositiveCandidateEmit.lean` now consumes the computed answer
+and conditionally appends the exact counted positive row while retaining the
+candidate, both unary bounds, ranked occurrences, scopes, negative rows,
+common binary weight and all earlier positive rows.
+`positiveCandidateEmitComputableInPolyTime` implements this with a finite
+seven-stack machine in at most `6s+7` steps for complete tested-state length
+`s`. Both coordinate fields and the reversed binary weight are copied into
+row order; all scratch stacks are empty at halt. `output_length` charges
+exactly the accepted row, including its eight tag/delimiter cells and every
+weight bit; `output_length_le` bounds the result by `2s+8`.
+
+The finite positive candidate scan, composition of testing with emission and
+final objective/framing/prime assembly remain open; `cor:all-different-csp`
+is partial.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
