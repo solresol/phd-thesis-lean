@@ -1261,6 +1261,19 @@ polynomial by its degree over any finite field, and `unique_nearest_dmin` and
 `separation_dmin` prove robust sublevel decoding with Mathlib's Hamming
 distance.
 
+Two further Sudoku-chapter lemmas are formalised:
+[`PhdThesisLean/RowSwapLocality.lean`](PhdThesisLean/RowSwapLocality.lean)
+proves `lem:row-swap-locality` as an exact integer identity for the change of
+the duplicated unit-scope objective under a within-row swap, and
+[`PhdThesisLean/PowersOfTwoLandscape.lean`](PhdThesisLean/PowersOfTwoLandscape.lean)
+proves `lem:pow2-landscape` for the powers-of-two encoding, including the
+orders of `2` modulo the six sweep primes by kernel `decide` and the `p = 7`
+inversion example with exact values. The Athanasius chapter's
+`prop:medoid-prefix-consensus` is in
+[`PhdThesisLean/PrefixConsensus.lean`](PhdThesisLean/PrefixConsensus.lean):
+the medoid objective equals `m - (1 - p⁻¹)` times a convergent weighted
+prefix-agreement series, so medoids are exactly the prefix-score maximisers.
+
 Clause erasure by positive hole-filling and the approximate-negation lemma are
 formalised in
 [`PhdThesisLean/ClauseErasure.lean`](PhdThesisLean/ClauseErasure.lean). For
@@ -1348,6 +1361,15 @@ support size maximising `K(t) - rt`, together with the displayed minimum-loss
 identity from `thm:discrete-regularised`. The theorem `discrete_algorithm`
 formalises `cor:discrete-algorithm`: given one attaining witness per support
 size, finite candidate-gain selection returns a global minimiser.
+
+The six-point regularisation example's finite-candidate lemma is formalised in
+[`PhdThesisLean/RegularisedCandidates.lean`](PhdThesisLean/RegularisedCandidates.lean).
+The module first ports the contact-theorem perturbation argument to arbitrary
+homogeneous designs with nonnegative weights and any norm-monotone per-point
+loss (`weighted_exists_global_minimizer`, `weighted_contact_or_degenerate`),
+then folds the slope penalty into a seventh weighted row and proves
+`reg_finite_candidates`: for every `λ ≥ 0` the regularised objective attains
+its minimum at a line through two data points or a horizontal line through one.
 
 The old top-level `DiscreteMetricRegression.lean` is now only a compatibility
 import for the statement-faithful module. Its unattained supremum and vacuous

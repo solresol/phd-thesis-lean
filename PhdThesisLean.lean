@@ -111,3 +111,7 @@ import PhdThesisLean.SudokuSpecialCase
 import PhdThesisLean.SudokuDiagnostics
 import PhdThesisLean.LargePrime
 import PhdThesisLean.MaxObjective
+import PhdThesisLean.RowSwapLocality
+import PhdThesisLean.PowersOfTwoLandscape
+import PhdThesisLean.RegularisedCandidates
+import PhdThesisLean.PrefixConsensus

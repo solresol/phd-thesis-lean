@@ -945,6 +945,10 @@ recorded here once a statement-faithful Lean declaration exists.
 | sparse junta case (unlabelled corollary of `thm:sparse-medoid-representation`) | Complete | `SparseJunta.sparse_junta_case`: if `F(x) = H(x_T)` with `|T| ≤ s` and `H` non-expansive (`NonExpansive`, equivalent to the thesis valuation form by `nonExpansive_iff_val`), the medoid ensemble with constant active set `T` represents `F` exactly and every regressor uses only the features in `T`. |
 | `prop:sudoku-locator-fingerprint` | Complete | `SudokuDiagnostics.locator_fingerprint` and `locator_fingerprint_prob`: over any finite field, a committed polynomial of degree `≤ D` different from the locator `Λ_x = ∏_{violated c}(Z − α_c)` agrees with it at most `D` points, so the uniform-sample collision probability is `≤ D/Q`; `locator_monic`, `natDegree_locator`, `roots_locator` record the locator's algebra. |
 | `prop:sudoku-robust-decoding` | Complete | `SudokuDiagnostics.unique_nearest_dmin` and `separation_dmin`: under robust soundness `L(x) ≥ γ d_H(x, 𝒮)`, every `x` with `L(x) < γ d_min/2` has a unique nearest solution, and two low-loss assignments with different nearest solutions are at Hamming distance `≥ d_min − 2ℓ/γ`; the general forms take any pairwise lower bound `d` in place of `d_min`. |
+| `lem:reg-finite-candidates` | Complete | `RegularisedCandidates.reg_finite_candidates`: for the six-point dataset at `p = 5` with per-point loss `2^{-v_5}` and slope penalty `λ 2^{-v_5(a)}`, every `λ ≥ 0` has an attained minimum, attained by a line through two distinct data points or a horizontal line through a data point; `not_fits_one_three` excludes the vertical pair and `nonvertical_pair_count = 14`, `distinct_horizontal_count = 4` check the thesis counts. Built on `weighted_exists_global_minimizer`, a weighted norm-monotone version of the finite-search theorem for arbitrary homogeneous designs. |
+| `lem:row-swap-locality` | Complete | `RowSwapLocality.row_swap_locality` and `Hcb_swap_locality`: the change of the duplicated unit-scope objective under a within-row swap is exactly the change of the two column terms and the one or two box terms containing the swapped cells; `Hcb_swap_locality_of_box_eq` sharpens the shared-box case, and `H_eq_Hcb_of_rowsArePerms` records that row terms vanish on the row-permutation state space. |
+| `lem:pow2-landscape` | Complete | `PowersOfTwoLandscape.pow2_landscape`: for odd `p`, `|2^a − 2^b|_p = |2^{|a−b|} − 1|_p`, a unit iff `ord_p(2) ∤ |a−b|`; every move is a unit step for `p ∈ {11,13,23,47,73,97}` (orders `10,12,11,23,9,48` by `decide`) and for `p > 255`; strict decrease iff `ε ≡ r (mod p^{v_p(r)+1})`; and `|r|_p < |ε|_p ⇒ |r − ε|_p = |ε|_p`. `seven_inversion` gives the `p = 7` example with exact values. |
+| `prop:medoid-prefix-consensus` | Complete | `PrefixConsensus.prefix_consensus_identity` (`∑_j |c − z_j|_p = m − (1 − p⁻¹) ∑_{r≥1} p^{−(r−1)} #{j : z_j ≡ c mod p^r}`, with the series proved convergent) and `medoid_iff_maximises_score` (medoid argmin = weighted prefix-score argmax on any finite candidate set); `capped_medoid_iff_maximises_score` covers the implemented bounded medoid with non-integral predictions discarded as constants. |
 | `prop:strict-refinement` | Complete | `StrictRefinement.valuation_sum_eq_valuation_head` and `valuation_sum_univ_eq_valuation_head`: nonzero coefficients with strictly increasing `p`-adic valuations have every tail sum of valuation equal to its first term; `tailSum_ne_zero` shows the tails are nonzero, and `norm_sum_eq_norm_head` is the norm form without a nonvanishing hypothesis. |
 
 ## The active thesis contains more than the headline catalogue
@@ -964,9 +968,6 @@ declarations.
 Additional active-thesis results still lacking direct Lean declarations fall
 into these groups:
 
-- the six-point regularisation finite-candidate lemma;
-- medoid/prefix-consensus equivalence;
-- the Sudoku row-swap locality lemma; and
 - the older \(p=2\) Max-Cut helper lemmas in the published-hardness chapter.
   These are subsumed by `FixedPrimeMaxCut.lean`, which proves the same
   reduction for every prime, rather than being copied one by one.

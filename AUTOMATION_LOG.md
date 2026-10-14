@@ -6684,3 +6684,17 @@
   preserves minimisers, and the summed objective is shown not invariant by a
   `2×2` example. Polynomial time and the Smith-normal-form algorithm remain
   external. Warning-free, standard-only axiom audits.
+- **Same campaign, eighth batch:** added
+  `PhdThesisLean/RegularisedCandidates.lean` (`lem:reg-finite-candidates`,
+  via a weighted norm-monotone homogeneous contact toolkit that ports the
+  Chapter 2 perturbation argument to nonnegative weights and arbitrary
+  per-point losses, folding the slope penalty into a seventh row),
+  `PhdThesisLean/RowSwapLocality.lean` (`lem:row-swap-locality`, the exact
+  integer identity for the change of the duplicated unit-scope objective, with
+  the sharper single-box case), `PhdThesisLean/PowersOfTwoLandscape.lean`
+  (`lem:pow2-landscape`, including the orders of 2 modulo the six sweep primes
+  by kernel `decide`, the `p > 255` case, and the `p = 7` inversion example
+  with exact values) and `PhdThesisLean/PrefixConsensus.lean`
+  (`prop:medoid-prefix-consensus` from the Athanasius chapter, with the series
+  proved convergent and the capped rational-prediction remark). All pass
+  `lake env lean` warning-free with standard-only axiom audits.
