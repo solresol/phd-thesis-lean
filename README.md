@@ -100,6 +100,19 @@ family proves that the max loss attains its global minimum and that at least one
 minimiser has `n + 1` contacts, as required by
 `thm:max-contact-existence`.
 
+The mathematical core of the max-objective theorem is formalised in
+[`PhdThesisLean/MaxObjective.lean`](PhdThesisLean/MaxObjective.lean). The
+objective `‖b - Aβ‖` in the sup norm attains its minimum over `ℚ_[p]^n`
+(`max_objective_attained`, via the proper-space and closed-range structure of
+`ℚ_[p]`), and for rational data an optimal coefficient vector can be chosen in
+`ℚ^n` (`max_objective_rational_optimum`): when the optimum is positive the
+sublevel set is open and `ℚ^n` is dense, and when it is zero a rational dual
+functional shows the system is solvable over `ℚ`. The algorithm's reductions
+are checked as well: the sup norm is invariant under `GL_m(ℤ)`, clearing
+denominators preserves minimisers, and a `2 × 2` example shows the summed
+objective is not invariant. The Smith-normal-form algorithm and the
+polynomial running time of `thm:max-polytime` remain external.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

@@ -110,3 +110,4 @@ import PhdThesisLean.SparseJunta
 import PhdThesisLean.SudokuSpecialCase
 import PhdThesisLean.SudokuDiagnostics
 import PhdThesisLean.LargePrime
+import PhdThesisLean.MaxObjective

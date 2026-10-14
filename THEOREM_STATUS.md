@@ -20,7 +20,7 @@ that no statement-faithful Lean theorem is currently present.
 | `prop:medoid-robustness` | Complete | `Medoid.medoid_robustness`. |
 | `thm:threshold-coreset` | Complete | `Coreset.threshold_coreset`. |
 | `prop:subset-summary-lower-bound` | Complete | `SubsetSummary.bounded_information_subset_summaries` and its weighted/unweighted component theorems. |
-| `thm:max-polytime` | Pending | Formalise the Smith-normal-form algorithm, rational optimal witness, encoding, and polynomial running time. `MaxContact` proves attainment/contact, not this algorithmic theorem. |
+| `thm:max-polytime` | Partial | `MaxObjective.max_objective_attained` proves the minimum defining `ρ_max` is attained (for arbitrary `p`-adic data), and `max_objective_rational_optimum` proves that for rational data an optimal `β` may be chosen in `ℚ^n`, realising `ρ_max` (`max_objective_rational_optimum_rhoMax`); `exists_rat_solution_of_padic_solution` closes the exact-fit case by base change. The algorithm's reductions are checked: sup-norm invariance under `GL_m(ℤ)` (`norm_mulVec_generalLinearGroup`) and denominator clearing (`isGlobalMin_clear_denominators_iff`); `sum_objective_not_unimodular_invariant` witnesses the thesis's closing remark. Remaining: the Smith-normal-form algorithm, the formula `ρ_max = max_{i>t}|b'_i|_p`, and polynomial running time are external. |
 | `thm:equidistributed-sum-refines-max` | Complete | `EquidistributedSumRefinesMax.equidistributed_sum_refines_max`: for `x_i ∈ ℤ_p^d` exactly equidistributed modulo `p`, an intercept in the model, and no exact affine fit, every `L_1` minimiser is an `L_∞` minimiser. The stronger `isGlobalMin_Linf_of_isGlobalMin_L1` drops the no-exact-fit hypothesis. The Lean proof is purely finite (a counting lemma `card_affZ_zero_mul_le` for nonzero affine functions on `𝔽_p^d` plus an average over `p` intercept shifts) and replaces the thesis's compactness and Haar-measure steps; the conclusion is identical. |
 | `thm:nested-easy-hard-easy` | Partial | `NestedEasyHardEasy.nested_easy_hard_easy` constructs the literal multiset nesting `A_G ≤ A'_G ≤ A''_G` over `ℚ_[5]` for any self-loop-free (multi)graph and proves all three stages: `stage1_globalMin_iff` (unique optimum `0`, loss `0`); `loss_A'` and `card_A'` (the loss of `A'_G` is exactly the fixed-prime Max-Cut objective, with `5|E|+2|V|` rows); and `stage3_globalMin_iff`, `stage3_optimum`, `loss_A''_optimum` (for every `L ≥ 1` the global minimisers of `A''_G` are exactly the grid `T^n`, with `(c,…,c)` optimal at the closed-form value `m_H 5^L + 4nN5^L`). `NestedEasyHardEasyHardness.loss_A'_eq_maxCutLoss` identifies the Stage 2 loss with `FixedPrimeMaxCut.maxCutLoss`, so `stage2_globalMin_iff` and `stage2_optimal_value` give the Max-Cut characterisation of the hard stage; `nested_easy_hard_easy_with_hardness` bundles all three stages. Remaining: the Stage 2 NP-hardness clause inherits the external complexity transfer of `thm:fixed-prime-hardness`. |
 | `thm:discrete-regularised` | Complete | `DiscreteRegularization.discrete_regularized_regression`. |
@@ -891,12 +891,13 @@ composition includes outer row counting, binary-header staging, and framing;
 `binaryPredComputableInPolyTime` already supplies its empty- and
 singleton-safe binary countdown operation.
 
-The headline catalogue therefore contains 30 statements: 23 complete, 6
-partial, and 1 pending (`thm:max-polytime`). Every partial row has its
-mathematical reduction fully checked and lacks only the external complexity
+The headline catalogue therefore contains 30 statements: 23 complete and 7
+partial, with nothing pending. Every partial row has its mathematical content
+checked and lacks only an external complexity ingredient: the NP-hardness
 transfer (`thm:fixed-prime-hardness`, `cor:affine-hardness`,
 `thm:nested-easy-hard-easy`, `cor:sudoku-polynomial-dyadic-hardness`,
-`cor:signed-nphard`) or the remaining runtime machine composition
+`cor:signed-nphard`), the Smith-normal-form algorithm and running time
+(`thm:max-polytime`), or the remaining runtime machine composition
 (`cor:all-different-csp`). The qualified clause theorem is included in the
 complete count because its explicit Lean syntax captures the intended
 three-distinct-variable convention; a normalisation theorem for arbitrary

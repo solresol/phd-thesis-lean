@@ -6674,3 +6674,13 @@
   gives the explicit bound `primeBound`, and proves unit residuals, attainment
   in the family, and stability of optimality across all large primes.
   Warning-free, standard-only axiom audits.
+- **Same campaign, seventh batch:** added `PhdThesisLean/MaxObjective.lean`
+  (`thm:max-polytime`, Pending → **Partial**): the minimum defining `ρ_max`
+  is attained for arbitrary `p`-adic data (proper space + closed
+  finite-dimensional range), an optimal coefficient vector may be chosen in
+  `ℚ^n` (density of `ℚ^n` in the open sublevel set when `ρ_max > 0`, and a
+  dual-functional base-change argument `exists_rat_solution_of_padic_solution`
+  when `ρ_max = 0`), the sup norm is `GL_m(ℤ)`-invariant, denominator clearing
+  preserves minimisers, and the summed objective is shown not invariant by a
+  `2×2` example. Polynomial time and the Smith-normal-form algorithm remain
+  external. Warning-free, standard-only axiom audits.
