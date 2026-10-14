@@ -933,6 +933,7 @@ recorded here once a statement-faithful Lean declaration exists.
 |---|---|---|
 | `prop:chapter-residual-medoid` | Complete | `ResidualMedoid.exists_medoid_multiset` (nonempty finite multiset in `ℚ_[p]`; the minimiser of `∑_{r∈R}‖r-a‖` lies in `R`), with `exists_medoid` and `exists_medoid_finset` for indexed families. |
 | `cor:chapter-monotone-update` | Complete | `ResidualMedoid.monotone_coordinate_update`: for the additive binary-tag model, an observed partial residual globally minimises the coordinate objective `F_j` and substituting it does not increase the full fitting objective (`loss_update_eq`). Rows and tags are arbitrary finite types; the current coefficient vector is arbitrary. |
+| `thm:main` with `lem:toobig`, `lem:binary`, `lem:magnitude`, `lem:rounding` | Partial | `PublishedMaxCut.published_main`: the literal published `2`-adic reduction with uniform multiplicity `M = m + 1` over `ℚ_[2]`: `binary_lemma` (every prime), `loss_zero_eq`/`not_optimal_of_ge`, `not_optimal_of_norm_gt_one`, `rounding_le` (with the strict `rounding_lt` and `globalMin_boolean` as a bonus), `publishedLoss_embed` (`L(s) = Mn + m − cutsize(s)`), a Boolean optimum, `optimal_value` (`cutsize* = Mn + m − L*`), and `cut_ge_iff` (the `K`-decision form); `homogeneousLoss_publishedRows` identifies the objective with the explicit `{0,1}` instance of `m + 2Mn` rows. As for `thm:fixed-prime-hardness`, only the NP-hardness transfer is external. |
 | `lem:large-prime-unit-residuals` | Complete | `LargePrime.large_prime_unit_residuals`: with `ℋ = candidateFamily X y` (chosen rational interpolants of all affinely independent `(d+1)`-subsets, `d+1 = affineRank X`, degenerate data allowed via the rank-general `rank_refinement`), there is an explicit data-only bound `primeBound X y` such that for every larger prime the optimum is attained in `ℋ` and every residual of every member has `p`-adic norm `0` or `1`. `card_candidateFamily_le` gives `|ℋ| ≤ C(k, d+1)`. |
 | `lem:large-prime-stability` | Complete | `LargePrime.large_prime_stability` and `large_prime_optimal_iff_most_contacts`: for primes above the bound, a member of `ℋ` is `q₁`-optimal iff `q₂`-optimal, and the optimal members are exactly those with the fewest misses (`loss_eq_missCount_of_large_prime`). |
 | `poly-corollary` | Complete | `PolynomialCorollary.poly_corollary`: a degree-`≤ n` minimiser of `∑ |P(xᵢ) − yᵢ|_p` over data with at least `n+1` distinct abscissae interpolates at least `n+1` points. `poly_corollary_of_minimizes` drops the unused thesis hypotheses `k ≥ n+1` and `xᵢ = xⱼ ⇒ yᵢ = yⱼ`; `n = 0` is covered uniformly. |
@@ -965,12 +966,14 @@ difference-indicator calculation. The supporting-statement table above records
 the additional environments that now have their own statement-faithful
 declarations.
 
-Additional active-thesis results still lacking direct Lean declarations fall
-into these groups:
-
-- the older \(p=2\) Max-Cut helper lemmas in the published-hardness chapter.
-  These are subsumed by `FixedPrimeMaxCut.lean`, which proves the same
-  reduction for every prime, rather than being copied one by one.
+Every theorem, corollary, proposition, or lemma environment of the active
+thesis now has a corresponding Lean declaration, either in the headline
+catalogue or in the supporting-statement table. The only remaining gaps are
+the external complexity ingredients recorded in the Partial rows, together
+with the following items that are prose or data rather than stated results:
+the APX-hardness discussion (left open by the thesis itself), the numerical
+enumeration table of the six-point regularisation example, and the Sudoku
+heuristic traces.
 
 The separate question about how many distinct solutions occur along a
 regularisation path remains an open research question in the thesis. It is not

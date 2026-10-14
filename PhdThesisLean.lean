@@ -115,3 +115,4 @@ import PhdThesisLean.RowSwapLocality
 import PhdThesisLean.PowersOfTwoLandscape
 import PhdThesisLean.RegularisedCandidates
 import PhdThesisLean.PrefixConsensus
+import PhdThesisLean.PublishedMaxCut

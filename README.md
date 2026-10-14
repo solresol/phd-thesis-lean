@@ -1315,7 +1315,13 @@ the affine minimisers are exactly `(embed s, 0)` for maximum cuts `s`. The
 published `p = 2` theorem is the special case `p = 2`.
 [`PhdThesisLean/NestedEasyHardEasyHardness.lean`](PhdThesisLean/NestedEasyHardEasyHardness.lean)
 identifies the Stage 2 dataset of the nested family with this objective, so
-`stage2_globalMin_iff` characterises its minimisers as maximum cuts.
+`stage2_globalMin_iff` characterises its minimisers as maximum cuts. The
+literal published construction at `p = 2` with the uniform multiplicity
+`M = m + 1` is in
+[`PhdThesisLean/PublishedMaxCut.lean`](PhdThesisLean/PublishedMaxCut.lean),
+which proves the four published lemmas, the value formula
+`L(s) = Mn + m - cutsize(s)`, the existence of a Boolean optimum, the Max-Cut
+recovery, and the decision form of `thm:main`.
 
 The nonlinear boundary case is formalised in
 [`PhdThesisLean/PolynomialResidualHardness.lean`](PhdThesisLean/PolynomialResidualHardness.lean).

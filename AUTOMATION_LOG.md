@@ -6698,3 +6698,11 @@
   (`prop:medoid-prefix-consensus` from the Athanasius chapter, with the series
   proved convergent and the capped rational-prediction remark). All pass
   `lake env lean` warning-free with standard-only axiom audits.
+- **Same campaign, ninth batch:** added `PhdThesisLean/PublishedMaxCut.lean`
+  (published `thm:main` at `p = 2` with uniform `M = m + 1`, and its lemmas
+  `lem:toobig`, `lem:binary`, `lem:magnitude`, `lem:rounding`, the value
+  formula `L(s) = Mn + m − cutsize(s)`, a Boolean optimum, the Max-Cut
+  recovery and the `K`-decision form; `homogeneousLoss_publishedRows` ties the
+  objective to the explicit `{0,1}` instance with `m + 2Mn` rows). Bonus:
+  every global minimiser is Boolean. NP-hardness transfer external as before.
+  With this the "still lacking" list in `THEOREM_STATUS.md` is empty.
