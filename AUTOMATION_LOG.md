@@ -6900,3 +6900,52 @@
   in the build output.
 - **Ending state:** the theorem catalogue is unchanged; only proof scripts and
   imports moved.
+
+## 2026-10-16 — rectangular positive traversal and reached-state invariants
+
+- **Starting state:** clean local `main` at `96aaab54bf063420434b3bc0fa9b79d22fbee57d`.
+  Fetched origin and safely fast-forwarded ten commits to
+  `57f0e9fe0d7dd79aa3b278a4f074ca9a1d4d6376`, including the upstream Lean/mathlib
+  4.35.0 upgrade and dependency pin `21e6eb4`. Read AGENTS, status, relevant
+  README/Lean modules, prior log/memory and the active thesis corollary/proof.
+  The thesis remains `ca5ce9a`, with its two pre-existing untracked paths
+  preserved. Sibling `lean-np-hardness` remains read-only and clean at
+  `1acf1d3`; live upstream is `21e6eb4`, matching this project's new pin.
+  Reviewed bundled `FinEncoding` compatibility, binary successor, pair-left,
+  pair-right/exchange and sequential polynomial machine APIs. The compatibility
+  wrapper is definitionally mathlib's current `TM2ComputableInPolyTime`.
+- **Increment:** new `AllDifferentCSPPositiveAdvance.lean` defines the exact
+  rectangular traversal with ordinal `index * (occurrenceCount + 1) + rank`.
+  `step_invariant`, `fresh` and `active_capacity` discharge the previously
+  external row-bound, common-weight, freshness and capacity hypotheses.
+  `run_position`, `run_pair_at`, `run_exhausted` and `run_stable` prove one visit
+  per grid cell and canonical exhaustion `(variableCount,0)` after exactly
+  `variableCount * (occurrenceCount + 1)` visits. `run_rows_eq`,
+  `run_ofRuntimeSystem` and `run_outputEncode_ofRuntimeSystem` identify the
+  exact ordered rows and raw payload with the existing semantic compiler;
+  `run_nodup` excludes repeated output rows. `run_length_le_cubic` bounds every
+  reached state by `16(s+1)^3`, and `run_filter_steps_le` bounds actual complete
+  finite test-and-emit calls uniformly in immutable-section wire length.
+  This is not yet a repeated finite-machine runtime theorem.
+- **Verification:** the new module built warning-free on its first complete
+  check; all 17 audits use only standard axioms (freshness is axiom-free).
+  Full `lake build` passes after refreshing the dependency graph. The lexical
+  scan found no prohibited declarations/unfinished proofs/native bypasses;
+  `git diff --check` passes. Kernel examples cover repeated occurrences,
+  rectangular bounds, zero variables, zero occurrences, inner continuation
+  and the final-rank transition. README, both status locations and root import
+  synchronized; the corollary remains Partial.
+- **Build environment / diagnostics:** installed the new pinned toolchain and
+  fetched the matching mathlib cache with `lake exe cache get`. A direct Lean
+  check before dependencies rebuilt correctly rejected an old incompatible
+  `.olean`. The first full rebuild compiled all pre-existing modules but its
+  root import failed because the new import was added after its dependency
+  graph was computed; the targeted module build and fresh full build resolve
+  that scheduling artifact. No proof errors in the traversal module.
+- **Ending / next:** commit and push this verified traversal; final hashes and
+  three-ref parity are recorded in automation memory. A separate counter
+  module is in progress and is excluded from this commit. Next verify finite
+  inner/outer counter actions, then initialize and implement the finite
+  predicates, dispatch and repeated loop. Final objective/framing/selected-prime
+  composition still follows. No sibling, thesis or dependency source edits.
+- **Run time:** 2026-10-15 18:31 UTC (16 October AEDT).

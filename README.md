@@ -1130,8 +1130,8 @@ its precise candidate order. `state_length_le_cubic` bounds every state with
 closed candidate bounds and at most a grid of bounded, common-weight rows by
 `16(s+1)^3` in immutable-section wire length `s`, including all weight bits.
 `positiveCandidateTest_bounded_steps_le` then gives one polynomial bound for
-all such complete calls. Establishing those state invariants for a repeated
-finite scan remains outstanding.
+all such complete calls. The reached-state invariants are established by `PositiveAdvance` below;
+repeated finite control remains outstanding.
 
 `AllDifferentCSPPositiveCandidateEmit.lean` now consumes the computed answer
 and conditionally appends the exact counted positive row while retaining the
@@ -1156,11 +1156,26 @@ uniqueness under their explicit input/freshness hypotheses.
 `PositiveCandidateFilter.state_length_le_cubic` preserves the `16(s+1)^3`
 bit bound after emission when a grid slot remains, and
 `positiveCandidateFilter_bounded_steps_le` bounds every complete call by one
-polynomial in the immutable-section wire length. The future finite scan must
-establish capacity and freshness for reached states.
+polynomial in the immutable-section wire length. `PositiveAdvance` below now
+establishes capacity and freshness for reached states.
 
-The rectangular candidate advance, initialization and repeated finite scan,
-plus final objective/framing/prime assembly, remain open;
+`AllDifferentCSPPositiveAdvance.lean` now gives the executable rectangular
+traversal, including its canonical terminal `(variableCount, 0)`.
+`run_position`, `run_pair_at`, `run_exhausted` and `run_stable` prove that each
+candidate is visited exactly once and that traversal stops after
+`variableCount * (occurrenceCount + 1)` visits. `step_invariant`, `fresh` and
+`active_capacity` establish the previously required row bounds, common weight,
+freshness and capacity for every reached state. `run_rows_eq` identifies the
+terminal ordered list exactly with the positive enumeration when the occurrence
+header is consistent, and `run_ofRuntimeSystem` gives the actual semantic
+compiler's pinning rows. `run_nodup` excludes duplicates. `run_length_le_cubic`
+retains the complete `16(s+1)^3` bit bound; `run_filter_steps_le` bounds every
+actual finite test-and-emit call by one polynomial in the original section
+length. The executable iteration is not yet a repeated finite-machine runtime
+result.
+
+Finite counter/initialization machines and repeated finite dispatch, plus
+final objective/framing/prime assembly, remain open;
 `cor:all-different-csp` is partial.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
