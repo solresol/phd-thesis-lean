@@ -119,3 +119,6 @@ import PhdThesisLean.RegularisedCandidates
 import PhdThesisLean.PrefixConsensus
 import PhdThesisLean.PublishedMaxCut
 import PhdThesisLean.CNFNormalisation
+import PhdThesisLean.PadicRegressionLanguage
+import PhdThesisLean.FixedPrimeMaxCutReduction
+import PhdThesisLean.FixedPrimeMaxCutJob
