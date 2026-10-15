@@ -122,3 +122,4 @@ import PhdThesisLean.CNFNormalisation
 import PhdThesisLean.PadicRegressionLanguage
 import PhdThesisLean.FixedPrimeMaxCutReduction
 import PhdThesisLean.FixedPrimeMaxCutJob
+import PhdThesisLean.FixedPrimeMaxCutMachine

@@ -6812,3 +6812,33 @@
   and loop, then assemble/frame the objective and selected prime. Do not
   reprove completed candidate membership, conditional emission or composition.
 - **Run time:** 2026-10-14 18:24 UTC (15 October AEDT).
+
+## 2026-10-15 — checked NP-hardness of fixed-prime p-adic regression (Claude)
+
+- **Context:** Greg asked Claude to bump `lean-np-hardness` and start the
+  NP-hardness transfers with fixed-prime Max-Cut. Bumped the pin from
+  `ad20a2e` to `7b4b997` (Cook–Levin, NP-completeness of SAT, exact 3-SAT and
+  Max-Cut); the full build passed unchanged (`8dff7e2`).
+- **Increment:** `PadicRegressionLanguage.lean` (the thesis decision problem
+  as an `EncodedLanguage`), `FixedPrimeMaxCutReduction.lean` (semantic
+  reduction from the library's `MaxCutLang`, every prime),
+  `FixedPrimeMaxCutJob.lean` (per-symbol interpreter chunks, exact rendering
+  `render_job`, register bounds `prefixLE_job`) and
+  `FixedPrimeMaxCutMachine.lean` (exact run `fmcR_exits`, `cost_le` within
+  `10⁶(n+1)²`, `reduction`, `encodedUnaryRegression_NPHard`,
+  `encodedRegression_NPHard`).
+- **Design note:** the job interpreter has four registers and per-symbol
+  chunks cannot distinguish the final threshold clause `[K]` from an edge
+  clause. Resetting `win` to a fresh vertex index at each clause end makes the
+  threshold clause emit a pendant edge `(z, K)`, which raises the maximum cut
+  by exactly one; `base` then holds `K + 2`, and two post-interpretation
+  loops emit `K + 2` constant rows and the bound `3|E| + 4`.
+- **Status:** `thm:fixed-prime-hardness` and the published `thm:main` are now
+  **Complete**. Headline catalogue: 24 complete, 6 partial.
+- **Verification:** each module passes `lake env lean` warning-free; the two
+  hardness theorems depend only on `propext`, `Classical.choice`, `Quot.sound`;
+  full `lake build` passes.
+- **Best next step:** `cor:affine-hardness` (append `r + 1` zero rows and use
+  intercept pinning over `ℚ`), then the 3-SAT compilers of
+  `cor:signed-nphard` and `cor:sudoku-polynomial-dyadic-hardness` against the
+  library's unary exact 3-SAT.

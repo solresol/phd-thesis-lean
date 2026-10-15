@@ -1343,8 +1343,8 @@ the forcing objective with multiplicities `M_j = d_j + 1`; `snap_lt` and
 `globalMin_boolean` show that every global minimiser is Boolean;
 `maxCutLoss_embed` gives the value `∑ M_j + #monochromatic edges`; and
 `isGlobalMin_iff` identifies the global minimisers with the Boolean embeddings
-of maximum cuts, so `fixed_prime_hardness` carries the full content of
-`thm:fixed-prime-hardness` apart from the external complexity transfer.
+of maximum cuts, so `fixed_prime_hardness` carries the full mathematical
+content of `thm:fixed-prime-hardness`.
 `homogeneousLoss_maxCutRows` shows the objective is literally the homogeneous
 summed loss of an explicit `{0,1}`-valued row family with `5|E| + 2n` rows.
 `intercept_pinning` proves `lem:intercept-pinning` for any integral instance,
@@ -1360,6 +1360,27 @@ literal published construction at `p = 2` with the uniform multiplicity
 which proves the four published lemmas, the value formula
 `L(s) = Mn + m - cutsize(s)`, the existence of a Boolean optimum, the Max-Cut
 recovery, and the decision form of `thm:main`.
+
+The complexity statement of `thm:fixed-prime-hardness` is checked end to end
+against the pinned `lean-np-hardness` library.
+[`PhdThesisLean/PadicRegressionLanguage.lean`](PhdThesisLean/PadicRegressionLanguage.lean)
+states the decision problem as an `EncodedLanguage`: integral rows written as
+signed unit terms, a natural-number bound, and the library's unary and binary
+CNF-style encodings.
+[`PhdThesisLean/FixedPrimeMaxCutReduction.lean`](PhdThesisLean/FixedPrimeMaxCutReduction.lean)
+proves `maxCut_iff_regression` for every prime: each edge contributes its edge
+row and one Boolean forcing pair per endpoint (weak domination suffices for the
+decision problem), the threshold clause becomes a pendant edge to a fresh
+vertex, which raises the maximum cut by exactly one, and `K + 2` constant rows
+carry the threshold. Snapping is proved directly over `ℚ`.
+[`PhdThesisLean/FixedPrimeMaxCutJob.lean`](PhdThesisLean/FixedPrimeMaxCutJob.lean)
+streams these rows through the library's job interpreter, and
+[`PhdThesisLean/FixedPrimeMaxCutMachine.lean`](PhdThesisLean/FixedPrimeMaxCutMachine.lean)
+adds two register loops for the constant rows and the bound, proves the exact
+TM2 run `fmcR_exits` within `10⁶(n+1)²` steps, and concludes
+`encodedUnaryRegression_NPHard p` and `encodedRegression_NPHard p` from the
+library's Cook–Levin-based `encodedUnaryMaxCut_NPHard`. At `p = 2` this is the
+NP-hardness claim of the published `thm:main`.
 
 The nonlinear boundary case is formalised in
 [`PhdThesisLean/PolynomialResidualHardness.lean`](PhdThesisLean/PolynomialResidualHardness.lean).
