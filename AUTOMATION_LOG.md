@@ -6844,6 +6844,15 @@
   `encodedUnaryAffineRegression_NPHard` / `encodedAffineRegression_NPHard`
   complete `cor:affine-hardness` with the same machine. Headline catalogue:
   25 complete, 5 partial.
-- **Best next step:** the 3-SAT compilers of `cor:signed-nphard` and
-  `cor:sudoku-polynomial-dyadic-hardness` against the library's unary exact
-  3-SAT, and the per-vertex map `G ↦ A'_G` of `thm:nested-easy-hard-easy`.
+- **Follow-up (same day):** `cor:signed-nphard` is now **Complete**:
+  `SignedRegressionLang` (signed rows with marker literals),
+  `SignedThreeSatReduction.signed_iff` (every prime `p > 3`, exact width three,
+  per-occurrence forcing, bound `2m`) and `SignedThreeSatMachine` (two-pass
+  job: forward pass streams clause rows and copies the input to `xkeep`; the
+  reversed copy lets each literal's marks precede its sign, so one register
+  suffices for the forcing pairs). `satReduction` composes with the library's
+  chain reduction; `signed_nphard_five` is the thesis's `p = 5` form.
+  Headline catalogue: 26 complete, 4 partial.
+- **Best next step:** `cor:sudoku-polynomial-dyadic-hardness` (needs a
+  polynomial-residual language and a machine for the clause products) and the
+  per-vertex map `G ↦ A'_G` of `thm:nested-easy-hard-easy`.

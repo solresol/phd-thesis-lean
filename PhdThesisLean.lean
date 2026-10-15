@@ -123,3 +123,5 @@ import PhdThesisLean.PadicRegressionLanguage
 import PhdThesisLean.FixedPrimeMaxCutReduction
 import PhdThesisLean.FixedPrimeMaxCutJob
 import PhdThesisLean.FixedPrimeMaxCutMachine
+import PhdThesisLean.SignedThreeSatReduction
+import PhdThesisLean.SignedThreeSatMachine

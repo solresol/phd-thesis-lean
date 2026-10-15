@@ -162,4 +162,108 @@ def encodedAffineRegression (p : ℕ) : EncodedLanguage (List Row × ℕ) where
   encoding := binaryEncoding
   accepts := AffineRegressionLang p
 
+/-! ### Signed residual objectives
+
+Thesis Definition `def:signed-dataset` (`sudoku-via-padic-regression/body.tex`): a
+signed observation contributes `+|u ⬝ x - b|_p` or `-|u ⬝ x - b|_p` to the objective;
+integral weights are expressed by repetition. A signed row is a pair `(σ, r)` with
+`σ = true` for a positive and `σ = false` for a negative observation. It is written as
+the clause `marker σ :: r`, where the marker is `.positive 0` or `.negative 0`, so
+signed instances reuse the CNF-style encodings above.
+-/
+
+/-- A signed row: `true` for a positive observation, `false` for a negative one. -/
+abbrev SignedRow := Bool × Row
+
+/-- The signed objective `∑ σ |u ⬝ β - b|_p`. -/
+def signedLoss (p : ℕ) (β : ℕ → ℚ) (rows : List SignedRow) : ℚ :=
+  (rows.map fun r => (if r.1 then 1 else -1) * padicNorm p (residual β r.2)).sum
+
+/-- The threshold decision problem for signed residual objectives: some `β` has signed
+objective at most the bound. -/
+def SignedRegressionLang (p : ℕ) : Language (List SignedRow × ℕ) :=
+  fun x => ∃ β : ℕ → ℚ, signedLoss p β x.1 ≤ x.2
+
+theorem signedLoss_nil (p : ℕ) (β : ℕ → ℚ) : signedLoss p β [] = 0 := rfl
+
+theorem signedLoss_append (p : ℕ) (β : ℕ → ℚ) (A B : List SignedRow) :
+    signedLoss p β (A ++ B) = signedLoss p β A + signedLoss p β B := by
+  simp [signedLoss, List.map_append, List.sum_append]
+
+theorem signedLoss_cons (p : ℕ) (β : ℕ → ℚ) (r : SignedRow) (rows : List SignedRow) :
+    signedLoss p β (r :: rows) =
+      (if r.1 then 1 else -1) * padicNorm p (residual β r.2) + signedLoss p β rows := by
+  simp [signedLoss]
+
+theorem signedLoss_flatMap {α : Type} (p : ℕ) (β : ℕ → ℚ) (f : α → List SignedRow)
+    (L : List α) : signedLoss p β (L.flatMap f) = (L.map fun a => signedLoss p β (f a)).sum := by
+  induction L with
+  | nil => rfl
+  | cons a L ih => rw [List.flatMap_cons, signedLoss_append, ih, List.map_cons, List.sum_cons]
+
+/-- The sign marker of a signed row. -/
+def marker : Bool → Literal ℕ
+  | true => .positive 0
+  | false => .negative 0
+
+/-- A signed row as a clause. -/
+def signedClause (r : SignedRow) : Clause ℕ := marker r.1 :: r.2
+
+/-- Recover a signed row from its clause. -/
+def decodeSignedClause : Clause ℕ → Option SignedRow
+  | .positive 0 :: r => some (true, r)
+  | .negative 0 :: r => some (false, r)
+  | _ => none
+
+theorem decodeSignedClause_signedClause (r : SignedRow) :
+    decodeSignedClause (signedClause r) = some r := by
+  obtain ⟨σ, r⟩ := r
+  cases σ <;> rfl
+
+/-- A signed instance as a formula: the signed rows, then the bound clause `[T]`. -/
+def signedFormula (rows : List SignedRow) (T : ℕ) : Formula ℕ :=
+  rows.map signedClause ++ [[.positive T]]
+
+/-- Recover a signed instance from its formula. -/
+def decodeSigned (F : Formula ℕ) : Option (List SignedRow × ℕ) :=
+  match F.getLast? with
+  | some [.positive T] => (F.dropLast.mapM decodeSignedClause).map fun rows => (rows, T)
+  | _ => none
+
+theorem mapM_decodeSignedClause (rows : List SignedRow) :
+    rows.mapM (decodeSignedClause ∘ signedClause) = some rows := by
+  induction rows with
+  | nil => rfl
+  | cons r rows ih => simp [List.mapM_cons, decodeSignedClause_signedClause, ih]
+
+theorem decodeSigned_signedFormula (rows : List SignedRow) (T : ℕ) :
+    decodeSigned (signedFormula rows T) = some (rows, T) := by
+  simp [decodeSigned, signedFormula, mapM_decodeSignedClause]
+
+/-- Signed instances under the unary-index CNF encoding. -/
+def signedUnaryEncoding : Computability.FinEncoding (List SignedRow × ℕ) where
+  Γ := CNF.Unary.Sym
+  encode x := CNF.Unary.encode (signedFormula x.1 x.2)
+  decode syms := (CNF.Unary.decode syms).bind decodeSigned
+  decode_encode x := by simp [CNF.Unary.decode_encode, decodeSigned_signedFormula]
+  ΓFin := inferInstance
+
+/-- Signed instances under the binary CNF encoding. -/
+def signedBinaryEncoding : Computability.FinEncoding (List SignedRow × ℕ) where
+  Γ := Bool
+  encode x := Formula.encode (signedFormula x.1 x.2)
+  decode bits := (Formula.decode bits).bind decodeSigned
+  decode_encode x := by simp [decodeSigned_signedFormula]
+  ΓFin := inferInstance
+
+/-- The signed threshold problem with the unary-index encoding. -/
+def encodedUnarySignedRegression (p : ℕ) : EncodedLanguage (List SignedRow × ℕ) where
+  encoding := signedUnaryEncoding
+  accepts := SignedRegressionLang p
+
+/-- The signed threshold problem with the binary encoding. -/
+def encodedSignedRegression (p : ℕ) : EncodedLanguage (List SignedRow × ℕ) where
+  encoding := signedBinaryEncoding
+  accepts := SignedRegressionLang p
+
 end PhdThesisLean.PadicRegressionLanguage

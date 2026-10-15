@@ -1386,6 +1386,24 @@ and pin the intercept in the affine model (`loss_le_affineLoss`,
 `maxCut_iff_affine`), so the same machine proves `cor:affine-hardness`
 (`encodedUnaryAffineRegression_NPHard p`, `encodedAffineRegression_NPHard p`).
 
+The complexity statement of `cor:signed-nphard` is also checked end to end.
+`PadicRegressionLanguage.SignedRegressionLang` states the signed threshold
+problem, with each signed row written as a marker literal followed by its
+terms.
+[`PhdThesisLean/SignedThreeSatReduction.lean`](PhdThesisLean/SignedThreeSatReduction.lean)
+proves `signed_iff` for every prime `p > 3`: each clause becomes one negative
+clause-reward row and each literal occurrence one Boolean forcing pair, so on
+Boolean points a width-three clause contributes `3` minus its satisfaction
+indicator and the bound is `2m`.
+[`PhdThesisLean/SignedThreeSatMachine.lean`](PhdThesisLean/SignedThreeSatMachine.lean)
+computes the instance with a two-pass job: the first pass streams the clause
+rows and keeps a reversed copy of the input, and the second pass reads each
+literal's marks before its sign symbol and emits its forcing pair. The exact
+run `sgR_exits` stays within `10⁶(n+1)²` steps; composed with the library's
+chain reduction this gives `encodedUnarySignedRegression_NPHard`,
+`encodedSignedRegression_NPHard` and, at the thesis's prime,
+`signed_nphard_five`.
+
 The nonlinear boundary case is formalised in
 [`PhdThesisLean/PolynomialResidualHardness.lean`](PhdThesisLean/PolynomialResidualHardness.lean).
 Each clause becomes the product `V_C(x) = ∏ δ(λ; x)` of its literal-failure
