@@ -11,7 +11,10 @@ scratch storage. The bound counts wire-level work even on rejected candidates.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -187,10 +190,10 @@ private def cfg (label : Option Label) (state : State) (input : List Input)
 
 private abbrev Run (a b : computer.Cfg) (time : ℕ) := EvalsToInTime computer.step a (some b) time
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 local macro "positive_emit_step" : tactic => `(tactic|
   (simp [computer, FinTM2.step, cfg, program, stackContents, Alphabet, observe,
@@ -391,7 +394,7 @@ def positiveCandidateEmit_outputsInTime (tested : PositiveCandidateTest.Output) 
   simp only [Option.map_some]
   rw [PositiveCandidateEmitMachine.halt_eq, ← PositiveCandidateEmitMachine.emitted_encode]
   simpa [PositiveCandidateTest.outputFinEncoding, LeanNPHardness.PairEncoding.finEncoding,
-    finEncodingBoolBool, encodeBool] using
+    finEncodingBoolBool, encodeBool] using!
     PositiveCandidateEmitMachine.run tested.1 (PositiveCandidateQueries.inputFinEncoding.encode tested.2)
 
 noncomputable def positiveCandidateEmitComputableInPolyTime :

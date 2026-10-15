@@ -10,7 +10,10 @@ Every copy and restoration step is charged to the actual encoded input length.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -20,7 +23,7 @@ abbrev Input := ScopeExtraction.Input
 abbrev Remaining := (ℕ × ℕ) × List (List ℕ)
 abbrev Output := ScopeQueries.Input × Remaining
 
-abbrev inputFinEncoding : FinEncoding Input := ScopeExtraction.outputFinEncoding
+@[simp] abbrev inputFinEncoding : FinEncoding Input := ScopeExtraction.outputFinEncoding
 
 def outputFinEncoding : FinEncoding Output :=
   LeanNPHardness.PairEncoding.finEncoding ScopeQueries.inputFinEncoding
@@ -47,7 +50,7 @@ theorem output_length_le (input : Input) :
   rw [output_length]
   have h : (ScopeExtraction.endpointsFinEncoding.encode input.1).length ≤
       (inputFinEncoding.encode input).length := by
-    simp [ScopeExtraction.outputFinEncoding]
+    simp [ScopeRouting.inputFinEncoding, ScopeExtraction.outputFinEncoding]
   omega
 
 end ScopeRouting
@@ -125,10 +128,10 @@ private def cfg (label : Option Label) (state : State) (input : List Input)
 
 private abbrev Run (a b : computer.Cfg) (time : ℕ) := EvalsToInTime computer.step a (some b) time
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 local macro "scope_routing_step" : tactic => `(tactic|
   (simp [computer, FinTM2.step, cfg, program, stackContents, Alphabet, observe,

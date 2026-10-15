@@ -12,7 +12,10 @@ zero variables. No loop count or control answer is supplied by the caller.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -148,7 +151,7 @@ def outputsInTime (value : BoundedRelabelledSections.Value) :
     (by rw [← time_eval]; exact LeanNPHardness.MachineRuntime.polynomial_eval_mono time
           (by rw [input_length]; omega))
   simpa only [flagged_zero, PairLoopMachine.ready_eq_initList,
-    PairLoopMachine.done_eq_haltList, inputFinEncoding] using bounded
+    PairLoopMachine.done_eq_haltList, inputFinEncoding] using! bounded
 
 /-- Checked loop interface; the entry machine below constructs its control bit. -/
 def computableInPolyTime :

@@ -136,7 +136,7 @@ theorem norm_clauseProduct_le
     (hx : InUnitBall x) :
     ‖clauseProduct C x‖ ≤ 1 := by
   rw [clauseProduct, norm_prod]
-  exact Finset.prod_le_one (fun _ _ => norm_nonneg _)
+  exact Finset.prod_le_one₀ (fun _ _ => norm_nonneg _)
     (fun k _ => norm_literalFailureValue_le _ hx)
 
 theorem literalFailureValue_update_of_ne
@@ -206,7 +206,7 @@ theorem norm_clauseProduct_update_sub_le
   have hrest :
       ‖∏ k ∈ Finset.univ.erase k₀, literalFailureValue (C.literal k) x‖ ≤ 1 := by
     rw [norm_prod]
-    exact Finset.prod_le_one (fun _ _ => norm_nonneg _)
+    exact Finset.prod_le_one₀ (fun _ _ => norm_nonneg _)
       (fun k _ => norm_literalFailureValue_le _ hx)
   have hdiff :
       ‖literalFailureValue (C.literal k₀) (Function.update x i b) -
@@ -273,8 +273,8 @@ theorem unarySum_update
     intro j hj
     have hji : j ≠ i := by simpa using hj
     simp [Function.update, hji]
-  rw [Finset.sum_eq_add_sum_diff_singleton (Finset.mem_univ i),
-    Finset.sum_eq_add_sum_diff_singleton (Finset.mem_univ i)]
+  rw [Finset.sum_eq_add_sum_sdiff_singleton_of_mem (Finset.mem_univ i),
+    Finset.sum_eq_add_sum_sdiff_singleton_of_mem (Finset.mem_univ i)]
   rw [show Function.update x i b i = b by simp, hsum]
   ring
 

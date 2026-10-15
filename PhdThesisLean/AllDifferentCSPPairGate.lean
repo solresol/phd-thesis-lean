@@ -11,7 +11,10 @@ controller uses the existing composition runtime and finite-machine interfaces.
 
 namespace PhdThesisLean.AllDifferentCSPMachine.PairGateMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -131,11 +134,11 @@ def done (answer : PairTest.Output) : (computer body selected).Cfg :=
 abbrev Run (a b : (computer body selected).Cfg) (time : ℕ) := EvalsToInTime (computer body selected).step a (some b) time
 
 private def one {a b : (computer body selected).Cfg} (h : (computer body selected).step a = some b) : Run body selected a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 
 def seq {a b c : (computer body selected).Cfg} {m n : ℕ}
     (h : Run body selected a b m) (h' : Run body selected b c n) : Run body selected a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans (computer body selected).step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans (computer body selected).step m n a b (some c) h h'
 
 private def embed (config : body.tm.Cfg) : (computer body selected).Cfg :=
   cfg body selected (some (config.l.elim (.inr .collect) Sum.inl)) (config.var, false, none) [] [] [] config.stk
@@ -234,7 +237,7 @@ def body_run (input : PairTest.Output) :
   evals_in_steps := by
     have h := body_iterate body selected _ _ _ (body.outputsFun input).evals_in_steps
     simpa only [embed, initList, haltList, single_eq, initialState,
-      Option.elim_some, Option.elim_none] using h
+      Option.elim_some, Option.elim_none] using! h
   steps_le_m := (body.outputsFun input).steps_le_m
 
 local macro "gate_step" : tactic => `(tactic|
@@ -366,7 +369,7 @@ def enter_run (input : PairTest.Output) (h : input.1 = selected) :
   have hf := fill_run body selected (PairTest.outputFinEncoding.encode input).reverse [] true none
   simp only [single_nil, List.reverse_reverse, List.append_nil, List.length_reverse] at hf
   convert seq body selected hs hf using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 /-- Collection and output both empty their scratch stacks. -/
 def return_run (output : PairTest.Output) :
@@ -382,7 +385,7 @@ def return_run (output : PairTest.Output) :
   have hf := finish_run body selected (PairTest.outputFinEncoding.encode output).reverse [] false none
   simp only [List.reverse_reverse, List.append_nil, List.length_reverse] at hf
   convert seq body selected hc hf using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 /-- An unselected body is never entered; its stacks stay empty. -/
 def skip_run (input : PairTest.Output) (h : input.1 ≠ selected) :
@@ -395,7 +398,7 @@ def skip_run (input : PairTest.Output) (h : input.1 ≠ selected) :
   have hf := finish_run body selected (PairTest.outputFinEncoding.encode input).reverse [] false none
   simp only [List.reverse_reverse, List.append_nil, List.length_reverse] at hf
   convert seq body selected hs hf using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 /-- Full invocation, including deciding the branch and all four transfers. -/
 def call_run (input : PairTest.Output) (h : input.1 = selected) :

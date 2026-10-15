@@ -156,7 +156,7 @@ theorem affineRank_eq_iff_not_degenerate {n k : ℕ} (X : Fin k → Point n) :
   constructor
   · rintro hrank ⟨φ, hφne, hφ⟩
     have htop : augmentedSpan X = ⊤ :=
-      Submodule.eq_top_of_finrank_eq (by simpa [Model] using hrank)
+      Submodule.eq_top_of_finrank_eq (by simpa [Model] using! hrank)
     have hker : augmentedSpan X ≤ LinearMap.ker (dotLinear φ) := by
       rw [augmentedSpan, Submodule.span_le]
       rintro z ⟨i, rfl⟩

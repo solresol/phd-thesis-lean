@@ -457,7 +457,9 @@ theorem pad_forces {n : ℕ} (R : ReducedClause n) (hlen : R.1.length ≤ 3)
     · exact ⟨a, by simp, h⟩
     · exact ⟨b, by simp, h⟩
     · exact ⟨c, by simp, h⟩
-  · simp at hlen
+  · have h4 : (a :: b :: c :: d :: R).length ≤ 3 := hlen
+    simp only [List.length_cons] at h4
+    omega
 
 theorem length_pad_le {n : ℕ} (R : ReducedClause n) : (pad R).length ≤ 8 := by
   obtain ⟨R, hR⟩ := R

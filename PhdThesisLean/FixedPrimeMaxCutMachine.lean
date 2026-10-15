@@ -33,7 +33,10 @@ cost nothing in the homogeneous model and pin the intercept in the affine model
 
 namespace PhdThesisLean.FixedPrimeMaxCutMachine
 
-open Turing Computability Polynomial
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Polynomial StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open LeanNPHardness LeanNPHardness.CNF LeanNPHardness.CNF.Unary LeanNPHardness.TableauJobs
 open LeanNPHardness.TableauStacks LeanNPHardness.Routines LeanNPHardness.MachinePrimitives
 open LeanNPHardness.MaxCut
@@ -131,7 +134,7 @@ theorem boundEmit_exits (J : List Instr) (B : List Sym) (R : Regs) :
   rw [interpStacks_buf, interpStacks_update_buf] at s3
   have := seq_exits _ _ s1 (seq_exits _ _ s2 s3)
   rw [show 1 + (4 * R .pw + 2 + 1) = 4 * R .pw + 4 by ring] at this
-  simpa using this
+  simpa using! this
 
 theorem push_reg (J : List Instr) (B : List Sym) (R : Regs) (r : RegName) :
     Function.update (interpStacks E J B R) (.work (.reg r))
@@ -306,7 +309,7 @@ noncomputable def computableInPolyTime :
       (show cost G K ≤ timePoly.eval (encode (graphFormula G K)).length by
         simp only [timePoly, eval_mul, eval_C, eval_pow, eval_add, eval_X, eval_one]
         exact cost_le G K)
-    simpa [Equiv.refl, MaxCut.unaryEncoding] using run
+    simpa [Equiv.refl, MaxCut.unaryEncoding] using! run
 
 /-! ### Hardness -/
 
@@ -348,7 +351,7 @@ noncomputable def binaryComputable :
         simp only [BinaryConvert.timePoly, eval_mul, eval_C, eval_pow, eval_add, eval_X, eval_one]
         exact BinaryConvert.convBound_le _)
     simpa [Equiv.refl, PadicRegressionLanguage.unaryEncoding,
-      PadicRegressionLanguage.binaryEncoding] using run'
+      PadicRegressionLanguage.binaryEncoding] using! run'
 
 /-- Unary regression reduces to binary regression by re-encoding. -/
 noncomputable def binaryReduction (p : ℕ) :

@@ -13,7 +13,10 @@ still requires composition across all compiler sections.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -111,10 +114,10 @@ private def cfg (label : Option Label) (state : State) (input : List Input)
 
 private abbrev Run (a b : computer.Cfg) (time : ℕ) := EvalsToInTime computer.step a (some b) time
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 local macro "accumulator_step" : tactic => `(tactic|
   (simp [computer, FinTM2.step, cfg, program, stackContents, Alphabet, initialState,
@@ -201,11 +204,12 @@ private def run (input : RankAccumulator.Input) :
   have he := emit_run query.reverse ((unaryEncodeNat (input.2 + added)).map Sum.inr) initialState
   simp only [List.append_nil, List.reverse_reverse, List.length_reverse] at hq he
   convert seq (seq hb hq) he using 1
-  · simp [RankAccumulator.inputFinEncoding, RankPredicates.outputFinEncoding,
-      finEncodingBoolBool, encodeBool, unaryFinEncodingNat,
-      List.map_map, Function.comp_def, query]
-  · dsimp [query]
-    omega
+  all_goals first
+    | (dsimp [query]; omega)
+    | simp [RankAccumulator.inputFinEncoding, RankPredicates.outputFinEncoding,
+        finEncodingBoolBool, encodeBool, unaryFinEncodingNat,
+        List.map_map, Function.comp_def, query, added, RankAccumulator.outputFinEncoding,
+        RankAccumulator.update, LeanNPHardness.PairEncoding.finEncoding]
 
 private theorem init_eq (input : List Input) :
     initList computer input = cfg (some .membership) initialState input [] [] := by

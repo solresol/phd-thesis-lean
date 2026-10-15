@@ -6880,3 +6880,23 @@
   with bit-size bounds would close `thm:max-polytime`; it is a substantial
   standalone project (better placed in `lean-np-hardness` or upstream).
   `cor:all-different-csp` remains with the nightly loop.
+
+## 2026-10-16 — upgrade to Lean and mathlib v4.35.0 (Claude)
+
+- **Starting commit:** `8d72d9e`
+- **Goal:** follow `lean-np-hardness` off the `v4.27.0-rc1` release candidate.
+- **Checked increment:** toolchain and mathlib pinned to `v4.35.0`;
+  `lean-np-hardness` pinned to `21e6eb4`. mathlib's encodings lost their bundled
+  alphabet, so files now open `LeanNPHardness (FinEncoding …
+  TM2ComputableInPolyTime …)` and hide the deprecated `Computability`/`Turing`
+  names. `backward.isDefEq.respectTransparency := false` is set in the
+  lakefile, as in the library. Encoding `abbrev` aliases are tagged `@[simp]`
+  so that `simp` unfolds them. Proof repairs are mechanical (`simpa … using!`,
+  `flip` in iterate simp sets, `convert` side goals, renamed mathlib lemmas such
+  as `Finset.prod_le_one₀`, `BinaryTree` Catalan lemmas, compiler
+  `noncomputable` marks).
+- **Successful checks:** `lake build` (9,268 jobs) and
+  `lake build DiscreteMetricRegression`; no `sorry` in source and no `sorryAx`
+  in the build output.
+- **Ending state:** the theorem catalogue is unchanged; only proof scripts and
+  imports moved.

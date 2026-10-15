@@ -4,7 +4,10 @@ import LeanNPHardness.PairReductionComputable
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -61,7 +64,7 @@ theorem output_length_le_input (C : RuntimeSystem) :
     (outputFinEncoding.encode (split C)).length ≤ (inputFinEncoding.encode C).length := by
   rw [inputEncode_eq_sections]
   simp [outputFinEncoding, split, LeanNPHardness.PairEncoding.finEncoding,
-    DomainFieldSection.inputFinEncoding, DomainFieldSection.rowPayloadFinEncoding]
+    DomainFieldSection.inputFinEncoding, DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding]
 
 end RuntimeSourceSections
 
@@ -98,7 +101,7 @@ theorem output_length (input : Input) :
       (inputFinEncoding.encode input).length := by
   rw [input_encode]
   simp [outputFinEncoding, ScopeFieldBlock.inputFinEncoding,
-    DomainFieldSection.rowPayloadFinEncoding]
+    DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding]
 
 /-- Removing even an empty scope strictly decreases the retained input. -/
 theorem tail_length_lt (input : Input) :
@@ -106,7 +109,7 @@ theorem tail_length_lt (input : Input) :
       (inputFinEncoding.encode input).length := by
   rw [input_encode]
   simp [ScopeFieldBlock.inputEncode, SourceOrderRawFields.encode,
-    DomainFieldSection.rowPayloadFinEncoding]
+    DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding]
   omega
 
 end ScopeHead
@@ -211,11 +214,11 @@ private abbrev Run (a b : computer.Cfg) (time : ℕ) :=
   EvalsToInTime computer.step a (some b) time
 
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 private def mono {a b : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (hle : m ≤ n) : Run a b n :=
@@ -581,7 +584,7 @@ private def run (C : RuntimeSystem) :
       ((DomainFieldSection.rowPayloadEncode C.scopes).map Sum.inr).reverse ++ domainOutput := by
     simp [output, RuntimeSourceSections.outputFinEncoding, RuntimeSourceSections.split,
       LeanNPHardness.PairEncoding.finEncoding, DomainFieldSection.inputFinEncoding,
-      DomainFieldSection.rowPayloadFinEncoding, DomainFieldSection.inputEncode,
+      DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding, DomainFieldSection.inputEncode,
       DomainFieldSection.inputFields, DomainFieldSection.rowPayloadEncode,
       SourceOrderRawFields.encode, domainOutput, header, count, List.reverse_append,
       List.append_assoc, List.map_append, List.map_map, Function.comp_def]
@@ -720,7 +723,7 @@ private def scopeHead_run (input : ScopeHead.Input) :
   let output := ScopeHead.outputFinEncoding.encode input
   have hout : output.reverse = (tail.map Sum.inr).reverse ++ head := by
     simp [output, ScopeHead.outputFinEncoding, LeanNPHardness.PairEncoding.finEncoding,
-      ScopeFieldBlock.inputFinEncoding, DomainFieldSection.rowPayloadFinEncoding,
+      ScopeFieldBlock.inputFinEncoding, DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding,
       tail, head, List.reverse_append]
   have hrow := row_run input.1 tail [] [] [] none (boundary_rows input.2)
   have hpred := pred_run .rows [] [] tail [] head [] none
@@ -733,7 +736,7 @@ private def scopeHead_run (input : ScopeHead.Input) :
   convert seq hprefix hlast using 1 <;>
     simp [ScopeHead.input_encode, tail, head, ScopeHead.outputFinEncoding,
       LeanNPHardness.PairEncoding.finEncoding, ScopeFieldBlock.inputFinEncoding,
-      DomainFieldSection.rowPayloadFinEncoding]
+      DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding]
   omega
 
 private theorem scopeHead_time_le (input : ScopeHead.Input) :

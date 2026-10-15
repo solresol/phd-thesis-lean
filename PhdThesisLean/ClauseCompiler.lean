@@ -47,7 +47,7 @@ theorem norm_three {p : ℕ} [Fact p.Prime] (hp : 3 < p) :
   have hle : p ≤ 3 := Nat.le_of_dvd (by omega) hdvd
   omega
 
-def boolValue {p : ℕ} [Fact p.Prime] (b : Bool) : ℚ_[p] :=
+noncomputable def boolValue {p : ℕ} [Fact p.Prime] (b : Bool) : ℚ_[p] :=
   if b then 1 else 0
 
 theorem threeBitIndicator
@@ -84,11 +84,11 @@ instance instDecidableClauseSatisfied
   unfold clauseSatisfied
   infer_instance
 
-def embeddedBoolean
+noncomputable def embeddedBoolean
     {p n : ℕ} [Fact p.Prime] (x : Fin n → Bool) : Parameter p n :=
   fun i => boolValue (x i)
 
-def literalFailureValue
+noncomputable def literalFailureValue
     {p n : ℕ} [Fact p.Prime] (l : Literal n)
     (x : Parameter p n) : ℚ_[p] :=
   if l.negated then 1 - x l.var else x l.var

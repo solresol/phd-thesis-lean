@@ -12,7 +12,10 @@ criterion in the scan that loads each repeated rank iteration.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -20,7 +23,7 @@ namespace RankControl
 
 abbrev Input := RankAccumulator.Output
 abbrev Output := Bool × Input
-abbrev inputFinEncoding := RankAccumulator.outputFinEncoding
+@[simp] abbrev inputFinEncoding := RankAccumulator.outputFinEncoding
 
 def outputFinEncoding : FinEncoding Output :=
   LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool inputFinEncoding
@@ -103,10 +106,10 @@ private def cfg (label : Option Label) (state : State) (input saved : List Wire)
 
 private abbrev Run (a b : computer.Cfg) (time : ℕ) := EvalsToInTime computer.step a (some b) time
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 local macro "control_step" : tactic => `(tactic|
   (simp [computer, FinTM2.step, cfg, program, stackContents, Alphabet, initialState,
@@ -147,14 +150,14 @@ private def run (input : List Wire) :
   have he := emit_run input.reverse [] (input.any sourceCell) none
   simp only [Bool.false_or, List.append_nil, List.reverse_reverse, List.length_reverse] at hs he
   convert seq hs he using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 theorem source_present (input : RankControl.Input) :
     (RankControl.inputFinEncoding.encode input).any sourceCell = !input.1.2.isEmpty := by
   rcases input with ⟨⟨target, symbols⟩, count⟩
   cases symbols <;>
-    simp [RankAccumulator.outputFinEncoding,
-      DomainSymbolMembership.finEncoding, finEncodingNatBool, encodingNatBool,
+    simp [RankControl.inputFinEncoding, RankAccumulator.outputFinEncoding,
+      LeanNPHardness.PairEncoding.finEncoding, DomainSymbolMembership.finEncoding, finEncodingNatBool, encodingNatBool,
       SourceOrderRawFields.finEncoding, SourceOrderRawFields.encode, unaryFinEncodingNat,
       List.any_map, List.map_map, Function.comp_def, sourceCell]
 
@@ -185,7 +188,7 @@ def rankControl_outputsInTime (input : RankControl.Input) :
   rw [RankControlMachine.halt_eq]
   have h := RankControlMachine.run (RankControl.inputFinEncoding.encode input)
   rw [RankControlMachine.source_present] at h
-  simpa [RankControl.outputFinEncoding, RankControl.inspect, finEncodingBoolBool, encodeBool] using h
+  simpa [RankControl.outputFinEncoding, RankControl.inspect, finEncodingBoolBool, encodeBool] using! h
 
 noncomputable def rankControlComputableInPolyTime :
     @TM2ComputableInPolyTime RankControl.Input RankControl.Output

@@ -12,7 +12,7 @@
 -/
 
 import Mathlib.Algebra.Polynomial.Roots
-import Mathlib.Algebra.Polynomial.Factors
+import Mathlib.Algebra.Polynomial.Splits
 import Mathlib.Data.Finset.Sort
 import Mathlib.Tactic
 import PhdThesisLean.ContactTheorem

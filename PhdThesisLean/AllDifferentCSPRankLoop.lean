@@ -11,7 +11,10 @@ than numeric symbol magnitudes. Initialization then gives one-based rank.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -23,7 +26,8 @@ def result (input : RankControl.Input) : ℕ :=
 theorem state_length (target count : ℕ) (symbols : List ℕ) :
     (RankControl.inputFinEncoding.encode ((target, symbols), count)).length =
       (encodeNat target).length + (SourceOrderRawFields.encode symbols).length + count := by
-  simp [RankAccumulator.outputFinEncoding, DomainSymbolMembership.finEncoding,
+  simp [RankControl.inputFinEncoding, LeanNPHardness.PairEncoding.finEncoding,
+      RankAccumulator.outputFinEncoding, DomainSymbolMembership.finEncoding,
     SourceOrderRawFields.finEncoding, finEncodingNatBool, encodingNatBool,
     unaryFinEncodingNat, unaryEncodeNat_eq_replicate_true, Nat.add_assoc]
 
@@ -104,7 +108,7 @@ def outputsInTime (input : RankControl.Input) :
       (Nat.add_le_add_right (symbols_length_le_state input) 1))
   simpa only [RankLoopMachine.ready_eq_initList, RankLoopMachine.done_eq_haltList,
     result, time, Polynomial.eval_mul, Polynomial.eval_add, Polynomial.eval_X,
-    Polynomial.eval_one] using h'
+    Polynomial.eval_one] using! h'
 
 end
 
@@ -146,7 +150,7 @@ noncomputable def canonicalRank_extracted_outputsInTime (C : RuntimeSystem) (val
       (some ((unaryFinEncodingNat.encode (C.toExplicitSystem.relabelValue value)).map
         canonicalRankComputableInPolyTime.outputAlphabet.symm))
       (canonicalRankComputableInPolyTime.time.eval (DomainSymbolMembership.finEncoding.encode query).length) := by
-  simpa only [DomainSymbols.rank_extract_eq_relabelValue] using
+  simpa only [DomainSymbols.rank_extract_eq_relabelValue] using!
     canonicalRankComputableInPolyTime.outputsFun
       (value, DomainSymbols.extract (RuntimeStructuralView.ofRuntimeSystem C).domainOccurrences)
 

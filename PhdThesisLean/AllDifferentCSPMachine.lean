@@ -6,12 +6,15 @@ import LeanNPHardness.BooleanListMachine
 import LeanNPHardness.PrimeSelectionMachine
 import PhdThesisLean.AllDifferentCSPEncoding
 import LeanNPHardness.MachineCompositionRuntime
-import Mathlib.Computability.TMComputable
+import LeanNPHardness.FinEncoding
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability
-open Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open PhdThesisLean.AllDifferentCSP.ExplicitSystem
 open LeanNPHardness.MachineComposition
@@ -562,7 +565,7 @@ private def domainOccurrenceBlockEvalsToInTimeOne
       start (some finish) 1 where
   steps := 1
   evals_in_steps := by
-    simpa [Function.iterate_one] using hstep
+    simpa [Function.iterate_one] using! hstep
   steps_le_m := Nat.le_refl 1
 
 private def domainOccurrenceBlock_stash_evals
@@ -864,7 +867,7 @@ private def domainEntryCountEvalsToInTimeOne
     EvalsToInTime domainEntryCountComputer.step start (some finish) 1 where
   steps := 1
   evals_in_steps := by
-    simpa [Function.iterate_one] using hstep
+    simpa [Function.iterate_one] using! hstep
   steps_le_m := Nat.le_refl 1
 
 private def domainEntryCount_header_evals
@@ -1180,7 +1183,7 @@ private def compilerPayloadEvalsToInTimeOne
     EvalsToInTime compilerPayloadComputer.step start (some finish) 1 where
   steps := 1
   evals_in_steps := by
-    simpa [Function.iterate_one] using hstep
+    simpa [Function.iterate_one] using! hstep
   steps_le_m := Nat.le_refl 1
 
 private def compilerPayload_header_evals
@@ -1873,7 +1876,7 @@ private def scopeFieldBlockEvalsToInTimeOne
     EvalsToInTime scopeFieldBlockComputer.step start (some finish) 1 where
   steps := 1
   evals_in_steps := by
-    simpa [Function.iterate_one] using hstep
+    simpa [Function.iterate_one] using! hstep
   steps_le_m := Nat.le_refl 1
 
 private def scopeFieldBlock_copyRest_evals
@@ -2511,7 +2514,7 @@ private def domainFieldRowEvalsToInTimeOne
     (hstep : domainFieldRowComputer.step start = some finish) :
     EvalsToInTime domainFieldRowComputer.step start (some finish) 1 where
   steps := 1
-  evals_in_steps := by simpa [Function.iterate_one] using hstep
+  evals_in_steps := by simpa [Function.iterate_one] using! hstep
   steps_le_m := Nat.le_refl 1
 
 private theorem domainFieldRow_step_start
@@ -3573,7 +3576,7 @@ private def domainFieldRow_run_evals (index : ℕ) (values : List ℕ) :
         (by
           simpa [SourceOrderRawFields.encode, Nat.add_assoc, Nat.add_comm,
             Nat.add_left_comm] using hheader)
-        (by simpa using hcount)
+        (by simpa using! hcount)
       rw [show countBits.length + 1 + (2 * indexBits.length + 3) =
         2 * indexBits.length + countBits.length + 4 by omega] at hthroughCount
       have hvalues := domainFieldRow_values_evals index value values [] []

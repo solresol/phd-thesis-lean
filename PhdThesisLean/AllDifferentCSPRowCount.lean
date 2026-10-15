@@ -2,7 +2,10 @@ import PhdThesisLean.AllDifferentCSPAssemblyMachine
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -132,12 +135,12 @@ private abbrev Run (a b : computer.Cfg) (time : ℕ) :=
 
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
   { steps := 1
-    evals_in_steps := by simpa [Function.iterate_one] using h
+    evals_in_steps := by simpa [Function.iterate_one] using! h
     steps_le_m := le_rfl }
 
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 private def mono {a b : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (hle : m ≤ n) : Run a b n :=
@@ -512,7 +515,7 @@ def structuralRowCount_outputsInTime (view : AllDifferentCSPEncoding.RuntimeStru
   have h := StructuralRowCountMachine.mono (StructuralRowCountMachine.run view.toNatLists)
     (StructuralRowCountMachine.runTime_le view.toNatLists)
   simpa [StructuralCountedPayload.encode_retain, RuntimeStructuralView.payloadEncode,
-    AllDifferentCSPEncoding.RuntimeStructuralView.toNatLists] using h
+    AllDifferentCSPEncoding.RuntimeStructuralView.toNatLists] using! h
 
 /-- A finite-machine witness for retaining the view and deriving the count;
 no precomputed count is supplied to this pass. -/
@@ -612,7 +615,7 @@ theorem encode_retain (domains : List (List ℕ)) :
       (DomainFieldSection.rowPayloadEncode domains).map Sum.inl ++
         List.replicate domains.length (.inr true) := by
   simp [finEncoding, LeanNPHardness.PairEncoding.finEncoding, retain,
-    DomainFieldSection.rowPayloadFinEncoding, unaryFinEncodingNat,
+    DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding, unaryFinEncodingNat,
     unaryEncodeNat_eq_replicate_true]
 
 theorem variableCount_le_payload_length (domains : List (List ℕ)) :
@@ -668,7 +671,7 @@ noncomputable def domainVariableCountComputableInPolyTime :
   outputAlphabet := Equiv.refl StructuralRowCountMachine.OutputSymbol
   time := 20 * (Polynomial.X + 1) ^ 2
   outputsFun domains := by
-    simpa [DomainFieldSection.rowPayloadFinEncoding, Equiv.refl,
+    simpa [DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding, Equiv.refl,
       Polynomial.eval_mul, Polynomial.eval_add, Polynomial.eval_pow,
       Polynomial.eval_natCast, Polynomial.eval_one, Polynomial.eval_X]
       using domainVariableCount_outputsInTime domains

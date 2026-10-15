@@ -30,7 +30,10 @@ the exact run from the input alone to the rendered job alone, for any valid job,
 
 namespace PhdThesisLean.TwoPassMachine
 
-open Turing Computability Polynomial
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Polynomial StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open LeanNPHardness LeanNPHardness.CNF LeanNPHardness.CNF.Unary LeanNPHardness.TableauJobs
 open LeanNPHardness.TableauStacks LeanNPHardness.Routines LeanNPHardness.MachinePrimitives
 open PhdThesisLean.PadicRegressionLanguage PhdThesisLean.SignedThreeSatReduction
@@ -328,7 +331,7 @@ theorem loopKeepInput_exits (f : Sym → List Instr) (x xk : List Sym) (sk : Lis
   · have hsteps : loopSteps (fun _ => 3) x.length = 4 * x.length + 1 := by
       rw [loopSteps_eq_sum]; simp; omega
     rw [hsteps] at key
-    simpa using key
+    simpa using! key
   · intro i hi
     have hsplit : (x.drop i) = x[i] :: x.drop (i + 1) := List.drop_eq_getElem_cons hi
     have em := emit_exits (Γx := Sym) (f x[i]) (x.drop (i + 1)) ((x.take i).reverse ++ xk)
@@ -376,7 +379,7 @@ theorem loopKeep_exits (f : Sym → List Instr) (y : List Sym) (sk : List Instr)
   · have hsteps : loopSteps (fun _ => 2) y.length = 3 * y.length + 1 := by
       rw [loopSteps_eq_sum]; simp; omega
     rw [hsteps] at key
-    simpa using key
+    simpa using! key
   · intro i hi
     have hsplit : (y.drop i) = y[i] :: y.drop (i + 1) := List.drop_eq_getElem_cons hi
     have em := emit_exits (Γx := Sym) (f y[i]) [] (y.drop (i + 1)) 0 0 0 0 0 0 0 0 0 0
@@ -487,7 +490,7 @@ theorem R_exits (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr)
   have := seq_exits _ _ s1 (seq_exits _ _ s2 (seq_exits _ _ s3 (seq_exits _ _ s4
     (seq_exits _ _ s5 (seq_exits _ _ s6 (seq_exits _ _ s7 (seq_exits _ _ s8
       (seq_exits _ _ s9 (seq_exits _ _ s10 s11)))))))))
-  simpa [cost, finalRegs, hJ] using this
+  simpa [cost, finalRegs, hJ] using! this
 
 /-! ### The time bound -/
 

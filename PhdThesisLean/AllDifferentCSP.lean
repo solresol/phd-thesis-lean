@@ -670,7 +670,7 @@ theorem unaryCost_padicDomain
   exact Nat.cast_injective (R := ℚ_[p]) hab
 
 /-- An original assignment, canonically relabelled and embedded in `ℚ_[p]`. -/
-def padicAssignment
+noncomputable def padicAssignment
     {n p : ℕ} [Fact p.Prime] (C : ExplicitSystem n)
     (x : Fin n → ℕ) :
     PhdThesisLean.FiniteDomainCompiler.Parameter p n :=
@@ -809,7 +809,7 @@ theorem compileObjectiveAt_rows {n : ℕ} (C : ExplicitSystem n) (p : ℕ) :
 private theorem sum_map_finset_sort
     {α M : Type*} [AddCommMonoid M] (s : Finset α)
     (r : α → α → Prop) [DecidableRel r] [IsTrans α r]
-    [IsAntisymm α r] [IsTotal α r] (f : α → M) :
+    [Std.Antisymm r] [Std.Total r] (f : α → M) :
     ((s.sort r).map f).sum = ∑ a ∈ s, f a := by
   change (↑((s.sort r).map f) : Multiset M).sum =
     (s.1.map f).sum
@@ -1147,14 +1147,14 @@ theorem suppliedPrime_allDifferent_correctness
       (C.padicDomain_nonempty hC) edgeLeft_ne_edgeRight
       (C.padicDomain_globallyUnitSeparated hp)
       (fun _ => by norm_num) C.incidentEdgeWeight_lt_pinningWeight
-  refine ⟨by simpa only [suppliedPrimeLoss] using hcorrect.1, ?_⟩
+  refine ⟨by simpa only [suppliedPrimeLoss] using! hcorrect.1, ?_⟩
   intro z
   rw [show PhdThesisLean.AllDifferent.IsGlobalMin
       (C.suppliedPrimeLoss (p := p)) z ↔
       PhdThesisLean.AllDifferent.MinimizesConflicts
         (C.padicDomain (p := p)) edgeLeft edgeRight
         (fun _ : C.PrimalEdge => 1) z by
-      simpa only [suppliedPrimeLoss] using hcorrect.2 z]
+      simpa only [suppliedPrimeLoss] using! hcorrect.2 z]
   constructor
   · rintro ⟨hzDomain, hzMin⟩
     obtain ⟨x, hxDomain, rfl⟩ :=

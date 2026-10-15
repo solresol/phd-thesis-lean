@@ -25,7 +25,10 @@ threshold problem is NP-hard for every prime `p > 3` (`encodedUnarySignedRegress
 
 namespace PhdThesisLean.SignedThreeSatMachine
 
-open Turing Computability Polynomial
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Polynomial StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open LeanNPHardness LeanNPHardness.CNF LeanNPHardness.CNF.Unary LeanNPHardness.TableauJobs
 open LeanNPHardness.TableauStacks LeanNPHardness.Routines LeanNPHardness.MachinePrimitives
 open PhdThesisLean.PadicRegressionLanguage PhdThesisLean.SignedThreeSatReduction
@@ -278,7 +281,7 @@ noncomputable def binaryComputable :
           BinaryConvert.timePoly.eval (encode (signedFormula x.1 x.2)).length by
         simp only [BinaryConvert.timePoly, eval_mul, eval_C, eval_pow, eval_add, eval_X, eval_one]
         exact BinaryConvert.convBound_le _)
-    simpa [Equiv.refl, signedUnaryEncoding, signedBinaryEncoding] using run'
+    simpa [Equiv.refl, signedUnaryEncoding, signedBinaryEncoding] using! run'
 
 /-- Unary signed instances reduce to binary ones by re-encoding. -/
 noncomputable def binaryReduction (p : ℕ) :

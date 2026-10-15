@@ -1757,8 +1757,9 @@ and the relevant complexity class.
 
 - Move the Lean files into a conventional library namespace as the project
   grows.
-- Pin a Lean toolchain and compatible mathlib revision deliberately; the
-  inherited toolchain is an RC version.
+- The toolchain is pinned to Lean and mathlib `v4.35.0`, matching
+  `lean-np-hardness` (see its `docs/MATHLIB_MIGRATION.md` for the bundled
+  `FinEncoding` layer and the `backward.isDefEq.respectTransparency` option).
 - Keep the `lake build` GitHub Actions check required and passing.
 - Reject `sorry`, `admit`, and vacuous placeholder conclusions in review.
 - Use `#print axioms` or an equivalent audit for completed headline theorems.

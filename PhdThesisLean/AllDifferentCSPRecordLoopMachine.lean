@@ -12,7 +12,10 @@ proved once and reused by both traversals.
 
 namespace PhdThesisLean.AllDifferentCSPMachine.RecordLoopMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -133,11 +136,11 @@ def done (answer : Bool) : (computer (body := body)).Cfg :=
 abbrev Run (a b : (computer (body := body)).Cfg) (time : ℕ) := EvalsToInTime (computer (body := body)).step a (some b) time
 
 private def one {a b : (computer (body := body)).Cfg} (h : (computer (body := body)).step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 
 def seq {a b c : (computer (body := body)).Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans (computer (body := body)).step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans (computer (body := body)).step m n a b (some c) h h'
 
 private def embed (config : body.tm.Cfg) : (computer (body := body)).Cfg :=
   cfg (some (config.l.elim (.inr .collect) Sum.inl)) (config.var, false, none) [] [] [] config.stk
@@ -233,7 +236,7 @@ def body_run (input output : List Wire) (time : ℕ)
   evals_in_steps := by
     have h := body_iterate _ _ _ run.evals_in_steps
     simpa only [embed, initList, haltList, single_eq, initialState,
-      Option.elim_some, Option.elim_none] using h
+      Option.elim_some, Option.elim_none] using! h
   steps_le_m := run.steps_le_m
 
 local macro "loop_step" : tactic => `(tactic|
@@ -360,7 +363,7 @@ def enter_run (input : List Wire) (present : input.any sourceCell = true) :
   have hf := fill_run (body := body) input.reverse [] true none
   simp only [single_nil, List.reverse_reverse, List.append_nil, List.length_reverse] at hf
   convert seq hs hf using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 /-- Restore the exact output order and clear all component work stacks. -/
 def return_run (output : List Wire) :
@@ -373,7 +376,7 @@ def return_run (output : List Wire) :
   have hr := restore_run (body := body) output.reverse [] none
   simp only [List.reverse_reverse, List.append_nil, List.length_reverse] at hr
   convert seq hc hr using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 /-- Dispatch, checked body execution and return, with every transfer counted. -/
 def iteration_cycle (input output : List Wire) (time : ℕ)
@@ -396,7 +399,7 @@ def exit_run (input : List Wire) (answer : Bool)
   simp only [List.filterMap_reverse, List.reverse_reverse, List.append_nil, List.length_reverse,
     result] at hf
   convert seq hs hf using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 theorem ready_eq_initList (input : List Wire) :
     ready input = initList (computer (body := body)) input := by

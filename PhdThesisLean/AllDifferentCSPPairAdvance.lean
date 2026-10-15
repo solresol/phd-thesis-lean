@@ -17,7 +17,10 @@ separately by `AllDifferentCSPPairEmit`.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 
 namespace PairAdvance
@@ -347,7 +350,7 @@ theorem run_edges_eq (value : BoundedRelabelledSections.Value) :
   intro edge
   constructor
   · intro he
-    simpa only [run_retained] using (run_invariant value _).sound edge he
+    simpa only [run_retained] using! (run_invariant value _).sound edge he
   · intro he
     have hb := (PrimalEdgeEnumeration.mem_enumerate _ _ _ _).mp he
     let k := ordinal value.1.2 edge
@@ -358,7 +361,7 @@ theorem run_edges_eq (value : BoundedRelabelledSections.Value) :
     have hj : (run value k).1.2 < (run value k).2.1.1.2 := by
       simpa only [run_retained, pair] using hb.2.1
     have ht : PairTest.accept (run value k) = true :=
-      (PairTest.accept_iff_mem_enumerate _ hi hj).mpr (by simpa only [run_retained, pair] using he)
+      (PairTest.accept_iff_mem_enumerate _ hi hj).mpr (by simpa only [run_retained, pair] using! he)
     apply run_mem_mono value (k + 1) _ hk edge
     rw [run_succ]
     simp [advance, afterTest, PairTest.evaluate, ht, pair, hb.1]

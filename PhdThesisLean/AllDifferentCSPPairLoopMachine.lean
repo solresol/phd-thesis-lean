@@ -11,7 +11,10 @@ calls, ordered transfers, final scans and scratch cleanup are charged.
 
 namespace PhdThesisLean.AllDifferentCSPMachine.PairLoopMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -147,11 +150,11 @@ def done (state : PairQueries.Input) : computer.Cfg :=
 abbrev Run (a b : computer.Cfg) (time : ℕ) := EvalsToInTime computer.step a (some b) time
 
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 
 def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 private def embed (config : body.tm.Cfg) : computer.Cfg :=
   cfg (some (config.l.elim (.inr .collect) Sum.inl)) (config.var, false, none) [] [] [] config.stk
@@ -247,7 +250,7 @@ def body_run (input : PairTest.Output) :
   evals_in_steps := by
     have h := body_iterate _ _ _ (body.outputsFun input).evals_in_steps
     simpa only [embed, initList, haltList, single_eq, initialState,
-      Option.elim_some, Option.elim_none] using h
+      Option.elim_some, Option.elim_none] using! h
   steps_le_m := (body.outputsFun input).steps_le_m
 
 local macro "loop_step" : tactic => `(tactic|
@@ -375,7 +378,7 @@ def enter_run (state : PairQueries.Input) :
   have hf := fill_run (PairTest.outputFinEncoding.encode (true, state)).reverse [] true none
   simp only [single_nil, List.reverse_reverse, List.append_nil, List.length_reverse] at hf
   convert seq hs hf using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 /-- Return the body's complete output to the next scan, preserving order and
 clearing the body output and scratch stacks. -/
@@ -389,7 +392,7 @@ def return_run (output : PairTest.Output) :
   have hr := restore_run (PairTest.outputFinEncoding.encode output).reverse [] none
   simp only [List.reverse_reverse, List.append_nil, List.length_reverse] at hr
   convert seq hc hr using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 /-- One cycle includes the full dispatch and recomputation of active control. -/
 def iteration_cycle (state : PairQueries.Input) :
@@ -417,7 +420,7 @@ def exit_run (state : PairQueries.Input) :
       finEncodingBoolBool, encodeBool, List.filterMap_map, Function.comp_def]
   rw [wire] at hf
   convert seq hs hf using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 theorem ready_eq_initList (input : PairTest.Output) :
     ready input = initList computer (PairTest.outputFinEncoding.encode input) := by

@@ -11,7 +11,8 @@
   prop:tree-syntax-growth-bound, cor:binary-tree-precision-growth.
 -/
 
-import Mathlib.Combinatorics.Enumerative.Catalan
+import Mathlib.Combinatorics.Enumerative.Catalan.Basic
+import Mathlib.Combinatorics.Enumerative.Catalan.Tree
 import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Data.Nat.Lattice
 import Mathlib.Data.Nat.Log
@@ -583,7 +584,7 @@ theorem tree_syntax_growth_bound {p : ℕ} [hp : Fact p.Prime] {X Shape : Type*}
         Fintype.card_fin, ← pow_mul]
     exact h1.trans h2.le
 
-open Tree in
+open BinaryTree in
 /-- Thesis `cor:binary-tree-precision-growth`: for ordered full binary tree
 shapes with at most `n` internal nodes — counted by the Catalan numbers, with
 `L = I + 1` leaves — the description bound becomes
@@ -608,7 +609,7 @@ theorem binary_tree_precision_growth {p : ℕ} [hp : Fact p.Prime] {X : Type*}
     simp only [Function.onFun]
     rw [Finset.disjoint_left]
     intro T hTa hTb
-    rw [mem_treesOfNumNodesEq] at hTa hTb
+    rw [BinaryTree.mem_treesOfNumNodesEq] at hTa hTb
     exact hab (hTa.symm.trans hTb)
   have hsum : ∑ T ∈ (Finset.range (n + 1)).biUnion treesOfNumNodesEq,
       R ^ T.numNodes * p ^ (k * T.numLeaves)
@@ -620,10 +621,10 @@ theorem binary_tree_precision_growth {p : ℕ} [hp : Fact p.Prime] {X : Type*}
         R ^ T.numNodes * p ^ (k * T.numLeaves)
           = R ^ i * p ^ (k * (i + 1)) := by
       intro T hT
-      rw [mem_treesOfNumNodesEq] at hT
+      rw [BinaryTree.mem_treesOfNumNodesEq] at hT
       rw [numLeaves_eq_numNodes_succ, hT]
     rw [Finset.sum_congr rfl hconst, Finset.sum_const,
-      treesOfNumNodesEq_card_eq_catalan, smul_eq_mul]
+      BinaryTree.treesOfNumNodesEq_card_eq_catalan, smul_eq_mul]
   rw [hsum]
 
 #print axioms affine_precision_growth

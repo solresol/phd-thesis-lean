@@ -111,7 +111,7 @@ theorem thresholdLoss_zero
     thresholdLoss 0 z β = 0 ↔ regressionResidual z β = 0 := by
   simp [thresholdLoss]
 
-def axisVector
+noncomputable def axisVector
     {p n : ℕ} [Fact p.Prime] (i₀ : Fin n) (a : ℚ_[p]) :
     Fin n → ℚ_[p] :=
   fun i ↦ if i = i₀ then a else 0
@@ -130,7 +130,7 @@ theorem dotProduct_axisVector
 abbrev DistinctPair (m : ℕ) :=
   {q : Fin m × Fin m // q.1 ≠ q.2}
 
-def parameterScalar
+noncomputable def parameterScalar
     {p m : ℕ} [Fact p.Prime] (r : Fin m) : ℚ_[p] :=
   (r.val : ℚ_[p])
 
@@ -163,7 +163,7 @@ theorem norm_parameterScalar_sub_le_one
   apply (Padic.nonarchimedean _ _).trans
   apply max_le
   · exact IsUltrametricDist.norm_natCast_le_one ℚ_[p] r.val
-  · simpa using IsUltrametricDist.norm_natCast_le_one ℚ_[p] s.val
+  · simpa using! IsUltrametricDist.norm_natCast_le_one ℚ_[p] s.val
 
 theorem norm_differenceProduct_le_factor
     {p m : ℕ} [Fact p.Prime] (q : DistinctPair m) :
@@ -179,7 +179,7 @@ theorem norm_differenceProduct_le_factor
       (∏ r ∈ (Finset.univ.erase q),
         ‖parameterScalar (p := p) r.1.1 -
           parameterScalar (p := p) r.1.2‖) ≤ 1 := by
-    apply Finset.prod_le_one
+    apply Finset.prod_le_one₀
     · intro r _hr
       exact norm_nonneg _
     · intro r _hr
@@ -228,7 +228,7 @@ theorem norm_commonScale_mul_difference_gt
           parameterScalar (p := p) q.1.2‖ := by
       field_simp
 
-def witnessParameter
+noncomputable def witnessParameter
     {p n m : ℕ} [Fact p.Prime] (i₀ : Fin n) (r : Fin m) :
     Parameter p n :=
   axisVector i₀ (parameterScalar (p := p) r)

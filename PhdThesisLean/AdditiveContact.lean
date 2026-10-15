@@ -20,8 +20,9 @@ noncomputable def padicMagnitude (p : ℕ) (q : ℚ) : ℝ≥0 :=
 
 @[simp]
 theorem padicMagnitude_zero (p : ℕ) : padicMagnitude p 0 = 0 := by
-  ext
-  simp [padicMagnitude]
+  unfold padicMagnitude
+  simp only [padicNorm.zero, Rat.cast_zero]
+  rfl
 
 theorem padicMagnitude_le_of_padicNorm_le
     {p : ℕ} {q r : ℚ} (h : padicNorm p q ≤ padicNorm p r) :

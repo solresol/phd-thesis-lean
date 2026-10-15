@@ -3,7 +3,10 @@ import LeanNPHardness.PreservingBinaryEqualityMachine
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -198,10 +201,10 @@ private def cfg (label : Option Label) (state : State) (input : List Wire)
 
 private abbrev Run (a b : computer.Cfg) (time : ℕ) := EvalsToInTime computer.step a (some b) time
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 /-- The imported kernel is reused at the exact loaded-word boundary. -/
 private def compare_run (input : List Wire) (state : State) (query candidate : List Bool) :
@@ -212,7 +215,7 @@ private def compare_run (input : List Wire) (state : State) (query candidate : L
       (2 * query.length + candidate.length + 2) where
   steps := max query.length candidate.length + query.length + 2
   evals_in_steps := by
-    simpa only [embed, cfg, PreservingBinaryEquality.cfg, Option.elim_some, Option.elim_none] using
+    simpa only [embed, cfg, PreservingBinaryEquality.cfg, Option.elim_some, Option.elim_none] using!
       compare_iterate _ input state _ _ (PreservingBinaryEquality.whole_list query candidate [])
   steps_le_m := by omega
 
@@ -403,8 +406,11 @@ private def run (query : ℕ) (values : List ℕ) :
         have hc := clear_run (encodeNat query).reverse
           (ready (false || decide (query ∈ value :: values)) true none)
         convert seq (seq hl hr) hc using 1
-        simp only [List.length_reverse]
-        omega
+        all_goals first
+          | (simp only [List.length_reverse]; omega)
+          | omega
+          | rfl
+          | simp [ready]
   apply evalsToInTimeMono hrun
   rw [input_length]
   have h := cost_le query values

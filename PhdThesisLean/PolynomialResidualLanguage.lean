@@ -143,7 +143,7 @@ theorem decodePoly_polyFormula (rs : List PolyResidual) (T : ℕ) :
   simp [decodePoly, polyFormula, parse_residuals]
 
 /-- Polynomial-residual instances under the unary-index CNF encoding. -/
-def polyUnaryEncoding : Computability.FinEncoding (List PolyResidual × ℕ) where
+def polyUnaryEncoding : LeanNPHardness.FinEncoding (List PolyResidual × ℕ) where
   Γ := CNF.Unary.Sym
   encode x := CNF.Unary.encode (polyFormula x.1 x.2)
   decode syms := (CNF.Unary.decode syms).bind decodePoly
@@ -151,7 +151,7 @@ def polyUnaryEncoding : Computability.FinEncoding (List PolyResidual × ℕ) whe
   ΓFin := inferInstance
 
 /-- Polynomial-residual instances under the binary CNF encoding. -/
-def polyBinaryEncoding : Computability.FinEncoding (List PolyResidual × ℕ) where
+def polyBinaryEncoding : LeanNPHardness.FinEncoding (List PolyResidual × ℕ) where
   Γ := Bool
   encode x := Formula.encode (polyFormula x.1 x.2)
   decode bits := (Formula.decode bits).bind decodePoly

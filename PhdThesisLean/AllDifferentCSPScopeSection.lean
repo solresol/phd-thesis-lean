@@ -2,8 +2,11 @@ import PhdThesisLean.AllDifferentCSPMachine
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability
-open Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 
 /-!
@@ -23,12 +26,12 @@ header staging and complete structural-machine assembly.
 namespace ScopeFieldSection
 
 /-- The complete counted scope list has the existing nested-row encoding. -/
-abbrev inputFinEncoding : FinEncoding (List (List ℕ)) :=
+@[simp] abbrev inputFinEncoding : FinEncoding (List (List ℕ)) :=
   DomainFieldSection.inputFinEncoding
 
 /-- The scope driver consumes the existing exhaustion-delimited row payload.
 The same checked parser preserves all row boundaries, even for empty scopes. -/
-abbrev rowPayloadFinEncoding : FinEncoding (List (List ℕ)) :=
+@[simp] abbrev rowPayloadFinEncoding : FinEncoding (List (List ℕ)) :=
   DomainFieldSection.rowPayloadFinEncoding
 
 /-- Complete tagged scope output in source order, without an outer count. -/

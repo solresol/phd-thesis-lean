@@ -2,7 +2,10 @@ import PhdThesisLean.AllDifferentCSPProcessedSections
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -121,11 +124,11 @@ private abbrev Run (a b : computer.Cfg) (time : ℕ) :=
   EvalsToInTime computer.step a (some b) time
 
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 local macro "header_step" : tactic => `(tactic|
   (simp [computer, FinTM2.step, cfg, program, stackContents, Alphabet, popped,
@@ -270,7 +273,7 @@ private def run_layout (outer singleton countBits : List Bool) (tail : List (Opt
   have hmono := LeanNPHardness.MachinePrimitives.evalsToInTimeMono hall (by
     simpa [Nat.add_assoc] using hbound)
   simpa [wire, a, b, c, List.reverse_append, List.map_append, List.map_reverse,
-    List.reverse_reverse, List.cons_append, List.append_assoc] using hmono
+    List.reverse_reverse, List.cons_append, List.append_assoc] using! hmono
 
 private theorem init_eq (input : List (Option Bool)) :
     initList computer input = cfg (some (.start .outer)) none input [] [] [] := by
@@ -308,7 +311,7 @@ def variableHeader_outputsInTime (C : RuntimeSystem) :
   simpa [VariableHeader.outputFinEncoding, VariableHeader.retain,
     LeanNPHardness.PairEncoding.finEncoding, VariableHeader.inputEncode_eq_prefix,
     SourceOrderRawFields.encode, VariableHeaderMachine.wire, finEncodingNatBool, encodingNatBool,
-    List.cons_append, List.append_assoc] using h
+    List.cons_append, List.append_assoc] using! h
 
 /-- The retained count is computed from the checked source, not supplied by the caller. -/
 noncomputable def variableHeaderComputableInPolyTime :

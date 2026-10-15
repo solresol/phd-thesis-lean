@@ -10,7 +10,10 @@ This is one checked step; the repeated membership dispatcher is still separate.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -18,7 +21,7 @@ namespace PositiveTest
 
 abbrev Input := PositiveMembershipExtraction.Input
 abbrev Output := Bool × PositiveMembership.Input
-abbrev inputFinEncoding := PositiveMembershipExtraction.inputFinEncoding
+@[simp] abbrev inputFinEncoding := PositiveMembershipExtraction.inputFinEncoding
 
 def outputFinEncoding : FinEncoding Output :=
   LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool PositiveMembership.finEncoding

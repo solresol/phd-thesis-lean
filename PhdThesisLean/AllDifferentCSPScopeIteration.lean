@@ -11,7 +11,10 @@ repeated dispatcher and its total runtime are proved in the scope-loop modules.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -23,7 +26,7 @@ abbrev Output := ScopeAccumulator.Output
 def inputFinEncoding : FinEncoding Input :=
   LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool ScopeExtraction.inputFinEncoding
 
-abbrev outputFinEncoding := ScopeAccumulator.outputFinEncoding
+@[simp] abbrev outputFinEncoding := ScopeAccumulator.outputFinEncoding
 
 /-- A nonempty loop state is already the exact iteration wire; no head/tail
 split or re-encoding is supplied to the machine from outside. -/

@@ -13,7 +13,10 @@ included in the polynomial bound.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -29,7 +32,7 @@ theorem input_encode (input : PositiveMembership.Input) :
       ScopeExtraction.remainingFinEncoding.encode (asScope input) := by
   simp only [PositiveMembership.finEncoding, DomainFieldRow.outputFinEncoding,
     OccurrenceCount.occurrenceWire_eq_rows, ScopeExtraction.remainingFinEncoding,
-    DomainFieldSection.rowPayloadFinEncoding, asScope,
+    DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding, asScope,
     LeanNPHardness.PairEncoding.finEncoding]
 
 theorem output_encode (input : PositiveMembership.Input) :

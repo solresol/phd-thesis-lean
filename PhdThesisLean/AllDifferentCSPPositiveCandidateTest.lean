@@ -12,7 +12,10 @@ rectangular scan. Repeated selection and emission remain separate.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -45,7 +48,7 @@ theorem accept_ofRuntimeSystem (C : RuntimeSystem) (index : Fin C.domains.length
     (emitted : List PositiveBlock.Value) :
     accept ((index.val, rank), CountedPositiveSections.ofRuntimeSystem C, emitted) = true ↔
       rank ∈ C.toExplicitSystem.relabeledDomain index := by
-  simpa only [PositiveInitialization.finish_initialize] using
+  simpa only [PositiveInitialization.finish_initialize] using!
     PositiveInitialization.result_ofRuntimeSystem C index rank
 
 /-- Filtering the existing candidate order gives exactly the semantic positive scan. -/

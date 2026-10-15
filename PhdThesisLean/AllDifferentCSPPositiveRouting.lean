@@ -11,7 +11,10 @@ comparison, and retain every remaining occurrence. No traversal is assumed.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 
 namespace PositivePairQuery
@@ -46,7 +49,7 @@ namespace PositiveRouting
 
 abbrev Input := PositiveMembershipExtraction.Input
 abbrev Output := PositivePairQuery.Input × PositiveMembership.Input
-abbrev inputFinEncoding := PositiveMembershipExtraction.outputFinEncoding
+@[simp] abbrev inputFinEncoding := PositiveMembershipExtraction.outputFinEncoding
 
 def outputFinEncoding : FinEncoding Output :=
   LeanNPHardness.PairEncoding.finEncoding PositivePairQuery.finEncoding
@@ -60,7 +63,7 @@ def asScope (input : Input) : ScopeRouting.Input :=
 
 theorem input_encode (input : Input) :
     inputFinEncoding.encode input = ScopeRouting.inputFinEncoding.encode (asScope input) := by
-  simp only [PositiveMembershipExtraction.outputFinEncoding,
+  simp only [PositiveRouting.inputFinEncoding, PositiveMembershipExtraction.outputFinEncoding,
     LeanNPHardness.PairEncoding.finEncoding, PositiveOccurrenceHead.output_encode]
   rfl
 
@@ -74,7 +77,7 @@ theorem output_encode (input : Input) :
     ScopeRouting.prepare, ScopeExtraction.query, ScopeExtraction.remaining,
     ScopeQueries.inputFinEncoding, ScopeExtraction.remainingFinEncoding,
     ScopeExtraction.endpointsFinEncoding, asScope, PositiveOccurrenceHead.asScope,
-    DomainFieldSection.rowPayloadFinEncoding, SourceOrderRawFields.finEncoding,
+    DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding, SourceOrderRawFields.finEncoding,
     LeanNPHardness.PairEncoding.finEncoding]
 
 /-- Each candidate word is copied once; the head and tail are preserved exactly. -/

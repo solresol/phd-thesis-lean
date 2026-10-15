@@ -15,7 +15,10 @@ complete finite-machine implementation.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 
 namespace PositiveRows
@@ -77,7 +80,7 @@ theorem rows_ofRuntimeSystem (C : RuntimeSystem) :
     (ofWeightedSections (WeightedGraphSections.ofRuntimeSystem C)).map row =
       C.toExplicitSystem.pinningRows.map RuntimeResidualRow.ofResidualRow := by
   simpa [ofWeightedSections, List.map_map, row, PositiveEnumeration.rows,
-    WeightedGraphSections.ofRuntimeSystem, PinningWeight.retain] using
+    WeightedGraphSections.ofRuntimeSystem, PinningWeight.retain] using!
       PositiveEnumeration.rows_eq_pinningRows C
 
 theorem outputEncode_ofRuntimeSystem (C : RuntimeSystem) :

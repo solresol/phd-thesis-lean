@@ -12,7 +12,10 @@ dispatcher and its total runtime are checked in `AllDifferentCSPPositiveLoop`.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -23,7 +26,7 @@ abbrev Output := PositiveTest.Output
 
 def inputFinEncoding : FinEncoding Input :=
   LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool PositiveTest.outputFinEncoding
-abbrev outputFinEncoding := PositiveTest.outputFinEncoding
+@[simp] abbrev outputFinEncoding := PositiveTest.outputFinEncoding
 
 def update (input : Input) : Output := (input.1 || input.2.1, input.2.2)
 
@@ -34,11 +37,11 @@ def asScope (input : Input) : ScopeAccumulator.Input := (input.1, asScopeOutput 
 
 theorem output_encode (input : Output) :
     outputFinEncoding.encode input = ScopeAccumulator.outputFinEncoding.encode (asScopeOutput input) := by
-  simp only [PositiveTest.outputFinEncoding,
+  simp only [outputFinEncoding, ScopeAccumulator.outputFinEncoding, PositiveTest.outputFinEncoding,
     PositiveMembership.finEncoding, DomainFieldRow.outputFinEncoding,
     OccurrenceCount.occurrenceWire_eq_rows,
     ScopeTest.outputFinEncoding, ScopeExtraction.remainingFinEncoding,
-    DomainFieldSection.rowPayloadFinEncoding, asScopeOutput,
+    DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding, asScopeOutput,
     LeanNPHardness.PairEncoding.finEncoding]
 
 theorem input_encode (input : Input) :
@@ -89,7 +92,7 @@ abbrev Output := PositiveAccumulator.Output
 
 def inputFinEncoding : FinEncoding Input :=
   LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool PositiveTest.inputFinEncoding
-abbrev outputFinEncoding := PositiveAccumulator.outputFinEncoding
+@[simp] abbrev outputFinEncoding := PositiveAccumulator.outputFinEncoding
 
 theorem nonempty_encode (answer : Bool) (query head : ℕ × ℕ) (tail : List (ℕ × ℕ)) :
     outputFinEncoding.encode (answer, query, head :: tail) =

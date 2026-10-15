@@ -84,11 +84,11 @@ def trueParameter
     (embed : A → ℚ_[p]) (u : Fin m → A) : Fin m → ℚ_[p] :=
   fun i ↦ embed (u i)
 
-def standardBasisVector
+noncomputable def standardBasisVector
     {p m : ℕ} [Fact p.Prime] (i : Fin m) : Fin m → ℚ_[p] :=
   fun j ↦ if j = i then 1 else 0
 
-def standardDataset
+noncomputable def standardDataset
     {p m : ℕ} [Fact p.Prime] {A : Type*}
     (embed : A → ℚ_[p]) (u : Fin m → A) :
     Fin m → ((Fin m → ℚ_[p]) × ℚ_[p]) :=

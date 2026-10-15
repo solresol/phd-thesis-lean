@@ -13,7 +13,10 @@ header. This module prepares the scan input; it does not implement the scan.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -78,7 +81,7 @@ theorem encode_length (value : Value) :
       (DomainFieldRow.outputEncode value.1.1).length + value.1.2 +
         (DomainFieldSection.rowPayloadEncode value.2).length := by
   simp [finEncoding, domainsFinEncoding,
-    DomainFieldRow.outputFinEncoding, DomainFieldSection.rowPayloadFinEncoding,
+    DomainFieldRow.outputFinEncoding, DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding,
     unaryFinEncodingNat, unaryEncodeNat_eq_replicate_true, Nat.add_assoc]
 
 theorem variableCount_le_encode_length (value : Value) :

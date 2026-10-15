@@ -127,7 +127,7 @@ theorem decodeInstance_instanceFormula (rows : List Row) (T : ℕ) :
   simp [decodeInstance, instanceFormula]
 
 /-- Regression instances under the unary-index CNF encoding. -/
-def unaryEncoding : Computability.FinEncoding (List Row × ℕ) where
+def unaryEncoding : LeanNPHardness.FinEncoding (List Row × ℕ) where
   Γ := CNF.Unary.Sym
   encode x := CNF.Unary.encode (instanceFormula x.1 x.2)
   decode syms := (CNF.Unary.decode syms).bind decodeInstance
@@ -135,7 +135,7 @@ def unaryEncoding : Computability.FinEncoding (List Row × ℕ) where
   ΓFin := inferInstance
 
 /-- Regression instances under the binary CNF encoding. -/
-def binaryEncoding : Computability.FinEncoding (List Row × ℕ) where
+def binaryEncoding : LeanNPHardness.FinEncoding (List Row × ℕ) where
   Γ := Bool
   encode x := Formula.encode (instanceFormula x.1 x.2)
   decode bits := (Formula.decode bits).bind decodeInstance
@@ -241,7 +241,7 @@ theorem decodeSigned_signedFormula (rows : List SignedRow) (T : ℕ) :
   simp [decodeSigned, signedFormula, mapM_decodeSignedClause]
 
 /-- Signed instances under the unary-index CNF encoding. -/
-def signedUnaryEncoding : Computability.FinEncoding (List SignedRow × ℕ) where
+def signedUnaryEncoding : LeanNPHardness.FinEncoding (List SignedRow × ℕ) where
   Γ := CNF.Unary.Sym
   encode x := CNF.Unary.encode (signedFormula x.1 x.2)
   decode syms := (CNF.Unary.decode syms).bind decodeSigned
@@ -249,7 +249,7 @@ def signedUnaryEncoding : Computability.FinEncoding (List SignedRow × ℕ) wher
   ΓFin := inferInstance
 
 /-- Signed instances under the binary CNF encoding. -/
-def signedBinaryEncoding : Computability.FinEncoding (List SignedRow × ℕ) where
+def signedBinaryEncoding : LeanNPHardness.FinEncoding (List SignedRow × ℕ) where
   Γ := Bool
   encode x := Formula.encode (signedFormula x.1 x.2)
   decode bits := (Formula.decode bits).bind decodeSigned

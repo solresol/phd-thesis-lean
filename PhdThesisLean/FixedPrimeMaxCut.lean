@@ -173,7 +173,7 @@ theorem local_boolean_snapping_of_ne {t : ℚ_[p]} (ht : t ≠ 0 ∧ t ≠ 1) :
 end Snapping
 
 /-- Boolean embedding `s ↦ (if s j then 1 else 0)`. -/
-def embed (p : ℕ) [Fact p.Prime] {n : ℕ} (s : Fin n → Bool) : Fin n → ℚ_[p] :=
+noncomputable def embed (p : ℕ) [Fact p.Prime] {n : ℕ} (s : Fin n → Bool) : Fin n → ℚ_[p] :=
   fun j => if s j then 1 else 0
 
 section MaxCut

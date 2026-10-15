@@ -121,7 +121,7 @@ elaborator's `whnf` (triggered, e.g., by hypotheses of type
 exceeds the recursion limit.  The kernel ignores reducibility, so
 `decide +kernel` still computes with this instance (see `card_peerEdge`). -/
 @[irreducible] def peerEdgeFintype : Fintype PeerEdge :=
-  inferInstanceAs (Fintype {e : Fin 81 × Fin 81 // e.1 < e.2 ∧ Peer e.1 e.2})
+  Subtype.fintype (fun e : Fin 81 × Fin 81 => e.1 < e.2 ∧ Peer e.1 e.2)
 
 instance : Fintype PeerEdge := peerEdgeFintype
 
@@ -262,7 +262,7 @@ theorem degree_eq_twenty (i : Fin 81) :
 /-! ### Digits, clues and domains -/
 
 /-- The digit set `{1, …, 9}` inside `ℚ_[p]`. -/
-def digitSet (p : ℕ) [Fact p.Prime] : Finset ℚ_[p] :=
+noncomputable def digitSet (p : ℕ) [Fact p.Prime] : Finset ℚ_[p] :=
   (Finset.Icc (1 : ℕ) 9).map Nat.castEmbedding
 
 theorem mem_digitSet {p : ℕ} [Fact p.Prime] {a : ℚ_[p]} :
@@ -292,7 +292,7 @@ def ClueDigits (C : Finset (Fin 81)) (g : Fin 81 → ℕ) : Prop :=
 
 /-- The thesis's domains `D_i`: the clue digit on clue cells, `{1, …, 9}`
 elsewhere. -/
-def sudokuDomain (p : ℕ) [Fact p.Prime] (C : Finset (Fin 81)) (g : Fin 81 → ℕ)
+noncomputable def sudokuDomain (p : ℕ) [Fact p.Prime] (C : Finset (Fin 81)) (g : Fin 81 → ℕ)
     (i : Fin 81) : Finset ℚ_[p] :=
   if i ∈ C then {(g i : ℚ_[p])} else digitSet p
 

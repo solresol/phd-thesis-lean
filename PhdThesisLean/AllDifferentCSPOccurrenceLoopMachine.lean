@@ -12,7 +12,10 @@ empty input is distinguished from an occurrence with two zero fields.
 
 namespace PhdThesisLean.AllDifferentCSPMachine.OccurrenceLoopMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open LeanNPHardness.MachineComposition
 
 noncomputable section
@@ -28,7 +31,7 @@ theorem source_present (input : OccurrenceIteration.State) :
     (OccurrenceIteration.stateFinEncoding.encode input).any sourceCell = !input.1.1.isEmpty := by
   rcases input with ⟨⟨occurrences, symbols⟩, accum⟩
   cases occurrences <;>
-    simp [OccurrenceAccumulator.outputFinEncoding, DomainSymbolExtraction.finEncoding,
+    simp [OccurrenceIteration.stateFinEncoding, OccurrenceAccumulator.outputFinEncoding, DomainSymbolExtraction.finEncoding,
       DomainFieldRow.outputFinEncoding, DomainFieldRow.outputEncode,
       DomainOccurrenceFieldBlock.outputEncode_eq_prefix, DomainOccurrenceFieldBlock.headerPrefix,
       SourceOrderRawFields.finEncoding, List.any_map, List.map_map, Function.comp_def, sourceCell]
@@ -137,11 +140,11 @@ def done (records : List (ℕ × ℕ)) : computer.Cfg :=
 abbrev Run (a b : computer.Cfg) (time : ℕ) := EvalsToInTime computer.step a (some b) time
 
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 
 def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 private def embed (config : body.tm.Cfg) : computer.Cfg :=
   cfg (some (config.l.elim (.inr .collect) Sum.inl)) (config.var, false, none) [] [] [] config.stk
@@ -237,7 +240,7 @@ def body_run (input : OccurrenceIteration.Input) :
   evals_in_steps := by
     have h := body_iterate _ _ _ (body.outputsFun input).evals_in_steps
     simpa only [embed, initList, haltList, single_eq, initialState,
-      Option.elim_some, Option.elim_none] using h
+      Option.elim_some, Option.elim_none] using! h
   steps_le_m := (body.outputsFun input).steps_le_m
 
 local macro "loop_step" : tactic => `(tactic|
@@ -372,7 +375,7 @@ def enter_run (occurrence : ℕ × ℕ) (occurrences : List (ℕ × ℕ))
     ((occurrence :: occurrences, symbols), accum)).reverse [] true none
   simp only [single_nil, List.reverse_reverse, List.append_nil, List.length_reverse] at hf
   convert seq hs hf using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 /-- Return the body's complete output to the next scan, preserving order and
 clearing the body output and scratch stacks. -/
@@ -386,7 +389,7 @@ def return_run (output : OccurrenceIteration.State) :
   have hr := restore_run (OccurrenceIteration.stateFinEncoding.encode output).reverse [] none
   simp only [List.reverse_reverse, List.append_nil, List.length_reverse] at hr
   convert seq hc hr using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 /-- One actual loop cycle includes scan, loading, the entire checked iteration,
 and both return transfers. The next state is ready for another finite scan. -/
@@ -401,11 +404,11 @@ def iteration_cycle (occurrence : ℕ × ℕ) (occurrences : List (ℕ × ℕ))
   have h := seq (enter_run occurrence occurrences symbols accum)
     (seq (body_run ((occurrence, occurrences, symbols), accum))
       (return_run (OccurrenceIteration.step ((occurrence, occurrences, symbols), accum))))
-  convert h using 1
   have wire : (OccurrenceIteration.stateFinEncoding.encode
       ((occurrence :: occurrences, symbols), accum)).length =
     (OccurrenceIteration.inputFinEncoding.encode ((occurrence, occurrences, symbols), accum)).length := rfl
-  omega
+  convert h using 1
+  all_goals first | omega | rfl
 
 /-- The exhausted branch returns exactly the accumulated records, including
 empty output, and clears the retained symbols and every work stack. -/
@@ -422,11 +425,11 @@ def exit_run (symbols : List ℕ) (accum : List (ℕ × ℕ)) :
       (fun _ => (none : Option (Option Bool))) = [] := by simp
   have wire : (OccurrenceIteration.stateFinEncoding.encode (([], symbols), accum)).filterMap Sum.getRight? =
       DomainFieldRow.outputEncode accum := by
-    simp [OccurrenceAccumulator.outputFinEncoding, DomainFieldRow.outputFinEncoding,
+    simp [OccurrenceIteration.stateFinEncoding, OccurrenceAccumulator.outputFinEncoding, DomainFieldRow.outputFinEncoding,
       List.filterMap_map, Function.comp_def, discard]
   rw [wire] at hf
   convert seq hs hf using 1
-  omega
+  all_goals first | omega | rfl | simp
 
 theorem ready_eq_initList (input : OccurrenceIteration.State) :
     ready input = initList computer (OccurrenceIteration.stateFinEncoding.encode input) := by

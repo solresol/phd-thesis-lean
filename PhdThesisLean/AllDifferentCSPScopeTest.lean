@@ -11,7 +11,10 @@ The output is the same-scope result paired with the exact continuation state.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -20,7 +23,7 @@ namespace ScopeTest
 abbrev Input := ScopeExtraction.Input
 abbrev Output := Bool × ScopeRouting.Remaining
 
-abbrev inputFinEncoding := ScopeExtraction.inputFinEncoding
+@[simp] abbrev inputFinEncoding := ScopeExtraction.inputFinEncoding
 
 def outputFinEncoding : FinEncoding Output :=
   LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool
@@ -46,7 +49,7 @@ theorem output_length_balance (input : Input) :
     LeanNPHardness.PairEncoding.finEncoding_encode_length] at h
   simp [outputFinEncoding, evaluate, ScopeExtraction.remaining,
     ScopeExtraction.remainingFinEncoding, ScopeExtraction.inputFinEncoding,
-    finEncodingBoolBool, encodeBool]
+    finEncodingBoolBool, encodeBool] at h ⊢
   omega
 
 theorem output_length_le (input : Input) :

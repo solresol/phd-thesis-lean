@@ -10,7 +10,10 @@ Every data transfer and binary carry is included in the machine witnesses.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -109,10 +112,10 @@ private def cfg (label : Option Label) (state : State) (input saved : List Query
 
 private abbrev Run (a b : computer.Cfg) (time : ℕ) := EvalsToInTime computer.step a (some b) time
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 local macro "weight_step" : tactic => `(tactic|
   (simp [computer, FinTM2.step, cfg, program, stackContents, Alphabet, Function.update]
@@ -203,7 +206,7 @@ noncomputable def pinningWeightBinaryComputableInPolyTime :
   let composed := compositionComputableInPolyTime _ _ _ _ _
     pinningWeightPrepareComputableInPolyTime binary
   exact { composed with
-    outputsFun := fun value => by simpa only [Function.comp_def, id_eq] using composed.outputsFun value }
+    outputsFun := fun value => by simpa only [Function.comp_def, id_eq] using! composed.outputsFun value }
 
 /-- No count is supplied by the caller: count the edge rows before binary conversion. -/
 noncomputable def pinningWeightComputableInPolyTime :
@@ -221,7 +224,7 @@ noncomputable def negativeRowsWithWeightComputableInPolyTime :
     UnaryBoundEncoding.outputFinEncoding id negativeRowsComputableInPolyTime
   let composed := compositionComputableInPolyTime _ _ _ _ _ pinningWeightComputableInPolyTime emit
   exact { composed with
-    outputsFun := fun edges => by simpa only [Function.comp_def, id_eq] using composed.outputsFun edges }
+    outputsFun := fun edges => by simpa only [Function.comp_def, id_eq] using! composed.outputsFun edges }
 
 namespace WeightedGraphSections
 
@@ -299,7 +302,7 @@ noncomputable def runtimeCompilerWeightedNegativeSectionsComputableInPolyTime :
     runtimeCompilerGraphSectionsComputableInPolyTime weight
   exact { composed with
     outputsFun := fun C => by simpa only [Function.comp_def, WeightedGraphSections.ofRuntimeSystem,
-      GraphSections.ofRuntimeSystem] using composed.outputsFun C }
+      GraphSections.ofRuntimeSystem] using! composed.outputsFun C }
 
 #print axioms PinningWeight.binary_length_le
 #print axioms PinningWeight.weight_eq

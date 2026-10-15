@@ -200,8 +200,8 @@ theorem affineResidual_update
     intro j hj
     have hji : j ≠ i := by simpa using hj
     simp [Function.update, hji]
-  rw [Finset.sum_eq_add_sum_diff_singleton (Finset.mem_univ i),
-    Finset.sum_eq_add_sum_diff_singleton (Finset.mem_univ i)]
+  rw [Finset.sum_eq_add_sum_sdiff_singleton_of_mem (Finset.mem_univ i),
+    Finset.sum_eq_add_sum_sdiff_singleton_of_mem (Finset.mem_univ i)]
   rw [show Function.update x i b i = b by simp [Function.update]]
   rw [hsum]
   ring
@@ -310,8 +310,8 @@ theorem pinningLoss_update
     intro j hj
     have hji : j ≠ i := by simpa using hj
     simp [Function.update, hji]
-  rw [Finset.sum_eq_add_sum_diff_singleton (Finset.mem_univ i),
-    Finset.sum_eq_add_sum_diff_singleton (Finset.mem_univ i)]
+  rw [Finset.sum_eq_add_sum_sdiff_singleton_of_mem (Finset.mem_univ i),
+    Finset.sum_eq_add_sum_sdiff_singleton_of_mem (Finset.mem_univ i)]
   rw [show Function.update x i b i = b by simp [Function.update]]
   rw [hsum]
   ring

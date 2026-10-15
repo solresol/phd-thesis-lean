@@ -10,7 +10,10 @@ identifying that tally with the result of the recursive rank computation.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open LeanNPHardness.MachineComposition
 
 namespace RankFinalization
@@ -27,7 +30,8 @@ theorem result_eq_finish_of_empty (input : RankControl.Input)
 
 theorem output_length_le (input : RankControl.Input) :
     (unaryFinEncodingNat.encode (result input)).length ≤ (RankControl.inputFinEncoding.encode input).length := by
-  simp [result, RankAccumulator.outputFinEncoding]
+  simp [result, RankControl.inputFinEncoding, RankAccumulator.outputFinEncoding,
+    LeanNPHardness.PairEncoding.finEncoding]
 
 end RankFinalization
 
@@ -73,10 +77,10 @@ private def cfg (label : Option Unit) (state : State) (input : List Wire)
 
 private abbrev Run (a b : computer.Cfg) (time : ℕ) := EvalsToInTime computer.step a (some b) time
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h, steps_le_m := le_rfl }
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 local macro "finalize_step" : tactic => `(tactic|
   (simp [computer, FinTM2.step, cfg, program, stackContents, Alphabet, Function.update]
@@ -127,8 +131,9 @@ def rankFinalization_outputsInTime (input : RankControl.Input) :
   rw [RankFinalizationMachine.halt_eq]
   have discard : (DomainSymbolMembership.finEncoding.encode input.1).filterMap
       (fun _ => (none : Option Bool)) = [] := by simp
-  simpa [RankAccumulator.outputFinEncoding, RankFinalization.result, unaryFinEncodingNat,
-    unaryEncodeNat_eq_replicate_true, List.filterMap_map, Function.comp_def, discard] using
+  simpa [RankControl.inputFinEncoding, LeanNPHardness.PairEncoding.finEncoding,
+    RankAccumulator.outputFinEncoding, RankFinalization.result, unaryFinEncodingNat,
+    unaryEncodeNat_eq_replicate_true, List.filterMap_map, Function.comp_def, discard] using!
       RankFinalizationMachine.run (RankControl.inputFinEncoding.encode input) [] none
 
 noncomputable def rankFinalizationComputableInPolyTime :
@@ -140,7 +145,7 @@ noncomputable def rankFinalizationComputableInPolyTime :
   time := Polynomial.X + 1
   outputsFun input := by
     simpa [Equiv.refl, Polynomial.eval_add, Polynomial.eval_one,
-      Polynomial.eval_X] using rankFinalization_outputsInTime input
+      Polynomial.eval_X] using! rankFinalization_outputsInTime input
 
 #print axioms RankFinalization.result_eq_finish_of_empty
 #print axioms RankFinalization.output_length_le

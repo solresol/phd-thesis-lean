@@ -13,7 +13,10 @@ the repeated membership controller remains separate.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 
 namespace PositiveMembership
@@ -39,8 +42,6 @@ theorem enumerate_eq_filter (n : ℕ) (occurrences : List (ℕ × ℕ)) :
         (fun query => contains (query, occurrences)) := by
   rw [PositiveEnumeration.enumerate_eq_filter]
   congr 1
-  funext query
-  simp [contains]
 
 theorem input_length (input : Input) :
     (finEncoding.encode input).length =
@@ -115,7 +116,7 @@ theorem output_encode (input : Input) :
     outputFinEncoding.encode input = ScopeExtraction.payloadFinEncoding.encode (asScope input) := by
   simp only [outputFinEncoding, recordFinEncoding, DomainFieldRow.outputFinEncoding,
     LeanNPHardness.PairEncoding.finEncoding, ScopeExtraction.payloadFinEncoding,
-    SourceOrderRawFields.finEncoding, DomainFieldSection.rowPayloadFinEncoding, asScope, OccurrenceCount.occurrenceWire_eq_rows]
+    SourceOrderRawFields.finEncoding, DomainFieldSection.rowPayloadFinEncoding, ScopeFieldSection.rowPayloadFinEncoding, asScope, OccurrenceCount.occurrenceWire_eq_rows]
 
 /-- Removing the row count removes precisely the delimiter and the binary `3`. -/
 theorem output_length_balance (input : Input) :

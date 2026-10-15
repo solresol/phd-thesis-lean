@@ -2,8 +2,11 @@ import PhdThesisLean.AllDifferentCSPMachine
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability
-open Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -315,7 +318,7 @@ private def domainSectionEvalsToInTimeOne
     (hstep : domainSectionComputer.step start = some finish) :
     EvalsToInTime domainSectionComputer.step start (some finish) 1 where
   steps := 1
-  evals_in_steps := by simpa [Function.iterate_one] using hstep
+  evals_in_steps := by simpa [Function.iterate_one] using! hstep
   steps_le_m := Nat.le_refl 1
 
 private def domainSectionEvalsToInTimeMono
@@ -1438,7 +1441,7 @@ private def domainSection_predBoundary_evals
             omega
           rw [htime] at hall
           simpa only [binaryPredBits, List.reverse_cons, List.map_cons,
-            List.map_append, List.map_reverse, List.append_assoc] using hall
+            List.map_append, List.map_reverse, List.append_assoc] using! hall
       | true =>
           have hfirst := domainSectionEvalsToInTimeOne
             (domainSection_step_predBoundary_true (bits.map some) input index
@@ -1472,7 +1475,7 @@ private def domainSection_predBoundary_evals
                 (by simpa [List.map_reverse] using hrestore)
               simpa only [List.map_cons, List.map_nil, binaryPredBits,
                 List.append_nil] using
-                  domainSectionEvalsToInTimeMono hall (by simp; omega)
+                  domainSectionEvalsToInTimeMono hall (by simp <;> omega)
           | cons next rest =>
               have hcheck := domainSectionEvalsToInTimeOne
                 (domainSection_step_predBoundaryCheck_cons (some next)
@@ -1511,7 +1514,7 @@ private def domainSection_predBoundary_evals
                 (by simpa using hprefix)
                 (by simpa [List.map_reverse, List.map_append] using hrestore)
               simpa only [List.map_cons, binaryPredBits] using
-                domainSectionEvalsToInTimeMono hall (by simp; omega)
+                domainSectionEvalsToInTimeMono hall (by simp <;> omega)
 
 private def domainSection_predEnd_evals
     (bits acc : List Bool) (index scratch output : List (Option Bool))
@@ -1566,7 +1569,7 @@ private def domainSection_predEnd_evals
             omega
           rw [htime] at hall
           simpa only [binaryPredBits, List.reverse_cons, List.map_cons,
-            List.map_append, List.map_reverse, List.append_assoc] using hall
+            List.map_append, List.map_reverse, List.append_assoc] using! hall
       | true =>
           have hfirst := domainSectionEvalsToInTimeOne
             (domainSection_step_predEnd_true (bits.map some) index
@@ -1600,7 +1603,7 @@ private def domainSection_predEnd_evals
                 (by simpa [List.map_reverse] using hrestore)
               simpa only [List.map_cons, List.map_nil, binaryPredBits,
                 List.append_nil] using
-                  domainSectionEvalsToInTimeMono hall (by simp; omega)
+                  domainSectionEvalsToInTimeMono hall (by simp <;> omega)
           | cons next rest =>
               have hcheck := domainSectionEvalsToInTimeOne
                 (domainSection_step_predEndCheck_cons (some next)
@@ -1636,7 +1639,7 @@ private def domainSection_predEnd_evals
                 (by simpa using hprefix)
                 (by simpa [List.map_reverse, List.map_append] using hrestore)
               simpa only [List.map_cons, binaryPredBits] using
-                domainSectionEvalsToInTimeMono hall (by simp; omega)
+                domainSectionEvalsToInTimeMono hall (by simp <;> omega)
 
 private def domainSection_advanceBoundaryRestore_evals
     (work input index count scratch output : List (Option Bool))
@@ -1772,7 +1775,7 @@ private def domainSection_advanceBoundary_evals
             omega
           rw [htime] at hall
           simpa only [binarySuccBits, List.reverse_cons, List.map_cons,
-            List.map_append, List.map_reverse, List.append_assoc] using hall
+            List.map_append, List.map_reverse, List.append_assoc] using! hall
 
 private def domainSection_advanceEnd_evals
     (bits acc : List Bool) (count scratch output : List (Option Bool))
@@ -1845,7 +1848,7 @@ private def domainSection_advanceEnd_evals
             omega
           rw [htime] at hall
           simpa only [binarySuccBits, List.reverse_cons, List.map_cons,
-            List.map_append, List.map_reverse, List.append_assoc] using hall
+            List.map_append, List.map_reverse, List.append_assoc] using! hall
 
 private def domainSection_finish_evals
     (scratch output index : List (Option Bool)) (state : DomainSectionState) :
@@ -2864,7 +2867,7 @@ private def domainSection_rows_evals
               rw [htime] at hall
               simpa [domainSectionRowsTime, domainSectionOutputFrom,
                 RuntimeStructuralView.indexedDomainOccurrencesFrom]
-                using hall
+                using! hall
   | cons next domains ih =>
       have hrest := ih (index := index + 1) (domain := next)
       cases domain with

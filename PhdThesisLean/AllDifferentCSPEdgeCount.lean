@@ -10,7 +10,10 @@ inside the composed compiler and charged to the full input wire length.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -118,7 +121,7 @@ noncomputable def runtimeCompilerCountedGraphSectionsComputableInPolyTime :
     runtimeCompilerGraphSectionsComputableInPolyTime count
   exact { composed with
     outputsFun := fun C => by simpa only [Function.comp_def, CountedGraphSections.ofRuntimeSystem,
-      CountedGraphSections.retain] using composed.outputsFun C }
+      CountedGraphSections.retain] using! composed.outputsFun C }
 
 #print axioms EdgeCount.outputsInTime
 #print axioms EdgeCount.computableInPolyTime

@@ -1,10 +1,11 @@
 import LeanNPHardness.BinaryNatLists
 import PhdThesisLean.AllDifferentCSP
-import Mathlib.Computability.Encoding
+import LeanNPHardness.FinEncoding
 
 namespace PhdThesisLean.AllDifferentCSPEncoding
 
-open Computability
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSP
 
 /-!

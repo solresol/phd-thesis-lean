@@ -41,12 +41,12 @@ theorem edgeResidual
   classical
   rw [affineResidual, edgeObservation]
   simp only [sub_zero]
-  rw [Finset.sum_eq_add_sum_diff_singleton (Finset.mem_univ (left e))]
+  rw [Finset.sum_eq_add_sum_sdiff_singleton_of_mem (Finset.mem_univ (left e))]
   rw [if_pos rfl, one_mul]
   have hrmem : right e ∈ Finset.univ \ {left e} := by
     exact Finset.mem_sdiff.mpr
       ⟨Finset.mem_univ _, by simpa using Ne.symm (hne e)⟩
-  rw [Finset.sum_eq_add_sum_diff_singleton hrmem]
+  rw [Finset.sum_eq_add_sum_sdiff_singleton_of_mem hrmem]
   rw [if_neg (Ne.symm (hne e)), if_pos rfl, neg_one_mul]
   have hrest :
       (∑ j ∈ (Finset.univ \ {left e}) \ {right e},
@@ -355,7 +355,7 @@ theorem conflictWeight_eq_zero_iff
         · exact (hpositive j).le
         · exact le_rfl
     rw [conflictWeight,
-      Finset.sum_eq_add_sum_diff_singleton (Finset.mem_univ e)] at hzero
+      Finset.sum_eq_add_sum_sdiff_singleton_of_mem (Finset.mem_univ e)] at hzero
     simp only [heq, if_pos] at hzero
     linarith [hpositive e]
   · intro hproper

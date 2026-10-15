@@ -13,7 +13,10 @@ and total polynomial bound.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -25,7 +28,7 @@ abbrev Output := RankAccumulator.Output
 def inputFinEncoding : FinEncoding Input :=
   LeanNPHardness.PairEncoding.finEncoding RankQueries.inputFinEncoding unaryFinEncodingNat
 
-abbrev outputFinEncoding := RankAccumulator.outputFinEncoding
+@[simp] abbrev outputFinEncoding := RankAccumulator.outputFinEncoding
 
 /-- The next target/tail query and the updated unary accumulator. -/
 def step (input : Input) : Output :=
@@ -49,7 +52,7 @@ theorem output_length_balance (input : Input) :
   have h := RankPredicates.remaining_length input.1
   simp only [outputFinEncoding, step, RankAccumulator.output_length]
   simp only [inputFinEncoding, LeanNPHardness.PairEncoding.finEncoding_encode_length,
-    RankQueries.inputFinEncoding, unaryFinEncodingNat]
+    RankQueries.inputFinEncoding, unaryFinEncodingNat, LeanNPHardness.unaryEncodingNat_encode]
   have hu : (unaryEncodeNat input.2).length = input.2 := unary_decode_encode_nat input.2
   rw [hu]
   omega

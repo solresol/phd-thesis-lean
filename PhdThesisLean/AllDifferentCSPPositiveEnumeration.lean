@@ -151,12 +151,12 @@ theorem retained_mem (C : RuntimeSystem) (index : Fin C.domains.length) (value :
     apply Finset.mem_image.mpr
     refine ⟨a, ?_, rfl⟩
     change a ∈ (C.domains.get index).toFinset
-    exact List.mem_toFinset.mpr ((mem_indexedFrom C.domains 0 index a).mp (by simpa using ha))
+    exact List.mem_toFinset.mpr ((mem_indexedFrom C.domains 0 index a).mp (by simpa using! ha))
   · rintro h
     obtain ⟨a, ha, rfl⟩ := Finset.mem_image.mp h
     refine ⟨(index.val, a), ?_, rfl, rfl⟩
     change a ∈ (C.domains.get index).toFinset at ha
-    simpa using (mem_indexedFrom C.domains 0 index a).mpr (List.mem_toFinset.mp ha)
+    simpa using! (mem_indexedFrom C.domains 0 index a).mpr (List.mem_toFinset.mp ha)
 
 /-- The scan bound includes every semantic rank, without depending on raw symbol magnitude. -/
 theorem rank_le_retained_length (C : RuntimeSystem) (index : Fin C.domains.length)

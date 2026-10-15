@@ -34,7 +34,10 @@ family statement of Stage 2.
 
 namespace PhdThesisLean.NestedStage2Machine
 
-open Turing Computability Polynomial
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Polynomial StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open LeanNPHardness LeanNPHardness.CNF LeanNPHardness.CNF.Unary LeanNPHardness.TableauJobs
 open LeanNPHardness.TableauStacks LeanNPHardness.Routines LeanNPHardness.MachinePrimitives
 open LeanNPHardness.MaxCut
@@ -558,7 +561,7 @@ theorem edgesOf_bound (G : List Edge) (K : ℕ) :
   · have := List.le_sum_of_mem (List.mem_map_of_mem (f := fun e : Edge => e.1 + e.2 + 3) he')
     simp only at this ⊢
     omega
-  · simp; omega
+  · simp
 
 /-- The reduction from unary CNF-SAT through the library's chain and Max-Cut gadget
 reductions and Stage 2. -/

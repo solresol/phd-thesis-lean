@@ -13,7 +13,10 @@ supply the repeated finite dispatcher and its complete polynomial runtime.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -26,7 +29,7 @@ def inputFinEncoding : FinEncoding Input :=
   LeanNPHardness.PairEncoding.finEncoding OccurrenceQuery.inputFinEncoding
     DomainFieldRow.outputFinEncoding
 
-abbrev stateFinEncoding := OccurrenceAccumulator.outputFinEncoding
+@[simp] abbrev stateFinEncoding := OccurrenceAccumulator.outputFinEncoding
 
 def source (input : Input) : State := (OccurrenceQuery.source input.1, input.2)
 
@@ -112,7 +115,8 @@ theorem state_length (state : State) :
       (DomainFieldRow.outputEncode state.1.1).length +
         (SourceOrderRawFields.encode state.1.2).length +
         (DomainFieldRow.outputEncode state.2).length := by
-  simp [OccurrenceAccumulator.outputFinEncoding, DomainSymbolExtraction.finEncoding,
+  simp [stateFinEncoding, OccurrenceAccumulator.outputFinEncoding,
+    LeanNPHardness.PairEncoding.finEncoding, DomainSymbolExtraction.finEncoding,
     DomainFieldRow.outputFinEncoding, SourceOrderRawFields.finEncoding, Nat.add_assoc]
 
 /-- A uniform quadratic bound holds for arbitrary initial accumulators, not
@@ -167,7 +171,8 @@ theorem iterate_eq_finish (occurrences : List (ℕ × ℕ)) (symbols : List ℕ)
 theorem seed_length (input : DomainSymbolExtraction.Value) :
     (stateFinEncoding.encode (input, [])).length =
       (DomainSymbolExtraction.finEncoding.encode input).length := by
-  simp [OccurrenceAccumulator.outputFinEncoding, DomainFieldRow.outputFinEncoding,
+  simp [stateFinEncoding, OccurrenceAccumulator.outputFinEncoding,
+    LeanNPHardness.PairEncoding.finEncoding, DomainFieldRow.outputFinEncoding,
     DomainFieldRow.outputEncode]
 
 /-- Complete emitted output has a quadratic bound in the original serialized
@@ -225,7 +230,7 @@ noncomputable def occurrenceIterationComputableInPolyTime :
     retained occurrenceAccumulatorComputableInPolyTime
   exact { composed with
     outputsFun := fun input => by
-      simpa only [Function.comp_def, OccurrenceIteration.step] using composed.outputsFun input }
+      simpa only [Function.comp_def, OccurrenceIteration.step] using! composed.outputsFun input }
 
 #print axioms OccurrenceIteration.step_length_balance
 #print axioms OccurrenceIteration.step_budget_le

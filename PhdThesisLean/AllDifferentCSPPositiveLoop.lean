@@ -11,7 +11,10 @@ a zero/zero pair; the number of iterations is therefore at most that length.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachineComposition
 
@@ -100,7 +103,7 @@ def outputsInTime (input : PositiveIteration.Output) :
       (Nat.add_le_add_right (occurrences_length_le_state input) 1))
   simpa only [PositiveLoopMachine.ready_eq_initList, PositiveLoopMachine.done_eq_haltList,
     result, time, Polynomial.eval_mul, Polynomial.eval_add, Polynomial.eval_X,
-    Polynomial.eval_one] using h'
+    Polynomial.eval_one] using! h'
 
 end
 

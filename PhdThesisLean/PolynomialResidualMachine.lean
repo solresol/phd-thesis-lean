@@ -31,7 +31,10 @@ problem is NP-hard for every prime (`encodedUnaryPolyML_NPHard`,
 
 namespace PhdThesisLean.PolynomialResidualMachine
 
-open Turing Computability Polynomial
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Polynomial StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open LeanNPHardness LeanNPHardness.CNF LeanNPHardness.CNF.Unary LeanNPHardness.TableauJobs
 open LeanNPHardness.TableauStacks LeanNPHardness.Routines LeanNPHardness.MachinePrimitives
 open PhdThesisLean.PadicRegressionLanguage PhdThesisLean.PolynomialResidualLanguage
@@ -558,7 +561,7 @@ noncomputable def binaryComputable :
           BinaryConvert.timePoly.eval (encode (polyFormula x.1 x.2)).length by
         simp only [BinaryConvert.timePoly, eval_mul, eval_C, eval_pow, eval_add, eval_X, eval_one]
         exact BinaryConvert.convBound_le _)
-    simpa [Equiv.refl, polyUnaryEncoding, polyBinaryEncoding] using run'
+    simpa [Equiv.refl, polyUnaryEncoding, polyBinaryEncoding] using! run'
 
 /-- Unary polynomial-residual instances reduce to binary ones by re-encoding. -/
 noncomputable def binaryReduction (p : ℕ) [Fact p.Prime] :

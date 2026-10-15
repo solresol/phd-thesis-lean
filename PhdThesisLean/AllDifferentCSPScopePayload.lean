@@ -11,7 +11,10 @@ No machine or binary arithmetic implementation is duplicated.
 
 namespace PhdThesisLean.AllDifferentCSPMachine
 
-open Computability Turing
+open Computability hiding FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat
+open Turing hiding TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime
+open StateTransition
+open LeanNPHardness (FinEncoding finEncodingNatBool finEncodingBoolBool unaryFinEncodingNat TM2ComputableInPolyTime TM2Computable TM2ComputableInTime idComputableInPolyTime)
 open PhdThesisLean.AllDifferentCSPEncoding
 open LeanNPHardness.MachinePrimitives
 
@@ -34,12 +37,12 @@ private abbrev Run (a b : computer.Cfg) (time : ℕ) :=
   EvalsToInTime computer.step a (some b) time
 
 private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
-  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using h,
+  { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h,
     steps_le_m := le_rfl }
 
 private def seq {a b c : computer.Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
-  simpa [Nat.add_comm] using EvalsToInTime.trans computer.step m n a b (some c) h h'
+  simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
 -- Definitional reduction uses the imported program, including its private
 -- finite-state helpers; no implementation details are copied here.
@@ -112,7 +115,9 @@ private def run (scope : List ℕ) :
   have hrestore := restore_run (SourceOrderRawFields.encode scope).reverse [] none
   convert seq (seq hstart hskip) hrestore using 1 <;>
     simp [SourceOrderRawFields.encode]
-  omega
+  all_goals first
+    | omega
+    | simp [ScopeFieldBlock.inputEncode, SourceOrderRawFields.encode]
 
 /-- The removed field is charged exactly, including its delimiter. -/
 theorem input_length (scope : List ℕ) :
