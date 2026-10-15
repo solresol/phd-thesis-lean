@@ -1174,8 +1174,22 @@ actual finite test-and-emit call by one polynomial in the original section
 length. The executable iteration is not yet a repeated finite-machine runtime
 result.
 
-Finite counter/initialization machines and repeated finite dispatch, plus
-final objective/framing/prime assembly, remain open;
+`AllDifferentCSPPositiveCounters.lean` supplies both finite binary counter
+continuations using the pinned successor, pair-left/right and sequential
+machine APIs. `PositiveRankResetMachine.outputsInTime` erases the rank word
+in its bit length plus one steps; the pair adapters preserve every other
+state field. `positiveInnerCounterComputableInPolyTime` increments rank, and
+`positiveOuterCounterComputableInPolyTime` increments index and resets rank.
+Each continuation adds at most one bit to the full state. The complete
+`positiveInnerStepComputableInPolyTime` and
+`positiveOuterStepComputableInPolyTime` compose membership, conditional emission
+and the appropriate counter, including all transfers. `PositiveCounters.run_succ_eq`
+identifies the required branch of the reached semantic state, and
+`positiveInnerStep_run_steps_le` / `positiveOuterStep_run_steps_le` bound each
+complete branch by one polynomial in the original section wire length.
+
+Finite initialization, bound tests and repeated finite dispatch, plus final
+objective/framing/prime assembly, remain open;
 `cor:all-different-csp` is partial.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as

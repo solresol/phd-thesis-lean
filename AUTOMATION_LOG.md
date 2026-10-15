@@ -6949,3 +6949,56 @@
   predicates, dispatch and repeated loop. Final objective/framing/selected-prime
   composition still follows. No sibling, thesis or dependency source edits.
 - **Run time:** 2026-10-15 18:31 UTC (16 October AEDT).
+
+## 2026-10-16 — finite positive counter branches and uniform call bounds
+
+- **Starting commit:** `323d1e9552449981f83e4db0cfbe78a0fa6938e3`, the verified
+  rectangular traversal increment above. Its push succeeded; local HEAD,
+  origin/main and live remote main all matched before continuing.
+- **Increment:** new `AllDifferentCSPPositiveCounters.lean` implements the
+  two binary counter continuations with the checked successor, pair-left,
+  pair-right/exchange and sequential-machine APIs. The small single-stack
+  `PositiveRankResetMachine.outputsInTime` erases the canonical binary rank
+  in its word length plus one steps, including final cleanup. Nested pair
+  adapters preserve every other state field. `positiveInnerCounterComputableInPolyTime`
+  increments rank; `positiveOuterCounterComputableInPolyTime` resets rank and
+  increments index. `inner_length_le` / `outer_length_le` charge at most one
+  extra bit for either continuation. `positiveInnerStepComputableInPolyTime`
+  and `positiveOuterStepComputableInPolyTime` compose the full membership,
+  conditional emission and counter action, including all transfers.
+  `PositiveCounters.run_succ_eq` matches the correct branch to the exact next
+  reached state; `positiveInnerStep_run_steps_le` and
+  `positiveOuterStep_run_steps_le` give uniform original-section polynomial
+  bounds for these full calls.
+- **Successful checks:** targeted module build warning-free; all 14 new
+  headline axiom audits passed with only `propext`, `Classical.choice` and
+  `Quot.sound`. Full `lake build` passes (9,270 jobs), with 915 standard-only
+  axiom reports and 24 axiom-free reports. Lexical scan of all 139 project
+  Lean/config sources excludes nested comments and strings and finds no
+  `sorry`, `admit`, project axioms, `unsafe`, `proof_wanted` or native bypass.
+  `git diff --check` passes. Kernel examples check binary carry, unequal
+  scan dimensions, retained rows, zero weight and a million-valued weight.
+  README, both status locations and root import synchronized. Corollary Partial.
+- **Resolved diagnostics / useful API details:** `EvalsToInTime` extends
+  `EvalsTo`, so construct it with named fields rather than a flattened triple.
+  Direct `lake env lean` probes need the project's configured
+  `-Dbackward.isDefEq.respectTransparency=false`; otherwise opaque aliases
+  prevent `Option.bind`/encoded-output simplification. Add `flip` to the
+  one-step simplifier and prove the Unit-stack function equality explicitly.
+  `congr 1` already closes the initializer/halt stack equalities here. The
+  outer composed function unfolds to `incrementIndex ∘ resetRank`; supplying
+  the source/middle/target encodings and both functions explicitly to
+  `compositionComputableInPolyTime` resolves premature higher-order inference.
+  Removed unused old `encodingNatBool` simp arguments. No unresolved errors;
+  audit output from failed probes/builds is not evidence.
+- **Ending state / next:** both continuations are genuine polynomial-time
+  finite machines, but finite initialization, active (`index < variableCount`)
+  and continuation (`rank < occurrenceCount`) tests, conditional dispatch and
+  the repeated controller still need to be composed. Reuse `PairControl`,
+  `PairGate`, `PairDispatch`, `PairLoopMachine` and `PairInitialization` patterns
+  with the new retained alphabet and unequal bounds. `PositiveAdvance` now
+  supplies all reached-state, capacity, freshness, progress and exact-output
+  facts, so do not reprove them. Then assemble/frame the objective and selected
+  prime. Sibling and thesis checkouts remain unchanged. Commit/push this
+  increment; automation memory records the final hash and live-ref agreement.
+- **Run time:** 2026-10-15 18:33 UTC (16 October AEDT).
