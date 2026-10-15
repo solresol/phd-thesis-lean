@@ -6863,6 +6863,13 @@
   clause products and per-occurrence forcing, bound `9m`;
   `PolynomialResidualMachine` streams it and `dyadic_poly_nphard` is the `ℤ_2`
   form. Headline catalogue: 27 complete, 3 partial.
-- **Best next step:** the per-vertex map `G ↦ A'_G` of
-  `thm:nested-easy-hard-easy` (forcing weight `d_j + 1` per vertex needs a
-  vertex count), then the Smith-normal-form running time of `thm:max-polytime`.
+- **Follow-up (same day):** `thm:nested-easy-hard-easy` is **Complete**:
+  `NestedStage2Reduction` (correctness for every prime and the literal
+  identification of the produced rows with the multiset `A'_G` of a loopless
+  graph via double counting) and `NestedStage2Machine` (two-pass machine whose
+  second pass uses a flag on the reversed input so the bound needs no
+  subtraction; register bounds proved with a flag-aware invariant). Composed
+  with the library's chain and gadget reductions (`gadgetEdges_loopless`).
+  Headline catalogue: 28 complete, 2 partial.
+- **Best next step:** the Smith-normal-form algorithm and running time of
+  `thm:max-polytime`; `cor:all-different-csp` remains with the nightly loop.

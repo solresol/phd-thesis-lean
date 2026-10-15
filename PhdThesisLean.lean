@@ -129,3 +129,5 @@ import PhdThesisLean.SignedThreeSatMachine
 import PhdThesisLean.PolynomialResidualLanguage
 import PhdThesisLean.PolynomialResidualReduction
 import PhdThesisLean.PolynomialResidualMachine
+import PhdThesisLean.NestedStage2Reduction
+import PhdThesisLean.NestedStage2Machine

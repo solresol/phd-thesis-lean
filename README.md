@@ -1424,6 +1424,21 @@ computes the instance with the generalised two-pass machine and concludes
 `encodedUnaryPolyML_NPHard`, `encodedPolyML_NPHard` and, over `ℤ_2`,
 `dyadic_poly_nphard`.
 
+Stage 2 of the nested easy-hard-easy family is checked as a complexity
+statement as well.
+[`PhdThesisLean/NestedStage2Reduction.lean`](PhdThesisLean/NestedStage2Reduction.lean)
+maps a Max-Cut instance to the rows of `A'_{G''}`, where `G''` adds a pendant
+edge from a fresh vertex (absorbing the threshold clause) and pads the vertex
+set to the input length. `maxCut_iff_stage2` proves correctness for every
+prime, and `stage2_rows_eq_A'_G` proves that the rows, read as dense rows, are
+exactly the multiset `NestedEasyHardEasy.A'_G` of that loopless graph.
+[`PhdThesisLean/NestedStage2Machine.lean`](PhdThesisLean/NestedStage2Machine.lean)
+computes the map with the two-pass machine. Its second pass reads the reversed
+input and uses `base` as a flag, so the bound `3|E| + 2 + L - K` is accumulated
+without subtraction. Composed with the library's chain and Max-Cut gadget
+reductions, whose graphs are loopless (`gadgetEdges_loopless`), this gives
+`satStage2_NPHard` and `satStage2_dataset_eq_A'_G`.
+
 The nonlinear boundary case is formalised in
 [`PhdThesisLean/PolynomialResidualHardness.lean`](PhdThesisLean/PolynomialResidualHardness.lean).
 Each clause becomes the product `V_C(x) = ∏ δ(λ; x)` of its literal-failure
