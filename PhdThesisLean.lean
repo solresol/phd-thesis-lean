@@ -124,4 +124,5 @@ import PhdThesisLean.FixedPrimeMaxCutReduction
 import PhdThesisLean.FixedPrimeMaxCutJob
 import PhdThesisLean.FixedPrimeMaxCutMachine
 import PhdThesisLean.SignedThreeSatReduction
+import PhdThesisLean.TwoPassMachine
 import PhdThesisLean.SignedThreeSatMachine
