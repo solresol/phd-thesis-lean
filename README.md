@@ -110,8 +110,15 @@ sublevel set is open and `ℚ^n` is dense, and when it is zero a rational dual
 functional shows the system is solvable over `ℚ`. The algorithm's reductions
 are checked as well: the sup norm is invariant under `GL_m(ℤ)`, clearing
 denominators preserves minimisers, and a `2 × 2` example shows the summed
-objective is not invariant. The Smith-normal-form algorithm and the
-polynomial running time of `thm:max-polytime` remain external.
+objective is not invariant.
+[`PhdThesisLean/MaxObjectiveSmith.lean`](PhdThesisLean/MaxObjectiveSmith.lean)
+proves the algorithm's formula for any Smith decomposition `UAV = S`: the
+explicit rational optimiser `β = Vγ` with `γ_i = b'_i / s_i` is a global
+minimiser, `ρ_max = max_{i>t} |b'_i|_p` over the zero rows of `S`
+(`rhoMax_smith`), and for rational data
+`ρ_max(X, y) = |D|_p⁻¹ max_{i>t} |b'_i|_p` (`rhoMax_rational_smith`). Computing
+the Smith decomposition and the polynomial running time of `thm:max-polytime`
+remain external.
 
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):

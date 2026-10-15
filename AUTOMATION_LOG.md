@@ -6871,5 +6871,12 @@
   subtraction; register bounds proved with a flag-aware invariant). Composed
   with the library's chain and gadget reductions (`gadgetEdges_loopless`).
   Headline catalogue: 28 complete, 2 partial.
-- **Best next step:** the Smith-normal-form algorithm and running time of
-  `thm:max-polytime`; `cor:all-different-csp` remains with the nightly loop.
+- **Follow-up (same day):** `MaxObjectiveSmith` proves the closed-form step of
+  `thm:max-polytime` for any Smith decomposition (optimiser, `ρ_max` over the
+  zero rows of `S`, and the rational-data formula with `|D|_p⁻¹`). The row
+  stays **Partial**: only computing the Smith decomposition and its
+  polynomial running time are external.
+- **Best next step:** a polynomial-time Smith/Hermite normal form over `ℤ`
+  with bit-size bounds would close `thm:max-polytime`; it is a substantial
+  standalone project (better placed in `lean-np-hardness` or upstream).
+  `cor:all-different-csp` remains with the nightly loop.
