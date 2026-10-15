@@ -15,7 +15,7 @@ that no statement-faithful Lean theorem is currently present.
 |---|---|---|
 | `core-theorem` | Complete | `ContactTheorem.contact_theorem`; the underlying theorem is slightly stronger. |
 | `thm:fixed-prime-hardness` | Complete | `FixedPrimeMaxCut.fixed_prime_hardness` proves the complete Max-Cut reduction for every prime over `ℚ_[p]`: `local_boolean_snapping` (`lem:local-boolean-snapping`), the forcing objective `maxCutLoss` with `M_j = d_j + 1`, Booleanity of every global minimiser (`globalMin_boolean`), existence, the characterisation of global minimisers as embeddings of maximum cuts (`isGlobalMin_iff`), the Boolean value `∑ M_j + #monochromatic`, and the optimal value `∑ M_j + |E| - maxcut`. `homogeneousLoss_maxCutRows` identifies the objective with the homogeneous summed loss of an explicit `{0,1}`-valued row family of `5|E| + 2n` rows. Edges are an arbitrary finite index type (multigraphs allowed). The complexity statement is checked end to end: `PadicRegressionLanguage` states the decision problem as a `lean-np-hardness` `EncodedLanguage` (integral rows, natural bound, unary and binary CNF-style encodings); `FixedPrimeMaxCutReduction.maxCut_iff_regression` proves for every prime that the edge-streamed variant of the reduction (one forcing pair per edge endpoint, plus a pendant edge to a fresh vertex and `K + 2` constant rows absorbing the threshold) preserves membership, with snapping over `ℚ`; `FixedPrimeMaxCutMachine.fmcR_exits` and `cost_le` give an exact TM2 run within `10⁶(n+1)²` steps; and `encodedUnaryRegression_NPHard p` / `encodedRegression_NPHard p` derive NP-hardness from the library's Cook–Levin-based `encodedUnaryMaxCut_NPHard`. |
-| `cor:affine-hardness` | Partial | `FixedPrimeMaxCut.intercept_pinning` proves `lem:intercept-pinning` for any integral instance (`L_aff(β,0) ≤ L_aff(β,c) - (T - r)‖c‖`, with `affineLoss_zero_lt` and `isGlobalMin_affine_iff` for `T ≥ r + 1`, and `affineRowLoss_pinnedRows` realising the pinning rows literally). `affine_hardness` then shows the affine minimisers of the pinned Max-Cut instance are exactly `(embed s, 0)` for maximum cuts `s`, with the same optimal value and `10|E| + 4n + 1` rows. Complexity transfer external. |
+| `cor:affine-hardness` | Complete | `FixedPrimeMaxCut.intercept_pinning` proves `lem:intercept-pinning` for any integral instance (`L_aff(β,0) ≤ L_aff(β,c) - (T - r)‖c‖`, with `affineLoss_zero_lt` and `isGlobalMin_affine_iff` for `T ≥ r + 1`, and `affineRowLoss_pinnedRows` realising the pinning rows literally). `affine_hardness` then shows the affine minimisers of the pinned Max-Cut instance are exactly `(embed s, 0)` for maximum cuts `s`, with the same optimal value and `10|E| + 4n + 1` rows. The complexity statement is checked: the rows emitted by `FixedPrimeMaxCutMachine` include `r + 1` zero rows for `r` other rows, `FixedPrimeMaxCutReduction.loss_le_affineLoss` is intercept pinning over `ℚ` for these instances, `maxCut_iff_affine` proves the reduction to `PadicRegressionLanguage.AffineRegressionLang p`, and `encodedUnaryAffineRegression_NPHard p` / `encodedAffineRegression_NPHard p` conclude NP-hardness for every prime. |
 | `thm:sparse-medoid-representation` | Complete | `SparseMedoid.sparse_medoid_representation`. |
 | `prop:medoid-robustness` | Complete | `Medoid.medoid_robustness`. |
 | `thm:threshold-coreset` | Complete | `Coreset.threshold_coreset`. |
@@ -918,11 +918,10 @@ composition includes outer row counting, binary-header staging, and framing;
 `binaryPredComputableInPolyTime` already supplies its empty- and
 singleton-safe binary countdown operation.
 
-The headline catalogue therefore contains 30 statements: 24 complete and 6
+The headline catalogue therefore contains 30 statements: 25 complete and 5
 partial, with nothing pending. Every partial row has its mathematical content
 checked and lacks only an external complexity ingredient: the NP-hardness
-transfer (`cor:affine-hardness`,
-`thm:nested-easy-hard-easy`, `cor:sudoku-polynomial-dyadic-hardness`,
+transfer (`thm:nested-easy-hard-easy`, `cor:sudoku-polynomial-dyadic-hardness`,
 `cor:signed-nphard`), the Smith-normal-form algorithm and running time
 (`thm:max-polytime`), or the remaining runtime machine composition
 (`cor:all-different-csp`). The clause-wise theorem is complete without

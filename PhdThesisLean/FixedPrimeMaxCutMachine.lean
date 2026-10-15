@@ -23,6 +23,12 @@ from the library's Cook--Levin theorem), so is summed `p`-adic regression for ev
 prime `p`, under the unary encoding (`encodedUnaryRegression_NPHard`) and, through the
 library's unary-to-binary CNF converter, under the binary encoding
 (`encodedRegression_NPHard`).
+
+The rows produced include `r + 1` zero rows, where `r` is the number of other rows. They
+cost nothing in the homogeneous model and pin the intercept in the affine model
+(`FixedPrimeMaxCutReduction.maxCut_iff_affine`), so the same machine also proves thesis
+`cor:affine-hardness` (`encodedUnaryAffineRegression_NPHard`,
+`encodedAffineRegression_NPHard`).
 -/
 
 namespace PhdThesisLean.FixedPrimeMaxCutMachine
@@ -40,14 +46,14 @@ open PhdThesisLean.FixedPrimeMaxCutJob
 def regStacks : List GStack :=
   [.work (.reg .base), .work (.reg .win), .work (.reg .w), .work (.reg .pw)]
 
-/-- One constant row `(0, 1)` per mark of `base`. -/
+/-- One constant row `(0, 1)` and one zero row per mark of `base`. -/
 def constLoop : GRoutine Sym :=
   loop (.work (.reg .base))
-    (seq (popOne (.work (.reg .base))) (pushList (.work .buf) [.endClause, .pos]))
+    (seq (popOne (.work (.reg .base))) (pushList (.work .buf) [.endClause, .endClause, .pos]))
 
-/-- The bound clause `[pw]`. -/
+/-- A final zero row and the bound clause `[pw]`. -/
 def boundEmit : GRoutine Sym :=
-  seq (pushList (.work .buf) [.pos])
+  seq (pushList (.work .buf) [.pos, .endClause])
     (seq (copyWork (.reg .pw) .buf .scratch) (pushList (.work .buf) [.endClause]))
 
 /-- The reduction routine. -/
@@ -70,15 +76,16 @@ macro "gext" : tactic =>
 
 /-! ### The two register loops -/
 
-/-- The symbols of `n` constant rows, reversed. -/
-def constSyms (n : ℕ) : List Sym := (List.replicate n [Sym.endClause, Sym.pos]).flatten
+/-- The symbols of `n` constant blocks, reversed. -/
+def constSyms (n : ℕ) : List Sym :=
+  (List.replicate n [Sym.endClause, Sym.endClause, Sym.pos]).flatten
 
 theorem constLoop_exits (J : List Instr) (B : List Sym) (R : Regs) :
     constLoop.Exits (interpStacks E J B R) (3 * R .base + 1)
       (interpStacks E J (constSyms (R .base) ++ B) (Function.update R .base 0)) := by
   set n := R .base with hn
   have key := loop_exits (Γ := GAlphabet Sym) (.work (.reg .base))
-    (seq (popOne (.work (.reg .base))) (pushList (.work .buf) [.endClause, .pos])) n
+    (seq (popOne (.work (.reg .base))) (pushList (.work .buf) [.endClause, .endClause, .pos])) n
     (fun i => interpStacks E J (constSyms i ++ B) (Function.update R .base (n - i)))
     (fun _ => 2) ?_ ?_ ?_
   · have hsteps : loopSteps (fun _ => 2) n = 3 * n + 1 := by
@@ -97,10 +104,11 @@ theorem constLoop_exits (J : List Instr) (B : List Sym) (R : Regs) :
         (.work (.reg .base))).tail = marks (n - (i + 1)) := by
       simp only [interpStacks_reg, Function.update_self, marks, List.tail_replicate, Nat.sub_sub]
     rw [h1, interpStacks_update_reg, Function.update_idem] at s1
-    have s2 := pushList_exits (Γ := GAlphabet Sym) (.work .buf) [.endClause, .pos]
+    have s2 := pushList_exits (Γ := GAlphabet Sym) (.work .buf) [.endClause, .endClause, .pos]
       (interpStacks E J (constSyms i ++ B) (Function.update R .base (n - (i + 1))))
     rw [interpStacks_buf, interpStacks_update_buf] at s2
-    have hc : [Sym.endClause, Sym.pos] ++ (constSyms i ++ B) = constSyms (i + 1) ++ B := by
+    have hc : [Sym.endClause, Sym.endClause, Sym.pos] ++ (constSyms i ++ B) =
+        constSyms (i + 1) ++ B := by
       simp [constSyms, List.replicate_succ]
     rw [hc] at s2
     exact seq_exits _ _ s1 s2
@@ -111,14 +119,15 @@ theorem constLoop_exits (J : List Instr) (B : List Sym) (R : Regs) :
 
 theorem boundEmit_exits (J : List Instr) (B : List Sym) (R : Regs) :
     boundEmit.Exits (interpStacks E J B R) (4 * R .pw + 4)
-      (interpStacks E J ((.endClause :: marks (R .pw)) ++ (.pos :: B)) R) := by
-  have s1 := pushList_exits (Γ := GAlphabet Sym) (.work .buf) [.pos] (interpStacks E J B R)
+      (interpStacks E J ((.endClause :: marks (R .pw)) ++ (.pos :: .endClause :: B)) R) := by
+  have s1 := pushList_exits (Γ := GAlphabet Sym) (.work .buf) [.pos, .endClause]
+    (interpStacks E J B R)
   rw [interpStacks_buf, interpStacks_update_buf] at s1
   have s2 := copyWork_exits (Γx := Sym) (.reg .pw) .buf .scratch (by decide) (by decide)
-    (by decide) (interpStacks E J ([.pos] ++ B) R) (by simp [E, emitStacks])
+    (by decide) (interpStacks E J ([.pos, .endClause] ++ B) R) (by simp [E, emitStacks])
   rw [interpStacks_reg, interpStacks_buf, interpStacks_update_buf, marks_length] at s2
   have s3 := pushList_exits (Γ := GAlphabet Sym) (.work .buf) [.endClause]
-    (interpStacks E J (marks (R .pw) ++ ([.pos] ++ B)) R)
+    (interpStacks E J (marks (R .pw) ++ ([.pos, .endClause] ++ B)) R)
   rw [interpStacks_buf, interpStacks_update_buf] at s3
   have := seq_exits _ _ s1 (seq_exits _ _ s2 s3)
   rw [show 1 + (4 * R .pw + 2 + 1) = 4 * R .pw + 4 by ring] at this
@@ -135,26 +144,26 @@ theorem push_reg (J : List Instr) (B : List Sym) (R : Regs) (r : RegName) :
 
 /-- The rows emitted by the job. -/
 def jobRows (G : List Edge) (K : ℕ) : List Row :=
-  G.flatMap (fun e => edgeRows (e.1 + 2) (e.2 + 2)) ++ edgeRows 1 (K + 2)
+  G.flatMap (fun e => edgeBlock (e.1 + 2) (e.2 + 2)) ++ edgeBlock 1 (K + 2)
 
 /-- The bound of the produced instance. -/
 def bound (G : List Edge) : ℕ := 3 * G.length + 4
 
 theorem output_eq (G : List Edge) (K : ℕ) :
-    ((Sym.endClause :: marks (bound G)) ++ (Sym.pos :: (constSyms (K + 2) ++
+    ((Sym.endClause :: marks (bound G)) ++ (Sym.pos :: Sym.endClause :: (constSyms (K + 2) ++
       (encode (jobRows G K)).reverse))).reverse =
       PadicRegressionLanguage.unaryEncoding.encode (reduce (G, K)) := by
-  have hc : ∀ n, (constSyms n).reverse = encode (List.replicate n constRow) := by
+  have hc : ∀ n, (constSyms n).reverse = encode (List.replicate n constBlock).flatten := by
     intro n
     induction n with
     | zero => rfl
     | succ n ih =>
         rw [constSyms, List.replicate_succ, List.flatten_cons, List.reverse_append, ← constSyms,
-          ih, List.replicate_succ', encode_append]
-        simp [constRow, encode, encodeClause, encodeLiteral]
+          ih, List.replicate_succ', List.flatten_append, encode_append]
+        simp [constBlock, constRow, zeros, encode, encodeClause, encodeLiteral]
   simp only [PadicRegressionLanguage.unaryEncoding, reduce, reduceRows, instanceFormula,
     List.reverse_cons, List.reverse_append, hc, jobRows, encode_append, List.reverse_reverse]
-  simp [encode, encodeClause, encodeLiteral, marks, List.append_assoc, bound]
+  simp [encode, encodeClause, encodeLiteral, marks, List.append_assoc, bound, zeros]
 
 /-- Exact steps of the reduction routine. -/
 def cost (G : List Edge) (K : ℕ) : ℕ :=
@@ -207,7 +216,7 @@ theorem fmcR_exits (G : List Edge) (K : ℕ) :
     (FixedPrimeMaxCutJob.regs 0 1 (bound G))
   simp only [FixedPrimeMaxCutJob.regs_pw] at s8
   set S₈ := interpStacks E [] ((Sym.endClause :: marks (bound G)) ++
-    (Sym.pos :: (constSyms (K + 2) ++ (encode (jobRows G K)).reverse)))
+    (Sym.pos :: Sym.endClause :: (constSyms (K + 2) ++ (encode (jobRows G K)).reverse)))
     (FixedPrimeMaxCutJob.regs 0 1 (bound G)) with hS₈
   have s9 := drainAll_exits regStacks S₈
   have hcost9 : drainAllCost regStacks S₈ =
@@ -252,15 +261,15 @@ theorem input_length_ge (G : List Edge) (K : ℕ) :
 theorem output_length_le (G : List Edge) (K : ℕ) :
     (PadicRegressionLanguage.unaryEncoding.encode (reduce (G, K))).length ≤
       (3 * (encode (graphFormula G K)).length + 10 + 1) *
-        (FixedPrimeMaxCutJob.job (encode (graphFormula G K))).length + 2 * (K + 2) +
-          (bound G + 2) := by
+        (FixedPrimeMaxCutJob.job (encode (graphFormula G K))).length + 3 * (K + 2) +
+          (bound G + 3) := by
   rw [← output_eq]
   have h := render_fst_length_le _ _ (prefixLE_job (encode (graphFormula G K)))
   rw [render_job] at h
   simp only at h
   simp [constSyms, marks]
   rw [show (encode (jobRows G K)).length =
-    (encode (G.flatMap (fun e => edgeRows (e.1 + 2) (e.2 + 2)) ++ edgeRows 1 (K + 2))).length
+    (encode (G.flatMap (fun e => edgeBlock (e.1 + 2) (e.2 + 2)) ++ edgeBlock 1 (K + 2))).length
     from rfl]
   omega
 
@@ -268,7 +277,7 @@ theorem cost_le (G : List Edge) (K : ℕ) :
     cost G K ≤ 1000000 * ((encode (graphFormula G K)).length + 1) ^ 2 := by
   set n := (encode (graphFormula G K)).length with hn
   set L := (FixedPrimeMaxCutJob.job (encode (graphFormula G K))).length with hL
-  have hLn : L ≤ 30 * n := job_length_le _
+  have hLn : L ≤ 40 * n := job_length_le _
   have hint := interpSteps_le _ _ (prefixLE_job (encode (graphFormula G K)))
   have hout := output_length_le G K
   have hin := input_length_ge G K
@@ -276,9 +285,9 @@ theorem cost_le (G : List Edge) (K : ℕ) :
   rw [← hn, ← hL] at hout
   simp only [cost, bound] at hout ⊢
   rw [← hn, ← hL]
-  have hA : (4 * (3 * n + 10) + 4) * L ≤ (12 * n + 44) * (30 * n) :=
+  have hA : (4 * (3 * n + 10) + 4) * L ≤ (12 * n + 44) * (40 * n) :=
     Nat.mul_le_mul (by omega) hLn
-  have hB : (3 * n + 10 + 1) * L ≤ (3 * n + 10 + 1) * (30 * n) := Nat.mul_le_mul le_rfl hLn
+  have hB : (3 * n + 10 + 1) * L ≤ (3 * n + 10 + 1) * (40 * n) := Nat.mul_le_mul le_rfl hLn
   nlinarith
 
 /-- The time polynomial of the reduction machine. -/
@@ -354,7 +363,39 @@ this is the published Theorem `thm:main`. -/
 theorem encodedRegression_NPHard (p : ℕ) [Fact p.Prime] : (encodedRegression p).NPHard :=
   EncodedLanguage.NPHard.of_reduction (binaryReduction p) (encodedUnaryRegression_NPHard p)
 
+/-! ### The affine model -/
+
+/-- The same machine reduces unary Max-Cut to affine summed `p`-adic regression: the
+zero rows it emits pin the intercept. -/
+noncomputable def affineReduction (p : ℕ) [Fact p.Prime] :
+    encodedUnaryMaxCut.PolytimeReducesTo (encodedUnaryAffineRegression p) where
+  map := reduce
+  correct x := maxCut_iff_affine x
+  polytime := ⟨computableInPolyTime⟩
+
+/-- **Thesis `cor:affine-hardness`, complexity form.** For every prime `p`, affine
+summed `p`-adic linear regression with integral data is NP-hard under the unary-index
+encoding. -/
+theorem encodedUnaryAffineRegression_NPHard (p : ℕ) [Fact p.Prime] :
+    (encodedUnaryAffineRegression p).NPHard :=
+  EncodedLanguage.NPHard.of_reduction (affineReduction p) MaxCutMachine.encodedUnaryMaxCut_NPHard
+
+/-- Unary affine regression reduces to binary affine regression by re-encoding. -/
+noncomputable def binaryAffineReduction (p : ℕ) :
+    (encodedUnaryAffineRegression p).PolytimeReducesTo (encodedAffineRegression p) where
+  map := id
+  correct _ := Iff.rfl
+  polytime := ⟨binaryComputable⟩
+
+/-- **Thesis `cor:affine-hardness`, binary encoding.** -/
+theorem encodedAffineRegression_NPHard (p : ℕ) [Fact p.Prime] :
+    (encodedAffineRegression p).NPHard :=
+  EncodedLanguage.NPHard.of_reduction (binaryAffineReduction p)
+    (encodedUnaryAffineRegression_NPHard p)
+
 end PhdThesisLean.FixedPrimeMaxCutMachine
 
 #print axioms PhdThesisLean.FixedPrimeMaxCutMachine.encodedUnaryRegression_NPHard
 #print axioms PhdThesisLean.FixedPrimeMaxCutMachine.encodedRegression_NPHard
+#print axioms PhdThesisLean.FixedPrimeMaxCutMachine.encodedUnaryAffineRegression_NPHard
+#print axioms PhdThesisLean.FixedPrimeMaxCutMachine.encodedAffineRegression_NPHard

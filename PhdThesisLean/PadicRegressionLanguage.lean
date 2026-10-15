@@ -21,7 +21,8 @@ So every integral row `(x, y)` with finitely many nonzero coordinates is represe
 (repeating a term gives larger integers), and `residual β r = x ⬝ β - y`. The instance
 is accepted when some `β : ℕ → ℚ` has summed `p`-adic loss at most `T`
 (`RegressionLang`). Only finitely many coordinates of `β` occur in an instance, so this
-is the thesis's quantification over `β ∈ ℚ^n`.
+is the thesis's quantification over `β ∈ ℚ^n`. `AffineRegressionLang` is the same
+problem for the affine model `x ↦ x ⬝ β + c` with an intercept `c ∈ ℚ`.
 
 ## Encodings
 
@@ -66,6 +67,24 @@ def loss (p : ℕ) (β : ℕ → ℚ) (rows : List Row) : ℚ :=
 /-- The decision problem: some `β` has summed `p`-adic loss at most the bound. -/
 def RegressionLang (p : ℕ) : Language (List Row × ℕ) :=
   fun x => ∃ β : ℕ → ℚ, loss p β x.1 ≤ x.2
+
+/-- The summed `p`-adic loss of the affine model `x ↦ x ⬝ β + c` of the thesis's central
+chapters. -/
+def affineLoss (p : ℕ) (β : ℕ → ℚ) (c : ℚ) (rows : List Row) : ℚ :=
+  (rows.map fun r => padicNorm p (residual β r + c)).sum
+
+/-- The affine decision problem: some `β` and intercept `c` have summed `p`-adic loss at
+most the bound. -/
+def AffineRegressionLang (p : ℕ) : Language (List Row × ℕ) :=
+  fun x => ∃ (β : ℕ → ℚ) (c : ℚ), affineLoss p β c x.1 ≤ x.2
+
+theorem affineLoss_zero (p : ℕ) (β : ℕ → ℚ) (rows : List Row) :
+    affineLoss p β 0 rows = loss p β rows := by
+  simp [affineLoss, loss]
+
+theorem affineLoss_append (p : ℕ) (β : ℕ → ℚ) (c : ℚ) (A B : List Row) :
+    affineLoss p β c (A ++ B) = affineLoss p β c A + affineLoss p β c B := by
+  simp [affineLoss, List.map_append, List.sum_append]
 
 theorem loss_nil (p : ℕ) (β : ℕ → ℚ) : loss p β [] = 0 := rfl
 
@@ -132,5 +151,15 @@ def encodedUnaryRegression (p : ℕ) : EncodedLanguage (List Row × ℕ) where
 def encodedRegression (p : ℕ) : EncodedLanguage (List Row × ℕ) where
   encoding := binaryEncoding
   accepts := RegressionLang p
+
+/-- Affine summed `p`-adic regression with the unary-index encoding. -/
+def encodedUnaryAffineRegression (p : ℕ) : EncodedLanguage (List Row × ℕ) where
+  encoding := unaryEncoding
+  accepts := AffineRegressionLang p
+
+/-- Affine summed `p`-adic regression with the binary encoding. -/
+def encodedAffineRegression (p : ℕ) : EncodedLanguage (List Row × ℕ) where
+  encoding := binaryEncoding
+  accepts := AffineRegressionLang p
 
 end PhdThesisLean.PadicRegressionLanguage

@@ -27,7 +27,10 @@ edge between `z` and the vertex `K`, then `K + 2` constant rows `(0, 1)`, with b
 `3|E| + 4`. The pendant edge and the constant rows let a streaming machine handle the
 threshold clause of the input like an edge clause: `z` occurs nowhere else, so the
 pendant edge raises the maximum cut by exactly one, and each constant row costs exactly
-one.
+one. Every block of rows is followed by as many zero rows `(0, 0)`, and one further zero
+row ends the list, so there are `r + 1` zero rows for `r` other rows: these cost nothing
+in the homogeneous model and pin the intercept in the affine model, as in the thesis's
+proof of `cor:affine-hardness`.
 
 ## Correctness
 
@@ -38,6 +41,9 @@ one.
 * At Boolean points an edge gadget costs `3` minus its cut indicator (`edgeLoss_bool`).
 * Hence the instance is accepted iff some cut of `G` has at least `K` edges
   (`maxCut_iff_regression`), for every prime `p`.
+* `loss_le_affineLoss` is thesis `lem:intercept-pinning` for these instances: no
+  intercept beats the intercept `0`, so the same map is also a reduction to the affine
+  model (`maxCut_iff_affine`, thesis `cor:affine-hardness`).
 -/
 
 namespace PhdThesisLean.FixedPrimeMaxCutReduction
@@ -55,10 +61,22 @@ def edgeRows (a b : ℕ) : List Row :=
 /-- The constant row `(0, 1)`, whose residual is `-1`. -/
 def constRow : Row := [.positive 0]
 
-/-- The rows of the instance produced from `(G, K)`. -/
+/-- `n` zero rows `(0, 0)`. Their residual is `0`, so they cost nothing in the
+homogeneous model and pin the intercept in the affine model. -/
+def zeros (n : ℕ) : List Row := List.replicate n []
+
+/-- The five rows of an edge followed by five zero rows. -/
+def edgeBlock (a b : ℕ) : List Row := edgeRows a b ++ zeros 5
+
+/-- A constant row followed by a zero row. -/
+def constBlock : List Row := constRow :: zeros 1
+
+/-- The rows of the instance produced from `(G, K)`: the gadget rows of every edge, of
+the pendant edge and `K + 2` constant rows, each followed by as many zero rows, and one
+further zero row. -/
 def reduceRows (G : List Edge) (K : ℕ) : List Row :=
-  G.flatMap (fun e => edgeRows (e.1 + 2) (e.2 + 2)) ++ edgeRows 1 (K + 2) ++
-    List.replicate (K + 2) constRow
+  G.flatMap (fun e => edgeBlock (e.1 + 2) (e.2 + 2)) ++ edgeBlock 1 (K + 2) ++
+    (List.replicate (K + 2) constBlock).flatten ++ zeros 1
 
 /-- The reduction from Max-Cut to summed `p`-adic regression. -/
 def reduce (x : List Edge × ℕ) : List Row × ℕ :=
@@ -80,10 +98,23 @@ theorem loss_edgeRows (β : ℕ → ℚ) (a b : ℕ) :
     List.sum_nil, term, edgeLoss, U]
   ring_nf
 
-theorem loss_constRows (β : ℕ → ℚ) (n : ℕ) :
-    loss p β (List.replicate n constRow) = n := by
-  rw [loss_replicate]
-  simp [constRow, residual, term]
+theorem loss_zeros (β : ℕ → ℚ) (n : ℕ) : loss p β (zeros n) = 0 := by
+  rw [zeros, loss_replicate]
+  simp [residual]
+
+theorem loss_edgeBlock (β : ℕ → ℚ) (a b : ℕ) :
+    loss p β (edgeBlock (a + 1) (b + 1)) = edgeLoss p (β a) (β b) := by
+  rw [edgeBlock, loss_append, loss_edgeRows, loss_zeros, add_zero]
+
+theorem loss_constBlocks (β : ℕ → ℚ) (n : ℕ) :
+    loss p β (List.replicate n constBlock).flatten = n := by
+  induction n with
+  | zero => simp [loss_nil]
+  | succ n ih =>
+      rw [List.replicate_succ, List.flatten_cons, loss_append, ih, constBlock,
+        show constRow :: zeros 1 = [constRow] ++ zeros 1 from rfl, loss_append, loss_zeros]
+      simp [loss_cons, loss_nil, constRow, residual, term]
+      ring
 
 /-! ### Snapping over `ℚ` -/
 
@@ -156,11 +187,12 @@ theorem loss_reduceRows (β : ℕ → ℚ) (G : List Edge) (K : ℕ) :
     loss p β (reduceRows G K) =
       (G.map fun e => edgeLoss p (β (e.1 + 1)) (β (e.2 + 1))).sum +
         edgeLoss p (β 0) (β (K + 1)) + (K + 2) := by
-  rw [reduceRows, loss_append, loss_append, loss_flatMap, loss_constRows]
-  have h1 : ∀ e : Edge, loss p β (edgeRows (e.1 + 2) (e.2 + 2)) =
-      edgeLoss p (β (e.1 + 1)) (β (e.2 + 1)) := fun e => loss_edgeRows β (e.1 + 1) (e.2 + 1)
-  have h2 : loss p β (edgeRows 1 (K + 2)) = edgeLoss p (β 0) (β (K + 1)) :=
-    loss_edgeRows β 0 (K + 1)
+  rw [reduceRows, loss_append, loss_append, loss_append, loss_flatMap, loss_constBlocks,
+    loss_zeros]
+  have h1 : ∀ e : Edge, loss p β (edgeBlock (e.1 + 2) (e.2 + 2)) =
+      edgeLoss p (β (e.1 + 1)) (β (e.2 + 1)) := fun e => loss_edgeBlock β (e.1 + 1) (e.2 + 1)
+  have h2 : loss p β (edgeBlock 1 (K + 2)) = edgeLoss p (β 0) (β (K + 1)) :=
+    loss_edgeBlock β 0 (K + 1)
   simp only [h1, h2]
   push_cast
   ring
@@ -237,6 +269,81 @@ theorem maxCut_iff_regression [Fact p.Prime] (x : List Edge × ℕ) :
       linarith
     exact_mod_cast this
 
+/-! ### The affine model: intercept pinning -/
+
+theorem padicNorm_le_add [Fact p.Prime] (r c : ℚ) :
+    padicNorm p r ≤ padicNorm p (r + c) + padicNorm p c := by
+  have := padicNorm.triangle_ineq (p := p) (r + c) (-c)
+  rwa [padicNorm.neg, add_neg_cancel_right] at this
+
+theorem affineLoss_zeros (β : ℕ → ℚ) (c : ℚ) (n : ℕ) :
+    affineLoss p β c (zeros n) = n * padicNorm p c := by
+  induction n with
+  | zero => simp [zeros, affineLoss]
+  | succ n ih =>
+      rw [zeros, List.replicate_succ', ← zeros, affineLoss_append, ih]
+      simp [affineLoss, residual]
+      ring
+
+/-- Thesis `lem:intercept-pinning` over `ℚ`, for a block of rows followed by as many
+zero rows: dropping the intercept does not increase the loss. -/
+theorem loss_le_affineLoss_pinned [Fact p.Prime] (β : ℕ → ℚ) (c : ℚ) (A : List Row) :
+    loss p β (A ++ zeros A.length) ≤ affineLoss p β c (A ++ zeros A.length) := by
+  rw [loss_append, loss_zeros, affineLoss_append, affineLoss_zeros, add_zero]
+  induction A with
+  | nil => simp [loss_nil, affineLoss]
+  | cons r A ih =>
+      have := padicNorm_le_add (p := p) (residual β r) c
+      simp only [loss_cons, affineLoss, List.map_cons, List.sum_cons, List.length_cons] at ih ⊢
+      push_cast
+      linarith
+
+theorem loss_le_affineLoss_flatMap {α : Type} (β : ℕ → ℚ) (c : ℚ) (f : α → List Row)
+    (h : ∀ a, loss p β (f a) ≤ affineLoss p β c (f a)) (L : List α) :
+    loss p β (L.flatMap f) ≤ affineLoss p β c (L.flatMap f) := by
+  induction L with
+  | nil => simp [loss_nil, affineLoss]
+  | cons a L ih =>
+      rw [List.flatMap_cons, loss_append, affineLoss_append]
+      exact add_le_add (h a) ih
+
+/-- For the instance produced by the reduction, every intercept is no better than the
+intercept `0`. -/
+theorem loss_le_affineLoss [Fact p.Prime] (β : ℕ → ℚ) (c : ℚ) (G : List Edge) (K : ℕ) :
+    loss p β (reduceRows G K) ≤ affineLoss p β c (reduceRows G K) := by
+  have hE : ∀ a b, loss p β (edgeBlock a b) ≤ affineLoss p β c (edgeBlock a b) :=
+    fun a b => loss_le_affineLoss_pinned β c (edgeRows a b)
+  have hC : loss p β constBlock ≤ affineLoss p β c constBlock :=
+    loss_le_affineLoss_pinned β c [constRow]
+  have hCs : ∀ n, loss p β (List.replicate n constBlock).flatten ≤
+      affineLoss p β c (List.replicate n constBlock).flatten := by
+    intro n
+    induction n with
+    | zero => simp [loss_nil, affineLoss]
+    | succ n ih =>
+        rw [List.replicate_succ, List.flatten_cons, loss_append, affineLoss_append]
+        exact add_le_add hC ih
+  have hZ : loss p β (zeros 1) ≤ affineLoss p β c (zeros 1) := by
+    rw [loss_zeros, affineLoss_zeros, Nat.cast_one, one_mul]
+    exact padicNorm.nonneg c
+  rw [reduceRows, loss_append, loss_append, loss_append, affineLoss_append, affineLoss_append,
+    affineLoss_append]
+  have hG := loss_le_affineLoss_flatMap β c (fun e : Edge => edgeBlock (e.1 + 2) (e.2 + 2))
+    (fun e => hE _ _) G
+  linarith [hE 1 (K + 2), hCs (K + 2)]
+
+/-- **Thesis `cor:affine-hardness`, semantic form.** The same reduction preserves
+membership for the affine model: the intercept is pinned to `0` by the zero rows. -/
+theorem maxCut_iff_affine [Fact p.Prime] (x : List Edge × ℕ) :
+    MaxCutLang x ↔ AffineRegressionLang p (reduce x) := by
+  rw [maxCut_iff_regression (p := p)]
+  constructor
+  · rintro ⟨β, hβ⟩
+    exact ⟨β, 0, by rwa [affineLoss_zero]⟩
+  · rintro ⟨β, c, hβ⟩
+    exact ⟨β, le_trans (loss_le_affineLoss β c x.1 x.2) hβ⟩
+
 end PhdThesisLean.FixedPrimeMaxCutReduction
 
 #print axioms PhdThesisLean.FixedPrimeMaxCutReduction.maxCut_iff_regression
+#print axioms PhdThesisLean.FixedPrimeMaxCutReduction.maxCut_iff_affine

@@ -1380,7 +1380,11 @@ adds two register loops for the constant rows and the bound, proves the exact
 TM2 run `fmcR_exits` within `10⁶(n+1)²` steps, and concludes
 `encodedUnaryRegression_NPHard p` and `encodedRegression_NPHard p` from the
 library's Cook–Levin-based `encodedUnaryMaxCut_NPHard`. At `p = 2` this is the
-NP-hardness claim of the published `thm:main`.
+NP-hardness claim of the published `thm:main`. The emitted rows also include
+`r + 1` zero rows for `r` other rows; they cost nothing in the homogeneous model
+and pin the intercept in the affine model (`loss_le_affineLoss`,
+`maxCut_iff_affine`), so the same machine proves `cor:affine-hardness`
+(`encodedUnaryAffineRegression_NPHard p`, `encodedAffineRegression_NPHard p`).
 
 The nonlinear boundary case is formalised in
 [`PhdThesisLean/PolynomialResidualHardness.lean`](PhdThesisLean/PolynomialResidualHardness.lean).

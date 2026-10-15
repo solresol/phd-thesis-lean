@@ -6838,7 +6838,12 @@
 - **Verification:** each module passes `lake env lean` warning-free; the two
   hardness theorems depend only on `propext`, `Classical.choice`, `Quot.sound`;
   full `lake build` passes.
-- **Best next step:** `cor:affine-hardness` (append `r + 1` zero rows and use
-  intercept pinning over `ℚ`), then the 3-SAT compilers of
-  `cor:signed-nphard` and `cor:sudoku-polynomial-dyadic-hardness` against the
-  library's unary exact 3-SAT.
+- **Follow-up (same day):** the reduction now emits `r + 1` zero rows (five
+  per edge block, one per constant row, one final). They cost nothing
+  homogeneously and pin the intercept affinely, so `maxCut_iff_affine` and
+  `encodedUnaryAffineRegression_NPHard` / `encodedAffineRegression_NPHard`
+  complete `cor:affine-hardness` with the same machine. Headline catalogue:
+  25 complete, 5 partial.
+- **Best next step:** the 3-SAT compilers of `cor:signed-nphard` and
+  `cor:sudoku-polynomial-dyadic-hardness` against the library's unary exact
+  3-SAT, and the per-vertex map `G ↦ A'_G` of `thm:nested-easy-hard-easy`.

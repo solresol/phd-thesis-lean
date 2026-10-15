@@ -15,12 +15,13 @@ vertex `x` has literal index `x + 2`; `base` holds the previous number of the cl
 
 * A sign symbol moves `win` to `base` and restarts `win` at `2`.
 * A mark increments `win`.
-* A clause end emits `edgeRows base win`, adds `3` to `pw`, moves `win` to `base`, and
-  restarts `win` at `1`, the index of the fresh vertex `z`.
+* A clause end emits `edgeBlock base win` (the five edge rows and five zero rows), adds
+  `3` to `pw`, moves `win` to `base`, and restarts `win` at `1`, the index of the fresh
+  vertex `z`.
 
-An edge clause `u, v` therefore emits `edgeRows (u + 2) (v + 2)`. The final threshold
+An edge clause `u, v` therefore emits `edgeBlock (u + 2) (v + 2)`. The final threshold
 clause `K` has a single number, so `base` is still `1` at its end and it emits
-`edgeRows 1 (K + 2)`: the pendant edge of `FixedPrimeMaxCutReduction.reduceRows`. After
+`edgeBlock 1 (K + 2)`: the pendant edge of `FixedPrimeMaxCutReduction.reduceRows`. After
 the job, `base` holds `K + 2` and `pw` holds `3|E| + 4` (`render_job`); the machine
 emits the constant rows and the bound from these two registers.
 
@@ -36,13 +37,15 @@ open PhdThesisLean.PadicRegressionLanguage PhdThesisLean.FixedPrimeMaxCutReducti
 
 /-! ### The job -/
 
-/-- The rows of the edge between the literal indices held by `base` and `win`. -/
+/-- The rows of the edge between the literal indices held by `base` and `win`, followed
+by five zero rows. -/
 def rowsJob : List Instr :=
   [.lit true, .reg .base, .endClause,
     .lit true, .reg .base, .lit true, .endClause,
     .lit true, .reg .win, .endClause,
     .lit true, .reg .win, .lit true, .endClause,
-    .lit true, .reg .base, .lit true, .reg .win, .lit true, .endClause]
+    .lit true, .reg .base, .lit true, .reg .win, .lit true, .endClause,
+    .endClause, .endClause, .endClause, .endClause, .endClause]
 
 /-- Move `win` to `base` and empty `win`. -/
 def shift : List Instr := [.clear .base, .addTo .base .win, .clear .win]
@@ -86,8 +89,9 @@ def initRegs : Regs := regs 0 1 1
 /-! ### Rendering -/
 
 theorem render_rowsJob (b i k : ℕ) :
-    render (regs b i k) rowsJob = (encode (edgeRows b i), regs b i k) := by
-  simp [rowsJob, render, renderInstr, edgeRows, encode, encodeClause, encodeLiteral]
+    render (regs b i k) rowsJob = (encode (edgeBlock b i), regs b i k) := by
+  simp [rowsJob, render, renderInstr, edgeBlock, edgeRows, zeros, encode, encodeClause,
+    encodeLiteral]
 
 theorem render_incr_regs (b i k : ℕ) (r : RegName) (hr : r ≠ .w) (n : ℕ) :
     render (regs b i k) (incr r n) =
@@ -108,7 +112,7 @@ theorem render_pos (b i k : ℕ) : render (regs b i k) (job [.pos]) = ([], regs 
   simpa [job, chunk] using render_shift_incr b i k 2
 
 theorem render_end (b i k : ℕ) :
-    render (regs b i k) (job [.endClause]) = (encode (edgeRows b i), regs i 1 (k + 3)) := by
+    render (regs b i k) (job [.endClause]) = (encode (edgeBlock b i), regs i 1 (k + 3)) := by
   have hj : job [.endClause] = rowsJob ++ (incr .pw 3 ++ (shift ++ incr .win 1)) := by
     simp [job, chunk]
   rw [hj, render_append, render_rowsJob]
@@ -142,7 +146,7 @@ theorem render_epos (b i k u : ℕ) :
 
 theorem render_edge (b k : ℕ) (e : Edge) :
     render (regs b 1 k) (job (edgeSyms e)) =
-      (encode (edgeRows (e.1 + 2) (e.2 + 2)), regs (e.2 + 2) 1 (k + 3)) := by
+      (encode (edgeBlock (e.1 + 2) (e.2 + 2)), regs (e.2 + 2) 1 (k + 3)) := by
   rw [edgeSyms, job_append, job_append, render_append, render_append, render_epos]
   simp only [List.nil_append]
   rw [render_epos, render_end]
@@ -150,7 +154,8 @@ theorem render_edge (b k : ℕ) (e : Edge) :
 
 theorem render_edges (G : List Edge) : ∀ b k, ∃ b',
     render (regs b 1 k) (job (G.flatMap edgeSyms)) =
-      (encode (G.flatMap fun e => edgeRows (e.1 + 2) (e.2 + 2)), regs b' 1 (k + 3 * G.length)) := by
+      (encode (G.flatMap fun e => edgeBlock (e.1 + 2) (e.2 + 2)),
+        regs b' 1 (k + 3 * G.length)) := by
   induction G with
   | nil => intro b k; exact ⟨b, by simp [job, render, encode]⟩
   | cons e G ih =>
@@ -170,7 +175,7 @@ theorem render_edges (G : List Edge) : ∀ b k, ∃ b',
 holds `K + 2` and `pw` holds `3|E| + 4`. -/
 theorem render_job (G : List Edge) (K : ℕ) :
     render initRegs (job (encode (graphFormula G K))) =
-      (encode (G.flatMap (fun e => edgeRows (e.1 + 2) (e.2 + 2)) ++ edgeRows 1 (K + 2)),
+      (encode (G.flatMap (fun e => edgeBlock (e.1 + 2) (e.2 + 2)) ++ edgeBlock 1 (K + 2)),
         regs (K + 2) 1 (3 * G.length + 4)) := by
   obtain ⟨b', hb'⟩ := render_edges G 0 1
   rw [encode_edges, List.append_assoc, job_append, job_append, render_append, initRegs, hb']
@@ -275,10 +280,10 @@ theorem prefixLE_job (L : List Sym) : PrefixLE (3 * L.length + 10) initRegs (job
   (job_bounds L (c := 2) (d := 1) ⟨0, 1, 1, rfl, by omega, by omega, le_rfl⟩ le_rfl
     (by omega) (by omega)).1
 
-theorem chunk_length_le (s : Sym) : (chunk s).length ≤ 30 := by
+theorem chunk_length_le (s : Sym) : (chunk s).length ≤ 40 := by
   cases s <;> simp [chunk, rowsJob, shift, incr]
 
-theorem job_length_le (L : List Sym) : (job L).length ≤ 30 * L.length := by
+theorem job_length_le (L : List Sym) : (job L).length ≤ 40 * L.length := by
   induction L with
   | nil => simp [job]
   | cons s L ih =>
