@@ -13,17 +13,19 @@ builds one interpreter job in two passes.
 * The first pass reads the input with a caller-supplied chunk function `ch1` and keeps a
   reversed copy of the input on the `xkeep` stack (`loopKeepInput`).
 * A separator closes the last clause opened by the first pass.
-* The second pass reads the reversed copy (`loopKeep`) with the fixed chunk function
-  `chunk2`: the marks of each literal now arrive before its sign symbol, so `win`
+* The second pass reads the reversed copy (`loopKeep`), so the marks of each literal
+  arrive before its sign symbol. With the standard chunk function `chunk2`, `win`
   counts the literal index and the sign symbol emits the forcing pair on it
   (`render_pass2`, which renders `SignedThreeSatReduction.occurrenceRows`).
 * A fixed suffix emits the bound clause from `pw`.
 
-`R_exits` is the exact run from the input alone to the rendered job alone, for any
-first-pass chunk function whose job is valid, and `cost_le` bounds the run by
-`10⁶ (n + 1)²` whenever the registers stay at most `8n + 20` and the job has length at
-most `30n + 5`; `prefixLE_job` and `job_length_le` discharge these from per-chunk
-facts. `outputsInTime` packages the bounded run for `TM2ComputableInPolyTime`.
+The prefix, first-pass chunks, separator and second-pass chunks are parameters;
+`chunk2` with the separator `[.endClause]` is the standard second pass. `R_exits` is
+the exact run from the input alone to the rendered job alone, for any valid job, and
+`cost_le` bounds the run by `10⁶ (n + 1)²` whenever the registers stay at most
+`20n + 40` and the job has length at most `60n + 15`; `prefixLE_job` and
+`job_length_le` discharge these from per-block facts (`BlockBounded`, `ChunkBounded`).
+`outputsInTime` packages the bounded run for `TM2ComputableInPolyTime`.
 -/
 
 namespace PhdThesisLean.TwoPassMachine
@@ -65,8 +67,9 @@ def suffix : List Instr := [.lit true, .reg .pw, .endClause]
 
 /-- The whole job of an input: prefix, first pass, separator, second pass on the
 reversed input, bound clause. -/
-def job (pre : List Instr) (ch1 : Sym → List Instr) (x : List Sym) : List Instr :=
-  pre ++ jobOf ch1 x ++ [.endClause] ++ jobOf chunk2 x.reverse ++ suffix
+def job (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr) (ch2 : Sym → List Instr)
+    (x : List Sym) : List Instr :=
+  pre ++ jobOf ch1 x ++ sep ++ jobOf ch2 x.reverse ++ suffix
 
 /-! ### Rendering the second pass -/
 
@@ -144,9 +147,18 @@ theorem render_pass2 (k : ℕ) (F : Formula ℕ) :
 
 /-! ### Register bounds -/
 
-theorem chunk2_bounds (s : Sym) {M c d : ℕ} {R : Regs} (h : Bounded c d R) (_hc : 2 ≤ c)
-    (hcM : c + 1 ≤ M) (hdM : d + 3 ≤ M) :
-    PrefixLE M R (chunk2 s) ∧ Bounded (c + 1) (d + 3) (render R (chunk2 s)).2 := by
+/-- An instruction block keeping registers bounded: started with `base` and `win` at
+most `c` and `pw` at most `d`, every prefix keeps registers at most `M`, and the bounds
+grow by at most `3` and `9`. -/
+def BlockBounded (J : List Instr) : Prop :=
+  ∀ {M c d : ℕ} {R : Regs}, Bounded c d R → 2 ≤ c → c + 3 ≤ M → d + 9 ≤ M →
+    PrefixLE M R J ∧ Bounded (c + 3) (d + 9) (render R J).2
+
+/-- Chunk functions keeping registers bounded. -/
+def ChunkBounded (ch : Sym → List Instr) : Prop := ∀ s, BlockBounded (ch s)
+
+theorem chunk2_bounded : ChunkBounded chunk2 := by
+  intro s M c d R h _hc hcM hdM
   obtain ⟨b, i, k, rfl, hb, hi, hk⟩ := h
   cases s with
   | mark =>
@@ -174,13 +186,11 @@ theorem chunk2_bounds (s : Sym) {M c d : ℕ} {R : Regs} (h : Bounded c d R) (_h
         by omega⟩⟩
       rw [regsLE_regs]; omega
 
-theorem jobOf_bounds (ch : Sym → List Instr)
-    (hch : ∀ s {M c d : ℕ} {R : Regs}, Bounded c d R → 2 ≤ c → c + 1 ≤ M → d + 3 ≤ M →
-      PrefixLE M R (ch s) ∧ Bounded (c + 1) (d + 3) (render R (ch s)).2)
+theorem jobOf_bounds (ch : Sym → List Instr) (hch : ChunkBounded ch)
     (L : List Sym) : ∀ {M c d : ℕ} {R : Regs}, Bounded c d R → 2 ≤ c →
-    c + L.length ≤ M → d + 3 * L.length ≤ M →
+    c + 3 * L.length ≤ M → d + 9 * L.length ≤ M →
     PrefixLE M R (jobOf ch L) ∧
-      Bounded (c + L.length) (d + 3 * L.length) (render R (jobOf ch L)).2 := by
+      Bounded (c + 3 * L.length) (d + 9 * L.length) (render R (jobOf ch L)).2 := by
   induction L with
   | nil =>
       intro M c d R h hc hcM hdM
@@ -197,8 +207,8 @@ theorem jobOf_bounds (ch : Sym → List Instr)
       obtain ⟨h3, h4⟩ := ih (M := M) h2 (by omega) (by omega) (by omega)
       refine ⟨by rw [hjob]; exact prefixLE_append h1 h3, ?_⟩
       rw [hjob, MachineTableau.render_append_snd, List.length_cons,
-        show c + (L.length + 1) = c + 1 + L.length by ring,
-        show d + 3 * (L.length + 1) = d + 3 + 3 * L.length by ring]
+        show c + 3 * (L.length + 1) = c + 3 + 3 * L.length by ring,
+        show d + 9 * (L.length + 1) = d + 9 + 9 * L.length by ring]
       exact h4
 
 theorem bounded_mono {c d c' d' : ℕ} {R : Regs} (h : Bounded c d R) (hc : c ≤ c')
@@ -214,27 +224,34 @@ theorem prefixLE_pure_bounded {M c d : ℕ} {R : Regs} {J : List Instr} (h : ∀
   rw [TableauJobs.render_pure_snd _ _ h]
   exact ⟨b, i, k, rfl, hb, hi, hk⟩
 
-/-- Chunk functions keeping registers bounded, as `jobOf_bounds` requires. -/
-def ChunkBounded (ch : Sym → List Instr) : Prop :=
-  ∀ s {M c d : ℕ} {R : Regs}, Bounded c d R → 2 ≤ c → c + 1 ≤ M → d + 3 ≤ M →
-    PrefixLE M R (ch s) ∧ Bounded (c + 1) (d + 3) (render R (ch s)).2
+theorem blockBounded_of_pure {J : List Instr} (h : ∀ i ∈ J, i.pure) : BlockBounded J := by
+  intro M c d R hR hc hcM hdM
+  obtain ⟨p, b⟩ := prefixLE_pure_bounded (M := M) h hR (by omega) (by omega) (by omega)
+  exact ⟨p, bounded_mono b (by omega) (by omega)⟩
 
-/-- Every register stays at most `8n + 20` while the job of an input of length `n`
+/-- Weaken per-symbol bounds `(c + 1, d + 3)` to those of `BlockBounded`. -/
+theorem blockBounded_of_small {J : List Instr}
+    (h : ∀ {M c d : ℕ} {R : Regs}, Bounded c d R → 2 ≤ c → c + 1 ≤ M → d + 3 ≤ M →
+      PrefixLE M R J ∧ Bounded (c + 1) (d + 3) (render R J).2) : BlockBounded J := by
+  intro M c d R hR hc hcM hdM
+  obtain ⟨p, b⟩ := h (M := M) hR hc (by omega) (by omega)
+  exact ⟨p, bounded_mono b (by omega) (by omega)⟩
+
+/-- Every register stays at most `20n + 40` while the job of an input of length `n`
 runs. -/
-theorem prefixLE_job (pre : List Instr) (ch1 : Sym → List Instr)
-    (hpre : ∀ i ∈ pre, i.pure) (h1 : ChunkBounded ch1) (x : List Sym) :
-    PrefixLE (8 * x.length + 20) (regs 0 1 0) (job pre ch1 x) := by
+theorem prefixLE_job (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr)
+    (ch2 : Sym → List Instr) (hpre : BlockBounded pre) (h1 : ChunkBounded ch1)
+    (hsep : BlockBounded sep) (h2 : ChunkBounded ch2) (x : List Sym) :
+    PrefixLE (20 * x.length + 40) (regs 0 1 0) (job pre ch1 sep ch2 x) := by
   set n := x.length
   have h0 : Bounded 2 0 (regs 0 1 0) := ⟨0, 1, 0, rfl, by omega, by omega, le_rfl⟩
-  obtain ⟨p0, b0⟩ := prefixLE_pure_bounded (M := 8 * n + 20) (J := pre)
-    hpre h0 (by omega) (by omega) (by omega)
-  obtain ⟨p1, b1⟩ := jobOf_bounds ch1 h1 x (M := 8 * n + 20) b0
-    le_rfl (by omega) (by omega)
-  obtain ⟨p2, b2⟩ := prefixLE_pure_bounded (M := 8 * n + 20) (J := [.endClause])
-    (by simp [Instr.pure]) b1 (by omega) (by omega) (by omega)
-  obtain ⟨p3, b3⟩ := jobOf_bounds chunk2 (fun s => chunk2_bounds s) x.reverse
-    (M := 8 * n + 20) b2 (by omega) (by simp; omega) (by simp; omega)
-  obtain ⟨p4, _⟩ := prefixLE_pure_bounded (M := 8 * n + 20) (J := suffix)
+  obtain ⟨p0, b0⟩ := hpre (M := 20 * n + 40) h0 le_rfl (by omega) (by omega)
+  obtain ⟨p1, b1⟩ := jobOf_bounds ch1 h1 x (M := 20 * n + 40) b0
+    (by omega) (by omega) (by omega)
+  obtain ⟨p2, b2⟩ := hsep (M := 20 * n + 40) b1 (by omega) (by omega) (by omega)
+  obtain ⟨p3, b3⟩ := jobOf_bounds ch2 h2 x.reverse
+    (M := 20 * n + 40) b2 (by omega) (by simp; omega) (by simp; omega)
+  obtain ⟨p4, _⟩ := prefixLE_pure_bounded (M := 20 * n + 40) (J := suffix)
     (by simp [suffix, Instr.pure]) b3 (by simp; omega) (by simp; omega) (by omega)
   have q1 := prefixLE_append p0 p1
   have q2 := prefixLE_append q1 (by rw [MachineTableau.render_append_snd]; exact p2)
@@ -245,37 +262,31 @@ theorem prefixLE_job (pre : List Instr) (ch1 : Sym → List Instr)
       MachineTableau.render_append_snd]; exact p4)
   simpa [job, List.append_assoc] using q4
 
-theorem job_length_le (pre : List Instr) (ch1 : Sym → List Instr) (hpre : pre.length ≤ 1)
-    (h1 : ∀ s, (ch1 s).length ≤ 8) (x : List Sym) :
-    (job pre ch1 x).length ≤ 30 * x.length + 5 := by
-  have hl1 : ∀ L : List Sym, (jobOf ch1 L).length ≤ 8 * L.length := by
-    intro L
+theorem job_length_le (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr)
+    (ch2 : Sym → List Instr) (hpre : pre.length ≤ 5) (h1 : ∀ s, (ch1 s).length ≤ 40)
+    (hsep : sep.length ≤ 5) (h2 : ∀ s, (ch2 s).length ≤ 15) (x : List Sym) :
+    (job pre ch1 sep ch2 x).length ≤ 60 * x.length + 15 := by
+  have hl : ∀ (ch : Sym → List Instr) (k : ℕ), (∀ s, (ch s).length ≤ k) →
+      ∀ L : List Sym, (jobOf ch L).length ≤ k * L.length := by
+    intro ch k hk L
     induction L with
     | nil => simp [jobOf]
     | cons s L ih =>
-        have := h1 s
+        have := hk s
         simp only [jobOf, List.map_cons, List.flatten_cons, List.length_append,
           List.length_cons] at ih ⊢
+        rw [Nat.mul_succ]
         omega
-  have hl2 : ∀ L : List Sym, (jobOf chunk2 L).length ≤ 15 * L.length := by
-    intro L
-    induction L with
-    | nil => simp [jobOf]
-    | cons s L ih =>
-        have : (chunk2 s).length ≤ 15 := by cases s <;> simp [chunk2, forcingJob]
-        simp only [jobOf, List.map_cons, List.flatten_cons, List.length_append,
-          List.length_cons] at ih ⊢
-        omega
-  have := hl1 x
-  have := hl2 x.reverse
+  have := hl ch1 40 h1 x
+  have := hl ch2 15 h2 x.reverse
   simp only [job, suffix, List.length_append, List.length_cons, List.length_nil,
     List.length_reverse] at this ⊢
   omega
 
-theorem job_ok (pre : List Instr) (ch1 : Sym → List Instr) (hpre : ∀ i ∈ pre, i.ok)
-    (h1 : ∀ s, ∀ i ∈ ch1 s, i.ok) (x : List Sym) : ∀ i ∈ job pre ch1 x, i.ok := by
-  have h2 : ∀ s, ∀ i ∈ chunk2 s, i.ok := by
-    intro s; cases s <;> simp [chunk2, forcingJob, Instr.ok]
+theorem job_ok (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr)
+    (ch2 : Sym → List Instr) (hpre : ∀ i ∈ pre, i.ok) (h1 : ∀ s, ∀ i ∈ ch1 s, i.ok)
+    (hsep : ∀ i ∈ sep, i.ok) (h2 : ∀ s, ∀ i ∈ ch2 s, i.ok) (x : List Sym) :
+    ∀ i ∈ job pre ch1 sep ch2 x, i.ok := by
   intro i hi
   simp only [job, suffix, List.mem_append] at hi
   rcases hi with (((h | h) | h) | h) | h
@@ -283,12 +294,18 @@ theorem job_ok (pre : List Instr) (ch1 : Sym → List Instr) (hpre : ∀ i ∈ p
   · simp only [jobOf, List.mem_flatten, List.mem_map] at h
     obtain ⟨_, ⟨s, _, rfl⟩, h⟩ := h
     exact h1 s i h
-  · simp only [List.mem_singleton] at h; subst h; trivial
+  · exact hsep i h
   · simp only [jobOf, List.mem_flatten, List.mem_map] at h
     obtain ⟨_, ⟨s, _, rfl⟩, h⟩ := h
     exact h2 s i h
   · simp only [List.mem_cons, List.mem_nil_iff, or_false] at h
     rcases h with rfl | rfl | rfl <;> trivial
+
+theorem chunk2_ok (s : Sym) : ∀ i ∈ chunk2 s, i.ok := by
+  cases s <;> simp [chunk2, forcingJob, Instr.ok]
+
+theorem chunk2_length_le (s : Sym) : (chunk2 s).length ≤ 15 := by
+  cases s <;> simp [chunk2, forcingJob]
 
 /-! ### The two input passes -/
 
@@ -383,44 +400,51 @@ theorem loopKeep_exits (f : Sym → List Instr) (y : List Sym) (sk : List Instr)
 /-! ### The machine -/
 
 /-- The two-pass routine. -/
-def R (pre : List Instr) (ch1 : Sym → List Instr) : GRoutine Sym :=
-  seq (emit pre) <| seq (loopKeepInput ch1) <| seq (emit [.endClause]) <|
-  seq (loopKeep chunk2) <| seq (emit suffix) <| seq (moveAll .skel .job id .mark) <|
+def R (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr)
+    (ch2 : Sym → List Instr) : GRoutine Sym :=
+  seq (emit pre) <| seq (loopKeepInput ch1) <| seq (emit sep) <|
+  seq (loopKeep ch2) <| seq (emit suffix) <| seq (moveAll .skel .job id .mark) <|
   seq (pushList (.work (.reg .win)) [.mark]) <| seq (pushList (.work (.reg .w)) [.mark]) <|
   seq interpret <| seq (drainAll regStacks) (moveAll (.work .buf) (.work .output) id .mark)
 
 /-- The registers after interpretation. -/
-def finalRegs (pre : List Instr) (ch1 : Sym → List Instr) (x : List Sym) : Regs :=
-  (render (regs 0 1 0) (job pre ch1 x)).2
+def finalRegs (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr)
+    (ch2 : Sym → List Instr) (x : List Sym) : Regs :=
+  (render (regs 0 1 0) (job pre ch1 sep ch2 x)).2
 
 /-- Exact steps of the two-pass routine. -/
-def cost (pre : List Instr) (ch1 : Sym → List Instr) (x out : List Sym) : ℕ :=
+def cost (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr)
+    (ch2 : Sym → List Instr) (x out : List Sym) : ℕ :=
   1 + ((4 * x.length + 1) + (1 + ((3 * x.length + 1) + (1 +
-    ((2 * (job pre ch1 x).length + 1) + (1 + (1 + (interpSteps (regs 0 1 0) (job pre ch1 x) +
-      (((2 * finalRegs pre ch1 x .base + 1) + ((2 * finalRegs pre ch1 x .win + 1) +
-        ((2 * finalRegs pre ch1 x .w + 1) + ((2 * finalRegs pre ch1 x .pw + 1) + 1)))) +
+    ((2 * (job pre ch1 sep ch2 x).length + 1) + (1 + (1 +
+      (interpSteps (regs 0 1 0) (job pre ch1 sep ch2 x) +
+      (((2 * finalRegs pre ch1 sep ch2 x .base + 1) + ((2 * finalRegs pre ch1 sep ch2 x .win + 1) +
+        ((2 * finalRegs pre ch1 sep ch2 x .w + 1) +
+          ((2 * finalRegs pre ch1 sep ch2 x .pw + 1) + 1)))) +
         (2 * out.length + 1))))))))))
 
-theorem R_exits (pre : List Instr) (ch1 : Sym → List Instr) (x out : List Sym)
-    (hok : ∀ i ∈ job pre ch1 x, i.ok) (hr : (render (regs 0 1 0) (job pre ch1 x)).1 = out) :
-    (R pre ch1).Exits (paramStacks x [] 0 0 0 0 0 0 0 0) (cost pre ch1 x out)
+theorem R_exits (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr)
+    (ch2 : Sym → List Instr) (x out : List Sym)
+    (hok : ∀ i ∈ job pre ch1 sep ch2 x, i.ok)
+    (hr : (render (regs 0 1 0) (job pre ch1 sep ch2 x)).1 = out) :
+    (R pre ch1 sep ch2).Exits (paramStacks x [] 0 0 0 0 0 0 0 0) (cost pre ch1 sep ch2 x out)
       (outputStacks out) := by
   rw [paramStacks_eq_emitStacks]
   have s1 := emit_exits (Γx := Sym) pre x [] 0 0 0 0 0 0 0 0 0 0 []
   have s2 := loopKeepInput_exits ch1 x [] (pre.reverse ++ [])
-  have s3 := emit_exits (Γx := Sym) [.endClause] [] (x.reverse ++ []) 0 0 0 0 0 0 0 0 0 0
+  have s3 := emit_exits (Γx := Sym) sep [] (x.reverse ++ []) 0 0 0 0 0 0 0 0 0 0
     ((x.map ch1).flatten.reverse ++ (pre.reverse ++ []))
-  have s4 := loopKeep_exits chunk2 (x.reverse ++ [])
-    ([Instr.endClause].reverse ++ ((x.map ch1).flatten.reverse ++ (pre.reverse ++ [])))
+  have s4 := loopKeep_exits ch2 (x.reverse ++ [])
+    (sep.reverse ++ ((x.map ch1).flatten.reverse ++ (pre.reverse ++ [])))
   have s5 := emit_exits (Γx := Sym) suffix [] [] 0 0 0 0 0 0 0 0 0 0
-    (((x.reverse ++ []).map chunk2).flatten.reverse ++ ([Instr.endClause].reverse ++
+    (((x.reverse ++ []).map ch2).flatten.reverse ++ (sep.reverse ++
       ((x.map ch1).flatten.reverse ++ (pre.reverse ++ []))))
-  have hsk : suffix.reverse ++ (((x.reverse ++ []).map chunk2).flatten.reverse ++
-      ([Instr.endClause].reverse ++ ((x.map ch1).flatten.reverse ++ (pre.reverse ++ [])))) =
-      (job pre ch1 x).reverse := by
+  have hsk : suffix.reverse ++ (((x.reverse ++ []).map ch2).flatten.reverse ++
+      (sep.reverse ++ ((x.map ch1).flatten.reverse ++ (pre.reverse ++ [])))) =
+      (job pre ch1 sep ch2 x).reverse := by
     simp [job, jobOf, List.reverse_append, List.append_assoc]
   rw [hsk] at s5
-  set J := job pre ch1 x with hJ
+  set J := job pre ch1 sep ch2 x with hJ
   set S₅ : Stacks (GAlphabet Sym) := emitStacks [] [] 0 0 0 0 0 0 0 0 0 0 J.reverse with hS₅
   have s6 := moveAll_exits (Γ := GAlphabet Sym) .skel .job (by decide) id .mark S₅
   have hlen6 : (S₅ .skel).length = J.length := by simp [hS₅, emitStacks]
@@ -442,11 +466,12 @@ theorem R_exits (pre : List Instr) (ch1 : Sym → List Instr) (x out : List Sym)
   rw [h8] at s8
   have s9 := interpret_exits E rfl J hok [] (regs 0 1 0)
   rw [hJ, hr, List.append_nil] at s9
-  set S₉ := interpStacks E [] out.reverse (finalRegs pre ch1 x) with hS₉
+  set S₉ := interpStacks E [] out.reverse (finalRegs pre ch1 sep ch2 x) with hS₉
   have s10 := drainAll_exits regStacks S₉
   have hcost10 : drainAllCost regStacks S₉ =
-      (2 * finalRegs pre ch1 x .base + 1) + ((2 * finalRegs pre ch1 x .win + 1) +
-        ((2 * finalRegs pre ch1 x .w + 1) + ((2 * finalRegs pre ch1 x .pw + 1) + 1))) := by
+      (2 * finalRegs pre ch1 sep ch2 x .base + 1) + ((2 * finalRegs pre ch1 sep ch2 x .win + 1) +
+        ((2 * finalRegs pre ch1 sep ch2 x .w + 1) +
+          ((2 * finalRegs pre ch1 sep ch2 x .pw + 1) + 1))) := by
     simp [drainAllCost, regStacks, hS₉, interpStacks, marks]
   rw [hcost10] at s10
   set S₁₀ : Stacks (GAlphabet Sym) := fun k => if k ∈ regStacks then [] else S₉ k with hS₁₀
@@ -466,13 +491,14 @@ theorem R_exits (pre : List Instr) (ch1 : Sym → List Instr) (x out : List Sym)
 
 /-! ### The time bound -/
 
-theorem cost_le (pre : List Instr) (ch1 : Sym → List Instr) (x out : List Sym)
-    (hpre : PrefixLE (8 * x.length + 20) (regs 0 1 0) (job pre ch1 x))
-    (hlen : (job pre ch1 x).length ≤ 30 * x.length + 5)
-    (hr : (render (regs 0 1 0) (job pre ch1 x)).1 = out) :
-    cost pre ch1 x out ≤ 1000000 * (x.length + 1) ^ 2 := by
+theorem cost_le (pre : List Instr) (ch1 : Sym → List Instr) (sep : List Instr)
+    (ch2 : Sym → List Instr) (x out : List Sym)
+    (hpre : PrefixLE (20 * x.length + 40) (regs 0 1 0) (job pre ch1 sep ch2 x))
+    (hlen : (job pre ch1 sep ch2 x).length ≤ 60 * x.length + 15)
+    (hr : (render (regs 0 1 0) (job pre ch1 sep ch2 x)).1 = out) :
+    cost pre ch1 sep ch2 x out ≤ 1000000 * (x.length + 1) ^ 2 := by
   set n := x.length with hn
-  set L := (job pre ch1 x).length with hL
+  set L := (job pre ch1 sep ch2 x).length with hL
   have hint := interpSteps_le _ _ hpre
   have hout := render_fst_length_le _ _ hpre
   rw [hr] at hout
@@ -484,24 +510,26 @@ theorem cost_le (pre : List Instr) (ch1 : Sym → List Instr) (x out : List Sym)
   rw [← hL] at hint hout
   simp only [cost, finalRegs]
   rw [← hL]
-  have hA : (4 * (8 * n + 20) + 4) * L ≤ (32 * n + 84) * (30 * n + 5) :=
+  have hA : (4 * (20 * n + 40) + 4) * L ≤ (80 * n + 164) * (60 * n + 15) :=
     Nat.mul_le_mul (by omega) hlen
-  have hB : (8 * n + 20 + 1) * L ≤ (8 * n + 21) * (30 * n + 5) := Nat.mul_le_mul (by omega) hlen
+  have hB : (20 * n + 40 + 1) * L ≤ (20 * n + 41) * (60 * n + 15) :=
+    Nat.mul_le_mul (by omega) hlen
   nlinarith
 
 /-- The time polynomial of the two-pass machine. -/
 noncomputable def timePoly : Polynomial ℕ := C 1000000 * (X + 1) ^ 2
 
 /-- A bounded run of the two-pass machine, for `TM2ComputableInPolyTime`. -/
-noncomputable def outputsInTime (pre : List Instr) (ch1 : Sym → List Instr) (x out : List Sym)
-    (hok : ∀ i ∈ job pre ch1 x, i.ok)
-    (hpre : PrefixLE (8 * x.length + 20) (regs 0 1 0) (job pre ch1 x))
-    (hlen : (job pre ch1 x).length ≤ 30 * x.length + 5)
-    (hr : (render (regs 0 1 0) (job pre ch1 x)).1 = out) :
-    TM2OutputsInTime (toGenMachine (R pre ch1)) x (some out) (timePoly.eval x.length) :=
-  evalsToInTimeMono (toGenMachine_outputsInTime _ _ _ _ (R_exits pre ch1 x out hok hr))
+noncomputable def outputsInTime (pre : List Instr) (ch1 : Sym → List Instr)
+    (sep : List Instr) (ch2 : Sym → List Instr) (x out : List Sym)
+    (hok : ∀ i ∈ job pre ch1 sep ch2 x, i.ok)
+    (hpre : PrefixLE (20 * x.length + 40) (regs 0 1 0) (job pre ch1 sep ch2 x))
+    (hlen : (job pre ch1 sep ch2 x).length ≤ 60 * x.length + 15)
+    (hr : (render (regs 0 1 0) (job pre ch1 sep ch2 x)).1 = out) :
+    TM2OutputsInTime (toGenMachine (R pre ch1 sep ch2)) x (some out) (timePoly.eval x.length) :=
+  evalsToInTimeMono (toGenMachine_outputsInTime _ _ _ _ (R_exits pre ch1 sep ch2 x out hok hr))
     (by
       simp only [timePoly, eval_mul, eval_C, eval_pow, eval_add, eval_X, eval_one]
-      exact cost_le pre ch1 x out hpre hlen hr)
+      exact cost_le pre ch1 sep ch2 x out hpre hlen hr)
 
 end PhdThesisLean.TwoPassMachine

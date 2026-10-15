@@ -1406,6 +1406,24 @@ chain reduction this gives `encodedUnarySignedRegression_NPHard`,
 `encodedSignedRegression_NPHard` and, at the thesis's prime,
 `signed_nphard_five`.
 
+The complexity statement of `cor:sudoku-polynomial-dyadic-hardness` is checked
+end to end as well.
+[`PhdThesisLean/PolynomialResidualLanguage.lean`](PhdThesisLean/PolynomialResidualLanguage.lean)
+states the problem over `ℤ_p`, with residuals written as products of affine
+factors, and restricts it to residuals that are multilinear of degree at most
+three (`MultilinearDeg3`).
+[`PhdThesisLean/PolynomialResidualReduction.lean`](PhdThesisLean/PolynomialResidualReduction.lean)
+avoids the squared factors that repeated variables in a clause would create: each
+literal occurrence gets its own coordinate carrying the literal's failure value,
+an affine linking residual ties it to the variable, and the clause product
+`y_k y_{k+1} y_{k+2}` uses three distinct coordinates. `poly_iff` proves
+correctness for every prime with snapping on `ℤ_p`, and `multilinear_polyReduce`
+checks the restriction.
+[`PhdThesisLean/PolynomialResidualMachine.lean`](PhdThesisLean/PolynomialResidualMachine.lean)
+computes the instance with the generalised two-pass machine and concludes
+`encodedUnaryPolyML_NPHard`, `encodedPolyML_NPHard` and, over `ℤ_2`,
+`dyadic_poly_nphard`.
+
 The nonlinear boundary case is formalised in
 [`PhdThesisLean/PolynomialResidualHardness.lean`](PhdThesisLean/PolynomialResidualHardness.lean).
 Each clause becomes the product `V_C(x) = ∏ δ(λ; x)` of its literal-failure

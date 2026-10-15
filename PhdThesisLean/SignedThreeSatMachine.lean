@@ -31,8 +31,7 @@ open LeanNPHardness.TableauStacks LeanNPHardness.Routines LeanNPHardness.Machine
 open PhdThesisLean.PadicRegressionLanguage PhdThesisLean.SignedThreeSatReduction
 open PhdThesisLean.FixedPrimeMaxCutJob (regs regs_base regs_win regs_w regs_pw update_base
   update_win update_pw regsLE_regs Bounded)
-open PhdThesisLean.TwoPassMachine (jobOf jobOf_append render_pass2 jobOf_bounds
-  prefixLE_pure_bounded suffix)
+open PhdThesisLean.TwoPassMachine (jobOf jobOf_append render_pass2 suffix)
 
 private alias pcons := FixedPrimeMaxCutJob.prefixLE_cons
 private alias pnil := FixedPrimeMaxCutJob.prefixLE_nil
@@ -47,7 +46,8 @@ def chunk1 : Sym → List Instr
   | .endClause => [.endClause, .lit false] ++ MaxCutJob.incr .pw 2
 
 /-- The whole job of an input. -/
-def job (x : List Sym) : List Instr := TwoPassMachine.job [.lit false] chunk1 x
+def job (x : List Sym) : List Instr :=
+  TwoPassMachine.job [.lit false] chunk1 [.endClause] TwoPassMachine.chunk2 x
 
 /-! ### Rendering the first pass -/
 
@@ -207,28 +207,33 @@ theorem chunk1_bounds (s : Sym) {M c d : ℕ} {R : Regs} (h : Bounded c d R) (_h
       · simp [chunk1, MaxCutJob.incr, render, renderInstr]
 
 theorem chunk1_bounded : TwoPassMachine.ChunkBounded chunk1 :=
-  fun s => chunk1_bounds s
+  fun s => TwoPassMachine.blockBounded_of_small (chunk1_bounds s)
 
 theorem chunk1_ok (s : Sym) : ∀ i ∈ chunk1 s, i.ok := by
   cases s <;> simp [chunk1, MaxCutJob.incr, Instr.ok, List.replicate]
 
-theorem chunk1_length_le (s : Sym) : (chunk1 s).length ≤ 8 := by
+theorem chunk1_length_le (s : Sym) : (chunk1 s).length ≤ 40 := by
   cases s <;> simp [chunk1, MaxCutJob.incr]
 
 /-- The signed clause-reward reduction is computed in polynomial time by the two-pass
 machine. -/
 noncomputable def computableInPolyTime :
     TM2ComputableInPolyTime CNF.Unary.finEncoding signedUnaryEncoding signedReduce where
-  tm := toGenMachine (TwoPassMachine.R [.lit false] chunk1)
+  tm := toGenMachine (TwoPassMachine.R [.lit false] chunk1 [.endClause] TwoPassMachine.chunk2)
   inputAlphabet := Equiv.refl _
   outputAlphabet := Equiv.refl _
   time := TwoPassMachine.timePoly
   outputsFun F := by
-    have run := TwoPassMachine.outputsInTime [.lit false] chunk1 (encode F)
-      (signedUnaryEncoding.encode (signedReduce F))
-      (TwoPassMachine.job_ok _ _ (by simp [Instr.ok]) chunk1_ok _)
-      (TwoPassMachine.prefixLE_job _ _ (by simp [Instr.pure]) chunk1_bounded _)
-      (TwoPassMachine.job_length_le _ _ (by simp) chunk1_length_le _) (render_job F)
+    have run := TwoPassMachine.outputsInTime [.lit false] chunk1 [.endClause]
+      TwoPassMachine.chunk2 (encode F) (signedUnaryEncoding.encode (signedReduce F))
+      (TwoPassMachine.job_ok _ _ _ _ (by simp [Instr.ok]) chunk1_ok (by simp [Instr.ok])
+        TwoPassMachine.chunk2_ok _)
+      (TwoPassMachine.prefixLE_job _ _ _ _
+        (TwoPassMachine.blockBounded_of_pure (by simp [Instr.pure])) chunk1_bounded
+        (TwoPassMachine.blockBounded_of_pure (by simp [Instr.pure]))
+        TwoPassMachine.chunk2_bounded _)
+      (TwoPassMachine.job_length_le _ _ _ _ (by simp) chunk1_length_le (by simp)
+        TwoPassMachine.chunk2_length_le _) (render_job F)
     simpa [Equiv.refl] using run
 
 /-! ### Hardness -/

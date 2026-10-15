@@ -126,3 +126,6 @@ import PhdThesisLean.FixedPrimeMaxCutMachine
 import PhdThesisLean.SignedThreeSatReduction
 import PhdThesisLean.TwoPassMachine
 import PhdThesisLean.SignedThreeSatMachine
+import PhdThesisLean.PolynomialResidualLanguage
+import PhdThesisLean.PolynomialResidualReduction
+import PhdThesisLean.PolynomialResidualMachine

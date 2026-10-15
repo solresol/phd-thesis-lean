@@ -6853,6 +6853,16 @@
   suffices for the forcing pairs). `satReduction` composes with the library's
   chain reduction; `signed_nphard_five` is the thesis's `p = 5` form.
   Headline catalogue: 26 complete, 4 partial.
-- **Best next step:** `cor:sudoku-polynomial-dyadic-hardness` (needs a
-  polynomial-residual language and a machine for the clause products) and the
-  per-vertex map `G ↦ A'_G` of `thm:nested-easy-hard-easy`.
+- **Follow-up (same day):** `TwoPassMachine` now takes the prefix, first-pass
+  chunks, separator and second-pass chunks as parameters (register bounds
+  `20n + 40`, job length `60n + 15`). `cor:sudoku-polynomial-dyadic-hardness`
+  is **Complete**: `PolyRegressionLangML` over `ℤ_p` with products of affine
+  factors restricted to multilinear degree three; `poly_iff` uses one
+  occurrence coordinate per literal (the library's exact 3-SAT repeats
+  variables within clauses), affine linking residuals, distinct-coordinate
+  clause products and per-occurrence forcing, bound `9m`;
+  `PolynomialResidualMachine` streams it and `dyadic_poly_nphard` is the `ℤ_2`
+  form. Headline catalogue: 27 complete, 3 partial.
+- **Best next step:** the per-vertex map `G ↦ A'_G` of
+  `thm:nested-easy-hard-easy` (forcing weight `d_j + 1` per vertex needs a
+  vertex count), then the Smith-normal-form running time of `thm:max-polytime`.
