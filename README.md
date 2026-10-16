@@ -1188,7 +1188,15 @@ identifies the required branch of the reached semantic state, and
 `positiveInnerStep_run_steps_le` / `positiveOuterStep_run_steps_le` bound each
 complete branch by one polynomial in the original section wire length.
 
-Finite initialization, bound tests and repeated finite dispatch, plus final
+`AllDifferentCSPPositiveScanInitialization.lean` now constructs the exact
+`PositiveAdvance.seed` with binary candidate `(0, 0)` and an empty positive-row
+list. `positiveScanInitialization_outputsInTime` preserves every counted-section
+bit in at most `2s+2` steps, with no increase in encoded length and all work
+stacks cleared. `runtimeCompilerPositiveScanInitializationComputableInPolyTime`
+composes this initializer from the actual Boolean compiler input. The initialized
+state satisfies the existing complete reached-state invariant.
+
+Bound tests and repeated finite dispatch, plus final
 objective/framing/prime assembly, remain open;
 `cor:all-different-csp` is partial.
 

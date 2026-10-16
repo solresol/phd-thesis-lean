@@ -7002,3 +7002,35 @@
   prime. Sibling and thesis checkouts remain unchanged. Commit/push this
   increment; automation memory records the final hash and live-ref agreement.
 - **Run time:** 2026-10-15 18:33 UTC (16 October AEDT).
+
+
+## 2026-10-17 — finite positive-scan initialization from compiler input
+
+- **Starting state:** clean `main` at `aea2d80514cf35bb46c687982c3e51316abf898d`;
+  fetched origin and confirmed zero divergence. Read AGENTS, prior memory/log,
+  status, relevant README/Lean modules and the active all-different thesis proof.
+  Active thesis retains its original `proofs/.lake/` and `things-to-read.txt`
+  untracked paths. Read-only sibling remains clean at `1acf1d3`; reviewed its
+  finite machine composition, pair-left/right/exchange and encoding APIs, plus
+  this project's pinned 4.35-compatible versions. No dependency/source edits
+  outside this repository.
+- **Increment:** `AllDifferentCSPPositiveScanInitialization.lean` constructs
+  exactly `PositiveAdvance.seed`: candidate `(0,0)`, complete counted sections,
+  and empty positive rows. Its concrete three-stack machine preserves source
+  order and clears scratch stacks in `2s+2` steps. `output_length` proves no
+  bit growth, and `invariant` reuses the complete reached-state invariant.
+  `runtimeCompilerPositiveScanInitializationComputableInPolyTime` composes the
+  initializer from the actual Boolean compiler input using the pinned checked
+  sequential-machine API. Zero counts, repeated occurrences, empty scopes,
+  unequal dimensions and a million-valued binary weight are covered.
+- **Verification:** targeted module build and full `lake build` pass (9,271
+  jobs); six headline audits use only standard axioms, one is axiom-free.
+  New module warning-free after removing an unused old encoding simp argument.
+  Comment/string-aware source scan and `git diff --check` pass. README, both
+  status locations and root import synchronized; the corollary remains Partial.
+- **Ending / next:** commit and push this completed initialization; memory
+  records its hash and three-ref agreement. Bound/control modules are in
+  progress and excluded from this increment. Next construct the distinct
+  variable/occurrence bounds, finite comparisons and repeated dispatch; then
+  final objective/framing/prime composition. No unresolved initializer errors.
+- **Run time:** 2026-10-16 18:16 UTC (17 October AEDT).
