@@ -1196,7 +1196,23 @@ stacks cleared. `runtimeCompilerPositiveScanInitializationComputableInPolyTime`
 composes this initializer from the actual Boolean compiler input. The initialized
 state satisfies the existing complete reached-state invariant.
 
-Bound tests and repeated finite dispatch, plus final
+`AllDifferentCSPPositiveBound.lean` now selects either retained unary bound
+in `3s+3` finite-machine steps, then converts it to canonical binary using the
+checked counting and pair-left APIs. `binary_length_le` charges the full bound
+copy and retained state by `2s+1`. `AllDifferentCSPPositiveControl.lean` routes
+the appropriate candidate coordinate and computed bound into binary comparison
+order in `5s+5` steps. `positiveActiveComputableInPolyTime` decides
+`index < variableCount`; `positiveContinuesComputableInPolyTime` decides
+`rank < occurrenceCount`, including the last-rank transition and zero counts.
+Both return the entire original state with just one added Boolean cell.
+`PositiveControl.advance_eq` matches these decisions to the existing exact
+rectangular traversal; `run_active_iff` gives precisely
+`variableCount * (occurrenceCount + 1)` active visits. The two
+`*_iterate_steps_le` declarations bound complete calls uniformly by polynomials
+in the original retained-section wire length, including count conversion,
+comparison, transfers and cleanup.
+
+Repeated finite dispatch and its full loop runtime, plus final
 objective/framing/prime assembly, remain open;
 `cor:all-different-csp` is partial.
 

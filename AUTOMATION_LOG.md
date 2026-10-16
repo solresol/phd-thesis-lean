@@ -7034,3 +7034,51 @@
   variable/occurrence bounds, finite comparisons and repeated dispatch; then
   final objective/framing/prime composition. No unresolved initializer errors.
 - **Run time:** 2026-10-16 18:16 UTC (17 October AEDT).
+
+
+## 2026-10-17 — finite rectangular bound construction and control tests
+
+- **Starting commit:** `927e876fb323c70bbf3d4540358b8eaa6e0392fa` (initialized
+  positive scan above). Push succeeded and local HEAD, origin/main and live
+  remote main agreed before proceeding.
+- **Increment:** `AllDifferentCSPPositiveBound.lean` copies the selected unary
+  count from the complete state in `3s+3` steps and reuses the checked binary
+  header counter and pair-left API. `positiveBoundComputableInPolyTime` computes
+  either the occurrence bound or the variable bound internally; their binary
+  copies plus retained state fit in `2s+1` cells. The two counts are independent.
+  `AllDifferentCSPPositiveControl.lean` routes the candidate and computed bound
+  into canonical binary comparison order in `5s+5` steps.
+  `positiveActiveComputableInPolyTime` decides `index < variableCount` and
+  `positiveContinuesComputableInPolyTime` decides `rank < occurrenceCount`.
+  Both preserve all original state and add one Boolean cell. `advance_eq`
+  matches the decisions to the exact rectangular recurrence, `run_active_iff`
+  identifies precisely `n(q+1)` active visits, and both `*_iterate_steps_le`
+  bounds include count conversion, copies, comparison, transfers and cleanup.
+- **Verification:** targeted bound/control build and full `lake build` pass
+  (9,273 jobs). All 17 new headline audits use only standard axioms (two
+  axiom-free). Final full build has 933 standard-only and
+  27 axiom-free reports; all three new modules are warning-free.
+  Lexical scan passes all 142 project Lean/config sources; `git diff --check`
+  passes. Kernel examples cover zero variables, zero occurrences, unequal
+  bounds, last-rank transition, preserved rows and a million-valued rank/weight.
+  README, both status locations and root import synchronized; corollary Partial.
+- **Resolved diagnostic:** after `cases inner`, the eliminated Bool binder no
+  longer exists; writing `seq inner step tail` resolves `inner` to the global
+  inner-product function and gives an application type mismatch (expected
+  Bool). `seq _ step tail` infers the selected branch from its configurations.
+  This fixes the local scan proof; failed-build axiom reports were discarded.
+  Removed an unused pre-upgrade encoding simp argument in routing. No unresolved
+  proof errors or dependency changes.
+- **Ending / next:** commit and push this verified increment; memory records
+  its final hash and three-ref agreement. The missing piece is the repeated
+  finite dispatcher, followed by final objective/framing/prime composition.
+  Reuse or generalize the local `PairGateMachine` controller: its body is fixed
+  to `TM2ComputableInPolyTime PairTest.outputFinEncoding
+  PairTest.outputFinEncoding f`, with wire `Sum Bool PairQueriesMachine.Input`.
+  The positive controller instead needs `PositiveCandidateTest.outputFinEncoding`
+  and `Sum Bool PositiveCandidateQueriesMachine.Input`. Then compose the two
+  existing complete positive branches, decision erasure, and `PairLoopMachine`
+  pattern using the already proved rectangular visit count and cubic state
+  bound. Do not redo initialization, counters, bound tests or semantic traversal.
+  Thesis and sibling checkouts remain unchanged.
+- **Run time:** 2026-10-16 18:19 UTC (17 October AEDT).
