@@ -7082,3 +7082,47 @@
   bound. Do not redo initialization, counters, bound tests or semantic traversal.
   Thesis and sibling checkouts remain unchanged.
 - **Run time:** 2026-10-16 18:19 UTC (17 October AEDT).
+
+
+## 2026-10-18 — complete finite positive-scan dispatch
+
+- **Starting state:** clean `main` at
+  `e00760918f0b4e632af9b08b90f3509fd8b20266`; fetched origin and confirmed
+  zero divergence. Read AGENTS, status/correspondence, relevant Lean modules,
+  prior memory/log and the active thesis corollary/proof. Baseline build passed.
+  Read-only sibling remains clean at `1acf1d3`; reviewed its checked tagged-pair,
+  pair-right and sequential composition/runtime APIs, including the pinned
+  dependency versions. Thesis remains at `ca5ce9a` with its two original
+  untracked paths preserved. No sibling, thesis or dependency edits.
+- **Increment:** parameterized `PairGateMachine` by the retained encoding and
+  generalized `PairDecisionEraseMachine`/`decisionEraseComputableInPolyTime`.
+  Both pair and positive scans share those finite machines; no duplicate
+  conditional controller was added. The Boolean eraser takes at most `2s+2`
+  steps and preserves every retained cell in order. The gate charges complete
+  body execution plus every input/output transfer and clears scratch stacks.
+- **New checked declarations:** `PositiveDispatch.selectedComputableInPolyTime`
+  chooses exactly one complete membership/emission/counter branch, and
+  `PositiveDispatch.computableInPolyTime` implements `PositiveAdvance.advance`,
+  computing exhaustion and returning exhausted states unchanged.
+  `iterate_steps_le` and `run_step_outputsInTime` reuse the cubic reached-state
+  bound to charge complete calls in original counted-section bit length.
+  The genericization preserves the existing pair dispatcher and repeated scan.
+- **Verification:** targeted checks and full `lake build`; all new/generalized
+  headline axiom audits use only standard axioms. Kernel reduction examples
+  cover unequal bounds, duplicate occurrences, binary carry, retained rows,
+  zero weight, zero variables/occurrences, large weights and exhausted states.
+  Comment/string-aware prohibited-token scan and `git diff --check` pass.
+  README, both status locations and root imports synchronized; corollary Partial.
+- **Resolved diagnostics:** local notation in section-variable types concealed
+  encoding dependencies during generalization; use explicit parameterized
+  abbreviations instead. `flagEncoding.encode` cannot project from a notation;
+  use an applied abbreviation. The generic eraser needs an explicit inhabited
+  alphabet witness, and typed compatibility wrappers keep the original encoding
+  aliases visible to downstream composition proofs. Nested-state `by decide`
+  examples exceeded instance synthesis; direct kernel `rfl` verifies these
+  concrete reductions. Failed-build axiom reports were excluded from evidence.
+- **Ending / next:** commit and push this complete dispatch, then share the
+  finite repeated controller between the scans and prove the rectangular total
+  runtime. Final objective/framing/prime assembly still follows. Memory records
+  commit identity and remote parity after pushing.
+- **Run time:** 2026-10-18 12:01 UTC.

@@ -20,9 +20,12 @@ open LeanNPHardness.MachineComposition
 
 namespace PairDecisionEraseMachine
 
-abbrev Wire := PairQueriesMachine.Input
-abbrev Input := Sum Bool Wire
-abbrev State := Option Input × Option Wire
+variable {α : Type} {encoding : FinEncoding α} [Inhabited encoding.Γ]
+
+instance : Fintype encoding.Γ := encoding.ΓFin
+
+abbrev Input (encoding : FinEncoding α) := Sum Bool encoding.Γ
+abbrev State (encoding : FinEncoding α) := Option (Input encoding) × Option encoding.Γ
 
 inductive Stack
   | input | saved | output
@@ -32,17 +35,17 @@ inductive Label
   | scan | emit
   deriving DecidableEq, Fintype
 
-abbrev Alphabet : Stack → Type
-  | .input => Input
-  | _ => Wire
+abbrev Alphabet (encoding : FinEncoding α) : Stack → Type
+  | .input => (Input encoding)
+  | _ => encoding.Γ
 
-private def observe (_ : State) (bit : Option Input) : State := (bit, none)
-private def remember (_ : State) (bit : Option Wire) : State := (none, bit)
-private def retained (s : State) : Option Wire := s.1.bind Sum.getRight?
-private def cell (s : State) : Wire := (retained s).getD (.inl (.inl false))
-private def savedCell (s : State) : Wire := s.2.getD (.inl (.inl false))
+private def observe (_ : (State encoding)) (bit : Option (Input encoding)) : (State encoding) := (bit, none)
+private def remember (_ : (State encoding)) (bit : Option encoding.Γ) : (State encoding) := (none, bit)
+private def retained (s : (State encoding)) : Option encoding.Γ := s.1.bind Sum.getRight?
+private def cell (s : (State encoding)) : encoding.Γ := (retained s).getD default
+private def savedCell (s : (State encoding)) : encoding.Γ := s.2.getD default
 
-def program : Label → TM2.Stmt Alphabet Label State
+def program : Label → TM2.Stmt (Alphabet encoding) Label (State encoding)
   | .scan => .pop .input observe <| .branch (fun s => s.1.isSome)
       (.branch (fun s => (retained s).isSome)
         (.push .saved cell <| .goto fun _ => .scan)
@@ -56,29 +59,29 @@ def computer : FinTM2 where
   K := Stack
   k₀ := .input
   k₁ := .output
-  Γ := Alphabet
+  Γ := (Alphabet encoding)
   Λ := Label
   main := .scan
-  σ := State
+  σ := (State encoding)
   initialState := (none, none)
   Γk₀Fin := inferInstance
   m := program
 
-private def stackContents (input : List Input) (saved output : List Wire) :
-    (k : Stack) → List (Alphabet k)
+private def stackContents (input : List (Input encoding)) (saved output : List encoding.Γ) :
+    (k : Stack) → List ((Alphabet encoding) k)
   | .input => input | .saved => saved | .output => output
 
-private def cfg (label : Option Label) (state : State)
-    (input : List Input) (saved output : List Wire) : computer.Cfg :=
+private def cfg (label : Option Label) (state : (State encoding))
+    (input : List (Input encoding)) (saved output : List encoding.Γ) : (computer (encoding := encoding)).Cfg :=
   ⟨label, state, stackContents input saved output⟩
 
-private abbrev Run (a b : computer.Cfg) (time : ℕ) :=
+private abbrev Run (a b : (computer (encoding := encoding)).Cfg) (time : ℕ) :=
   EvalsToInTime computer.step a (some b) time
 
-private def one {a b : computer.Cfg} (h : computer.step a = some b) : Run a b 1 :=
+private def one {a b : (computer (encoding := encoding)).Cfg} (h : computer.step a = some b) : Run a b 1 :=
   { steps := 1, evals_in_steps := by simpa [Function.iterate_one] using! h, steps_le_m := le_rfl }
 
-private def seq {a b c : computer.Cfg} {m n : ℕ}
+private def seq {a b c : (computer (encoding := encoding)).Cfg} {m n : ℕ}
     (h : Run a b m) (h' : Run b c n) : Run a c (m + n) := by
   simpa [Nat.add_comm] using! EvalsToInTime.trans computer.step m n a b (some c) h h'
 
@@ -87,7 +90,7 @@ local macro "erase_step" : tactic => `(tactic|
     retained, cell, savedCell, Function.update]
    <;> first | rfl | (funext k; cases k <;> rfl)))
 
-private def scan_run (input : List Input) (saved output : List Wire) (state : State) :
+private def scan_run (input : List (Input encoding)) (saved output : List encoding.Γ) (state : (State encoding)) :
     Run (cfg (some .scan) state input saved output)
       (cfg (some .emit) (none, none) []
         ((input.filterMap Sum.getRight?).reverse ++ saved) output) (input.length + 1) := by
@@ -108,7 +111,7 @@ private def scan_run (input : List Input) (saved output : List Wire) (state : St
           simpa [List.reverse_cons, List.append_assoc, Nat.add_assoc,
             Nat.add_comm, Nat.add_left_comm] using seq h (ih (bit :: saved) (some (.inr bit), none))
 
-private def emit_run (saved output : List Wire) (state : State) :
+private def emit_run (saved output : List encoding.Γ) (state : (State encoding)) :
     Run (cfg (some .emit) state [] saved output)
       (cfg none (none, none) [] [] (saved.reverse ++ output)) (saved.length + 1) := by
   induction saved generalizing output state with
@@ -119,54 +122,60 @@ private def emit_run (saved output : List Wire) (state : State) :
       simpa [List.reverse_cons, List.append_assoc, Nat.add_assoc, Nat.add_comm,
         Nat.add_left_comm] using seq h (ih (bit :: output) (none, some bit))
 
-private theorem init_eq (input : List Input) :
+private theorem init_eq (input : List (Input encoding)) :
     initList computer input = cfg (some .scan) (none, none) input [] [] := by
   simp only [initList, computer, cfg]
   congr 1
   funext k
   cases k <;> rfl
 
-private theorem halt_eq (output : List Wire) :
+private theorem halt_eq (output : List encoding.Γ) :
     haltList computer output = cfg none (none, none) [] [] output := by
   simp only [haltList, computer, cfg]
   congr 1
   funext k
   cases k <;> rfl
 
-def outputsInTime (input : PairTest.Output) :
-    TM2OutputsInTime computer (PairTest.outputFinEncoding.encode input)
-      (some (PairQueries.inputFinEncoding.encode input.2))
-      (2 * (PairTest.outputFinEncoding.encode input).length + 2) := by
-  have hs := scan_run (PairTest.outputFinEncoding.encode input) [] [] (none, none)
-  have he := emit_run ((PairTest.outputFinEncoding.encode input).filterMap Sum.getRight?).reverse
+def outputsInTime (input : (Bool × α)) :
+    TM2OutputsInTime computer ((LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool encoding).encode input)
+      (some (encoding.encode input.2))
+      (2 * ((LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool encoding).encode input).length + 2) := by
+  have hs := scan_run ((LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool encoding).encode input) [] [] (none, none)
+  have he := emit_run (((LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool encoding).encode input).filterMap Sum.getRight?).reverse
     [] (none, none)
   simp only [List.append_nil, List.reverse_reverse, List.length_reverse] at hs he
-  have selected : (PairTest.outputFinEncoding.encode input).filterMap Sum.getRight? =
-      PairQueries.inputFinEncoding.encode input.2 := by
-    simp [PairTest.outputFinEncoding, LeanNPHardness.PairEncoding.finEncoding,
+  have selected : ((LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool encoding).encode input).filterMap Sum.getRight? =
+      encoding.encode input.2 := by
+    simp [LeanNPHardness.PairEncoding.finEncoding,
       finEncodingBoolBool, encodeBool, List.filterMap_map, Function.comp_def]
   have run := seq hs he
   rw [selected] at run
   rw [TM2OutputsInTime, init_eq]
   simp only [Option.map_some, halt_eq]
   apply LeanNPHardness.MachinePrimitives.evalsToInTimeMono run
-  have h := List.length_filterMap_le Sum.getRight? (PairTest.outputFinEncoding.encode input)
+  have h := List.length_filterMap_le Sum.getRight? ((LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool encoding).encode input)
   rw [selected] at h
   omega
 
 end PairDecisionEraseMachine
 
 /-- Discard the temporary control answer, retaining every original state cell. -/
-noncomputable def pairDecisionEraseComputableInPolyTime :
-    @TM2ComputableInPolyTime PairTest.Output PairQueries.Input
-      PairTest.outputFinEncoding PairQueries.inputFinEncoding Prod.snd where
-  tm := PairDecisionEraseMachine.computer
+noncomputable def decisionEraseComputableInPolyTime {α : Type} (encoding : FinEncoding α)
+    [Inhabited encoding.Γ] :
+    @TM2ComputableInPolyTime (Bool × α) α
+      (LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool encoding) encoding Prod.snd where
+  tm := PairDecisionEraseMachine.computer (encoding := encoding)
   inputAlphabet := Equiv.refl _
   outputAlphabet := Equiv.refl _
   time := 2 * Polynomial.X + 2
   outputsFun input := by
     simpa [Equiv.refl, Polynomial.eval_add, Polynomial.eval_mul,
-      Polynomial.eval_ofNat, Polynomial.eval_X] using PairDecisionEraseMachine.outputsInTime input
+      Polynomial.eval_ofNat, Polynomial.eval_X] using PairDecisionEraseMachine.outputsInTime (encoding := encoding) input
+
+noncomputable def pairDecisionEraseComputableInPolyTime :
+    @TM2ComputableInPolyTime PairTest.Output PairQueries.Input
+      PairTest.outputFinEncoding PairQueries.inputFinEncoding Prod.snd :=
+  @decisionEraseComputableInPolyTime _ PairQueries.inputFinEncoding ⟨.inl (.inl false)⟩
 
 namespace PairDispatch
 
@@ -251,6 +260,7 @@ example : PairAdvance.advance ((9, 10), (([], 9), [[9, 10]]), [(0, 1)]) =
 end PairDispatch
 
 #print axioms PairDecisionEraseMachine.outputsInTime
+#print axioms decisionEraseComputableInPolyTime
 #print axioms pairDecisionEraseComputableInPolyTime
 #print axioms PairDispatch.selectedComputableInPolyTime
 #print axioms PairDispatch.computableInPolyTime

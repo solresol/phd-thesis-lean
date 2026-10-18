@@ -1,12 +1,13 @@
 import PhdThesisLean.AllDifferentCSPPairControl
 
 /-!
-# Conditional calls on the retained pair-scan state
+# Conditional calls on Boolean-tagged encoded states
 
 The finite controller inspects the tagged Boolean, invokes the supplied checked
 state transformer only on the selected answer, and otherwise returns the exact
-input. Both paths restore wire order and clear all scratch stacks. This local
-controller uses the existing composition runtime and finite-machine interfaces.
+input. Both paths restore wire order and clear all scratch stacks. The retained
+encoding is a parameter, so the pair and positive scans share the controller.
+It uses the existing composition runtime and finite-machine interfaces.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine.PairGateMachine
@@ -20,21 +21,29 @@ open LeanNPHardness.MachineComposition
 
 noncomputable section
 
-variable {f : PairTest.Output → PairTest.Output}
-  (body : @TM2ComputableInPolyTime PairTest.Output PairTest.Output
-    PairTest.outputFinEncoding PairTest.outputFinEncoding f) (selected : Bool)
+variable {α : Type} {encoding : FinEncoding α}
 
-abbrev Wire := Sum Bool PairQueriesMachine.Input
+
+abbrev flagEncoding (encoding : FinEncoding α) : FinEncoding (Bool × α) :=
+  LeanNPHardness.PairEncoding.finEncoding finEncodingBoolBool encoding
+
+abbrev Wire (encoding : FinEncoding α) := Sum Bool encoding.Γ
+
+variable {f : (Bool × α) → (Bool × α)}
+  (body : @TM2ComputableInPolyTime (Bool × α) (Bool × α)
+    (flagEncoding encoding) (flagEncoding encoding) f) (selected : Bool)
+
+instance : Fintype encoding.Γ := encoding.ΓFin
 
 /-- Only the actual leading answer cell body selects the call. -/
-def sourceCell : Wire → Bool
+def sourceCell : (Wire encoding) → Bool
   | .inl answer => answer == selected
   | _ => false
 
-theorem source_present (input : PairTest.Output) :
-    (PairTest.outputFinEncoding.encode input).any (sourceCell selected) =
+theorem source_present (input : (Bool × α)) :
+    ((flagEncoding encoding).encode input).any (sourceCell selected) =
       (input.1 == selected) := by
-  simp [PairTest.outputFinEncoding, LeanNPHardness.PairEncoding.finEncoding,
+  simp [flagEncoding, LeanNPHardness.PairEncoding.finEncoding,
     finEncodingBoolBool, encodeBool, List.any_map, Function.comp_def, sourceCell]
 
 inductive External
@@ -44,15 +53,15 @@ inductive External
 abbrev Stack := body.tm.K ⊕ External
 abbrev Alphabet : (Stack body) → Type
   | .inl k => body.tm.Γ k
-  | .inr .input | .inr .saved => Wire
-  | .inr .output => Wire
+  | .inr .input | .inr .saved => (Wire encoding)
+  | .inr .output => (Wire encoding)
 
 inductive Control
   | scan | fill | collect | finish
   deriving DecidableEq, Fintype
 
 abbrev Label := body.tm.Λ ⊕ Control
-abbrev State := body.tm.σ × Bool × Option Wire
+abbrev State := body.tm.σ × Bool × Option (Wire encoding)
 
 instance : Fintype body.tm.K := body.tm.kFin
 instance : Fintype body.tm.Λ := body.tm.ΛFin
@@ -60,8 +69,8 @@ instance : Fintype body.tm.σ := body.tm.σFin
 
 def initialState : (State body) := (body.tm.initialState, false, none)
 
-private def observe (s : (State body)) (symbol : Option Wire) : (State body) := (s.1, s.2.1, symbol)
-private def cell (s : (State body)) : Wire := s.2.2.getD (.inl false)
+private def observe (s : (State body)) (symbol : Option (Wire encoding)) : (State body) := (s.1, s.2.1, symbol)
+private def cell (s : (State body)) : (Wire encoding) := s.2.2.getD (.inl false)
 
 /-- The local call embedding changes only stack addresses and control. A body
 halt returns to collection without executing a further body step. -/
@@ -110,26 +119,26 @@ def computer : FinTM2 where
   Γk₀Fin := inferInstance
   m := (program body selected)
 
-def stackContents (input saved : List Wire) (output : List Wire)
+def stackContents (input saved : List (Wire encoding)) (output : List (Wire encoding))
     (contents : (k : body.tm.K) → List (body.tm.Γ k)) : (k : (Stack body)) → List ((Alphabet body) k)
   | .inl k => contents k
   | .inr .input => input
   | .inr .saved => saved
   | .inr .output => output
 
-def cfg (label : Option (Label body)) (state : (State body)) (input saved : List Wire)
-    (output : List Wire) (contents : (k : body.tm.K) → List (body.tm.Γ k)) : (computer body selected).Cfg :=
+def cfg (label : Option (Label body)) (state : (State body)) (input saved : List (Wire encoding))
+    (output : List (Wire encoding)) (contents : (k : body.tm.K) → List (body.tm.Γ k)) : (computer body selected).Cfg :=
   ⟨label, state, (stackContents body) input saved output contents⟩
 
 def empty : (k : body.tm.K) → List (body.tm.Γ k) := fun _ => []
 
 def single (k : body.tm.K) (bits : List (body.tm.Γ k)) := Function.update (empty body) k bits
 
-def ready (input : PairTest.Output) : (computer body selected).Cfg :=
-  cfg body selected (some (.inr .scan)) (initialState body) (PairTest.outputFinEncoding.encode input) [] [] (empty body)
+def ready (input : (Bool × α)) : (computer body selected).Cfg :=
+  cfg body selected (some (.inr .scan)) (initialState body) ((flagEncoding encoding).encode input) [] [] (empty body)
 
-def done (answer : PairTest.Output) : (computer body selected).Cfg :=
-  cfg body selected none (initialState body) [] [] (PairTest.outputFinEncoding.encode answer) (empty body)
+def done (answer : (Bool × α)) : (computer body selected).Cfg :=
+  cfg body selected none (initialState body) [] [] ((flagEncoding encoding).encode answer) (empty body)
 
 abbrev Run (a b : (computer body selected).Cfg) (time : ℕ) := EvalsToInTime (computer body selected).step a (some b) time
 
@@ -143,7 +152,7 @@ def seq {a b c : (computer body selected).Cfg} {m n : ℕ}
 private def embed (config : body.tm.Cfg) : (computer body selected).Cfg :=
   cfg body selected (some (config.l.elim (.inr .collect) Sum.inl)) (config.var, false, none) [] [] [] config.stk
 
-private theorem stackContents_update (input saved : List Wire) (output : List Wire)
+private theorem stackContents_update (input saved : List (Wire encoding)) (output : List (Wire encoding))
     (contents : (k : body.tm.K) → List (body.tm.Γ k)) (k : body.tm.K) (value : List (body.tm.Γ k)) :
     (stackContents body) input saved output (Function.update contents k value) =
       Function.update ((stackContents body) input saved output contents) (.inl k) value := by
@@ -224,15 +233,15 @@ private theorem single_eq (k : body.tm.K) (bits : List (body.tm.Γ k)) :
 
 /-- The already checked state transformer runs inside the conditional call unchanged,
 then returns with every body work stack (empty body). -/
-def body_run (input : PairTest.Output) :
+def body_run (input : (Bool × α)) :
     Run body selected
       (cfg body selected (some (.inl body.tm.main))
         (initialState body) [] [] []
-        (single body body.tm.k₀ ((PairTest.outputFinEncoding.encode input).map body.inputAlphabet.symm)))
+        (single body body.tm.k₀ (((flagEncoding encoding).encode input).map body.inputAlphabet.symm)))
       (cfg body selected (some (.inr .collect))
         (initialState body) [] [] []
-        (single body body.tm.k₁ ((PairTest.outputFinEncoding.encode (f input)).map body.outputAlphabet.symm)))
-      (body.time.eval (PairTest.outputFinEncoding.encode input).length) where
+        (single body body.tm.k₁ (((flagEncoding encoding).encode (f input)).map body.outputAlphabet.symm)))
+      (body.time.eval ((flagEncoding encoding).encode input).length) where
   steps := (body.outputsFun input).steps
   evals_in_steps := by
     have h := body_iterate body selected _ _ _ (body.outputsFun input).evals_in_steps
@@ -247,7 +256,7 @@ local macro "gate_step" : tactic => `(tactic|
      | inl k => rfl
      | inr k => cases k <;> rfl)))
 
-private def scan_run (input saved : List Wire) (seen : Bool) (last : Option Wire) :
+private def scan_run (input saved : List (Wire encoding)) (seen : Bool) (last : Option (Wire encoding)) :
     Run body selected
       (cfg body selected (some (.inr .scan))
         (body.tm.initialState, seen, last) input saved [] (empty body))
@@ -270,8 +279,8 @@ private def scan_run (input saved : List Wire) (seen : Bool) (last : Option Wire
 private theorem single_nil (k : body.tm.K) : single body k [] = (empty body) := by
   exact Function.update_eq_self k (empty body)
 
-private def fill_run (saved : List Wire) (bits : List (body.tm.Γ body.tm.k₀))
-    (seen : Bool) (last : Option Wire) :
+private def fill_run (saved : List (Wire encoding)) (bits : List (body.tm.Γ body.tm.k₀))
+    (seen : Bool) (last : Option (Wire encoding)) :
     Run body selected
       (cfg body selected (some (.inr .fill))
         (body.tm.initialState, seen, last) [] saved []
@@ -305,14 +314,14 @@ private def fill_run (saved : List Wire) (bits : List (body.tm.Γ body.tm.k₀))
         Nat.add_comm, Nat.add_left_comm] using
           seq body selected h (ih (body.inputAlphabet.symm bit :: bits) (some bit))
 
-private def collect_run (bits : List (body.tm.Γ body.tm.k₁)) (saved : List Wire) (last : Option Wire) :
+private def collect_run (bits : List (body.tm.Γ body.tm.k₁)) (saved : List (Wire encoding)) (last : Option (Wire encoding)) :
     Run body selected
       (cfg body selected (some (.inr .collect))
         (body.tm.initialState, false, last) [] saved []
         (single body body.tm.k₁ bits))
       (cfg body selected (some (.inr .finish))
         (body.tm.initialState, false, none) []
-        (List.append (α := Wire) (bits.reverse.map body.outputAlphabet) saved) [] (empty body)) (bits.length + 1) := by
+        (List.append (α := (Wire encoding)) (bits.reverse.map body.outputAlphabet) saved) [] (empty body)) (bits.length + 1) := by
   induction bits generalizing saved last with
   | nil =>
       rw [(single_nil body)]
@@ -340,7 +349,7 @@ private def collect_run (bits : List (body.tm.Γ body.tm.k₁)) (saved : List Wi
       simpa [List.reverse_cons, List.map_append, List.append_assoc, Nat.add_assoc,
         Nat.add_comm, Nat.add_left_comm] using seq body selected h (ih (body.outputAlphabet bit :: saved) (some (body.outputAlphabet bit)))
 
-private def finish_run (saved output : List Wire) (seen : Bool) (last : Option Wire) :
+private def finish_run (saved output : List (Wire encoding)) (seen : Bool) (last : Option (Wire encoding)) :
     Run body selected
       (cfg body selected (some (.inr .finish))
         (body.tm.initialState, seen, last) [] saved output (empty body))
@@ -357,62 +366,62 @@ private def finish_run (saved output : List Wire) (seen : Bool) (last : Option W
       simpa [List.reverse_cons, List.append_assoc, Nat.add_assoc, Nat.add_comm,
         Nat.add_left_comm] using seq body selected h (ih (bit :: output) (some bit))
 /-- A selected call loads every original cell in order. -/
-def enter_run (input : PairTest.Output) (h : input.1 = selected) :
+def enter_run (input : (Bool × α)) (h : input.1 = selected) :
     Run body selected (ready body selected input)
       (cfg body selected (some (.inl body.tm.main))
         (initialState body) [] [] []
-        (single body body.tm.k₀ ((PairTest.outputFinEncoding.encode input).map body.inputAlphabet.symm)))
-      (2 * (PairTest.outputFinEncoding.encode input).length + 2) := by
-  have hs := scan_run body selected (PairTest.outputFinEncoding.encode input) [] false none
+        (single body body.tm.k₀ (((flagEncoding encoding).encode input).map body.inputAlphabet.symm)))
+      (2 * ((flagEncoding encoding).encode input).length + 2) := by
+  have hs := scan_run body selected ((flagEncoding encoding).encode input) [] false none
   rw [source_present] at hs
   simp only [h, beq_self_eq_true, Bool.false_or, ite_true, List.append_nil] at hs
-  have hf := fill_run body selected (PairTest.outputFinEncoding.encode input).reverse [] true none
+  have hf := fill_run body selected ((flagEncoding encoding).encode input).reverse [] true none
   simp only [single_nil, List.reverse_reverse, List.append_nil, List.length_reverse] at hf
   convert seq body selected hs hf using 1
   all_goals first | omega | rfl | simp
 
 /-- Collection and output both empty their scratch stacks. -/
-def return_run (output : PairTest.Output) :
+def return_run (output : (Bool × α)) :
     Run body selected
       (cfg body selected (some (.inr .collect))
         (initialState body) [] [] []
-        (single body body.tm.k₁ ((PairTest.outputFinEncoding.encode output).map body.outputAlphabet.symm)))
-      (done body selected output) (2 * (PairTest.outputFinEncoding.encode output).length + 2) := by
+        (single body body.tm.k₁ (((flagEncoding encoding).encode output).map body.outputAlphabet.symm)))
+      (done body selected output) (2 * ((flagEncoding encoding).encode output).length + 2) := by
   have hc := collect_run body selected
-    ((PairTest.outputFinEncoding.encode output).map body.outputAlphabet.symm) [] none
+    (((flagEncoding encoding).encode output).map body.outputAlphabet.symm) [] none
   simp only [← List.map_reverse, List.map_map, Equiv.apply_symm_apply, Function.comp_def,
     List.map_id_fun', List.append_eq, List.append_nil, List.length_map] at hc
-  have hf := finish_run body selected (PairTest.outputFinEncoding.encode output).reverse [] false none
+  have hf := finish_run body selected ((flagEncoding encoding).encode output).reverse [] false none
   simp only [List.reverse_reverse, List.append_nil, List.length_reverse] at hf
   convert seq body selected hc hf using 1
   all_goals first | omega | rfl | simp
 
 /-- An unselected body is never entered; its stacks stay empty. -/
-def skip_run (input : PairTest.Output) (h : input.1 ≠ selected) :
+def skip_run (input : (Bool × α)) (h : input.1 ≠ selected) :
     Run body selected (ready body selected input) (done body selected input)
-      (2 * (PairTest.outputFinEncoding.encode input).length + 2) := by
-  have hs := scan_run body selected (PairTest.outputFinEncoding.encode input) [] false none
+      (2 * ((flagEncoding encoding).encode input).length + 2) := by
+  have hs := scan_run body selected ((flagEncoding encoding).encode input) [] false none
   rw [source_present] at hs
   have hb : (input.1 == selected) = false := beq_eq_false_iff_ne.mpr h
   simp only [hb, Bool.false_or, List.append_nil] at hs
-  have hf := finish_run body selected (PairTest.outputFinEncoding.encode input).reverse [] false none
+  have hf := finish_run body selected ((flagEncoding encoding).encode input).reverse [] false none
   simp only [List.reverse_reverse, List.append_nil, List.length_reverse] at hf
   convert seq body selected hs hf using 1
   all_goals first | omega | rfl | simp
 
 /-- Full invocation, including deciding the branch and all four transfers. -/
-def call_run (input : PairTest.Output) (h : input.1 = selected) :
+def call_run (input : (Bool × α)) (h : input.1 = selected) :
     Run body selected (ready body selected input) (done body selected (f input))
-      (body.time.eval (PairTest.outputFinEncoding.encode input).length +
-        2 * (PairTest.outputFinEncoding.encode input).length +
-        2 * (PairTest.outputFinEncoding.encode (f input)).length + 4) := by
+      (body.time.eval ((flagEncoding encoding).encode input).length +
+        2 * ((flagEncoding encoding).encode input).length +
+        2 * ((flagEncoding encoding).encode (f input)).length + 4) := by
   convert seq body selected (seq body selected (enter_run body selected input h)
     (body_run body selected input)) (return_run body selected (f input)) using 1
   omega
 
-theorem ready_eq_initList (input : PairTest.Output) :
+theorem ready_eq_initList (input : (Bool × α)) :
     ready body selected input = initList (computer body selected)
-      (PairTest.outputFinEncoding.encode input) := by
+      ((flagEncoding encoding).encode input) := by
   simp only [ready, initList, computer, cfg, initialState]
   congr 1
   funext k
@@ -420,9 +429,9 @@ theorem ready_eq_initList (input : PairTest.Output) :
   | inl k => rfl
   | inr k => cases k <;> rfl
 
-theorem done_eq_haltList (output : PairTest.Output) :
+theorem done_eq_haltList (output : (Bool × α)) :
     done body selected output = haltList (computer body selected)
-      (PairTest.outputFinEncoding.encode output) := by
+      ((flagEncoding encoding).encode output) := by
   simp only [done, haltList, computer, cfg, initialState]
   congr 1
   funext k
@@ -432,19 +441,19 @@ theorem done_eq_haltList (output : PairTest.Output) :
 
 /-- The output-size bound comes from the existing generic finite-program bound. -/
 def time : Polynomial ℕ := body.time + 2 * Polynomial.X +
-  2 * outputSizePolynomial PairTest.outputFinEncoding PairTest.outputFinEncoding f body + 4
+  2 * outputSizePolynomial (flagEncoding encoding) (flagEncoding encoding) f body + 4
 
-def outputsInTime (input : PairTest.Output) :
-    TM2OutputsInTime (computer body selected) (PairTest.outputFinEncoding.encode input)
-      (some (PairTest.outputFinEncoding.encode (if input.1 = selected then f input else input)))
-      ((time body).eval (PairTest.outputFinEncoding.encode input).length) := by
+def outputsInTime (input : (Bool × α)) :
+    TM2OutputsInTime (computer body selected) ((flagEncoding encoding).encode input)
+      (some ((flagEncoding encoding).encode (if input.1 = selected then f input else input)))
+      ((time body).eval ((flagEncoding encoding).encode input).length) := by
   rw [TM2OutputsInTime]
   simp only [Option.map_some, ← ready_eq_initList, ← done_eq_haltList]
   by_cases h : input.1 = selected
   · rw [if_pos h]
     apply LeanNPHardness.MachinePrimitives.evalsToInTimeMono (call_run body selected input h)
     have size := LeanNPHardness.MachineRuntime.computableInPolyTime_output_length_le
-      PairTest.outputFinEncoding PairTest.outputFinEncoding f body input
+      (flagEncoding encoding) (flagEncoding encoding) f body input
     simp only [time, Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_ofNat,
       Polynomial.eval_X, outputSizePolynomial_eval]
     omega
@@ -456,12 +465,12 @@ def outputsInTime (input : PairTest.Output) :
 
 /-- A polynomial-time conditional call on the exact Boolean/pair-state wire. -/
 def computableInPolyTime :
-    @TM2ComputableInPolyTime PairTest.Output PairTest.Output
-      PairTest.outputFinEncoding PairTest.outputFinEncoding
+    @TM2ComputableInPolyTime (Bool × α) (Bool × α)
+      (flagEncoding encoding) (flagEncoding encoding)
       (fun input => if input.1 = selected then f input else input) where
   tm := computer body selected
-  inputAlphabet := Equiv.refl Wire
-  outputAlphabet := Equiv.refl Wire
+  inputAlphabet := Equiv.refl (Wire encoding)
+  outputAlphabet := Equiv.refl (Wire encoding)
   time := time body
   outputsFun input := by simpa [Equiv.refl] using outputsInTime body selected input
 

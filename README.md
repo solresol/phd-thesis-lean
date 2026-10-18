@@ -1212,7 +1212,16 @@ rectangular traversal; `run_active_iff` gives precisely
 in the original retained-section wire length, including count conversion,
 comparison, transfers and cleanup.
 
-Repeated finite dispatch and its full loop runtime, plus final
+`AllDifferentCSPPositiveDispatch.lean` now composes the complete finite
+rectangular step. `PositiveDispatch.computableInPolyTime` computes exhaustion
+and continuation, invokes exactly one membership/emission/counter branch, and
+returns exhausted states unchanged. The conditional-call controller and
+`decisionEraseComputableInPolyTime` are shared with the pair scan by
+parameterizing the retained encoding. Every copy, decision and cleanup is
+included; `iterate_steps_le` and `run_step_outputsInTime` bound the complete
+next-state call in the original counted-section bit length.
+
+The repeated positive controller and its total runtime, plus final
 objective/framing/prime assembly, remain open;
 `cor:all-different-csp` is partial.
 
