@@ -314,6 +314,18 @@ private theorem halt_eq (output : List (Option Bool)) :
   funext k
   cases k <;> rfl
 
+/-- Reusable exact interface to the existing finite counter/reversal machine.
+The tally is converted by binary carries; payload cells are copied unchanged. -/
+def rawOutputsInTime (cells : List (Option Bool)) (n : ℕ) :
+    TM2OutputsInTime computer (cells.map Sum.inl ++ List.replicate n (.inr true))
+      (some ((SourceOrderRawFields.encode [n] ++ cells).reverse))
+      (8 * (cells.length + n + 1) ^ 2) := by
+  rw [TM2OutputsInTime, init_eq]
+  simp only [Option.map_some, halt_eq]
+  simpa [SourceOrderRawFields.encode] using! mono (run cells n) (runTime_le cells n)
+
+#print axioms rawOutputsInTime
+
 end StructuralBinaryHeaderMachine
 
 namespace UnaryBoundEncoding

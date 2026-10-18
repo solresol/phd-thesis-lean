@@ -704,7 +704,8 @@ domain-entry prime. The complete composed runtime includes source preparation,
 symbol extraction, initialization, the whole loop and both retained-section
 adapters; the displayed loop polynomial alone is not the whole compiler cost.
 The pair-loop composition below now constructs deduplicated primal edges.
-Positive-row emission and final objective/prime assembly remain open;
+The positive-row scan, row assembly and objective serialization are checked
+below. Variable/prime header attachment and final composition remain open;
 the full corollary is still **Partial**.
 
 `AllDifferentCSPPrimalEdges.lean` now defines an executable bounded pair scan
@@ -717,8 +718,8 @@ scope entries. `enumerate_relabelledSections` connects the scan input to the
 completed relabelling stage. `enumerate_length_le` bounds the list by `n^2`
 for `n` explicitly listed variables. These executable semantics and size
 results are realized by the complete finite pair loop below, with a checked
-polynomial runtime from actual compiler input. Positive-row emission and final
-objective/prime composition remain separate.
+polynomial runtime from actual compiler input. The complete positive-row scan
+and row assembly are documented below.
 
 `AllDifferentCSPNegativeRows.lean` adds checked endpoint-pair and negative-row
 section encodings by reusing the counted-row codecs. Its
@@ -1023,8 +1024,8 @@ from weighted ranked sections with the semantic compiler's ordered pinning
 rows. `outputEncode_length_le_wire_quadratic` bounds that whole positive
 section by `11(s+1)^2` in the complete weighted-section wire length, including
 the binary weight field. This is a wire-size theorem; the complete positive-scan runtime is checked
-below. Full objective headers/row assembly, final framing and selected-prime
-composition remain open.
+below, as are row assembly and final framing. Variable/prime header attachment
+and final composition remain open.
 
 `AllDifferentCSPOccurrenceCount.lean` reuses the checked row-counting machine
 on the exact tagged ranked-occurrence wire in `20(s+1)^2` steps. The composed
@@ -1037,7 +1038,7 @@ The complete retained output is at most twice its weighted-section input
 length, and `gridSize_le_wire_quadratic` bounds both numerical scan dimensions
 by the actual encoded length for every intermediate value. This constructs
 the positive scan's bound; membership traversal and repeated row emission are
-checked below. Final objective/prime assembly remains open.
+checked below. Variable/prime header attachment and final composition remain open.
 
 `AllDifferentCSPPositiveWeight.lean` now stages the graph compiler's common
 binary weight for one selected `(variable, rank)` pair. The concrete
@@ -1050,7 +1051,7 @@ counted pinning row; the full row/weight output has at most `2s+7` cells.
 `positiveRowWithWeight_steps_le` gives a uniform complete-call polynomial
 bound for every bounded candidate in the retained positive-scan state.
 The initialized membership decision and complete positive-row traversal are
-checked below. Full objective/framing/prime composition remains open.
+checked below. Variable/prime header attachment and final composition remain open.
 
 `AllDifferentCSPPositiveMembership.lean` checks the exact ordered-pair
 membership predicate. `contains_cons` requires both fields to match the same
@@ -1244,8 +1245,20 @@ its input. `runtimeCompilerObjectiveRowsComputableInPolyTime` composes this
 assembly from actual Boolean compiler input; `ObjectiveRows.assemble_result`
 proves exact equality with the variable count and rows of
 `compileUsingDomainEntryBound`, including order, weights and multiplicity.
-The row decoder checks every tag and arity. Header construction, final framing
-and selected-prime composition remain open; `cor:all-different-csp` is partial.
+The row decoder checks every tag and arity.
+
+`AllDifferentCSPObjectiveEncoding.lean` now serializes a complete objective
+payload into the exact canonical Boolean `RuntimeObjective.finEncoding`.
+`ObjectiveEncoding.computableInPolyTime` composes the existing counted-row
+traversal, binary outer-header constructor and framing machine. It counts the
+variable/prime header as well as every residual row internally: counting takes
+at most `20(s+1)^2` steps in payload length `s`, header conversion takes at most
+`8(t+1)^2` in counted-wire length `t`, and framing takes at most three times
+raw-wire length. The tally-retaining wire is at most `2s`, and the raw wire is
+at most `2s+1`. The checked payload already contains the variable/prime header;
+constructing and attaching that header to the assembled rows, composing prime
+selection, and tying the whole runtime path to correctness remain open.
+`cor:all-different-csp` is partial.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
@@ -1768,8 +1781,10 @@ The copied statements are grouped by mathematical contribution:
   with the exact sorted primal graph, and negative-row emission from supplied
   pairs is checked. Complete finite-machine edge construction and exact unary
   edge counting now compose from actual input, together with exact binary
-  pinning-weight construction and negative-row emission. Positive rows, full
-  objective assembly/framing and prime composition remain open;
+  pinning-weight construction and negative-row emission. Positive rows and exact
+  complete row assembly now also compose from actual input. Objective payload
+  serialization is checked; variable/prime header attachment and final
+  composition remain open;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

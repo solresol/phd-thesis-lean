@@ -7222,3 +7222,52 @@
   framing bridge for exact objective serialization. Variable/prime header
   attachment and end-to-end semantic composition still remain.
 - **Run time:** 2026-10-18 18:24 UTC (19 October AEDT).
+
+## 2026-10-19 — exact objective row counting and Boolean serialization
+
+- **Starting commit:** `33f6128dca23837f28c1ee771fce7e6a65378255`, the verified
+  row-assembly increment above. Its push succeeded and local HEAD, origin/main
+  and live remote main agreed before this increment. Sibling/thesis states
+  were rechecked and remain unchanged.
+- **Increment:** `AllDifferentCSPObjectiveEncoding.lean` gives a checked full
+  objective payload, checked redundant unary row tally and exact reversed raw
+  encoding. It reuses `StructuralRowCountMachine`, the existing binary-header
+  machine and the dependency's nested-list framing machine. The only change
+  to `AllDifferentCSPBinaryHeader.lean` is `rawOutputsInTime`, a public exact
+  interface to its already checked counter/reversal execution proof; no new
+  counter or framing implementation was introduced.
+- **New checked declarations:** `ObjectiveEncoding.count_outputsInTime` counts
+  the header plus every residual row in `20(s+1)^2` steps. `header_outputsInTime`
+  constructs the binary outer count and raw output in `8(t+1)^2` steps for
+  complete counted-wire length `t`; `framingComputableInPolyTime` frames every
+  field in at most three times raw-wire length. `computableInPolyTime` composes
+  all three from `payloadFinEncoding` to the exact canonical Boolean
+  `RuntimeObjective.finEncoding`. `rowCount_le_payload_length`,
+  `counted_length_le`, `raw_encode` and `raw_length_le` prove the exact boundary
+  and bounds `t ≤ 2s`, raw length `≤ 2s+1`.
+- **Scope:** the input payload already includes variable/prime header fields.
+  The outer row count is constructed internally. This completes serialization,
+  not construction of the variable/prime header; the full corollary remains
+  Partial. README, both status locations and root imports reflect this boundary.
+- **Verification:** targeted 3,327-job build, full 9,279-job `lake build`, all eleven new
+  serialization audits plus the shared-header audit using only standard axioms,
+  lexical prohibited-token/native-bypass scan of all 148 project Lean/config
+  sources, and `git diff --check`. Examples check a zero-variable/no-residual
+  objective (still one header row), incorrect/matching tallies, malformed
+  header arity, mixed residual tags and large binary fields.
+- **Resolved diagnostic:** rewriting the counted encoding before its length
+  lemma obscured the complete-wire runtime bound. Rewrite `counted_length`
+  first, then simplify the wire and raw-output equations. No unresolved Lean
+  error; failed-build audit output is excluded from evidence.
+- **Ending / next:** commit/push after full verification and check all three
+  refs. Construct/attach variable and selected-prime fields to the assembled
+  rows, then apply `ObjectiveEncoding.computableInPolyTime` and existing
+  `compileUsingDomainEntryBound` correctness/bit-size theorems. The terminal
+  positive state retains the original occurrence count (`CountedPositiveSections.count_eq`),
+  and `positiveBoundPrepareComputableInPolyTime true` already copies it while
+  preserving state, but uses `UnaryBoundEncoding.inputFinEncoding` rather than
+  the prime selector's plain unary Boolean encoding. A finite adapter or
+  appropriately retained original-input prime path must account for this
+  actual interface. Do not redo row traversal, row assembly, tally conversion
+  or final framing. Commit identity and final parity go in automation memory.
+- **Run time:** 2026-10-18 18:34 UTC (19 October AEDT).

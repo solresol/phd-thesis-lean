@@ -139,3 +139,4 @@ import PhdThesisLean.AllDifferentCSPPositiveControl
 import PhdThesisLean.AllDifferentCSPPositiveDispatch
 import PhdThesisLean.AllDifferentCSPPositiveScanLoop
 import PhdThesisLean.AllDifferentCSPObjectiveRows
+import PhdThesisLean.AllDifferentCSPObjectiveEncoding
