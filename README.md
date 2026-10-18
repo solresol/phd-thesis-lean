@@ -1236,8 +1236,16 @@ exactly the ordered semantic pinning rows (`result_ofRuntimeSystem` and
 is needed only for the intermediate row-correspondence lemma; the actual
 compiler constructs that count internally.
 
-Final objective header/row assembly, framing and selected-prime composition
-remain open; `cor:all-different-csp` is partial.
+`AllDifferentCSPObjectiveRows.lean` now collects the complete residual-row list.
+`objectiveRowsComputableInPolyTime` retains the unary variable count and puts
+all positive rows before all negative rows in at most `2s+4` finite-machine
+steps, clearing every scratch stack. Its complete output is no larger than
+its input. `runtimeCompilerObjectiveRowsComputableInPolyTime` composes this
+assembly from actual Boolean compiler input; `ObjectiveRows.assemble_result`
+proves exact equality with the variable count and rows of
+`compileUsingDomainEntryBound`, including order, weights and multiplicity.
+The row decoder checks every tag and arity. Header construction, final framing
+and selected-prime composition remain open; `cor:all-different-csp` is partial.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

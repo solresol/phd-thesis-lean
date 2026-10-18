@@ -7183,3 +7183,42 @@
   `cor:all-different-csp` Partial until that end-to-end composition builds.
   Final commit and remote parity are recorded in automation memory.
 - **Run time:** 2026-10-18 12:07 UTC.
+
+## 2026-10-19 — assemble the complete residual-row output
+
+- **Starting commit:** clean `main` at
+  `ee69060483f715005f3fe5e4a082e4dab6f4a477`. Fetched origin; zero divergence,
+  so no checkout update was needed. Read AGENTS, status/correspondence, active
+  Lean modules, previous log/memory and the active thesis corollary and proof.
+  Baseline full `lake build` passed (9,277 jobs).
+- **Read-only context:** sibling `lean-np-hardness` remains clean at `1acf1d3`;
+  reviewed its tagged encodings, pair adapters and sequential runtime API,
+  together with the project's pinned implementations. Thesis remains at
+  `ca5ce9a` with its original two untracked paths preserved. No sibling,
+  dependency or thesis edits.
+- **Increment:** `AllDifferentCSPObjectiveRows.lean` supplies a checked residual
+  row payload decoder and an actual finite routing machine. It consumes the
+  completed scan, retains the original unary variable count, places positive
+  rows before negative rows, and clears every other stack. Its exact bound is
+  `2s+4` steps and its output does not exceed its complete input length.
+- **New checked declarations:** `ObjectiveRows.assemble_result` identifies the
+  exact variable count and ordered rows with `compileUsingDomainEntryBound`.
+  `ObjectiveRowsMachine.outputsInTime`, `objectiveRowsComputableInPolyTime`,
+  and `runtimeCompilerObjectiveRowsComputableInPolyTime` include all transfers
+  and compose from actual Boolean input. `result_length_le_cubic` retains the
+  preceding scan's whole-wire bound. Examples cover empty output with nonzero
+  variable count, mixed rows, incorrect row arity and large binary fields.
+- **Verification:** direct module check, full `lake build`, all eight headline
+  axiom audits (standard axioms only), lexical prohibited-token/native-bypass
+  scan of 147 project Lean/config sources, and `git diff --check`. README,
+  both status locations and root imports synchronized; corollary stays Partial.
+- **Resolved diagnostics:** `mapM` round trips need the `Option` bind reduced
+  before induction. Unfold the outer encoding aliases before rewriting payload
+  concatenation to avoid mixed alphabet aliases during `HAppend` synthesis.
+  Split the three optional routing results before simplifying reversal in the
+  scan induction. Failed checks and their audit reports were not evidence.
+- **Ending / next:** commit and push this verified row-assembly increment,
+  then reuse the existing counted-row traversal, binary-header machine and
+  framing bridge for exact objective serialization. Variable/prime header
+  attachment and end-to-end semantic composition still remain.
+- **Run time:** 2026-10-18 18:24 UTC (19 October AEDT).
