@@ -7,8 +7,8 @@ Visit `(index, rank)` with `index < variableCount` and `rank ≤ occurrenceCount
 The latter count is a unary header, not the magnitude of an original symbol.
 The checked test-and-emit call supplies each row. An ordinal proves progress,
 freshness and capacity for every reached state, including canonical exhaustion.
-These executable iterations are a semantic specification; a repeated finite
-machine and its total running-time bound remain separate obligations.
+These executable iterations are the semantic specification implemented by the
+finite machine and total runtime proof in `AllDifferentCSPPositiveScanLoop`.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

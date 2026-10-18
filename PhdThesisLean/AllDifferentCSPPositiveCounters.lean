@@ -5,8 +5,8 @@ import PhdThesisLean.AllDifferentCSPPositiveAdvance
 
 Reuse the checked successor and pair adapters, including every retained field.
 A one-stack eraser resets the inner binary word to canonical zero. The two
-continuations are polynomial-time finite machines; deciding and repeatedly
-dispatching between them is a separate obligation.
+continuations are polynomial-time finite machines. `AllDifferentCSPPositiveDispatch`
+and `AllDifferentCSPPositiveScanLoop` compose the decisions and repeated scan.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

@@ -77,7 +77,7 @@ theorem iterate_steps_le (value : CountedPositiveSections.Value) (k : ℕ) :
       (PositiveAdvance.run_length_le_cubic value k))
 
 /-- Exact next-state output with every dispatch cost bounded in the original
-retained-section length. Repeated execution is a separate loop obligation. -/
+retained-section length. `AllDifferentCSPPositiveScanLoop` checks repeated execution. -/
 noncomputable def run_step_outputsInTime
     (value : CountedPositiveSections.Value) (k : ℕ) :
     TM2OutputsInTime computableInPolyTime.tm

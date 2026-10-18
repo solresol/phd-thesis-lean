@@ -137,3 +137,4 @@ import PhdThesisLean.MaxObjectiveSmith
 import PhdThesisLean.AllDifferentCSPPositiveScanInitialization
 import PhdThesisLean.AllDifferentCSPPositiveControl
 import PhdThesisLean.AllDifferentCSPPositiveDispatch
+import PhdThesisLean.AllDifferentCSPPositiveScanLoop

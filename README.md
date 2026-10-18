@@ -1008,9 +1008,8 @@ later variable indices. `enumerate_nodup` and `enumerate_length_le` prove that
 no pair repeats and output count cannot exceed stored occurrence count.
 `enumerate_eq_filter` connects the scan to its explicit candidate grid;
 `candidates_length_le_wire_quadratic` bounds that grid by `s(s+1)` in the
-complete retained-section wire length. This is an executable specification
-and semantic/order proof, not yet a finite-machine runtime theorem for the
-positive scan.
+complete retained-section wire length. This executable specification and semantic/order proof are implemented by
+`positiveEnumerationComputableInPolyTime`, described below.
 
 `AllDifferentCSPPositiveBlock.lean` adds a concrete finite machine and checked
 input/output encodings for one positive row. `positiveBlock_outputsInTime`
@@ -1023,10 +1022,9 @@ its decoder rejects negative rows and wrong arities.
 from weighted ranked sections with the semantic compiler's ordered pinning
 rows. `outputEncode_length_le_wire_quadratic` bounds that whole positive
 section by `11(s+1)^2` in the complete weighted-section wire length, including
-the binary weight field. This is a wire-size theorem; the repeated positive
-scan and repeated emission still need their complete machine runtime proof;
-shared-weight staging for one selected row is checked below. Full objective headers/row assembly, final framing and
-selected-prime composition also remain open.
+the binary weight field. This is a wire-size theorem; the complete positive-scan runtime is checked
+below. Full objective headers/row assembly, final framing and selected-prime
+composition remain open.
 
 `AllDifferentCSPOccurrenceCount.lean` reuses the checked row-counting machine
 on the exact tagged ranked-occurrence wire in `20(s+1)^2` steps. The composed
@@ -1038,8 +1036,8 @@ original domain-entry count; repeated entries contribute separate tally marks.
 The complete retained output is at most twice its weighted-section input
 length, and `gridSize_le_wire_quadratic` bounds both numerical scan dimensions
 by the actual encoded length for every intermediate value. This constructs
-the positive scan's bound; membership traversal, repeated row emission and
-final objective/prime assembly still remain.
+the positive scan's bound; membership traversal and repeated row emission are
+checked below. Final objective/prime assembly remains open.
 
 `AllDifferentCSPPositiveWeight.lean` now stages the graph compiler's common
 binary weight for one selected `(variable, rank)` pair. The concrete
@@ -1051,8 +1049,8 @@ with the checked positive-row emitter while retaining the original weight.
 counted pinning row; the full row/weight output has at most `2s+7` cells.
 `positiveRowWithWeight_steps_le` gives a uniform complete-call polynomial
 bound for every bounded candidate in the retained positive-scan state.
-The initialized membership decision is checked below. Positive-row
-selection/traversal and full objective/framing/prime composition remain open.
+The initialized membership decision and complete positive-row traversal are
+checked below. Full objective/framing/prime composition remains open.
 
 `AllDifferentCSPPositiveMembership.lean` checks the exact ordered-pair
 membership predicate. `contains_cons` requires both fields to match the same
@@ -1221,9 +1219,25 @@ parameterizing the retained encoding. Every copy, decision and cleanup is
 included; `iterate_steps_le` and `run_step_outputsInTime` bound the complete
 next-state call in the original counted-section bit length.
 
-The repeated positive controller and its total runtime, plus final
-objective/framing/prime assembly, remain open;
-`cor:all-different-csp` is partial.
+`AllDifferentCSPPositiveScanLoopMachine.lean` and
+`AllDifferentCSPPositiveScanLoop.lean` now check the entire repeated scan.
+The pair and positive scans share `FlaggedLoopMachine`; each cycle executes
+the complete dispatcher and computes the next active bit. `run_bounded`
+charges every one of the `n(q+1)` candidate visits and the final false-bit exit.
+At loop-entry bit length `s`, set `B=16(s+1)^3+1`: the loop takes at most
+`(s(s+1)+1)*(P(B)+4B+4)` steps, where `P` is the checked complete-body polynomial.
+`positiveEnumerationComputableInPolyTime` also constructs the seed and control
+bit; `runtimeCompilerPositiveEnumerationComputableInPolyTime` includes all
+preparation from the actual Boolean compiler input. Its result retains the
+ranked sections, negative rows and weight, ends at counters `(n,0)`, and contains
+exactly the ordered semantic pinning rows (`result_ofRuntimeSystem` and
+`result_outputEncode_ofRuntimeSystem`). `result_nodup` proves uniqueness and
+`result_length_le_cubic` bounds the complete retained output. Count consistency
+is needed only for the intermediate row-correspondence lemma; the actual
+compiler constructs that count internally.
+
+Final objective header/row assembly, framing and selected-prime composition
+remain open; `cor:all-different-csp` is partial.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope

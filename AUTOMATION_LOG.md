@@ -7126,3 +7126,60 @@
   runtime. Final objective/framing/prime assembly still follows. Memory records
   commit identity and remote parity after pushing.
 - **Run time:** 2026-10-18 12:01 UTC.
+
+
+## 2026-10-18 — complete polynomial-time positive-row traversal
+
+- **Starting commit:** `49d208d1007ac40c075be2cd306873b94657b78c`, the verified
+  finite-dispatch increment above. Its push succeeded and local HEAD, tracking
+  ref and live remote main agreed before this increment. Same read-only thesis
+  and sibling context; their original state remains preserved.
+- **Increment:** factored the established repeated pair controller into
+  `AllDifferentCSPFlaggedLoopMachine.lean`, parameterized by retained encoding
+  and checked body. `AllDifferentCSPPairLoopMachine.lean` now specializes the
+  shared controller while preserving the pair scan's public execution bounds.
+  `AllDifferentCSPPositiveScanLoopMachine.lean` specializes it to the full
+  positive dispatcher plus recomputed active bit. `iteration_cycle` charges
+  complete body execution, both ordered transfers and cleanup; `exit_run`
+  removes the final false bit and preserves every terminal state cell.
+- **New checked result:** `PositiveScanLoop.run_bounded` inducts over the
+  already-proved rectangular budget `n(q+1)`. For loop-entry bit length `s`,
+  `outputsInTime` uses `B=16(s+1)^3+1` and total bound
+  `(s(s+1)+1)*(P(B)+4B+4)`, where `P` is the complete body's polynomial.
+  `positiveEnumerationComputableInPolyTime` includes seed/active-bit entry;
+  `runtimeCompilerPositiveEnumerationComputableInPolyTime` composes all
+  preparation from actual Boolean compiler input. No counters, budget,
+  membership answers or reached-state invariant are supplied by its caller.
+- **Exact correspondence:** `result_ofRuntimeSystem` and
+  `result_outputEncode_ofRuntimeSystem` identify precisely the semantic
+  compiler's ordered pinning rows and their raw counted payload. `result_rows`
+  exposes the intermediate count-consistency premise, discharged internally
+  for actual compiler inputs. `result_retained`, `result_exhausted`,
+  `result_nodup` and `result_length_le_cubic` establish retained sections,
+  canonical terminal counters, uniqueness and complete output-bit bounds.
+- **Verification:** full `lake build` passes (9,277 jobs), with 959 standard-only
+  axiom reports and 27 axiom-free reports; all 22 new loop audits passed.
+  New shared/positive-loop modules are warning-free. Kernel examples cover
+  zero variables, zero occurrences with nonzero variable count, duplicate
+  occurrences, unequal dimensions, empty domains, and actual compiler input
+  with repeated/overlapping scopes and nonconsecutive original symbols.
+  The lexical prohibited-token/native-bypass scan passes all 146 project
+  Lean/config sources; `git diff --check` passes. README, both status locations,
+  root imports and source correspondence notes synchronized. Corollary Partial.
+- **Resolved diagnostics:** a mechanical parameterization initially altered a
+  field projection, binder and record-field name; these were restored before
+  any successful check. Applied definitions are not valid simp-unfold entries;
+  use their bare names. Recursive `lift` fixes its section parameters rather
+  than accepting them again. Typed cycle/exit wrappers keep the original
+  encoding aliases visible to `omega`/`nlinarith`. The exact initialized-state
+  decoder additionally needs `PositiveAdvance.seed` in its simplifier.
+  All errors resolved; no failed-build axiom output counts as evidence.
+- **Ending / next:** commit and push this checked whole-scan increment and
+  verify all three refs. The positive traversal is now complete: do not redo
+  membership, dispatch, counters or the loop. Next finalize the retained
+  terminal state into the combined positive/negative objective rows, construct
+  the exact variable/row headers, frame the output, and compose the checked
+  prime-selection path with the objective's correctness theorem. Keep
+  `cor:all-different-csp` Partial until that end-to-end composition builds.
+  Final commit and remote parity are recorded in automation memory.
+- **Run time:** 2026-10-18 12:07 UTC.
