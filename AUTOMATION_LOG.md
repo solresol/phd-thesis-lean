@@ -7271,3 +7271,41 @@
   actual interface. Do not redo row traversal, row assembly, tally conversion
   or final framing. Commit identity and final parity go in automation memory.
 - **Run time:** 2026-10-18 18:34 UTC (19 October AEDT).
+
+## 2026-10-20 — compute the binary objective header with retained rows
+
+- **Starting commit:** clean `main` at
+  `77a93c5683c3a313ea62e303a4651acdab4fdf66`. Fetched origin; zero divergence.
+  Read AGENTS, status, relevant README/Lean sources, prior memory/log and the
+  active thesis corollary/proof. Baseline full build passed (9,279 jobs).
+- **Read-only context:** sibling `lean-np-hardness` remains clean at `1acf1d3`;
+  reviewed its pair adapters, exact sequential runtime, unary prime selection
+  and encoding APIs, plus the pinned versions. Thesis remains at `ca5ce9a`
+  with its original `proofs/.lake/` and `things-to-read.txt` untracked paths.
+  No sibling, thesis or dependency edits.
+- **Increment:** `AllDifferentCSPUnaryBridge.lean` supplies a finite cell-map
+  bridge between plain unary Boolean words and the binary counter's tagged
+  unary input. Its exact `2s+2` execution restores order and clears scratch.
+  `selectedPrimeBinaryComputableInPolyTime` composes untagging, the existing
+  prime selector, retagging and existing binary counting. The same bridge
+  converts the plain unary variable count; no arithmetic was reimplemented.
+- **New checked declarations:** `ObjectiveHeader.prepare_result` identifies the
+  prime, original variable count and complete ordered rows with the semantic
+  compiler. `computableInPolyTime` builds both binary fields from the completed
+  positive scan, and `runtimeCompilerComputableInPolyTime` starts at the actual
+  Boolean compiler input. `output_length_le` bounds the complete tuple by
+  `3s+4` in terminal-state encoded length. Prime selection uses the retained
+  original occurrence count, including repeated symbols and the zero case.
+- **Checks:** full `lake build`, ten new headline axiom audits, lexical
+  prohibited-token/native-bypass scan and `git diff --check`. README, both
+  status locations and root imports synchronized. The corollary stays Partial:
+  the computed binary fields still need attachment to the objective payload.
+- **Resolved diagnostics:** use a named tag-removal function to expose the map
+  simplification; `using!` unfolds the `FinTM2.step` alias in the exact run;
+  normalize `reverse ++ []` before composing runs. Open the explicit-system
+  namespace for `selectPrimeAbove` to avoid an unintended implicit parameter.
+  `variable` is a reserved Lean keyword, so the local machine is named
+  `variableCounter`. Failed-build axiom reports are excluded from evidence.
+- **Next:** attach binary fields and rows in source order, invoke the checked
+  objective serializer, and compose the existing semantic/bit-size theorems.
+- **Run time:** 2026-10-19 18:25 UTC (20 October AEDT).

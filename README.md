@@ -1255,10 +1255,19 @@ variable/prime header as well as every residual row internally: counting takes
 at most `20(s+1)^2` steps in payload length `s`, header conversion takes at most
 `8(t+1)^2` in counted-wire length `t`, and framing takes at most three times
 raw-wire length. The tally-retaining wire is at most `2s`, and the raw wire is
-at most `2s+1`. The checked payload already contains the variable/prime header;
-constructing and attaching that header to the assembled rows, composing prime
-selection, and tying the whole runtime path to correctness remain open.
-`cor:all-different-csp` is partial.
+at most `2s+1`. The checked payload already contains the variable/prime header.
+
+`AllDifferentCSPObjectiveHeader.lean` now computes both header fields while
+retaining the exact residual rows. `ObjectiveHeader.runtimeCompilerComputableInPolyTime`
+starts from actual Boolean compiler input, copies the retained occurrence
+count, selects the same prime as `compileUsingDomainEntryBound`, and converts
+both that prime and the original variable count to binary. The finite unary
+encoding bridge takes `2s+2` steps without changing length; all prime selection,
+binary counting and pair transfers are included in the composed polynomial.
+`prepare_result` proves exact compiler correspondence, and `output_length_le`
+bounds the complete binary-header/row tuple by `3s+4` in terminal scan length.
+Attaching these binary fields to the payload and tying final serialization to
+semantic correctness remain open. `cor:all-different-csp` is partial.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
