@@ -141,8 +141,9 @@ structural view under the checked exhaustion-delimited payload encoding.
 count; `AllDifferentCSPBinaryHeader` converts the tally to binary and stages
 the exact raw structural output. `AllDifferentCSPStructuralCompiler` composes
 all structural passes from the actual Boolean compiler input through the
-original Boolean framing. Canonical relabelling and edge construction,
-objective-row emission, and composition with prime selection remain.
+original Boolean framing. The later modules compose canonical relabelling,
+edge construction, objective rows and prime selection; the final declaration
+is `AllDifferentCSPEncoding.all_different_csp` in `AllDifferentCSPCorollary`.
 -/
 
 namespace FramedNat

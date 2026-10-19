@@ -227,8 +227,10 @@ assignment; in the satisfiable case these are exactly the embedded satisfying
 assignments. The executable `selectPrimeAbove` scans the finite Bertrand
 interval, handles `q = 0` and `q = 1` explicitly, and for `q > 1` proves
 `q < p < 2q`; `compilerPrime_allDifferent_correctness` composes this selected
-prime with the exact minimum-conflict semantics. This is not yet the full
-`cor:all-different-csp`: `ResidualRow` and `CompiledObjective` give an
+prime with the exact minimum-conflict semantics. The full
+`cor:all-different-csp` is now checked by `AllDifferentCSPEncoding.all_different_csp`
+in [`AllDifferentCSPCorollary.lean`](PhdThesisLean/AllDifferentCSPCorollary.lean).
+`ResidualRow` and `CompiledObjective` give an
 executable finite sparse row-list output, `rowsLoss_compileObjective` proves
 that its affine interpretation is exactly the checked objective, and
 `compileObjective_rows_length` proves its exact row count.
@@ -464,7 +466,7 @@ smaller values, count them, and add one) with the semantic compiler's rank.
 `rank_eq_iff`, `rank_lt_domainEntryPrime`, and `relabeled_domain` connect it
 to equality preservation, the selected prime, and each exact relabeled domain.
 These semantic contracts connect to the complete local rank machine described
-below. Its composition across retained compiler sections remains outstanding.
+below, including its composition across all retained compiler sections.
 `AllDifferentCSPSymbolMachine.lean` now implements the extraction step.
 `domainSymbolExtractionComputableInPolyTime` retains the exact occurrence
 wire and extracts every symbol field in source order in at most `3s+3`
@@ -490,7 +492,7 @@ and final cleanup. Empty lists, zero, repeated symbols, and unequal bit
 lengths are covered; every non-output stack is empty at halt. Both loaded
 words are reversed, which preserves equality and avoids a separate reversal
 pass. This local membership machine is reused inside the complete rank driver
-below; composition from the complete compiler input remains open.
+below and composes from the complete compiler input.
 `AllDifferentCSPSymbolRankStep.lean` connects that machine result to the next
 loop. `DomainSymbolMembership.contains_extracted` identifies membership with
 the semantic union of domains; `dedup_cons` uses the returned bit to skip
@@ -705,8 +707,8 @@ symbol extraction, initialization, the whole loop and both retained-section
 adapters; the displayed loop polynomial alone is not the whole compiler cost.
 The pair-loop composition below now constructs deduplicated primal edges.
 The positive-row scan, row assembly and objective serialization are checked
-below. Variable/prime header attachment and final composition remain open;
-the full corollary is still **Partial**.
+below, together with computed variable/prime header attachment and the final
+`all_different_csp` theorem. The full corollary is **Complete**.
 
 `AllDifferentCSPPrimalEdges.lean` now defines an executable bounded pair scan
 from the retained variable count and scope lists. `PrimalEdgeEnumeration.enumerate`
@@ -735,7 +737,7 @@ section by `9(s+1)^3` in the actual Boolean compiler-input length. The finite
 emitter starts with an already enumerated edge list. The pair loop and
 projection below now construct that list and compose this emitter from actual
 compiler input. Positive rows, full objective assembly and prime composition
-remain.
+are checked in the final stages below.
 `AllDifferentCSPRowCount.lean` now reuses the existing row-counting machine
 on the original domain rows. `domainVariableCountComputableInPolyTime`
 retains every domain cell and constructs the exact unary variable count in
@@ -1024,8 +1026,8 @@ from weighted ranked sections with the semantic compiler's ordered pinning
 rows. `outputEncode_length_le_wire_quadratic` bounds that whole positive
 section by `11(s+1)^2` in the complete weighted-section wire length, including
 the binary weight field. This is a wire-size theorem; the complete positive-scan runtime is checked
-below, as are row assembly and final framing. Variable/prime header attachment
-and final composition remain open.
+below, as are row assembly, variable/prime header attachment, final framing
+and the whole-compiler correctness theorem.
 
 `AllDifferentCSPOccurrenceCount.lean` reuses the checked row-counting machine
 on the exact tagged ranked-occurrence wire in `20(s+1)^2` steps. The composed
@@ -1038,7 +1040,7 @@ The complete retained output is at most twice its weighted-section input
 length, and `gridSize_le_wire_quadratic` bounds both numerical scan dimensions
 by the actual encoded length for every intermediate value. This constructs
 the positive scan's bound; membership traversal and repeated row emission are
-checked below. Variable/prime header attachment and final composition remain open.
+checked below, together with variable/prime header attachment and final composition.
 
 `AllDifferentCSPPositiveWeight.lean` now stages the graph compiler's common
 binary weight for one selected `(variable, rank)` pair. The concrete
@@ -1051,7 +1053,7 @@ counted pinning row; the full row/weight output has at most `2s+7` cells.
 `positiveRowWithWeight_steps_le` gives a uniform complete-call polynomial
 bound for every bounded candidate in the retained positive-scan state.
 The initialized membership decision and complete positive-row traversal are
-checked below. Variable/prime header attachment and final composition remain open.
+checked below, together with variable/prime header attachment and final composition.
 
 `AllDifferentCSPPositiveMembership.lean` checks the exact ordered-pair
 membership predicate. `contains_cons` requires both fields to match the same
@@ -1130,7 +1132,7 @@ closed candidate bounds and at most a grid of bounded, common-weight rows by
 `16(s+1)^3` in immutable-section wire length `s`, including all weight bits.
 `positiveCandidateTest_bounded_steps_le` then gives one polynomial bound for
 all such complete calls. The reached-state invariants are established by `PositiveAdvance` below;
-repeated finite control remains outstanding.
+the repeated finite controller is checked in `PositiveScanLoop` below.
 
 `AllDifferentCSPPositiveCandidateEmit.lean` now consumes the computed answer
 and conditionally appends the exact counted positive row while retaining the
@@ -1170,8 +1172,8 @@ header is consistent, and `run_ofRuntimeSystem` gives the actual semantic
 compiler's pinning rows. `run_nodup` excludes duplicates. `run_length_le_cubic`
 retains the complete `16(s+1)^3` bit bound; `run_filter_steps_le` bounds every
 actual finite test-and-emit call by one polynomial in the original section
-length. The executable iteration is not yet a repeated finite-machine runtime
-result.
+length. `PositiveScanLoop` below realizes this executable iteration with a
+complete repeated finite-machine runtime bound.
 
 `AllDifferentCSPPositiveCounters.lean` supplies both finite binary counter
 continuations using the pinned successor, pair-left/right and sequential
@@ -1266,8 +1268,24 @@ encoding bridge takes `2s+2` steps without changing length; all prime selection,
 binary counting and pair transfers are included in the composed polynomial.
 `prepare_result` proves exact compiler correspondence, and `output_length_le`
 bounds the complete binary-header/row tuple by `3s+4` in terminal scan length.
-Attaching these binary fields to the payload and tying final serialization to
-semantic correctness remain open. `cor:all-different-csp` is partial.
+`AllDifferentCSPObjectiveAssembly.lean` now attaches the computed binary fields
+and all residual rows in at most `3s+4` finite-machine steps, adding exactly
+three arity cells. `runtimeCompilerComputableInPolyTime` composes the entire
+compiler from `RuntimeCompilerInput.finEncoding` to the canonical Boolean
+`RuntimeObjective.finEncoding`; no prime, counter, rank, graph or row list is
+supplied by the caller.
+
+The final declaration is `AllDifferentCSPEncoding.all_different_csp` in
+`AllDifferentCSPCorollary.lean`. It combines that genuine polynomial-time
+machine, the `64(s+1)^4` complete output-bit bound, primality and a sufficiently
+large prime, attainment, exact minimum-conflict minimizers, and the satisfiable
+specialization. `RuntimeObjective.loss` interprets the emitted rows at the
+emitted prime and dimension; `compileUsingDomainEntryBound_loss` proves exact
+agreement with the dependent semantic objective. The input encoding includes
+a checked unary occurrence header and is at most twice the compact input
+length plus one. Well-formed inputs have nonempty domains and in-range scope
+indices; repetitions use set semantics and conflicts count deduplicated primal
+edges. This completes `cor:all-different-csp` under those explicit conventions.
 
 `StructuralFieldStream.encode_eq_header_sections` specifies the full output as
 the exact record-count and variable headers followed by the domain and scope
@@ -1371,7 +1389,7 @@ structural compiler now constructs that raw target and frames it, using checked
 binary indices, countdowns, row counting, and header staging. The later
 relabelling and finite-machine edge-construction stages are also complete.
 The graph-to-negative-row composition is also complete, retaining ranked
-sections. Positive rows and whole-compiler assembly remain.
+sections. Positive rows and whole-compiler assembly are now also complete.
 
 The direct clause-wise 3-SAT compiler is formalised in
 [`PhdThesisLean/ClauseCompiler.lean`](PhdThesisLean/ClauseCompiler.lean). It
@@ -1792,8 +1810,8 @@ The copied statements are grouped by mathematical contribution:
   edge counting now compose from actual input, together with exact binary
   pinning-weight construction and negative-row emission. Positive rows and exact
   complete row assembly now also compose from actual input. Objective payload
-  serialization is checked; variable/prime header attachment and final
-  composition remain open;
+  serialization, variable/prime header attachment and final correctness
+  composition are complete in `AllDifferentCSPEncoding.all_different_csp`;
   `thm:3sat-clausewise` is
   formalised in `PhdThesisLean.ClauseCompiler`. The concrete `p = 5` reduction
   premise of

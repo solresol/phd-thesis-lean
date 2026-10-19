@@ -6,8 +6,8 @@ import PhdThesisLean.AllDifferentCSPSymbolComparison
 The input is the existing target/symbol-list wire, restricted by its decoder to
 nonempty lists. A finite pass constructs the membership query, comparison pair,
 and remaining rank query together. Every copied bit is charged, and the target
-and tail survive both later predicate calls. This does not yet iterate or count
-ranks; `cor:all-different-csp` remains partial.
+and tail survive both later predicate calls. The later `AllDifferentCSPRankLoop` iterates and counts
+ranks; `AllDifferentCSPCorollary` gives the completed corollary.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

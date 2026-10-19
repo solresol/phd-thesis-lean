@@ -23,7 +23,7 @@ once.  The main semantic theorem `satisfies_iff_isProper` proves that satisfying
 the original all-different scopes is exactly proper list-colouring of this
 deduplicated graph.  The executable rank relabelling maps the union of domain
 symbols onto `{1, ..., q}` and preserves equality, satisfaction, and minimum
-conflict. After the supplied-prime semantic stage, the remaining compiler work
+conflict. After the supplied-prime semantic stage, the runtime compiler
 uses an executable bounded scan to select a prime, then composes that choice
 with the p-adic correctness theorem. The compiler now emits a finite sparse
 row list and proves that interpreting it is exactly the checked objective.
@@ -133,8 +133,8 @@ bit-level time. `AllDifferentCSPBinaryHeader` converts that tally and stages
 the exact raw encoding in quadratic time. `AllDifferentCSPStructuralCompiler`
 composes all these passes and Boolean framing from actual compiler input to
 the original Boolean structural encoding. Canonical relabelling, deduplicated
-edge construction, objective emission, and composition with prime selection
-remain.
+edge construction, objective emission and prime selection are composed by the
+later modules, culminating in `AllDifferentCSPEncoding.all_different_csp`.
 `AllDifferentCSPSymbols` now connects source-order occurrence extraction and
 an executable deduplicated list rank to the exact semantic relabelling,
 including equality preservation, prime bounds, and per-domain images.
@@ -164,8 +164,11 @@ proves exact ordered agreement with the deduplicated semantic primal graph.
 `AllDifferentCSPNegativeRows` reuses the scope-section finite machine to emit
 the exact negative residual-row section from checked endpoint pairs in quadratic
 bit-level time, with a cubic section-size bound in original compiler-input length.
-Constructing the edges by a finite machine, positive rows, complete objective
-assembly and final prime composition remain outstanding.
+The finite edge and positive scans, objective assembly and prime selection
+now compose in `AllDifferentCSPMachine.runtimeCompilerComputableInPolyTime`
+in `AllDifferentCSPObjectiveAssembly`. The final
+`AllDifferentCSPEncoding.all_different_csp` theorem in `AllDifferentCSPCorollary`
+joins that machine with the bit-size bound and semantics of the emitted rows.
 -/
 
 /-- An explicitly represented finite-domain all-different constraint system.
@@ -1222,9 +1225,10 @@ now composes too, and the variable-header/count-preserving composition carries
 the original variable count through both passes. The payload, row counter,
 and binary-header machines now check the complete raw structural output;
 `runtimeCompilerStructuralViewComputableInPolyTime` composes the entire path
-from actual compiler input through Boolean framing. Canonical relabelling,
-edge deduplication, encoded objective emission, and final runtime composition remain before
-`cor:all-different-csp` is complete. -/
+from actual compiler input through Boolean framing. The later canonical
+relabelling, edge and positive scans, prime/header assembly and final framing
+now compose in `AllDifferentCSPMachine.runtimeCompilerComputableInPolyTime`.
+`AllDifferentCSPEncoding.all_different_csp` is the completed corollary. -/
 theorem compilerPrime_allDifferent_correctness
     {n : ℕ} (C : ExplicitSystem n) (hC : C.WellFormed) :
     letI : Fact C.compilerPrime.Prime := ⟨C.compilerPrime_prime⟩

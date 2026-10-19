@@ -7,7 +7,7 @@ The checked membership machine returns the branch used to skip a repeated
 symbol. A smaller symbol adds one rank position only at its final occurrence.
 These recurrence and encoded-size lemmas support the repeated driver and
 polynomial runtime proved in `AllDifferentCSPRankLoop`.
-The full thesis corollary `cor:all-different-csp` remains partial.
+The completed thesis corollary is in `AllDifferentCSPCorollary`.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPEncoding.DomainSymbols

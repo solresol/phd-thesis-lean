@@ -9,7 +9,7 @@ The existing upstream comparator takes aligned canonical binary words. This
 loader constructs that alignment from a checked tagged pair, charging every
 load, reversal, and alignment step. The comparison kernel is reused unchanged.
 `AllDifferentCSPRankLoop` supplies the checked repeated rank driver. The full
-all-different corollary remains partial.
+corollary is checked in `AllDifferentCSPCorollary`.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

@@ -7,7 +7,7 @@ Prepare both membership queries, execute the existing raw-field membership
 machine twice through the checked pair adapters, and conjoin the two answers.
 All preparation, transfers and cleanup are included in the composed polynomial.
 This is the one-scope predicate. The scope-loop and initialization modules
-compose complete counted-scope traversal; the bounded pair grid remains open.
+compose complete counted-scope traversal; `AllDifferentCSPPairLoop` implements the bounded pair grid.
 -/
 
 namespace PhdThesisLean.AllDifferentCSPMachine

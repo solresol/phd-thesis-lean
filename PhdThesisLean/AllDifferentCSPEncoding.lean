@@ -151,8 +151,11 @@ proves exact ordered agreement with the deduplicated semantic primal graph.
 `AllDifferentCSPNegativeRows` reuses the scope-section finite machine to emit
 the exact negative residual-row section from checked endpoint pairs in quadratic
 bit-level time, with a cubic section-size bound in original compiler-input length.
-Constructing the edges by a finite machine, positive rows, complete objective
-assembly and final prime composition remain outstanding.
+The finite edge and positive scans, objective assembly and prime selection
+now compose in `AllDifferentCSPMachine.runtimeCompilerComputableInPolyTime`
+in `AllDifferentCSPObjectiveAssembly`. The final
+`AllDifferentCSPEncoding.all_different_csp` theorem in `AllDifferentCSPCorollary`
+joins that machine with the bit-size bound and semantics of the emitted rows.
 -/
 
 namespace BinaryNatLists

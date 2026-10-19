@@ -7309,3 +7309,58 @@
 - **Next:** attach binary fields and rows in source order, invoke the checked
   objective serializer, and compose the existing semantic/bit-size theorems.
 - **Run time:** 2026-10-19 18:25 UTC (20 October AEDT).
+
+## 2026-10-20 — complete the all-different CSP corollary
+
+- **Starting commit:** `eb7439b7bffd897be11bad27095ae81b0bdc8156`, the verified
+  header-computation increment above. Its push succeeded and local HEAD,
+  tracking ref and live remote main agreed before this increment.
+- **Increment:** `AllDifferentCSPObjectiveAssembly.lean` restores the two
+  computed binary fields, attaches the arity-two header, and preserves every
+  residual row in order. `ObjectiveAssemblyMachine.outputsInTime` charges all
+  reversals, transfers and cleanup in `3s+4` steps; `payload_length` proves
+  exactly three added cells. `runtimeCompilerComputableInPolyTime` composes
+  every prior stage and the exact objective serializer from the actual Boolean
+  compiler input to the canonical Boolean objective output.
+- **Final declaration:** `AllDifferentCSPEncoding.all_different_csp` in
+  `AllDifferentCSPCorollary.lean`. It joins the genuine mathlib-compatible
+  `TM2ComputableInPolyTime` witness, full output-bit bound `64(s+1)^4`, selected
+  prime and dimension, attained minimum, exact embedded minimum-conflict
+  minimizers, and exact satisfying minimizers when satisfiable.
+  `RuntimeResidualRow.observation_ofResidualRow` preserves the whole affine
+  observation under index erasure; `compileUsingDomainEntryBound_loss` proves
+  that the emitted objective, interpreted at its emitted prime and dimension,
+  is the already-verified semantic objective.
+- **Correspondence review:** checked the active thesis's corollary and proof at
+  `ca5ce9a`, including its standing nonempty-domain assumption (body.tex lines
+  116 and 165). The formal input has explicitly listed natural symbol names,
+  nonempty domains, range-checked scope entries, set semantics for repetitions,
+  and deduplicated primal-edge conflicts. The Boolean compiler encoding checks
+  its unary occurrence header and is bounded by twice the compact input length
+  plus one. The full claim now composes under these documented conventions.
+- **Verification:** targeted corollary build passed with all thirteen new
+  assembly/corollary audits using only `propext`, `Classical.choice`, and
+  `Quot.sound`. Final full `lake build` passed (9,283 jobs); the lexical scan
+  of all 152 project Lean/config sources and `git diff --check` also passed. Kernel reduction examples
+  cover zero variables and repeated symbols/scopes with nonconsecutive symbol
+  names, checking the complete prime, dimension, row order and weights.
+  README, status, root imports and stale source correspondence notes now mark
+  only this corollary Complete. A direct count also corrects the inherited
+  catalogue total: 24 labelled rows, of which 23 are Complete and one Partial
+  (the old 30-statement total was stale). No other theorem was pursued.
+- **Resolved diagnostics:** explicit raw binary segments avoid a mixed-alphabet
+  `HAppend` synthesis failure; reverse-map is `List.map_reverse`. A kernel
+  equality supplies the concrete arity-two bits, and `omega` finishes the
+  length arithmetic. Scoped `Fact` instances bridge the definitionally equal
+  emitted and semantic prime projections; explicit target types prevent
+  recursive instance inference. Direct `rfl` and `decide` examples stopped at the
+  dependent semantic row expression; rewriting with `prepare_result` and
+  `assemble_ofRuntimeSystem` exposes the executable finite scan, after which
+  kernel `decide` proves both complete expected outputs. Failed-build audits
+  are excluded from evidence.
+- **Ending / next:** the completed corollary is verified and ready for this
+  increment's commit/push; final three-ref parity goes in memory. There is no remaining implementation
+  target for this automation: review `all_different_csp` and its stated input
+  conventions. Do not broaden automatically into another theorem. Final build
+  outcome, commit identity, remote parity and run time are recorded in memory.
+- **Run time:** started final verification at 2026-10-19 18:32 UTC (20 October AEDT); completion time is in automation memory.
