@@ -11,8 +11,10 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   mathlib's transvection multiplication, and bound its coefficient magnitude in
   both uniform-height and power-of-two forms (`SmithRowOperations.lean`). These
   are local arithmetic invariants, not a Smith algorithm or runtime bound.
-- [ ] Define checked binary integer-matrix input/output encodings, including
-  explicit dimension costs and zero-dimensional cases.
+- [x] Define checked binary integer-matrix input/output encodings, including
+  explicit dimension costs and zero-dimensional cases (`SmithEncoding.lean`).
+  This serializes individual matrices; the decomposition result record and its
+  correctness contract are the next obligation. No serializer machine is claimed.
 - [ ] Specify a computable decomposition returning integral transformations and
   inverses, with the checked identity and diagonal/Smith conditions.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.

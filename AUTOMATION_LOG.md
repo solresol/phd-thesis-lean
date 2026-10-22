@@ -7364,3 +7364,51 @@
   conventions. Do not broaden automatically into another theorem. Final build
   outcome, commit identity, remote parity and run time are recorded in memory.
 - **Run time:** started final verification at 2026-10-19 18:32 UTC (20 October AEDT); completion time is in automation memory.
+
+## 2026-10-22 — checked signed-binary dense matrix encoding
+
+- **Question / starting point:** first unfinished Smith obligation: can a checked
+  finite encoding charge both dimensions even for empty rectangular inputs?
+  Clean generated `work` and fetched origin/main agreed at `954ccb63bd951555e4e53f5ae1be8dadd1553adc`.
+  Verified the authorized origin, preserved `work`, created tracking `main`
+  after ancestry verification, and fast-forwarded (already current).
+- **Environment:** read AGENTS, saved `/workspace/shared/theorem-provers/START.md`,
+  TODO, Smith plan, status and cloud bootstrap instructions. Sourced the shared
+  env and passed `python3 /workspace/shared/theorem-provers/check.py` before Lean
+  work. Exact Lean 4.35, dependency pins, readiness artifacts and imports passed;
+  no installation, pin changes, cache replacement or environment publication.
+  Used prepare.py's guarded runner and thesis archive directory for builds.
+- **Increment:** `SmithEncoding.Dense` stores runtime dimensions and exactly
+  `m*n` row-major integer entries, interpreted by `Dense.toMatrix`. Unary
+  dimension headers and sign-plus-framed-binary magnitudes reuse the pinned
+  lean-np-hardness `BinaryNatLists` APIs read-only. `decodeEntries_length`
+  checks the cell-count invariant; `decode_encode` proves round-trip and
+  `encode_of_decode` proves accepted-input canonicality. Re-encoding rejects
+  negative zero and noncanonical magnitude strings; parsing rejects exhaustion
+  errors and trailing bits. Empty dimensions are retained and charged.
+- **Checked size claim:** `encode_length` is exactly `m+n+2` plus the sum of
+  `2*binaryLength(abs(z))+2` per cell. `dimensions_le_length`,
+  `cells_le_length`, `accepted_dimensions_le_length` and
+  `encode_length_le_of_entry_bits` establish actual encoded-bit bounds; the
+  latter assumes an entry-bit bound and does not prove algorithmic growth.
+- **Attempts:** direct signed-constructor simplification needed `omega` after
+  exposing the sign/magnitude round-trip; parser pair equalities needed first
+  projections and an explicit empty suffix. An induction on a record projection
+  did not carry the membership hypothesis; reused mathlib's existing
+  `List.sum_le_length_nsmul` instead. Failed elaboration audits were discarded.
+- **Verification:** guarded `lake env lean PhdThesisLean/SmithEncoding.lean`,
+  `lake build PhdThesisLean.SmithEncoding` (3,156 jobs), and `lake build`
+  (9,285 jobs) passed. All twelve new `#print axioms` audits and both existing
+  `MaxObjectiveSmith.rhoMax_smith` / `rhoMax_rational_smith` audits use only
+  `propext`, `Classical.choice`, `Quot.sound` (or subsets). Kernel examples cover
+  both empty orientations, rectangular signed entries, negative-zero rejection
+  and trailing-bit rejection. Comment/string-aware prohibited-token scan of
+  157 project/adapter Lean/config sources and `git diff --check` passed.
+- **Status / next:** individual input/output matrix codec complete; specify the
+  executable decomposition result with integer transformations and inverses,
+  `U*A*V=S`, inverse identities and rectangular diagonality next. Canonical
+  Smith conditions remain separate. No decomposition algorithm, global growth
+  bound, complete decomposition output bound, serializer machine or uniform
+  runtime theorem was proved; `thm:max-polytime` remains Partial. No sibling,
+  all-different compiler, adapter, schedule or user-machine changes. Commit and
+  three-ref parity are reported to the coordinating parent after push.

@@ -28,6 +28,38 @@ to the matrix interface. State the choice before attempting a runtime theorem.
 Preserve rectangular and empty cases. Do not generalize this encoding claim to
 other matrix representations without efficient conversion proofs.
 
+## Checked encoding increment (22 October 2026)
+
+`PhdThesisLean.SmithEncoding.Dense` stores runtime dimensions and a row-major
+`List ℤ` with length exactly `rows * cols`; `Dense.toMatrix` interprets it as
+`Matrix (Fin rows) (Fin cols) ℤ`. No square or nonempty restriction is imposed.
+`SmithEncoding.lean` reuses `LeanNPHardness.BinaryNatLists` framing and parsing
+rather than implementing another generic binary-natural foundation.
+
+The concrete format is `true^m, false, true^n, false`, then `m*n` signed fields.
+Each field is a sign bit (`false` for nonnegative), followed by the library's
+unary-length-framed standard binary encoding of its absolute value. Zero uses
+positive sign and the empty binary magnitude. The structural parser checks both
+entry count and exhaustion; the complete decoder re-encodes the parsed matrix
+and rejects noncanonical strings, including negative zero. `decode_encode`
+proves `decode (encode A) = some A`; `encode_of_decode` proves every accepted
+string equals that canonical encoding. The exact cost is
+
+```
+m + n + 2 + sum_entries (2 * binaryLength(abs(z)) + 2).
+```
+
+`dimensions_le_length`, `cells_le_length` and
+`accepted_dimensions_le_length` charge headers even for `0 × n` and `m × 0`.
+`encode_length_le_of_entry_bits` gives the upper bound
+`m + n + 2 + m*n*(2*b + 2)` when every entry's binary magnitude has length at
+most `b`. This is a conditional serialization bound, not a global growth bound.
+The same codec is available for each returned matrix; no combined decomposition
+result, conversion machine, serializer runtime, or polynomial bound on its entries
+is supplied by this increment. Next specify the executable decomposition record
+with integer transformations and inverses, its exact integral identities and
+rectangular diagonal condition; keep canonical Smith conditions separate.
+
 ## Proof sequence
 
 1. Establish elementary operations over **integers**, with explicit inverse

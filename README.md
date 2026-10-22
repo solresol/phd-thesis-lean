@@ -120,6 +120,12 @@ minimiser, `ρ_max = max_{i>t} |b'_i|_p` over the zero rows of `S`
 the Smith decomposition and the polynomial running time of `thm:max-polytime`
 remain external.
 
+[`PhdThesisLean/SmithEncoding.lean`](PhdThesisLean/SmithEncoding.lean) supplies
+checked canonical signed-binary matrix storage with unary dimension headers,
+including rectangular and empty cases. Its exact bit-count formula includes
+all headers and entry framing. The serialization upper bound assumes an entry
+bit bound; no decomposition algorithm or machine runtime is asserted.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

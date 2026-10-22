@@ -1,5 +1,6 @@
 import PhdThesisLean.AdditiveContact
 import PhdThesisLean.SmithRowOperations
+import PhdThesisLean.SmithEncoding
 import PhdThesisLean.AllDifferent
 import PhdThesisLean.AllDifferentCSP
 import PhdThesisLean.AllDifferentCSPAssemblyMachine

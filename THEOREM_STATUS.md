@@ -18,8 +18,19 @@ integer decomposition and inverse identities as hypotheses. The active plan is
 mathlib transvection multiplication, is reversible for distinct rows, and has
 uniform-height and power-of-two coefficient bounds. Its four declarations audit
 with only `propext`, `Classical.choice` and `Quot.sound` (some use a subset).
+`SmithEncoding.lean` also supplies a finite executable dense integer-matrix
+record and checked canonical Boolean encoding: unary dimensions, row-major
+signed binary entries, exact entry count and complete-input checking. Its
+`decode_encode` and `encode_of_decode` establish round-trip and accepted-input
+canonicality. `encode_length` charges both dimension headers and every sign,
+separator and magnitude bit; `accepted_dimensions_le_length` covers empty and
+rectangular inputs. `encode_length_le_of_entry_bits` bounds serialization only
+**given** a binary-magnitude bound, without asserting that an algorithm maintains
+one. The twelve audited declarations use only `propext`, `Classical.choice` and
+`Quot.sound` (some use a subset). There is no complete decomposition-output
+record or output-growth bound yet.
 No Smith algorithm, global coefficient bound, operation count or polynomial-time
-machine follows from this increment alone. The headline completion counts below
+machine follows from these increments alone. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.
 
 ## Headline statement catalogue
