@@ -1,0 +1,16 @@
+name = "thesis_complexity_adapter"
+version = "0.1.0"
+defaultTargets = ["ThesisComplexityAdapter"]
+
+[leanOptions]
+autoImplicit = false
+maxRecDepth = 2048
+maxHeartbeats = 400000
+
+[[require]]
+name = "complexitylib"
+git = "https://github.com/cslib-community/complexitylib.git"
+rev = "62bbf525e2d7edce00dc8b6c79a52040223c5bed"
+
+[[lean_lib]]
+name = "ThesisComplexityAdapter"
