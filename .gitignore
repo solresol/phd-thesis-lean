@@ -1,2 +1,5 @@
 .lake/
 .scratch/
+.research/
+__pycache__/
+*.pyc

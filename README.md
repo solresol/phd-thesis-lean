@@ -1930,13 +1930,20 @@ claimed.
 
 ## Building
 
-Install Lean with [elan](https://github.com/leanprover/elan), then run:
+For reproducible Linux x86_64 cloud setup with pinned elan and this repository's
+unchanged stable Lean/mathlib pins, run:
 
 ```bash
-lake build
+python3 scripts/bootstrap_lean.py --run lake build
+source .research/lean-runtime/env.sh
 ```
 
-The first build downloads mathlib and its dependencies.
+See [cloud bootstrap instructions](docs/cloud-bootstrap.md) for resource guards,
+runtime paths, warm validation and prepared-environment publication limits.
+If Lean is already installed through [elan](https://github.com/leanprover/elan),
+the ordinary `lake build` command remains supported. The next research target is
+the [polynomial-bit Smith decomposition plan](docs/smith-complexity-plan.md);
+the existing formula theorem does not yet compute the supplied decomposition.
 
 ## Scope
 

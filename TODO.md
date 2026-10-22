@@ -1,5 +1,31 @@
 # Lean formalisation to-do
 
+## Active target: polynomial-bit-complexity Smith decomposition
+
+`cor:all-different-csp` is complete. Do not reopen that compiler queue. The next
+target is the missing algorithmic ingredient of `thm:max-polytime`, on the existing
+stable Lean/mathlib pins. See [the proof plan](docs/smith-complexity-plan.md) for the
+exact interface, encoding obligations, daily prompt and stopping criteria.
+
+- [x] Establish one reversible integer row-addition primitive, identify it with
+  mathlib's transvection multiplication, and bound its coefficient magnitude in
+  both uniform-height and power-of-two forms (`SmithRowOperations.lean`). These
+  are local arithmetic invariants, not a Smith algorithm or runtime bound.
+- [ ] Define checked binary integer-matrix input/output encodings, including
+  explicit dimension costs and zero-dimensional cases.
+- [ ] Specify a computable decomposition returning integral transformations and
+  inverses, with the checked identity and diagonal/Smith conditions.
+- [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
+- [ ] Bound all intermediate coefficients, operation count and complete encoded
+  output by polynomials in actual input bit length; implement uniform machines
+  for the arithmetic primitives and algorithm.
+- [ ] Compose the resulting polynomial-time decomposition with
+  `MaxObjectiveSmith.rhoMax_rational_smith`, denominator clearing and the binary
+  cost of evaluating the max residual, removing the supplied-decomposition
+  assumption without introducing unproved runtime witnesses.
+
+The headline theorem remains partial until these obligations are discharged.
+
 ## Precision-indexed p-adic prediction growth
 
 Source: `../phd-thesis/pac-learning-open-questions/body.tex`, Section

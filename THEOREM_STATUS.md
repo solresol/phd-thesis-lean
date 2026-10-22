@@ -9,6 +9,19 @@ reviewed. “Partial” means that the semantic reduction is checked but a
 complexity or encoding claim in the LaTeX statement is not. “Pending” means
 that no statement-faithful Lean theorem is currently present.
 
+## Next algorithmic ingredient
+
+`thm:max-polytime` remains **Partial**: the optimizer formula still receives an
+integer decomposition and inverse identities as hypotheses. The active plan is
+[polynomial-bit-complexity Smith decomposition](docs/smith-complexity-plan.md).
+`SmithRowOperations.lean` now checks one local primitive: row addition equals
+mathlib transvection multiplication, is reversible for distinct rows, and has
+uniform-height and power-of-two coefficient bounds. Its four declarations audit
+with only `propext`, `Classical.choice` and `Quot.sound` (some use a subset).
+No Smith algorithm, global coefficient bound, operation count or polynomial-time
+machine follows from this increment alone. The headline completion counts below
+are unchanged, and the all-different CSP corollary stays complete.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |
