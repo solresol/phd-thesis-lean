@@ -100,8 +100,10 @@ The separate Complexitylib adapter is coordinated independently.
 > TODO.md, docs/smith-complexity-plan.md and THEOREM_STATUS.md; inspect current
 > HEAD/status and preserve unrelated work. Bootstrap the repository's pinned
 > stable Lean/mathlib environment using docs/cloud-bootstrap.md; check disk and
-> resources before builds. Begin with the first unfinished proof-plan obligation,
-> state its exact theorem, computational encoding and unresolved invariant, and
+> resources before builds. Review the latest weekly human literature findings
+> as required by TODO.md before choosing research. Begin with the first unfinished
+> proof-plan obligation, state its exact theorem, computational encoding and
+> unresolved invariant, and
 > make a bounded serious attempt at one coherent increment. Preserve integer
 > unimodularity, rectangular/empty cases, and actual binary input/output costs.
 > Keep local arithmetic, algorithm correctness, global growth bounds and uniform

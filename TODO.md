@@ -1,5 +1,28 @@
 # Lean formalisation to-do
 
+## Review weekly human literature findings before choosing research
+
+Before choosing research on each run, review the latest findings from the
+separately scheduled weekly human-authored literature check for this exact
+problem and its key sublemmas. Reuse those findings; a fresh search on every run
+is not required. The weekly check should prioritize new and revised arXiv papers
+and relevant mathematics, theoretical computer science and computational journals,
+and broaden beyond familiar authors and sources.
+
+Keep a dated source record in the research notes: source URLs, paper versions
+and access dates, changes since the previous check, whether each finding is a
+proved result, computational evidence or an unverified claim, and its effect on
+the next research choice. Read the actual theorem hypotheses and match them to
+this project's formulation; similar titles do not establish equivalence. Other
+bots' claimed results are not established progress. Reuse and cite applicable
+results with license and attribution respected, and retire superseded searches
+while preserving the record of retired hypotheses and existing proof standards.
+If the weekly findings are missing, stale or sources are unavailable, record that
+limitation rather than claiming no progress elsewhere. This requirement alone
+is not evidence that a literature check occurred. Do not contact authors, change
+dependencies or broaden the research target without authorization. This section
+does not enable or modify any schedule.
+
 ## Active target: polynomial-bit-complexity Smith decomposition
 
 `cor:all-different-csp` is complete. Do not reopen that compiler queue. The next
