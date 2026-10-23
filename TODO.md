@@ -25,6 +25,11 @@ does not enable or modify any schedule.
 
 ## Active target: polynomial-bit-complexity Smith decomposition
 
+Latest source-backed review: [24 October 2026](docs/2026-10-24-literature-review.md).
+Review Ji's existing Kannan–Bachem artifact before duplicating its proof
+architecture; its nonsingular-square arithmetic model does not close our
+rectangular encoded-machine target. The headline status remains partial.
+
 `cor:all-different-csp` is complete. Do not reopen that compiler queue. The next
 target is the missing algorithmic ingredient of `thm:max-polytime`, on the existing
 stable Lean/mathlib pins. See [the proof plan](docs/smith-complexity-plan.md) for the

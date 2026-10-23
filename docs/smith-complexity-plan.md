@@ -101,7 +101,12 @@ This limits the source review and does not establish absence of external progres
    trace whose product maintains `U*A*V=S` and inverse identities.
 2. Select and cite a controlled-coefficient polynomial Smith algorithm, such as
    the Kannan–Bachem route already cited by the thesis. Inspect the primary
-   algorithm before fixing invariants. Existence of Smith form over a PID or
+   algorithm before fixing invariants. The [24 October literature baseline](2026-10-24-literature-review.md)
+   identifies Ji's existing Lean Kannan–Bachem artifact as a priority comparison:
+   inspect its growth recurrences and inverse accumulation, while retaining our
+   singular/rectangular cases and full structural TM2 costs. Its stated theorem
+   covers nonsingular square inputs and arithmetic traces only.
+   Existence of Smith form over a PID or
    termination of naive Euclidean pivoting does not provide this complexity bound.
    Mathlib's field-valued transvection diagonalization is not an integer
    unimodular replacement.
