@@ -56,9 +56,39 @@ m + n + 2 + sum_entries (2 * binaryLength(abs(z)) + 2).
 most `b`. This is a conditional serialization bound, not a global growth bound.
 The same codec is available for each returned matrix; no combined decomposition
 result, conversion machine, serializer runtime, or polynomial bound on its entries
-is supplied by this increment. Next specify the executable decomposition record
-with integer transformations and inverses, its exact integral identities and
-rectangular diagonal condition; keep canonical Smith conditions separate.
+is supplied by that increment. The output-contract portion of its next step
+is addressed below; constructing a decomposition remains open.
+
+## Supplied-output contract increment (23 October 2026)
+
+`SmithDecomposition.Block m n` is a shape-checked view of the existing `Dense`
+storage. `Result m n` stores `U,Uinv,V,Vinv,S`. The decidable `Valid` predicate
+checks both integral inverse directions, `U*A*V=S`, and rectangular diagonality;
+`check_eq_true_iff` specifies the executable checker exactly. `Canonical` adds
+nonnegative diagonal entries, nonzeros before zeros, and consecutive divisibility,
+with all diagonal conditions indexed by `Fin (min m n)` to preserve empty cases.
+`Valid.maxHypotheses` supplies the weaker optimizer assumptions, and
+`rhoMax_of_valid` derives the rational max formula for a valid supplied result.
+Neither theorem computes that result.
+
+Output serialization consists of five `BinaryNatLists.frame`-framed matrix
+encodings in the fixed order `U,Uinv,V,Vinv,S`. Its exact length is twice the
+sum of the five matrix encoding lengths plus five. When every stored entry's
+binary magnitude length is at most `b`, `encode_length_le_of_entry_bits` gives
+
+```
+2 * (5*m + 5*n + 10 + (2*m*m + 2*n*n + m*n)*(2*b+2)) + 5.
+```
+
+`encode_length_le_of_input_bits` bounds this by `2*(5s+10+2s²*(2b+2))+5`
+for actual input bit length `s`. These are conditional serialization bounds;
+there is no proved polynomial bound on `b`, combined output decoder, serializer
+machine, or runtime bound for the checker. The first algorithmic obligation is
+still to construct a result satisfying `Valid` with controlled coefficient growth.
+No paper-dependent algorithm was chosen in this interface increment. The latest
+Smith-specific weekly human literature findings were unavailable in the saved
+workspace; the first check was reportedly scheduled for 24 October Sydney.
+This limits the source review and does not establish absence of external progress.
 
 ## Proof sequence
 

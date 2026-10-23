@@ -27,8 +27,20 @@ separator and magnitude bit; `accepted_dimensions_le_length` covers empty and
 rectangular inputs. `encode_length_le_of_entry_bits` bounds serialization only
 **given** a binary-magnitude bound, without asserting that an algorithm maintains
 one. The twelve audited declarations use only `propext`, `Classical.choice` and
-`Quot.sound` (some use a subset). There is no complete decomposition-output
-record or output-growth bound yet.
+`Quot.sound` (some use a subset).
+
+`SmithDecomposition.lean` now adds a finite output record with all four integral
+transformations/inverses and the rectangular diagonal matrix, an executable
+supplied-output checker, and separate canonical Smith conditions.
+`Valid.maxHypotheses` and `rhoMax_of_valid` project the weak contract into the
+existing rational max formula. The five framed matrix serializations include
+all inverse entries and dimension headers; `encode_length_le_of_input_bits`
+bounds their total by `2*(5s+10+2s²*(2b+2))+5`, conditional on every stored
+coefficient having binary magnitude length at most `b`. This is not an
+algorithmic output-growth bound. Its nine audited declarations use only
+`propext`, `Classical.choice` and `Quot.sound` (or subsets). The combined output
+decoder, construction algorithm, global growth bound and uniform machine remain
+absent.
 No Smith algorithm, global coefficient bound, operation count or polynomial-time
 machine follows from these increments alone. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.

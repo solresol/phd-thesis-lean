@@ -7412,3 +7412,87 @@
   runtime theorem was proved; `thm:max-polytime` remains Partial. No sibling,
   all-different compiler, adapter, schedule or user-machine changes. Commit and
   three-ref parity are reported to the coordinating parent after push.
+
+## 2026-10-23 — initial artifact-blocker assessment (corrected below)
+
+- **Question:** specify finite integral `U,Uinv,V,Vinv,S` output data and an
+  executable checker for both inverse directions, `U*A*V=S` and rectangular
+  diagonality, with canonical sign/zero/divisibility conditions separate.
+  Reuse `SmithEncoding.Dense` and its signed-binary/unary-dimension encoding;
+  construction, global coefficient growth and uniform bit runtime remain open.
+- **Starting state:** authorized origin verified; clean generated `work` and
+  fetched main agree at `8e1d0596add1d4438dee3ea27206c77cf774f384`. Preserved
+  `work`, checked ancestry, and created tracking `main`. HEAD, upstream and
+  live origin/main still agree at that commit; no push was made.
+- **Context:** read AGENTS, saved START, TODO, Smith plan, status and bootstrap
+  instructions. No Smith-specific weekly human literature review was found in
+  repository/saved workspace (first check reportedly due 24 October Sydney).
+  This is a missing-source limitation, not evidence of no external progress.
+  No paper-dependent algorithm was selected or broad daily search repeated.
+  Inspected pinned `LeanNPHardness.FinEncoding` / `BinaryNatLists` read-only.
+- **Attempt / command:** sourced shared env and ran shared `check.py`; all three
+  projects' exact pins, dependency HEADs and representative imports passed.
+  Used prepare.py's guarded runner (via `/tmp/thesis-guard.py`) for
+  `lake env lean PhdThesisLean/SmithDecomposition.lean`. It failed before
+  elaboration: required `.lake/build/lib/lean/PhdThesisLean/SmithEncoding.olean`
+  does not exist. Direct `ls` confirmed that absence while SmithRowOperations
+  and MaxObjectiveSmith artifacts exist. The saved START requires stopping on
+  missing artifacts; no rebuilding, installation or cache repair was attempted.
+- **Evidence / next:** no new declaration was checked, no axiom audit/full build
+  was possible, and no mathematical progress is claimed. The unverified draft is
+  preserved outside the checkout at `/tmp/SmithDecomposition.unverified.lean`.
+  This log is intentionally uncommitted (no log-only commit). Restore/prepare the
+  missing artifact through a separately authorized environment action, rerun the
+  environment check, then elaborate and audit the draft or revise it. No pins,
+  dependencies, schedules, other repositories or user machines were changed.
+
+
+## 2026-10-23 — checked supplied-decomposition contract and output bounds
+
+- **Correction / authorization:** the earlier artifact-blocker interpretation
+  was overly broad. `8e1d0596add1d4438dee3ea27206c77cf774f384` is the direct
+  child of `a65ddaeb6e759754e474e1b34433d389cd860c85`, not an older revision;
+  read-only origin, ls-remote, fetch, ancestry and remote source checks confirmed
+  this. Missing `SmithEncoding.olean` was a normal project build prerequisite,
+  not a missing toolchain/dependency artifact. No resource guard denied a build.
+  The parent explicitly authorized resuming normal guarded Lake builds, while
+  forbidding runtime restoration/dependency changes. The earlier log is retained
+  as the initial assessment, superseded by this correction and verified outcome.
+- **Question / contract:** specify an executable finite supplied-result checker
+  before constructing an algorithm. `Block` reuses `SmithEncoding.Dense` with
+  shape proofs. `Result` stores `U,Uinv,V,Vinv,S`. `Valid` checks both inverse
+  directions over integers, `U*A*V=S` and rectangular diagonality. `Canonical`
+  separately checks nonnegative diagonal entries, zeros last, and consecutive
+  divisibility on `Fin (min m n)`, including empty orientations.
+- **Checked declarations:** `check_eq_true_iff`, `Canonical.valid`,
+  `Valid.maxHypotheses` and `rhoMax_of_valid` connect the finite checker to the
+  existing optimizer without claiming to compute its supplied decomposition.
+  `encode_length`, `encode_length_le_of_entry_bits` and
+  `encode_length_le_of_input_bits` charge all five matrices (including inverses)
+  and framing. For actual input bit length `s` and supplied magnitude-bit bound
+  `b`, complete serialization is at most `2*(5s+10+2s²*(2b+2))+5` bits.
+- **Attempts:** supplied `(p := p)` to resolve a stuck prime instance in the
+  optimizer projection. The ring proof rejected an initial `4m+4n` header sum;
+  corrected it to `5m+5n` for the four square matrices plus the rectangular one.
+  Failed-build axiom output was excluded from evidence. The input-size bound
+  uses charged unary dimensions, not an uncharged dimension witness.
+- **Verification:** reapplied shared env and reran `check.py` successfully.
+  Used `/tmp/thesis-guard.py` importing prepare.py's resource-guarded runner
+  with the thesis archive directory. `lake build PhdThesisLean.SmithDecomposition`
+  passed (3,194 jobs), then full `lake build` passed (9,286 jobs). All nine new
+  audits and both existing max-formula audits use only `propext`,
+  `Classical.choice`, `Quot.sound` or subsets. Kernel `decide` cases cover signed
+  rectangular results, noncanonical negative diagonal, wrong inverse and wrong
+  off-diagonal output rejection, and canonical empty-row/empty-column results.
+  Comment/string-aware scan of 158 project/adapter Lean/config files found no
+  prohibited proof tokens; `git diff --check` passed.
+- **Scope / next:** this is a proved interface and conditional serialization
+  bound, not a Smith construction, algorithmic output-growth bound, combined
+  output decoder, serializer machine or uniform runtime theorem. The first
+  remaining algorithmic obligation is to construct a `Valid` result while
+  controlling every intermediate and output coefficient, including inverses;
+  the global growth invariant remains unresolved. Weekly review limitation and
+  absence of paper-dependent algorithm selection remain as recorded above.
+  TODO, plan, root import and status updated; `thm:max-polytime` stays Partial.
+  No sibling repository, pin, dependency, adapter, schedule, environment
+  publication or user-machine changes. Commit/push parity is reported to parent.

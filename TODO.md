@@ -36,10 +36,13 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   are local arithmetic invariants, not a Smith algorithm or runtime bound.
 - [x] Define checked binary integer-matrix input/output encodings, including
   explicit dimension costs and zero-dimensional cases (`SmithEncoding.lean`).
-  This serializes individual matrices; the decomposition result record and its
-  correctness contract are the next obligation. No serializer machine is claimed.
-- [ ] Specify a computable decomposition returning integral transformations and
-  inverses, with the checked identity and diagonal/Smith conditions.
+  This serializes individual matrices. No serializer machine is claimed.
+- [x] Specify finite decomposition output data and an executable supplied-output
+  checker (`SmithDecomposition.lean`), keeping canonical Smith conditions
+  separate. Prove the projection to the existing optimizer and conditional
+  full-output bit bounds; this does not construct a decomposition.
+- [ ] Implement a computable decomposition returning integral transformations and
+  inverses satisfying that contract.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines
