@@ -90,6 +90,48 @@ Smith-specific weekly human literature findings were unavailable in the saved
 workspace; the first check was reportedly scheduled for 24 October Sydney.
 This limits the source review and does not establish absence of external progress.
 
+## Trace execution increment (25 October 2026, Australia/Sydney)
+
+The first unfinished construction obligation is approached through an executable
+trace interpreter, not a supplied final decomposition. `SmithTrace.Op m n`
+contains distinct-row and distinct-column additions with integer multipliers.
+`step` updates the current matrix and the relevant forward/inverse maps together;
+row updates accumulate the inverse on the right, column updates on the left.
+`run_invariant` proves all four integer inverse identities and `U*A*V=S` for
+every finite trace. It has no nonempty, square, rank or determinant hypothesis.
+
+`pack_matrix` proves that enumerating a matrix into the existing dense row-major
+storage preserves every entry. `executeDense` accepts `SmithEncoding.Dense` and
+returns a finite `Result` after executing the additional trace.
+`execute_equivalence` proves its five algebraic identities;
+`execute_valid_of_diagonal` yields `Valid` **only given diagonality of the computed
+output**. No trace selection is provided. Kernel execution examples cover
+noncommuting row and column updates, a rank-deficient rectangular matrix, and
+both empty orientations with nontrivial updates to transformations.
+
+The existing signed-binary/unary-dimension input and five-matrix output formats
+are reused. Their bit-count theorems still apply, conditional on an entry-bit
+bound; the trace is extra input with no claimed encoding, size or runtime bound.
+There is no new growth theorem. Permutations, sign normalization and bounded
+Bezout/pivot selection are not yet implemented in this interpreter. The next
+construction step needs a computable pivot operation and a controlled-growth
+selection invariant for singular rectangular inputs, including inverse widths.
+
+Source comparison, accessed **25 October 2026 Australia/Sydney**: reused the
+[24 October review](2026-10-24-literature-review.md) and inspected Ji's
+[v2, §§4.1, 6.2, 7.3–7.4](https://arxiv.org/html/2607.22524v2), together with
+[`Bounds.lean`](https://github.com/JJYYY-JJY/lean-normal-forms/blob/3f80f9524d88a124a49330eb36a2acb5ed41e179/NormalForms/Research/KannanBachem/Bounds.lean)
+and [`PolynomialBounds.lean`](https://github.com/JJYYY-JJY/lean-normal-forms/blob/3f80f9524d88a124a49330eb36a2acb5ed41e179/NormalForms/Research/KannanBachem/PolynomialBounds.lean)
+at commit `3f80f9524d88a124a49330eb36a2acb5ed41e179`.
+The source endpoint requires nonzero determinant; inverse accumulation reverses
+composition order. Its width recurrences use pivot-size descent and a determinant
+width controlling recursive blocks. Our arbitrary rectangular traces have neither
+invariant, so that bound cannot be transferred here. Structural operations and
+serialization runtime remain excluded there. This is targeted source inspection,
+not independent replay or axiom audit of the external artifact; its Lean 4.32.0
+runtime was not installed. No code was copied. The original Kannan–Bachem full-text
+access limitation in the weekly review remains; no new broad search is claimed.
+
 ## Proof sequence
 
 1. Establish elementary operations over **integers**, with explicit inverse
@@ -97,8 +139,9 @@ This limits the source review and does not establish absence of external progres
    increment: reversible row addition, equality with mathlib transvection
    multiplication, `natAbs ≤ (C+1)*H`, and the power-of-two bound
    `natAbs ≤ 2^(a+b+1)`. It has no operation-count or machine-runtime theorem.
-   Next connect column operations, swaps and sign changes to a transformation
-   trace whose product maintains `U*A*V=S` and inverse identities.
+   `SmithTrace.lean` now connects row/column additions to a finite transformation
+   trace preserving `U*A*V=S` and both inverse identities, with dense output.
+   Swaps, sign changes and bounded Bezout/pivot operations remain to connect.
 2. Select and cite a controlled-coefficient polynomial Smith algorithm, such as
    the Kannan–Bachem route already cited by the thesis. Inspect the primary
    algorithm before fixing invariants. The [24 October literature baseline](2026-10-24-literature-review.md)

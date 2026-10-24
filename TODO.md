@@ -46,6 +46,10 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   checker (`SmithDecomposition.lean`), keeping canonical Smith conditions
   separate. Prove the projection to the existing optimizer and conditional
   full-output bit bounds; this does not construct a decomposition.
+- [x] Execute finite row/column addition traces with both integral inverses and
+  `U*A*V=S`, materializing all five matrices in the existing dense storage
+  (`SmithTrace.lean`). Diagonality is conditional; selecting a controlled-growth
+  trace, swaps/sign normalization and a machine bound remain open.
 - [ ] Implement a computable decomposition returning integral transformations and
   inverses satisfying that contract.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.

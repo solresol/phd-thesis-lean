@@ -7496,3 +7496,62 @@
   TODO, plan, root import and status updated; `thm:max-polytime` stays Partial.
   No sibling repository, pin, dependency, adapter, schedule, environment
   publication or user-machine changes. Commit/push parity is reported to parent.
+
+## 2026-10-25 — checked integer row/column trace execution (Australia/Sydney)
+
+- **Question:** begin the first unfinished Smith construction obligation by
+  computing forward/inverse transformations along a finite row/column addition
+  trace. Prove both integral inverse directions and `U*A*V=S`, then materialize
+  all five matrices in the existing dense storage. Diagonalizing trace selection,
+  global growth and uniform runtime are separate unresolved obligations.
+- **Starting state / environment:** verified authorized origin
+  `https://github.com/solresol/phd-thesis-lean.git`, clean generated `work` at
+  `bec5ff5054f40e4b330227f77dc462416481004c`, and ancestry/equality after fetch.
+  Preserved `work` and created tracking `main`. Read AGENTS, shared saved
+  `START.md` (a separate Start skill was not exposed), TODO, plan, status, actual
+  source and the 24 October weekly review. Sourced shared `env.sh` and ran
+  shared `check.py` before source retrieval/builds; exact runtime, pins,
+  dependency HEADs and representative imports passed, including after fetch.
+  Reused prepared Lean 4.35 and caches. Normal builds rebuilt the recent project
+  modules; no runtime repair, installation, dependency or pin change was needed.
+- **Source comparison:** targeted inspection of Ji v2 and the pinned external
+  `Bounds.lean` / `PolynomialBounds.lean` is recorded with URLs, version and
+  25 October Sydney access date in the Smith plan. Its determinant-based
+  recursive width invariant does not apply to arbitrary rectangular traces;
+  its arithmetic model excludes structural/serialization runtime. The artifact
+  was not independently replayed. The weekly review's original Kannan–Bachem
+  full-text access limitation remains. No broad daily search or code copying.
+  Read pinned lean-np-hardness `FinEncoding` and `BinaryNatLists` APIs read-only.
+- **Checked increment:** `SmithTrace.step_invariant`, `run_invariant` and
+  `execute_equivalence` prove all five identities over integers without rank,
+  determinant or dimension restrictions. `colAdd_eq_mul_transvection` fixes the
+  column convention. `pack_matrix` proves row-major materialization faithful;
+  `executeDense` accepts stored runtime dimensions. `execute_valid_of_diagonal`
+  discharges the existing weak contract only when the computed output is
+  diagonal. The trace remains extra input; no target assumption is called an
+  unconditional Smith algorithm. Existing encoded-bit bounds remain conditional
+  on coefficient width and include every inverse and dimension header.
+- **Attempts:** fixed record-update field indentation, used explicit matrix
+  associativity for the transformed identity, and supplied the row-major index
+  product bound instead of asking linear arithmetic to infer it. A kernel
+  example needed an explicitly dimensioned trace to elaborate `Fin` numerals.
+  Failed elaboration axiom output was excluded from successful evidence.
+- **Verification:** all commands used `/tmp/run-thesis-command.py`, importing
+  `prepare.py`'s guarded runner (2 GiB disk reserve, 12 GiB process-group RSS,
+  30-minute timeout, two Lean threads and the thesis archive directory).
+  `lake build PhdThesisLean.SmithTrace` passed (3,196 jobs), full `lake build`
+  passed (9,287 jobs), and `lake env lean /tmp/smith-headline-audit.lean` passed.
+  All nine new audits, both `MaxObjectiveSmith` formula audits and the existing
+  all-different CSP headline use only `propext`, `Classical.choice`, `Quot.sound`.
+  Kernel `decide` examples cover noncommuting row/column updates, explicit
+  rectangular diagonal output, rank deficiency, both empty orientations with
+  nontrivial transformation updates, and `0 × 0`. Comment/string-aware scan of
+  159 project/adapter Lean/config files and `git diff --check` passed.
+- **Status / next:** stopped at this coherent execution invariant. Implement
+  bounded Bezout/pivot operations and controlled diagonalizing trace selection,
+  preserving singular/rectangular cases and bounding all intermediate forward
+  and inverse widths; then provide full encoded-machine costs and optimizer
+  composition. Swaps/sign normalization remain absent. `thm:max-polytime`
+  remains Partial. No sibling, adapter, schedule, environment publication or
+  user-machine changes. Commit/push and live-ref parity are reported to parent;
+  any Raksasa synchronization is left to its separate authorized cloud thread.

@@ -41,6 +41,16 @@ algorithmic output-growth bound. Its nine audited declarations use only
 `propext`, `Classical.choice` and `Quot.sound` (or subsets). The combined output
 decoder, construction algorithm, global growth bound and uniform machine remain
 absent.
+`SmithTrace.lean` constructs all five stored matrices by interpreting finite
+row/column addition traces. `step_invariant`, `run_invariant` and
+`execute_equivalence` prove both integral inverse directions and `U*A*V=S`;
+`pack_matrix` checks that materializing entries preserves their matrix values.
+`execute_valid_of_diagonal` supplies `Valid` only when the computed output is
+diagonal. `executeDense` accepts the existing runtime-dimension dense input;
+the additional trace is not computed from that input alone. The nine audited
+declarations use only `propext`, `Classical.choice`, `Quot.sound` (or subsets).
+This is an execution invariant, not diagonalizing trace selection, a bound on
+intermediate or output coefficients, or a uniform machine implementation.
 No Smith algorithm, global coefficient bound, operation count or polynomial-time
 machine follows from these increments alone. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.
