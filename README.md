@@ -132,6 +132,13 @@ materializing all five output matrices in that storage. Its checked invariant
 is `U*A*V=S` with both inverse directions. Finding a diagonalizing trace with
 polynomial coefficient growth and a uniform machine bound remains open.
 
+[`PhdThesisLean/SmithPivot.lean`](PhdThesisLean/SmithPivot.lean) computes a
+terminating two-row Euclidean pivot trace from the chosen entries. It clears
+one entry, leaves a pivot of gcd magnitude, preserves outside rows and common
+zero columns, and returns all five dense matrices with the same integral
+identities. Truncating division avoids the slow signed-swap/nonnegative-remainder
+variant. This does not select a full diagonalization or bound its bit costs.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

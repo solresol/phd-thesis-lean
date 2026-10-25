@@ -7555,3 +7555,60 @@
   remains Partial. No sibling, adapter, schedule, environment publication or
   user-machine changes. Commit/push and live-ref parity are reported to parent;
   any Raksasa synchronization is left to its separate authorized cloud thread.
+
+## 2026-10-25 — computed terminating Euclidean row pivot (UTC)
+
+- **Question / target:** advance the first unfinished construction obligation:
+  compute `decompose A : Result A.rows A.cols` with `Valid A.toMatrix (decompose A)`.
+  This increment computes one pair pivot, rather than a complete decomposition.
+  The existing unary-dimension/signed-binary input and five-matrix output formats
+  are retained; output-bit bounds remain conditional on all coefficient widths.
+- **Starting state:** fetched authorized `solresol/phd-thesis-lean` origin;
+  clean generated `work`, HEAD and origin/main were equal at `e0a3e50`.
+  Preserved `work` and created tracking `main` after ancestry verification.
+  Read AGENTS, shared `START.md` (separate Start skill absent), TODO, plan,
+  status and latest weekly human-literature review (24 October). Shared env and
+  `check.py` passed with exact pins/artifacts; no installation was needed.
+  The parent had already checked overlapping tasks and selected this environment;
+  no cloud orchestration tools were exposed here and no additional task launched.
+- **Source / independent review:** reused the dated Ji v2 comparison in the
+  weekly review and plan; nonsingular-square arithmetic traces do not supply
+  our rectangular encoded-machine invariant. No new external theorem, access
+  claim, broad search or dependency change. A read-only subagent reviewed the
+  pivot architecture, pinned integer APIs, dependency arithmetic machines and
+  final implementation. No signed binary division/gcd machine was found in the
+  pinned dependency; unary divisibility does not discharge binary costs.
+- **Checked mathematics:** `pairStep_rows`, `remainder_descent`, `gcdTrace_correct`
+  and `gcdTrace_preserves_zero` prove a computed terminating addition trace
+  clears the second entry, leaves gcd magnitude in the first, fixes outside
+  rows and preserves common zero columns. `pivot_correct`, `pivot_invariant`,
+  `pivotDense_correct`, `pivotDense_equivalence`, `pivotDense_preserves_zero`
+  connect to the stored output and both inverse directions plus `U*A*V=S`.
+  No rank/nonzero-pivot assumption is made; the primitive requires distinct
+  rows and a column, so the eventual controller still needs empty/base cases.
+- **Attempts:** retired nonnegative-remainder division with signed swaps:
+  `(-N,-(N-1))` descends through adjacent negative integers and can require
+  linearly many divisions in magnitude. Truncating `tdiv/tmod` instead has exact
+  absolute recurrence `abs(a) % abs(b)` and the example takes two divisions.
+  Reused core remainder/gcd laws. Fixed cast direction in the first termination
+  attempt, multiplication order, and explicit finite-index example elaboration.
+  Kernel examples unfold recursive equations before `decide`; no native proof
+  evaluation is used. Failed-build audit output is not completion evidence.
+- **Verification:** guarded `lake build PhdThesisLean.SmithPivot` passed (3,197
+  jobs), full `lake build` passed (9,288 jobs), and final build after the review
+  wording fix also passed. `/tmp/smith-pivot-headline-audit.lean` checked eleven
+  new declarations, both max Smith formulas and the existing all-different CSP
+  headline: only `propext`, `Classical.choice`, `Quot.sound` or subsets.
+  Kernel cases cover signed/zero inputs, a rank-deficient rectangular input,
+  nonselected rows and common zero columns; existing empty-orientation tests
+  remain in the full build. Comment/string-aware scan of 160 project/adapter
+  Lean/config files found no prohibited tokens; `git diff --check` passed.
+- **Next / limits:** no logarithmic step theorem, complete diagonalization,
+  sign normalization, global coefficient/output bound or machine runtime is
+  claimed. Need a controlled-growth rectangular active-block invariant covering
+  forward and inverse transformations, then signed arithmetic/structural TM2
+  costs and final optimizer composition. `thm:max-polytime` remains Partial.
+  Stop at this coherent audited pivot increment. No unrelated repository,
+  adapter, pin, schedule, configuration publication or user-machine changes.
+  Commit/push/live-ref equality is reported to the parent; Raksasa synchronization
+  and notices to Greg remain with the parent.

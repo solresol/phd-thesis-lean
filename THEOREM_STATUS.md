@@ -51,6 +51,18 @@ the additional trace is not computed from that input alone. The nine audited
 declarations use only `propext`, `Classical.choice`, `Quot.sound` (or subsets).
 This is an execution invariant, not diagonalizing trace selection, a bound on
 intermediate or output coefficients, or a uniform machine implementation.
+`SmithPivot.lean` now selects a terminating addition trace for a pair of rows
+at a supplied column. `gcdTrace_correct` proves the second entry becomes zero,
+the first has magnitude equal to the original gcd, and outside rows are fixed.
+`gcdTrace_preserves_zero` also preserves common zero columns of the selected
+rows. The recursion uses truncating division and strict natural remainder
+descent, rather than the potentially slow signed-swap/Euclidean-division
+variant. `pivotDense_correct`, `pivotDense_equivalence` and
+`pivotDense_preserves_zero` connect this computation to the existing dense
+storage and all five integral identities. The eleven audited declarations use
+only `propext`, `Classical.choice`, `Quot.sound` or subsets. No pivot sign
+normalization, full diagonalizing controller, logarithmic step bound, global
+coefficient bound or uniform machine cost is claimed.
 No Smith algorithm, global coefficient bound, operation count or polynomial-time
 machine follows from these increments alone. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.

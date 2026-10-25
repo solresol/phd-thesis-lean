@@ -134,6 +134,66 @@ access limitation in the weekly review remains; no new broad search is claimed.
 
 ## Proof sequence
 
+### Two-row pivot increment (25 October 2026 UTC)
+
+The first unfinished target is still an executable function
+`decompose (A : SmithEncoding.Dense) : SmithDecomposition.Result A.rows A.cols`
+with `∀ A, Valid A.toMatrix (decompose A)`, followed by the separate global
+encoded-bit and uniform-runtime obligations. `SmithPivot.lean` advances its
+local pivot component; it does not provide that function.
+
+For arbitrary `State m n`, distinct `r,s : Fin m`, and `j : Fin n`, `gcdTrace`
+computes a finite row-addition trace from the two current entries `a,b`.
+One quotient subtraction and three additions implementing the signed swap
+`(x,y) ↦ (y,-x)` give `(a,b) ↦ (b,-(a.tmod b))`, where the quotient is
+`a.tdiv b` (truncated toward zero). The exact absolute remainder is
+`a.natAbs % b.natAbs`; strict descent proves termination without a rank or
+nonzero-pivot hypothesis. `gcdTrace_correct` proves the second selected entry
+is zero, the first has magnitude `Int.gcd a b`, and every outside row is
+unchanged. `gcdTrace_preserves_zero` preserves a column whenever both selected
+rows were zero there. The sign of the resulting gcd pivot is unspecified.
+
+`pivotDense` materializes all five matrices in the existing unary-dimension,
+signed-binary storage. `pivotDense_correct`, `pivotDense_equivalence` and
+`pivotDense_preserves_zero` prove the corresponding stored-output properties,
+including both inverse directions and `U*A*V=S`. Indices are supplied finite
+data; no index/trace codec or machine runtime is claimed. Existing complete
+output-bit bounds remain conditional on the width of all five output matrices.
+This primitive needs two distinct rows and a column; the eventual controller
+must handle missing rows/columns, including empty inputs, without invoking it.
+The existing unrestricted interpreter and storage contracts remain in force.
+
+**Retired attempt:** nonnegative Euclidean remainder combined with the signed
+swap is a poor complexity choice: `(-N,-(N-1))` goes to
+`(-(N-1),-(N-2))` for `N ≥ 3`, admitting linearly many divisions in magnitude.
+Truncation sends the same pair to `(-(N-1),1)` and then `(1,0)`. This algebraic
+observation motivated the implementation change; only the truncating variant
+is committed. The checked termination theorem is not a proved logarithmic
+operation bound. No uncontrolled-growth pivoting scheme is promoted to a
+polynomial-bit algorithm.
+
+Reused the [24 October weekly review](2026-10-24-literature-review.md) and the
+prior source comparison above, read on **25 October 2026 UTC**. Ji
+[v2, Theorem 2.1 and §6.2](https://arxiv.org/html/2607.22524v2), accessed in the
+recorded 24/25 October reviews, requires nonsingular square matrices and omits
+structural machine costs. It does not supply this project's singular rectangular
+growth invariant. No new external theorem or code is used, and no fresh broad
+search, external replay or new source-access claim is made here. The existing
+Kannan–Bachem full-text limitation remains. Local pinned Lean integer APIs supply
+truncating division, absolute-value remainder and gcd identities. Read-only
+inspection of the pinned `lean-np-hardness` binary arithmetic machines found no
+signed binary division/gcd machine to reuse; its unary divisibility machinery
+does not establish the required binary costs.
+
+The next mathematical obstacle is a rectangular active-block controller and
+controlled-growth invariant for both transformations and inverses. Pairwise
+termination and preserved zeros alone do not bound growth over alternating
+row/column pivots. Sign normalization, pivot divisibility/selection, full
+diagonalization, global widths, machine costs and optimizer composition remain
+separate open obligations.
+
+### Remaining construction sequence
+
 1. Establish elementary operations over **integers**, with explicit inverse
    transformations and local growth bounds. `SmithRowOperations.lean` is the first
    increment: reversible row addition, equality with mathlib transvection
@@ -141,7 +201,8 @@ access limitation in the weekly review remains; no new broad search is claimed.
    `natAbs ≤ 2^(a+b+1)`. It has no operation-count or machine-runtime theorem.
    `SmithTrace.lean` now connects row/column additions to a finite transformation
    trace preserving `U*A*V=S` and both inverse identities, with dense output.
-   Swaps, sign changes and bounded Bezout/pivot operations remain to connect.
+   `SmithPivot.lean` adds a signed swap and terminating pairwise gcd pivot;
+   sign normalization and controlled active-block selection remain to connect.
 2. Select and cite a controlled-coefficient polynomial Smith algorithm, such as
    the Kannan–Bachem route already cited by the thesis. Inspect the primary
    algorithm before fixing invariants. The [24 October literature baseline](2026-10-24-literature-review.md)

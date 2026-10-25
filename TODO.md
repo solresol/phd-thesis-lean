@@ -49,7 +49,12 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
 - [x] Execute finite row/column addition traces with both integral inverses and
   `U*A*V=S`, materializing all five matrices in the existing dense storage
   (`SmithTrace.lean`). Diagonality is conditional; selecting a controlled-growth
-  trace, swaps/sign normalization and a machine bound remain open.
+  trace, sign normalization and a machine bound remain open.
+- [x] Compute a terminating two-row Euclidean pivot trace from the selected
+  entries (`SmithPivot.lean`): clear one column entry, preserve gcd magnitude,
+  outside rows, common zero columns and all integral transformation identities.
+  Division is truncated toward zero. This is a local pivot, with no complete
+  diagonalization, global growth or machine bound.
 - [ ] Implement a computable decomposition returning integral transformations and
   inverses satisfying that contract.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
