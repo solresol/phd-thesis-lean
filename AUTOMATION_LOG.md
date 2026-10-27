@@ -7612,3 +7612,60 @@
   adapter, pin, schedule, configuration publication or user-machine changes.
   Commit/push/live-ref equality is reported to the parent; Raksasa synchronization
   and notices to Greg remain with the parent.
+
+## 2026-10-27 — total active-column controller (UTC; run 18:15Z)
+
+- **Question / target:** advance `decompose A : Result A.rows A.cols` with
+  `Valid A.toMatrix (decompose A)` by computing one active-column pass. Retain
+  unary dimensions, signed binary entries and the five framed output matrices;
+  `k` is supplied control data without a new index codec or machine claim.
+- **Starting state:** sourced shared `env.sh` and ran `check.py`; exact prepared
+  runtimes, pins, dependency HEADs and representative imports passed. Read AGENTS,
+  shared `START.md`, TODO, proof plan, status and the latest weekly human review
+  (24 October). A separate saved Start skill was absent from exposed locations.
+  Verified clean generated `work`, authorized origin and fetched main all equal
+  at `b51954c4686a8b552bc8f31f61a78f51d6096cf5`; preserved `work`, verified ancestry
+  and created tracking `main`. Reused Lean 4.35/caches without setup changes.
+- **Source comparison:** reused Ji v2 and artifact `3f80f95` as recorded in the
+  24/25 October reviews; URLs, versions, external access dates and today's local
+  reading date are in the plan. Nonsingular-square arithmetic traces do not
+  provide our singular/rectangular growth or full structural TM2 invariant.
+  Original Kannan–Bachem full-text access remains limited. No broad daily search,
+  new external access/replay, copied code or new literature claim. Read pinned
+  lean-np-hardness encoding and binary-arithmetic APIs read-only; no signed binary
+  division/gcd or matrix-controller machine was available there.
+- **Checked mathematics:** `sweep_clears` clears every eligible nonpivot entry
+  while preserving pre-existing zeros. `sweep_outside` and
+  `sweep_preserves_zero` protect other rows/common zero columns. `clearColumn`
+  computes all eligible rows/quotients from updated entries, with total missing
+  row/column cases. `clearColumn_prefix` fixes earlier rows/columns given zero
+  active entries in earlier columns; `clearColumn_next_zero` advances the zero
+  lower-left block boundary to `k+1`. Stored-output theorems preserve both integer
+  inverse directions and `U*A*V=S`. `clearColumnDense_valid_of_cols_le_one`
+  satisfies the weak contract for at most one column, without canonical signs.
+- **Attempts / evidence boundary:** fixed inequality symmetry and a matrix-view
+  simplification in the first proofs. Direct simplification of large recursive
+  example expressions hit Lean's recursion limit; retained universal proofs and
+  kernel-checked concrete specializations instead of increasing resource guards.
+  Separate evaluator regression checks confirm `[0,-30,21]` maps to `[-3,0,0]`
+  and an all-zero active column is unchanged. These computations are evidence,
+  not proofs; they introduce no trusted computation axiom into a theorem.
+- **Verification:** guarded `lake build PhdThesisLean.SmithColumn` passed (3,198
+  jobs), full `lake build` passed (9,289), and guarded
+  `lake env lean /tmp/smith-column-headline-audit.lean` passed. All sixteen new
+  audits, both Smith max formulas and the existing all-different CSP headline
+  use only `propext`, `Classical.choice`, `Quot.sound` or subsets. Kernel cases
+  cover a 4-by-3 protected prefix, the signed one-column contract, both empty
+  orientations, `0 × 0` and a missing diagonal position. Comment/string-aware
+  prohibited-token scan passed over 161 project/adapter Lean/config files;
+  `git diff --check` passed. Runner limits stayed at 2 GiB disk reserve, 12 GiB
+  process-group RSS, 30 minutes and two Lean threads.
+- **Next / limits:** a column-operation pass can refill entries cleared by this
+  row pass. Need an alternating controller's progress measure and controlled
+  coefficient invariant, including forward/inverse widths. No full diagonalizer,
+  global bit/output bound, operation count, uniform machine or optimizer
+  composition is claimed; `thm:max-polytime` remains Partial. Stop at this
+  coherent audited increment. No sibling, adapter, pin, credential, schedule,
+  environment publication or user-machine change. Exact pushed commit/parity
+  is returned to the parent for its separately authorized Raksasa fast-forward;
+  no cloud_threads action is exposed in this worker and no direct access occurs.

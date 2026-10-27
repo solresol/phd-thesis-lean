@@ -192,6 +192,72 @@ row/column pivots. Sign normalization, pivot divisibility/selection, full
 diagonalization, global widths, machine costs and optimizer composition remain
 separate open obligations.
 
+### Active-column controller increment (27 October 2026 UTC)
+
+The target remains `decompose A : Result A.rows A.cols` with
+`∀ A, Valid A.toMatrix (decompose A)`, followed by separate polynomial encoded-bit
+and uniform-machine proofs. `SmithColumn.lean` advances one controller pass.
+
+`clearColumn Q k` internally enumerates exactly the rows `i.val > k`, computing
+each pair pivot from the **updated** entries in column `k`. Its list recursion
+and the existing truncating-division pivot are total. If either the kth row or
+column is missing, it returns `Q`. No rank, square, nonzero-pivot or nonempty
+hypothesis is imposed on this controller. `sweep_clears` proves every listed
+nonpivot entry is zero afterward and every pre-existing nonpivot zero survives;
+it even permits repeated target rows. `sweep_outside` fixes unselected rows.
+`sweep_preserves_zero` preserves columns zero on the pivot and all targets.
+
+The exact protected-prefix invariant is
+
+```
+(∀ i l, k ≤ i.val → l.val < k → Q.S i l = 0) →
+  ∀ i l, (i.val < k ∨ l.val < k) → (clearColumn Q k).S i l = Q.S i l.
+```
+
+`clearColumn_next_zero` advances that zero lower-left block boundary to `k+1`:
+all rows `i.val ≥ k+1` are zero in columns `l.val < k+1`. Entries above the
+diagonal can remain, so this is a column-elimination invariant.
+
+`clearColumnDense A k` materializes all five matrices using the existing dense
+storage. The stored-output theorems prove clearing, that prefix invariant, both
+integral inverse directions and `U*A*V=S`. For `A.cols ≤ 1`, the pass at zero
+already returns `Valid` (`clearColumnDense_valid_of_cols_le_one`), including
+zero-column inputs; this is the weak diagonal contract, not canonical Smith
+normalization. General empty orientations also retain the no-op/equivalence
+theorems. Kernel-checked specializations cover a 4-by-3 protected prefix with
+successive pivots, the weak contract for a signed/initially-zero one-column
+input, both empty orientations, `0 × 0`, and a missing diagonal position in a
+nonempty rectangle. Separate evaluator regression checks return `[-3,0,0]`
+from `[0,-30,21]` and leave an all-zero active column unchanged. Those evaluated
+outputs are computational evidence; the universal theorems supply the proofs.
+
+The input remains unary-dimension/signed-binary `Dense`, and the output remains
+the five framed matrix encodings. `k` is supplied control data, without a new
+index encoding or machine claim. The existing complete-output length bound is
+still conditional on the entry width of **all five** matrices. Finitely many
+pair calls and terminating division do not prove polynomial arithmetic counts,
+global width or serialization time. A following column-operation pass can
+reintroduce entries cleared here; a general alternating controller still needs
+a progress measure and a controlled-growth invariant for both maps and inverses.
+No full diagonalization, sign normalization, divisibility chain, global bound,
+uniform machine or optimizer composition is supplied by this increment.
+
+Source record: read the [24 October human-literature review](2026-10-24-literature-review.md)
+and the recorded 25 October source comparison on **27 October 2026 UTC**.
+Ji [v2, Theorem 2.1 and §6.2](https://arxiv.org/html/2607.22524v2), with artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+was externally accessed in those 24/25 October records, not re-accessed today.
+Its nonsingular-square arithmetic-trace hypotheses still do not supply the
+singular/rectangular growth or structural TM2 invariants above. This controller
+uses the already checked local pivot, without a new paper-dependent step or code
+copying; no broad daily search, external replay or new literature finding is
+claimed. The original Kannan–Bachem full-text access restriction remains a source
+limitation, and the signed nonnegative-remainder approach remains retired.
+Read-only inspection of pinned `lean-np-hardness` `FinEncoding` and
+`BinaryArithmetic` reuses its existing encoding/machine boundary; its binary
+successor, predecessor, comparison and addition machines do not supply signed
+binary division/gcd or matrix-controller costs. No dependency changes are made.
+
 ### Remaining construction sequence
 
 1. Establish elementary operations over **integers**, with explicit inverse

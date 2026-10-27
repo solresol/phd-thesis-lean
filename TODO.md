@@ -55,6 +55,11 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   outside rows, common zero columns and all integral transformation identities.
   Division is truncated toward zero. This is a local pivot, with no complete
   diagonalization, global growth or machine bound.
+- [x] Compute one total active-column sweep (`SmithColumn.lean`), selecting all
+  rows below a runtime diagonal position and each quotient from the updated
+  matrix. Prove clearing, integral equivalence and protected-prefix preservation;
+  missing rows/columns are no-ops. This meets the weak decomposition contract
+  for at most one column, without a general diagonalizer or growth/runtime bound.
 - [ ] Implement a computable decomposition returning integral transformations and
   inverses satisfying that contract.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.

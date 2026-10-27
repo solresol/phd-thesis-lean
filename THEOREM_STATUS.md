@@ -63,6 +63,20 @@ storage and all five integral identities. The eleven audited declarations use
 only `propext`, `Classical.choice`, `Quot.sound` or subsets. No pivot sign
 normalization, full diagonalizing controller, logarithmic step bound, global
 coefficient bound or uniform machine cost is claimed.
+`SmithColumn.lean` computes a complete active-column sweep from the updated
+matrix, selecting every row below a runtime diagonal position. `sweep_clears`
+preserves previously cleared entries as well as clearing every visited nonpivot
+row. `clearColumn_prefix` fixes earlier rows and columns **provided all active
+rows were zero in the earlier columns**. `clearColumn_next_zero` advances the
+zero lower-left block boundary. `clearColumn_of_missing` supplies the
+total rectangular/empty base cases. `clearColumnDense_equivalence`,
+`clearColumnDense_clears` and `clearColumnDense_prefix` connect the controller to
+all five stored matrices and their integral identities.
+`clearColumnDense_valid_of_cols_le_one` meets the weak `Valid` contract for
+inputs with at most one column; it makes no canonical sign claim. The sixteen
+audited declarations use only `propext`, `Classical.choice`, `Quot.sound` or
+subsets. This is one executable controller pass, without a general alternating
+row/column diagonalizer, coefficient bound, operation count or machine witness.
 No Smith algorithm, global coefficient bound, operation count or polynomial-time
 machine follows from these increments alone. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.
