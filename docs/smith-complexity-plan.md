@@ -258,6 +258,94 @@ Read-only inspection of pinned `lean-np-hardness` `FinEncoding` and
 successor, predecessor, comparison and addition machines do not supply signed
 binary division/gcd or matrix-controller costs. No dependency changes are made.
 
+### Divisibility-aware reduction increment (28 October 2026 UTC)
+
+Question: can the existing pairwise gcd sweeps simply be alternated to isolate
+each diagonal entry? **Retired approach:** unmodified alternating gcd pivots
+can cycle even on a nonsingular 2-by-2 matrix. Kernel-checked examples in
+`SmithReduction.lean` show the transformed matrix
+`[[2,2],[0,2]]` becoming `[[2,0],[2,2]]` after a column-operation gcd pivot,
+then returning to the original matrix after the corresponding row-operation
+pivot. The accumulated transformations need not return; the cycle is in `S`.
+Thus termination of each pairwise Euclidean pivot alone is insufficient for
+termination of that alternating controller.
+
+`reduceRows` instead tests whether the current pivot `a` divides target `b`.
+If so it adds `-(b.tdiv a)` times the pivot row to the target row, fixing the
+entire pivot row and clearing the target. This includes `(a,b)=(0,0)`; a zero
+pivot with nonzero target goes through the existing terminating gcd branch.
+`reduceRows_correct` proves target clearing, gcd magnitude and outside-row
+preservation. `reduceRows_preserves_zero` retains common zero columns.
+For **nonzero** `a`, `reduceRows_strict` proves strict `natAbs` descent when
+`a` does not divide `b`; `reduceRows_progress` gives the alternative of a fixed
+pivot row or strict descent. There is no claim that a zero pivot cannot increase.
+
+`transposeState` exchanges the forward maps and inverses using transposition,
+with `transposeState_invariant` proving both integral inverse directions and
+`U*A*V=S` in the transposed shape. `reduceCols` reuses that construction rather
+than a second Euclidean implementation. `reduceCols_clear_or_descend` proves
+that a column reduction at a nonzero pivot either retains every zero in the
+pivot column outside the pivot row or strictly decreases its magnitude. This
+is the local progress invariant needed before assembling alternating passes;
+it does not prove termination or growth for such a controller.
+
+`reduceAtColumn` and `reduceAtRow` accept natural control indices and are no-ops
+when the pivot/target is missing or equal. `reduceDense` materializes all five
+matrices; `reduceDense_equivalence` proves their five integral identities for
+both orientations without rank, square or nonempty hypotheses. Universal guards
+and kernel-checked examples include both empty orientations, `0 × 0`, a missing
+position, equal indices, negative exact division, a nondivisible pair and a zero
+pivot. The cycle example also becomes weakly diagonal under exact division.
+These specializations are proofs of finite cases, not evidence of an asymptotic
+complexity bound.
+
+Encoding remains the existing unary-dimension/signed-binary `Dense` input and
+five framed dense output matrices, including both inverse matrices. The Boolean
+orientation and two natural control indices are additional input, without a
+new control codec or machine claim. The existing output-bit bound is still
+conditional on the entry width of **all five** matrices. Strict descent in
+numeric magnitude is not a polynomial bit-cost bound: it supplies neither a
+logarithmic descent count nor bounds on the other entries or transformations.
+
+Source record: read the [24 October human-literature review](2026-10-24-literature-review.md)
+and the recorded 25 October comparison on **28 October 2026 UTC**. Ji
+[v2, Theorem 2.1 and §6.2](https://arxiv.org/html/2607.22524v2), with artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+was externally accessed in the 24/25 October records, not re-accessed today.
+Its nonsingular-square arithmetic-trace hypotheses still do not supply our
+singular/rectangular global-growth or structural TM2 obligations. This increment
+uses only the existing local pivot and pinned integer/matrix APIs; it is not
+derived from a newly inspected external theorem or copied code. No broad daily
+search, external replay or fresh source-access claim is made. The original
+Kannan–Bachem full-text restriction remains a source limitation. Read-only
+inspection of pinned `lean-np-hardness` `FinEncoding` and `BinaryArithmetic`
+confirmed the existing binary successor, predecessor, comparison and addition
+machines, without a signed binary division/gcd machine to discharge these costs.
+No dependencies or pins changed.
+
+Validation/research log: sourced the prepared environment and ran
+`python3 /workspace/shared/theorem-provers/check.py` successfully; verified the
+clean authorized origin and ancestry, preserved generated `work`, and created
+tracking `main` at `8ef42f0`. The saved Start skill was absent from exposed
+`.agents` and executor skills; shared `START.md` and repository `AGENTS.md` were
+read. Guarded `lake env lean PhdThesisLean/SmithReduction.lean`,
+`lake build PhdThesisLean.SmithReduction` and `lake build` passed (the full build
+completed 9290 jobs). The source scan found no proof placeholders, unsafe code
+or project axiom declarations; the recorded pin hashes stayed identical.
+Twenty new `#print axioms` checks, plus `MaxObjectiveSmith.rhoMax_rational_smith`
+and `SmithDecomposition.rhoMax_of_valid`, use only `propext`, `Classical.choice`,
+`Quot.sound` or subsets. Early proof-script failures concerned a simplification/equality
+orientation and a nested finite example, and were repaired; no mathematical
+assumption was added. Resource-guarded commands use the prepared Lean 4.35.0
+runtime with two threads, without installation or cache changes.
+
+Next: assemble active-block passes using the exact-division branch and lift
+the fixed-column/strict-descent alternative across a finite sweep, handling
+zero pivots explicitly before claiming an alternating controller terminates.
+Controlled global growth of `S,U,Uinv,V,Vinv`, polynomial operation counts,
+uniform encoded machines and optimizer composition remain open. The headline
+`thm:max-polytime` remains partial.
+
 ### Remaining construction sequence
 
 1. Establish elementary operations over **integers**, with explicit inverse

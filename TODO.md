@@ -60,6 +60,12 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   matrix. Prove clearing, integral equivalence and protected-prefix preservation;
   missing rows/columns are no-ops. This meets the weak decomposition contract
   for at most one column, without a general diagonalizer or growth/runtime bound.
+- [x] Establish a divisibility-aware pair reduction (`SmithReduction.lean`):
+  exact division fixes the pivot row, while a nondivisible entry strictly reduces
+  a nonzero pivot's magnitude. Prove the transposed cleared-column alternative,
+  integral equivalence and total runtime-indexed wrappers. A checked two-pass
+  matrix cycle rules out unmodified alternating gcd sweeps as a controller.
+  These are local progress invariants, without a full controller or global bound.
 - [ ] Implement a computable decomposition returning integral transformations and
   inverses satisfying that contract.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.

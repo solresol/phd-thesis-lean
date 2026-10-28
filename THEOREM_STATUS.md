@@ -77,6 +77,19 @@ inputs with at most one column; it makes no canonical sign claim. The sixteen
 audited declarations use only `propext`, `Classical.choice`, `Quot.sound` or
 subsets. This is one executable controller pass, without a general alternating
 row/column diagonalizer, coefficient bound, operation count or machine witness.
+`SmithReduction.lean` adds a divisibility-aware pair reduction: exact division
+clears the target while fixing the entire pivot row; otherwise a nonzero pivot
+strictly decreases in magnitude (`reduceRows_strict`, `reduceRows_progress`).
+Transposition retains all five integral identities, and
+`reduceCols_clear_or_descend` proves that disturbing a cleared pivot column
+requires strict pivot descent. Common zeros and outside rows/columns are
+preserved. Total runtime-indexed row/column wrappers are no-ops at missing or
+equal indices, including empty shapes; `reduceDense_equivalence` connects them
+to the existing dense output. A kernel-checked two-pass matrix cycle exhibits
+the failure of unmodified alternating gcd sweeps. The twenty audited declarations
+use only `propext`, `Classical.choice`, `Quot.sound` or subsets. This is a local
+progress alternative, without a full active-block controller, a polynomial
+descent-count bound, global coefficient bounds or a machine implementation.
 No Smith algorithm, global coefficient bound, operation count or polynomial-time
 machine follows from these increments alone. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.
