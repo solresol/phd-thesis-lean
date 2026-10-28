@@ -1153,6 +1153,43 @@ as planned. For the affine theorem the base-`p` logarithm identity
 `E = k * min m (d + 1)` is also recorded via `Nat.log`; the real-logarithm
 entropy formulas can be derived later if useful.
 
+## Rational witnesses and conditional counting consequences (28 October additions)
+
+Specification: `../phd-thesis/complexity-regimes/eth-addendum.tex`, at thesis
+commit `6a21a00c5c5b04f61b5c8b42b8b28a5a2508de58`, SHA-256
+`25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+Audited on 29 October 2026 (Sydney). These additions are separate from the
+earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
+
+| Obligation | Status | Checked declaration or remaining work |
+|---|---|---|
+| Independent-column reduction | Complete (semantic) | `RationalWitnesses.exists_column_reduction` selects exactly `A.rank` distinct original columns, proves their independence and equality of the entire rational prediction spaces. `mulVec_extend` and `extend_eq_zero` prove the original-coordinate embedding with zeros off those columns. Rank zero is included. |
+| Contact refinement and rational attainment | Complete (semantic) | `contact_refinement` produces a full independent contact set in the reduced design without increasing any original residual norm. `finite_candidateModels`, `exists_candidate_le`, and `exists_global_minimizer` prove finite-family domination and attainment for arbitrary rational matrices and targets. `threshold_iff_candidate` covers every rational threshold. `exists_affine_global_minimizer` adds the column of ones. |
+| Exact determinant representation | Complete (algebraic) | `contact_cramer` proves nonsingularity of the selected row minor and Cramer's formula. `exists_global_minimizer_cramer` exhibits an optimum supported on `rank A` columns whose coefficients are ratios of determinants of a nonsingular `rank A` square minor and its target-column replacements. This is not a coefficient-size bound. |
+| Polynomial certificate bit length | Pending | Clear denominators with a product bounded by actual rational input bits; bound the determinants and the reduced numerators/denominators, including all dimension, sign and framing costs. No polynomial witness-length theorem is asserted yet. |
+| Polynomial-time verifier on binary rational data | Pending | Define the complete rational matrix/target/threshold encoding and a uniform finite machine; prove bit bounds and runtime for arithmetic, p-adic valuation, summation and comparison. Arithmetic-operation counts alone do not suffice. |
+| NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
+| `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
+| `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
+
+Correspondence: `RationalWitnesses.loss_eq_thesis` identifies the Lean objective
+with `sum_i |y_i - (A beta)_i|_p`. The proved semantic statements are stronger
+in dimensions: they allow empty rows/columns as well as the thesis's positive
+dimensions. They impose no full-rank, distinct-row, consistent-response, or
+minimizer-existence hypothesis. Indexed rows retain multiplicity. The candidate
+family is finite only after selecting a column basis and zeroing the unused
+coordinates; no finiteness claim is made about all minimizers of a deficient
+design. Column selection is semantic, not a polynomial-time algorithm.
+
+The proof reuses `RegularisedCandidates.hindependent_contact_refinement` and
+`hfinite_candidateModels`; mathlib's `exists_linearIndependent'`,
+`Matrix.range_mulVecLin`, row-independence/invertibility equivalence, and
+adjugate identity supply the linear algebra. The eight recorded theorem audits
+use only `propext`, `Classical.choice`, and `Quot.sound`. No external SAT counter
+is used. Such a counter must remain an explicit theorem hypothesis until its
+actual theorem, encoding, machine model, toolchain and axioms are compatible
+and checked; assuming it will not verify an ETH refutation.
+
 ## Supporting-statement formalisations
 
 These active-thesis statements are outside the headline catalogue. They are

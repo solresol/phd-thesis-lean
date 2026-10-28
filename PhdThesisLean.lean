@@ -141,6 +141,7 @@ import PhdThesisLean.PolynomialResidualMachine
 import PhdThesisLean.NestedStage2Reduction
 import PhdThesisLean.NestedStage2Machine
 import PhdThesisLean.MaxObjectiveSmith
+import PhdThesisLean.RationalWitnesses
 import PhdThesisLean.AllDifferentCSPPositiveScanInitialization
 import PhdThesisLean.AllDifferentCSPPositiveControl
 import PhdThesisLean.AllDifferentCSPPositiveDispatch

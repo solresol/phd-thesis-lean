@@ -7669,3 +7669,57 @@
   environment publication or user-machine change. Exact pushed commit/parity
   is returned to the parent for its separately authorized Raksasa fast-forward;
   no cloud_threads action is exposed in this worker and no direct access occurs.
+
+## 2026-10-29 — rational contact witnesses for arbitrary designs
+
+- **Programme:** `p-adic-regression-complexity-proofs`; first run. Followed
+  this run's explicit `phd-thesis-lean` location despite the source agenda's
+  dedicated-repository proposal. No schedule was changed.
+- **Starting state:** clean local `57f0e9f`; fetched and fast-forwarded to
+  `3f389d0f6e40ba5958e11efe26c985086dd447ea` before final validation, retaining
+  the intervening all-different and Smith work. Read AGENTS, current declarations,
+  theorem status, TODO and the locally recorded 24 October literature review.
+  That review concerns Smith complexity and supplies no external result used
+  here; no new literature search, toolchain change or external theorem assumption.
+- **Specification:** thesis commit `6a21a00c5c5b04f61b5c8b42b8b28a5a2508de58`,
+  `complexity-regimes/eth-addendum.tex`, `prop:regression-np-complete`, SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+  Also read the 28 October agenda (SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`).
+- **Completed mathematics:** `RationalWitnesses.exists_column_reduction`
+  selects exactly the rank many independent original columns with equal
+  prediction space; zero extension preserves predictions. `contact_refinement`
+  uses the existing full-rank homogeneous lifting theorem to reduce every
+  original residual norm. The resulting candidate family is finite and dominates
+  every rational model. `threshold_iff_candidate` covers every rational bound,
+  and `exists_global_minimizer` proves attainment without an existence assumption.
+  `contact_cramer` and `exists_global_minimizer_cramer` identify a nonsingular
+  rank-size original minor and exact determinant-ratio coefficients.
+  `exists_affine_global_minimizer` proves the affine case by the column of ones.
+- **Statement audit:** `loss_eq_thesis` proves the residual-sign correspondence.
+  All finite dimensions are allowed (stronger than the thesis's positive
+  dimensions), including rank zero; row indices retain repeated observations
+  with conflicting targets. Finite candidates are selected representatives,
+  not all coefficient minimizers of a deficient design. Column selection and
+  finite minimization are semantic and do not assert an efficient algorithm.
+- **Dependency audit:** all eight new audited endpoints and both existing
+  fixed-prime binary-encoding hardness theorems depend only on `propext`,
+  `Classical.choice`, and `Quot.sound`. The new result uses the repository's
+  homogeneous contact refinement and finite-interpolant theorem plus mathlib
+  column-space, rank, invertibility and adjugate results. No SAT counter is used.
+- **Remaining obligations:** common-denominator and determinant bit bounds,
+  reduced rational/certificate wire sizes, an actual polynomial-time binary
+  rational verifier, and the encoding bridge to existing hardness. Thus
+  `prop:regression-np-complete` remains Partial. Conditional threshold circuits,
+  counting/optimisation/recovery, sampling and the three applications remain
+  Pending. No mathematical thesis correction was needed or made.
+- **Validation:** `lake env lean PhdThesisLean/RationalWitnesses.lean`
+  passed; full `lake build` passed (9,291 jobs). After removing redundant
+  imports, final `lake build PhdThesisLean DiscreteMetricRegression` passed
+  (9,293 jobs), including the inherited target. The new module has no final
+  build warnings; existing-module linter warnings remain. A standalone
+  import/type/axiom audit passed for all eight endpoints and both hardness
+  theorems. Comment/string-aware scanning of 163 project/adapter Lean files
+  found no `sorry`, `admit`, axiom declarations, `sorryAx` or `native_decide`;
+  the full build logs contain no `sorryAx`. `git diff --check` passed.
+- **Run time:** 2026-10-28 20:27:22 UTC (29 October in Sydney).

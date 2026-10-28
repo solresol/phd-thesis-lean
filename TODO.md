@@ -79,6 +79,34 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
 
 The headline theorem remains partial until these obligations are discharged.
 
+## Ordinary summed regression witnesses and conditional counting
+
+This separate programme follows the 28 October thesis addendum and the
+`p-adic-regression-complexity-proofs` automation request. It does not change
+the Smith programme or any schedule. See `THEOREM_STATUS.md` for the exact
+source hash and separate semantic, size and machine milestones.
+
+- [x] Reduce every rational design to independent original columns with the
+  same prediction space; refine contacts and attain the summed optimum in a
+  finite family, including rank deficiency, rank zero and repeated/conflicting
+  observations (`RationalWitnesses.lean`). The affine case is included.
+- [x] Express a selected optimum by a nonsingular rank-size minor and the
+  exact Cramer determinant ratios (`exists_global_minimizer_cramer`).
+- [ ] Bound the common-denominator product in actual input bits and the
+  integer determinants after clearing denominators; transfer to reduced
+  rational numerator/denominator sizes and full certificate encoding length.
+- [ ] Construct and bound the actual binary rational-loss verifier, then
+  compose NP membership with a checked encoding bridge from existing hardness.
+- [ ] Prove unique-extension threshold 3-CNF with a linear balanced
+  population-count circuit; transfer an explicit fixed-width counting
+  hypothesis to optimisation/counting/recovery, with time and space bounds.
+- [ ] Prove the uniform-sampling approximation theorem and all three compiler
+  applications, retaining multiplicities and the distinct counting notions.
+
+Next obligation: the determinant bit-length bound, starting from the exact
+minor formula already proved. Do not repeat semantic attainment or count
+the formula alone as a polynomial certificate bound.
+
 ## Precision-indexed p-adic prediction growth
 
 Source: `../phd-thesis/pac-learning-open-questions/body.tex`, Section
