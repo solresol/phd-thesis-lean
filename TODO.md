@@ -98,9 +98,12 @@ source hash and separate semantic, size and machine milestones.
   observations (`RationalWitnesses.lean`). The affine case is included.
 - [x] Express a selected optimum by a nonsingular rank-size minor and the
   exact Cramer determinant ratios (`exists_global_minimizer_cramer`).
-- [ ] Bound the common-denominator product in actual input bits and the
+- [x] Bound the common-denominator product in actual input bits and the
   integer determinants after clearing denominators; transfer to reduced
   rational numerator/denominator sizes and full certificate encoding length.
+  `RationalWitnessBounds.lean` and `RationalWitnessEncoding.lean` prove the
+  ordinary bound `12L³+9L+1` and affine bound `28(L+1)³+9(L+1)+1` in original
+  binary input length, with signs, framing, dimensions and zero coefficients.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -109,9 +112,12 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: the determinant bit-length bound, starting from the exact
-minor formula already proved. Do not repeat semantic attainment or count
-the formula alone as a polynomial certificate bound.
+Next obligation: a uniform runtime-dimension rational input decoder and actual
+binary rational-loss verifier, with bit-cost proofs for its arithmetic and
+valuation loops. Reuse the proved certificate bounds and prefix-parser
+round trips; a computable function or arithmetic-operation count is not the
+required machine-runtime result. The existing hardness language still needs
+a checked encoding bridge before NP-completeness can be concluded.
 
 ## Precision-indexed p-adic prediction growth
 

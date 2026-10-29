@@ -7723,3 +7723,71 @@
   found no `sorry`, `admit`, axiom declarations, `sorryAx` or `native_decide`;
   the full build logs contain no `sorryAx`. `git diff --check` passed.
 - **Run time:** 2026-10-28 20:27:22 UTC (29 October in Sydney).
+
+## 2026-10-30 — polynomial-size ordinary and affine rational certificates
+
+- **Scope and baseline:** followed the explicit automation request to work in
+  this repository. Started clean at `d9e3a29`; fetched and fast-forwarded to
+  `b7bb508`, preserving the completed Smith-sweep increment. Re-read AGENTS,
+  theorem status, TODO, current declarations and changes, and the latest
+  source-backed literature review (`docs/2026-10-24-literature-review.md`).
+  That review concerns the separate Smith programme; no external result was
+  needed for this determinant proof. No sibling, thesis, pin, adapter or
+  schedule was changed.
+- **Specification:** `../phd-thesis/complexity-regimes/eth-addendum.tex`,
+  `prop:regression-np-complete`, at unchanged thesis commit
+  `6a21a00c5c5b04f61b5c8b42b8b28a5a2508de58`, SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+  Read together with `notes/eth-formalisation-agenda-2026-10-28.md`. The
+  size claim matches the thesis; no mathematical correction was needed.
+- **Completed determinant obligation:** new `RationalWitnessBounds.lean`
+  bounds the product of original denominators by `2^b`, where `b` is the
+  sum of original binary numerator-magnitude and denominator lengths.
+  `cleared_cast` proves the exact rational/integer correspondence and
+  `cleared_natAbs_le` bounds each cleared entry by `2^(2b)`.
+  The Leibniz/factorial bound gives determinant magnitude length at most
+  `s*(2b + Nat.size s)+1`, retaining the `s log s` term. Divisibility of
+  reduced rational fields transfers the bound to determinant ratios,
+  including zero numerators. `exists_global_minimizer_bits` composes this
+  with the already proved rank-size Cramer optimum; it assumes no entry
+  bounds or supplied decomposition.
+- **Completed serialization obligation:** new `RationalWitnessEncoding.lean`
+  encodes binary dimensions, indexed row-major rational entries and targets,
+  and a rational threshold. Certificates use a binary length header and
+  signed, framed reduced rational coefficients. Prefix-parser round trips,
+  certificate injectivity and exact field lengths are checked.
+  `exists_global_minimizer_encoding` proves a complete certificate length
+  of at most `12L^3+9L+1` in the actual input bitstring length `L`.
+  `threshold_iff_short_certificate` restricts the threshold existential to
+  these witnesses. `exists_affine_minimizer_encoding` gives
+  `28(L+1)^3+9(L+1)+1` for intercept plus coefficients in the original
+  input length; `affineData_bits` charges the added ones explicitly.
+- **Statement boundaries:** coefficient bounds permit empty dimensions.
+  Dense serialized bounds require `r > 0`, matching the thesis and charging
+  the output dimension despite binary dimension headers; `d = 0` is still
+  allowed. Rank-zero/deficient designs, repeated/conflicting observations,
+  arbitrary rational thresholds, and every fixed prime are covered. There
+  is no asserted polynomial-time selection of the certificate, parser
+  runtime, verifier runtime, or NP-membership theorem. Full input decoding
+  for runtime dimensions and the checked hardness encoding bridge remain.
+  The overall proposition is Partial; only its size milestone is now Complete.
+  Counting circuits, conditional transfers, sampling and applications remain
+  Pending. No SAT-counter hypothesis or new axiom was introduced.
+- **Validation:** targeted bounds and encoding builds passed. Final full
+  `lake build PhdThesisLean DiscreteMetricRegression` passed (9,296 jobs).
+  An independent import/type/axiom audit of eighteen new endpoints and both
+  existing binary fixed-prime hardness theorems passed, using only
+  `propext`, `Classical.choice`, and `Quot.sound`. The final audit/build logs
+  contain no `sorryAx` or errors. A comment/string-aware scan of all 166
+  project/adapter Lean files found no `sorry`, `admit`, axiom declarations,
+  `sorryAx`, `native_decide`, or `unsafe`. `git diff --check` passed.
+  Two new import-style advisories recommend mathlib's module syntax; these
+  are not proof or tactic warnings. Existing project warnings remain.
+  Evidence is under this run's projectless `work/` directory, especially
+  `full-build.log`, `final-axiom-audit.log` and `source-scan.log`.
+- **Next substantive obligation:** implement the uniform binary rational-loss
+  verifier and prove bit bounds/runtime for parsing, arithmetic, repeated
+  division by the fixed prime, exact loss summation and comparison. Reuse
+  this size theorem; do not count another interface or arithmetic-operation
+  estimate as a machine-runtime result.
+- **Run time:** 2026-10-29 20:29 UTC (30 October in Sydney).

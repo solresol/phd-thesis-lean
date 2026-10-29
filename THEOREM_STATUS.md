@@ -1174,7 +1174,7 @@ entropy formulas can be derived later if useful.
 Specification: `../phd-thesis/complexity-regimes/eth-addendum.tex`, at thesis
 commit `6a21a00c5c5b04f61b5c8b42b8b28a5a2508de58`, SHA-256
 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
-Audited on 29 October 2026 (Sydney). These additions are separate from the
+Audited on 30 October 2026 (Sydney). These additions are separate from the
 earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 
 | Obligation | Status | Checked declaration or remaining work |
@@ -1182,8 +1182,8 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Independent-column reduction | Complete (semantic) | `RationalWitnesses.exists_column_reduction` selects exactly `A.rank` distinct original columns, proves their independence and equality of the entire rational prediction spaces. `mulVec_extend` and `extend_eq_zero` prove the original-coordinate embedding with zeros off those columns. Rank zero is included. |
 | Contact refinement and rational attainment | Complete (semantic) | `contact_refinement` produces a full independent contact set in the reduced design without increasing any original residual norm. `finite_candidateModels`, `exists_candidate_le`, and `exists_global_minimizer` prove finite-family domination and attainment for arbitrary rational matrices and targets. `threshold_iff_candidate` covers every rational threshold. `exists_affine_global_minimizer` adds the column of ones. |
 | Exact determinant representation | Complete (algebraic) | `contact_cramer` proves nonsingularity of the selected row minor and Cramer's formula. `exists_global_minimizer_cramer` exhibits an optimum supported on `rank A` columns whose coefficients are ratios of determinants of a nonsingular `rank A` square minor and its target-column replacements. This is not a coefficient-size bound. |
-| Polynomial certificate bit length | Pending | Clear denominators with a product bounded by actual rational input bits; bound the determinants and the reduced numerators/denominators, including all dimension, sign and framing costs. No polynomial witness-length theorem is asserted yet. |
-| Polynomial-time verifier on binary rational data | Pending | Define the complete rational matrix/target/threshold encoding and a uniform finite machine; prove bit bounds and runtime for arithmetic, p-adic valuation, summation and comparison. Arithmetic-operation counts alone do not suffice. |
+| Polynomial certificate bit length | Complete (size, ordinary and affine) | `RationalWitnessBounds.commonDen_le_pow`, `cleared_natAbs_le`, `det_size_le`, and `det_ratio_sizes_le` bound denominator clearing, integer determinants and reduced rational fields. `exists_global_minimizer_bits` applies the bound to a genuine global optimum. For actual binary input length `L`, `RationalWitnessEncoding.exists_global_minimizer_encoding` bounds a complete dense certificate by `12L³ + 9L + 1`; `threshold_iff_short_certificate` restricts threshold witnesses to that bound. `exists_affine_minimizer_encoding` bounds the intercept and all coefficients by `28(L+1)³ + 9(L+1) + 1` in the original input length. Binary dimensions, signs, denominators and framing are charged. |
+| Polynomial-time verifier on binary rational data | Pending | `RationalWitnessEncoding.encodeInput` now specifies binary dimensions, indexed rational data and threshold; rational/list prefix parsers have round-trip proofs and the certificate serializer is injective. Still required: a uniform runtime-dimension input record/decoder and actual finite machine, with bit bounds and runtime for parsing, arithmetic, p-adic valuation, summation and comparison. Arithmetic-operation counts alone do not suffice. |
 | NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
@@ -1197,11 +1197,27 @@ family is finite only after selecting a column basis and zeroing the unused
 coordinates; no finiteness claim is made about all minimizers of a deficient
 design. Column selection is semantic, not a polynomial-time algorithm.
 
+The size proof uses `b = dataBits (inputData A y)`, the sum of binary
+numerator-magnitude and denominator lengths. The common denominator product is
+at most `2^b`, cleared integer magnitudes are at most `2^(2b)`, and each
+rank-`s` determinant has magnitude length at most `s*(2b + Nat.size s) + 1`.
+Canonical rational reduction cannot increase either field. These coefficient
+bounds allow empty shapes. The **dense serialized** bounds require `r > 0`,
+as the thesis does: with binary dimensions and no rows, arbitrarily many zero
+coordinates would otherwise have an uncharged dense output cost. No positivity
+assumption on `d` is needed. The affine proof charges the added ones against
+the original input (`affineData_bits` adds exactly `2r` payload bits).
+The serializers are concrete; neither parser efficiency nor a uniform machine
+follows from these length and round-trip theorems. No thesis claim was changed.
+
 The proof reuses `RegularisedCandidates.hindependent_contact_refinement` and
 `hfinite_candidateModels`; mathlib's `exists_linearIndependent'`,
 `Matrix.range_mulVecLin`, row-independence/invertibility equivalence, and
-adjugate identity supply the linear algebra. The eight recorded theorem audits
-use only `propext`, `Classical.choice`, and `Quot.sound`. No external SAT counter
+adjugate identity supply the linear algebra. The size proof additionally uses
+mathlib's Leibniz determinant bound, factorial/power bounds, `Nat.size`, and
+divisibility of canonical rational fields. All eight earlier and eighteen new
+recorded endpoint audits use only `propext`, `Classical.choice`, and `Quot.sound`.
+No external SAT counter
 is used. Such a counter must remain an explicit theorem hypothesis until its
 actual theorem, encoding, machine model, toolchain and axioms are compatible
 and checked; assuming it will not verify an ETH refutation.
