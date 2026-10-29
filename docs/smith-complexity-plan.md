@@ -423,3 +423,104 @@ The separate Complexitylib adapter is coordinated independently.
 - Mark `thm:max-polytime` complete only after a concrete uniform machine,
   encoded-bit polynomial bound, total correctness and the final max-objective
   composition all build and pass axiom audits.
+
+## Research log — 30 October 2026 (Australia/Sydney)
+
+**Question and exact obligation.** The first unfinished construction target is
+still a computable `decompose (A : Dense) : Result A.rows A.cols` with
+`∀ A, Valid A.toMatrix (decompose A)`. Can the pairwise fixed-pivot/strict-descent
+alternative now be lifted across complete active sweeps? The unresolved
+controller invariant must survive *later* pair reductions, rather than just
+establishing progress at one intermediate matrix. Controlled global growth of
+all five matrices is a further, separate unresolved invariant.
+
+**Checked increment.** `SmithSweep.lean` computes `sweepRows` with the existing
+divisibility-aware pair reduction and quotients from the updated entries.
+`sweepRows_nonzero_le` proves that a nonzero pivot stays nonzero and never grows
+in magnitude. Thus later operations cannot undo an earlier strict decrease.
+`sweepRows_progress` proves that the whole pivot row is fixed or its magnitude
+strictly decreases. Visited nonpivot entries and pre-existing zeros are cleared
+and remain clear, including with repeated targets; outside rows and common
+zero columns are preserved.
+
+`cross Q k` computes an active-column sweep followed by the transposed
+active-row sweep, reusing `SmithColumn.activeRows`. For `r = ⟨k, hr⟩`,
+`c = ⟨k, hc⟩`, `P = cross Q k`, the exact new controller theorem is
+
+```
+Q.S r c ≠ 0 →
+  ((∀ i, k < i.val → P.S i c = 0) ∧
+   (∀ j, k < j.val → P.S r j = 0)) ∨
+  (P.S r c).natAbs < (Q.S r c).natAbs.
+```
+
+`cross_isolated_or_descend` proves this without square, rank or determinant
+hypotheses. `cross_nonzero_le` retains nonzeroness and nonincrease.
+`cross_prefix` fixes every earlier row or column provided both zero blocks
+between the protected prefix and active block were zero. That preservation
+does not require a nonzero pivot. Missing diagonal positions are no-ops,
+including both empty orientations. `crossDense_equivalence` materializes all
+five outputs and proves both integral inverse directions and `U*A*V=S`;
+`crossDense_isolated_or_descend` and `crossDense_prefix` apply to those outputs.
+
+The encoding remains unary dimension headers and signed binary row-major
+entries, with all five framed dense output matrices, including both inverses.
+`k` is additional control data, without a new codec or machine-cost claim.
+The existing complete-output bit bound remains conditional on *all five*
+matrices' entry widths. Numeric descent alone is not a polynomial bound in
+binary input length. There is no recursive diagonalizer, global coefficient
+bound, operation-count theorem, uniform machine or optimizer composition here.
+Zero pivots are processed by the total passes but excluded from the nonzero
+progress theorem; the checked `1 × 2` specialization `[0,6]` becomes `[6,0]`.
+
+**Sources and reuse.** Read the latest [24 October human-literature review](2026-10-24-literature-review.md)
+and its recorded 25 October source comparison before selecting this increment.
+Ji [v2, Theorem 2.1 and §6.2](https://arxiv.org/html/2607.22524v2), with artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+was externally accessed in the 24/25 October records, not re-accessed today.
+Its nonsingular-square arithmetic-trace theorem does not supply our rectangular
+global-growth invariant or structural TM2 costs. No new external theorem or
+code is used, external artifact replayed, or broad daily search claimed. The
+original Kannan–Bachem publisher full-text restriction remains a source limit.
+The signed nonnegative-remainder variant and unmodified alternating gcd sweeps
+remain retired. Read-only inspection of the pinned `lean-np-hardness`
+`FinEncoding`, `BinaryNatLists` and `BinaryArithmetic` APIs confirmed existing
+framing and binary successor/predecessor/comparison/addition machines; none
+supplies the signed binary division/gcd or matrix-controller cost obligation.
+No generic encoding or machine foundations were duplicated.
+
+**Attempts and validation.** Verified the selected published environment source
+version, clean authorized origin and fetched ancestry; preserved generated
+`work`, then created tracking `main` at `d9e3a29`. No other Lean worker was
+running. The saved Start skill was absent from exposed skill locations and the
+executor catalog; shared `START.md` and repository `AGENTS.md` were read.
+Sourced `/workspace/shared/theorem-provers/env.sh`; the required
+`python3 /workspace/shared/theorem-provers/check.py` passed with exact runtime,
+pins, dependency HEADs and imports, without installation. Used `prepare.py`'s
+resource-guarded runner with two threads, the existing cache and unchanged
+limits. The general proofs checked on the first attempt; subsequent finite
+examples needed explicit row-list/Euclidean unfolding and the repository's
+existing `backward.isDefEq.respectTransparency=false` elaboration setting.
+Those proof-script repairs added no mathematical assumptions.
+
+`lake env lean -Dbackward.isDefEq.respectTransparency=false PhdThesisLean/SmithSweep.lean`,
+`lake build PhdThesisLean.SmithSweep`, and `lake build` passed; the final library
+build completed 9292 jobs. Thirty new `#print axioms` checks and the existing
+`MaxObjectiveSmith.rhoMax_rational_smith` / `SmithDecomposition.rhoMax_of_valid`
+use only `propext`, `Classical.choice`, `Quot.sound` or subsets. Kernel-checked
+examples cover negative exact division with repeated targets, a protected
+prefix in a rectangle, a zero pivot, both empty orientations,
+`0 × 0` and a missing position. Separate guarded evaluator outputs show
+`[[6,4,0],[0,6,0]]` becoming `[[-2,0,0],[6,-18,0]]` after one pass and
+`[[-2,0,0],[0,-18,0]]` after two; these are regression evidence, not a universal
+two-pass theorem or an asymptotic bound. Source scanning found no proof
+placeholders, unsafe code or project axiom declarations; recorded pin hashes
+remain identical.
+
+**Next.** Define a recursive active-pivot isolator from the checked alternative,
+with explicit zero-pivot seeding/block selection and protected-prefix induction,
+then connect active-block recursion to `Valid`. Before claiming polynomial bit
+complexity, still establish a suitable global growth invariant for
+`S,U,Uinv,V,Vinv`, polynomial operation counts, concrete binary arithmetic and
+structural machines, and final optimizer composition. `thm:max-polytime` remains
+partial. This run stops at the audited finite-pass invariant.

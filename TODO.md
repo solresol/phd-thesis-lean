@@ -66,6 +66,12 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   integral equivalence and total runtime-indexed wrappers. A checked two-pass
   matrix cycle rules out unmodified alternating gcd sweeps as a controller.
   These are local progress invariants, without a full controller or global bound.
+- [x] Lift divisibility-aware progress across complete finite sweeps
+  (`SmithSweep.lean`): a nonzero pivot stays nonzero and cannot grow; an
+  active-column/active-row pair either clears both active arms or strictly
+  decreases its magnitude. Preserve the protected prefix, all integral inverse
+  identities and rectangular/empty guards. This is a finite pass, without a
+  recursive diagonalizer, global coefficient bound or encoded-machine claim.
 - [ ] Implement a computable decomposition returning integral transformations and
   inverses satisfying that contract.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.

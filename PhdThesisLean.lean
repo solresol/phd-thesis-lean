@@ -6,6 +6,7 @@ import PhdThesisLean.SmithTrace
 import PhdThesisLean.SmithPivot
 import PhdThesisLean.SmithColumn
 import PhdThesisLean.SmithReduction
+import PhdThesisLean.SmithSweep
 import PhdThesisLean.AllDifferent
 import PhdThesisLean.AllDifferentCSP
 import PhdThesisLean.AllDifferentCSPAssemblyMachine

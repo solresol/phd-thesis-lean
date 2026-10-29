@@ -90,6 +90,22 @@ the failure of unmodified alternating gcd sweeps. The twenty audited declaration
 use only `propext`, `Classical.choice`, `Quot.sound` or subsets. This is a local
 progress alternative, without a full active-block controller, a polynomial
 descent-count bound, global coefficient bounds or a machine implementation.
+`SmithSweep.lean` lifts that alternative across complete finite sweeps.
+`sweepRows_progress` proves that the entire pivot row is fixed or a nonzero
+pivot strictly decreases; `sweepRows_nonzero_le` prevents subsequent pair
+reductions from undoing that decrease. `cross_isolated_or_descend` proves that
+an active-column pass followed by an active-row pass either clears both active
+arms of the pivot or strictly decreases its original nonzero magnitude.
+`cross_prefix` protects earlier rows and columns under the two zero-block
+hypotheses, without a nonzero-pivot assumption. The runtime-indexed passes are
+no-ops at missing positions, and `crossDense_equivalence` proves all five
+integral identities for the computed stored result, including empty shapes.
+`crossDense_isolated_or_descend` and `crossDense_prefix` transfer the two
+controller claims to that same result. The thirty audited declarations use
+only `propext`, `Classical.choice`, `Quot.sound` or subsets. A zero pivot is
+processed by the total functions but is outside the nonzero descent claim.
+There is no recursive pivot-isolation/diagonalization controller, polynomial
+descent count, global width bound or uniform machine supplied by this increment.
 No Smith algorithm, global coefficient bound, operation count or polynomial-time
 machine follows from these increments alone. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.
