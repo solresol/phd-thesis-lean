@@ -7837,8 +7837,12 @@
 
 - **Scope and baseline:** `p-adic-regression-complexity-proofs`; followed the
   explicit request to work here despite the agenda's dedicated-repository
-  proposal. The automation memory was absent, so read the current repository
-  ledger and prior certificate evidence. Started clean at `d702a27`, fetched
+  proposal. `CODEX_HOME` was unset: the initial environment-relative memory
+  probe missed the existing file. Used the current repository ledger and prior
+  certificate evidence to select the obligation, then recovered and read the
+  existing automation memory at the environment-supplied absolute path before
+  handoff. Future runs must resolve that fallback before the initial read.
+  Started clean at `d702a27`, fetched
   and fast-forwarded to `15656d7`, retaining the concurrent Smith-isolation
   increment. Re-read AGENTS, THEOREM_STATUS, TODO, declarations and working-tree
   state before choosing the binary arithmetic obligation. Sibling libraries
@@ -7900,3 +7904,8 @@
   valuation primitive into the complete rational-loss verifier and hardness
   bridge. Do not repeat the completed valuation proof or promote it to NP.
 - **Run time:** 2026-10-30 20:24 UTC (31 October in Sydney).
+- **Publication:** proof increment committed and pushed as
+  `c4d9a35aac408e5455a980a93fd46b7d424c5c02`; clean tree, local tracking ref
+  and live remote `main` parity were verified. The subsequent documentation
+  correction records the unset-`CODEX_HOME` lookup accurately; proof sources
+  and validation evidence are unchanged. Remote CI was not checked this run.
