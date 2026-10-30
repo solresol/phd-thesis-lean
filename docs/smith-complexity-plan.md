@@ -7,6 +7,11 @@ whose off-diagonal entries vanish. It does **not** compute those matrices. The
 remaining target is a uniform polynomial-time algorithm, measured in encoded bits,
 not a theorem assuming its own runtime witness.
 
+Latest weekly human-literature review:
+[30 October 2026 UTC](2026-10-30-literature-review.md). Ji's scope is unchanged;
+the newer descriptive-complexity release and norm-oracle paper do not discharge
+the rectangular Smith or encoded-machine obligations below.
+
 ## Output and input contracts
 
 Return an executable finite record containing dimensions, `U,U',V,V',S`, with
