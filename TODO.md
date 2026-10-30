@@ -72,6 +72,12 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   decreases its magnitude. Preserve the protected prefix, all integral inverse
   identities and rectangular/empty guards. This is a finite pass, without a
   recursive diagonalizer, global coefficient bound or encoded-machine claim.
+- [x] Implement terminating isolation of one active diagonal position
+  (`SmithIsolation.lean`), including zero pivots: one seeding pass either
+  isolates a zero pivot or starts strict nonzero-magnitude descent. Preserve
+  all integral maps/inverses and protected prefixes, and advance both zero-block
+  boundaries. Missing positions and empty rectangles are no-ops. This does not
+  yet recurse over all diagonal positions or bound global growth/runtime.
 - [ ] Implement a computable decomposition returning integral transformations and
   inverses satisfying that contract.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.

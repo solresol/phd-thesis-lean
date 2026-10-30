@@ -524,3 +524,105 @@ complexity, still establish a suitable global growth invariant for
 `S,U,Uinv,V,Vinv`, polynomial operation counts, concrete binary arithmetic and
 structural machines, and final optimizer composition. `thm:max-polytime` remains
 partial. This run stops at the audited finite-pass invariant.
+
+### Recursive single-position isolation (30 October 2026 UTC)
+
+**Question and exact obligation.** The first unfinished construction target
+remains `decompose A : Result A.rows A.cols` with
+`∀ A, Valid A.toMatrix (decompose A)`. The next coherent component now checked
+in `SmithIsolation.lean` is the total function `isolate Q k`. For arbitrary
+runtime rectangular dimensions and `hr : k < m`, `hc : k < n`, its exact
+isolation theorem is
+
+```
+Isolated (isolate Q k) k hr hc
+```
+
+where `Isolated P k hr hc` means
+`(∀ i, k < i.val → P.S i ⟨k,hc⟩ = 0) ∧
+ (∀ j, k < j.val → P.S ⟨k,hr⟩ j = 0)`.
+There is no nonzero, square, rank or determinant hypothesis.
+
+**Zero handling and termination.** `sweepRows_eq_of_zero` proves that if the
+resulting pivot of a finite row sweep is zero, the entire state is unchanged,
+including both maps and both inverses. Its proof uses the pair's gcd identity:
+a zero gcd forces both input entries to be zero, so exact division has multiplier
+zero. Thus `cross_isolated_of_zero` proves that a seeding pair of passes whose
+resulting pivot is zero already has both active arms clear. Otherwise the result
+enters `isolateNonzero`, which repeats the existing `cross` until the decidable
+arm test succeeds. Every recursive call strictly reduces the **numeric** pivot
+magnitude by `cross_isolated_or_descend`; `cross_nonzero_le` keeps it nonzero.
+The initial seeding pass is outside that descent claim and can increase a zero
+pivot. No new nonzero-entry search is necessary for this weak contract: an
+isolated zero may precede a nonzero trailing block. Canonical zero ordering
+remains a separate problem.
+
+**Preserved invariants and encoding.** `isolate_invariant` retains both integral
+inverse directions and `U*A*V=S`. `isolate_prefix` fixes every earlier row or
+column under the two prior zero-block hypotheses. `isolate_next_zero` advances
+both boundaries to `k+1`, including when the isolated pivot is zero. Missing
+positions return the original state (`isolate_of_missing`), covering `0 × n`,
+`m × 0` and `0 × 0`. `isolateDense` packs all five computed matrices into the
+existing unary-dimension/signed-binary row-major format; its equivalence,
+isolation and prefix theorems refer to that stored output. The natural control
+index is still additional input with no new codec or machine claim. Existing
+complete-output bit bounds remain conditional on the entry width of **all five**
+matrices. Numeric descent gives termination, not a polynomial bound in binary
+input length, intermediate widths, arithmetic cost or structural machine steps.
+
+**Sources and reuse.** Before choosing work, searched the current repository
+for newer literature reviews; the latest remains the
+[24 October human-authored-research review](2026-10-24-literature-review.md).
+Read it and the recorded 25 October comparison on **30 October 2026 UTC**.
+Ji [v2, Theorem 2.1 and §6.2](https://arxiv.org/html/2607.22524v2), artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+was externally accessed in the 24/25 October source records, not re-accessed
+today. Its nonsingular-square arithmetic-trace result still lacks our
+rectangular/global-growth and uniform-machine scope. This increment depends
+only on the existing checked local reductions and sweeps, without a new external
+theorem or copied code. No broad daily literature search, external replay or
+fresh source-access claim is made. The Kannan–Bachem publisher full-text access
+limitation remains. The signed nonnegative-remainder and unmodified alternating
+gcd-sweep approaches stay retired. Read-only inspection of pinned
+`lean-np-hardness` `FinEncoding`, `BinaryNatLists` and `BinaryArithmetic`
+reconfirmed existing codecs and binary successor/predecessor/comparison/addition
+machines; they do not provide signed division/gcd or matrix-controller costs.
+No generic foundation, dependency or pin was changed.
+
+**Attempts and checked evidence.** Verified the selected published source version
+and clean authorized origin, fetched `main` at `d702a27`, checked ancestry and
+preserved generated `work` while creating tracking `main`. No overlapping Lean
+worker was running. The saved Start skill is still absent from the exposed
+executor catalog and `.agents` skill locations; used repository `AGENTS.md` and
+shared `START.md`. Sourced the published environment; required `check.py` passed
+for exact toolchains, pins, dependency sources and imports, without installation.
+Used the unchanged resource-guarded runner and two threads. Early proof scripts
+needed conditional reduction in the hypothesis, explicit zero-update function
+equalities and an explicit `Fin.val = k` goal; these were elaboration repairs,
+not additional assumptions or a repeated failed mathematical approach.
+
+Targeted `lake build PhdThesisLean.SmithIsolation` and full
+`lake build PhdThesisLean DiscreteMetricRegression` passed (9297 full-build jobs).
+An import/type/axiom audit of eighteen new declarations plus
+`MaxObjectiveSmith.rhoMax_rational_smith` and `SmithDecomposition.rhoMax_of_valid`
+passed with only `propext`, `Classical.choice`, `Quot.sound` or subsets.
+Kernel-checked specializations cover protected prefixes, an initially zero pivot,
+both empty orientations, `0 × 0` and a missing position. Guarded evaluator
+regressions show multi-pass isolation of `[[6,4,0],[0,6,0]]` to
+`[[-2,0,0],[0,-18,0]]`, row and column seeding of zero pivots, and an isolated
+zero with trailing entry `5`. Those outputs are computation evidence; the
+universal theorems prove the claims. A comment/string-aware scan of 167
+project/adapter Lean files found no prohibited proof placeholders, axiom
+declarations, unsafe code or `native_decide`; recorded pin hashes and all
+dependency HEADs/clean tracked sources were unchanged. `git diff --check` passed.
+Detailed build, audit and scan evidence is in the ignored
+`.research/smith-isolation-2026-10-30/` directory.
+
+**Next unresolved step.** Recurse over all diagonal positions, using
+`isolate_next_zero` and prefix preservation to prove rectangular diagonality
+and return `Valid` for every input. That will still be correctness of a weak
+diagonalizer, not a polynomial-bit Smith result. Global bounds for
+`S,U,Uinv,V,Vinv`, bit-polynomial operation counts, concrete binary arithmetic
+and structural machines, and optimizer composition remain separate obligations.
+`thm:max-polytime` stays Partial. This run stops at audited single-position
+isolation rather than starting another research increment.

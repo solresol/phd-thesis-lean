@@ -7791,3 +7791,44 @@
   this size theorem; do not count another interface or arithmetic-operation
   estimate as a machine-runtime result.
 - **Run time:** 2026-10-29 20:29 UTC (30 October in Sydney).
+
+## 2026-10-30 — terminating Smith pivot isolation with zero pivots
+
+- **Question:** extend complete-pass progress to a total single-position
+  isolator, without assuming a nonzero pivot or changing the rectangular
+  integer/unimodular contract. First unfinished target remains full
+  `decompose A` satisfying `Valid`; it is not completed here.
+- **Result:** `SmithIsolation.lean` proves a zero-result row sweep is idle on
+  all five matrices. One seeding `cross` thus either isolates a zero pivot or
+  starts strict nonzero-magnitude recursion. `isolate_isolated`,
+  `isolate_invariant`, `isolate_prefix` and `isolate_next_zero` prove arm
+  clearing, all integer inverse identities, protected-prefix preservation
+  and advancement of both zero-block boundaries. `isolateDense` stores the
+  five matrices; its three interface theorems concern that computed output.
+  Missing positions and both empty orientations remain total no-ops.
+- **Scope:** numeric descent is termination, without a polynomial bit-cost
+  theorem. Output encoding and its width-conditional size bounds are unchanged.
+  No full diagonalizer, global width bound, canonical Smith ordering, uniform
+  machine, optimizer composition, schedule or environment publication is claimed.
+- **Sources:** reviewed the latest repository human-literature review
+  (24 October) and recorded 25 October comparison; no newer review found.
+  Ji v2's nonsingular-square arithmetic model still misses our target.
+  No fresh external access or broad daily search claimed. Read pinned
+  `lean-np-hardness` codecs/binary-arithmetic APIs read-only; no duplication
+  or pin changes. Detailed source URLs, versions and original access dates
+  remain in the review and the new proof-plan entry.
+- **Attempts/validation:** published source version matched; `work` preserved,
+  clean/fetched `main` at `d702a27`; shared Start instructions used because
+  the saved skill is absent. Required sourced `check.py` passed. Proof-script
+  repairs concerned conditional hypotheses, zero-update function equality and
+  explicit finite-index values. Guarded target build and full
+  `lake build PhdThesisLean DiscreteMetricRegression` passed (9297 jobs).
+  Eighteen new endpoint/definition axiom audits and both max-formula interface
+  audits use only standard foundational axioms. Finite specializations and
+  separate guarded evaluator regressions cover multi-pass isolation and zero
+  seeding. Scan of 167 Lean sources found no prohibited tokens; pin hashes,
+  dependency HEADs and clean tracked sources remained unchanged.
+  Evidence: `.research/smith-isolation-2026-10-30/` build/audit/scan logs.
+- **Next:** iterate isolation over diagonal positions and prove `Valid` by
+  prefix/zero-boundary induction; then separately address controlled growth
+  and actual binary machine costs. `thm:max-polytime` remains Partial.

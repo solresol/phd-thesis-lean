@@ -104,9 +104,26 @@ integral identities for the computed stored result, including empty shapes.
 controller claims to that same result. The thirty audited declarations use
 only `propext`, `Classical.choice`, `Quot.sound` or subsets. A zero pivot is
 processed by the total functions but is outside the nonzero descent claim.
-There is no recursive pivot-isolation/diagonalization controller, polynomial
-descent count, global width bound or uniform machine supplied by this increment.
-No Smith algorithm, global coefficient bound, operation count or polynomial-time
+The sweep increment supplies no recursive pivot-isolation/diagonalization
+controller, polynomial descent count, global width bound or uniform machine.
+`SmithIsolation.lean` now supplies the recursive **single-position** controller.
+`sweepRows_eq_of_zero` proves that a sweep ending with a zero pivot was idle
+on all five matrices; `cross_isolated_of_zero` therefore covers the zero outcome
+of a seeding pass. `isolateNonzero` then repeats complete passes by strict
+numeric-magnitude descent until both arms are clear. `isolate_isolated` has no
+nonzero, rank or square hypothesis; `isolate_of_missing` handles missing/empty
+positions. `isolate_invariant` preserves all integral inverse identities and
+`U*A*V=S`, while `isolate_prefix` protects completed rows/columns under the two
+zero-block hypotheses. `isolate_next_zero` advances both block boundaries,
+even for an isolated zero with a nonzero trailing block. `isolateDense` stores
+all five matrices in the existing encoding, and its equivalence, isolation and
+prefix theorems refer to that computed result. The eighteen recorded axiom
+audits use only `propext`, `Classical.choice`, `Quot.sound` or subsets. The
+unmeasured seeding pass may increase a zero pivot, so descent is claimed only
+after it; no bit-polynomial iteration or width bound follows. Recursion over
+all diagonal positions, full `Valid` construction, canonical Smith conditions,
+global growth and uniform machine costs remain open.
+No complete Smith algorithm, global coefficient bound, operation count or polynomial-time
 machine follows from these increments alone. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.
 
