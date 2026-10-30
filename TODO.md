@@ -110,6 +110,11 @@ source hash and separate semantic, size and machine milestones.
   `RationalWitnessBounds.lean` and `RationalWitnessEncoding.lean` prove the
   ordinary bound `12L³+9L+1` and affine bound `28(L+1)³+9(L+1)+1` in original
   binary input length, with signs, framing, dimensions and zero coefficients.
+- [x] Implement fixed-divisor binary long division and the actual fixed-prime
+  valuation machine. `FixedDivisorBinary.computableInPolyTime` uses `2s+3`
+  TM2 steps; `PadicValuationMachine.computableInPolyTime` uses at most
+  `4(s+1)²`, returning unary valuation of length at most `s`. Zero, final
+  failed division, canonical quotients, state reset and cleanup are checked.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -118,12 +123,14 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: a uniform runtime-dimension rational input decoder and actual
-binary rational-loss verifier, with bit-cost proofs for its arithmetic and
-valuation loops. Reuse the proved certificate bounds and prefix-parser
-round trips; a computable function or arithmetic-operation count is not the
-required machine-runtime result. The existing hardness language still needs
-a checked encoding bridge before NP-completeness can be concluded.
+Next obligation: uniform binary input/certificate parsing and finite-machine
+signed arithmetic with intermediate bit bounds, then compose the now-proved
+magnitude-valuation machine into rational norm computation, exact summed loss
+and comparison. The complete rational-loss verifier remains absent. Reuse the
+certificate bounds, prefix-parser round trips and valuation runtime theorem;
+a computable function or arithmetic-operation count is not a machine-runtime
+result. The existing hardness language still needs a checked encoding bridge
+before NP-completeness can be concluded.
 
 ## Precision-indexed p-adic prediction growth
 

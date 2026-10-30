@@ -146,6 +146,8 @@ import PhdThesisLean.MaxObjectiveSmith
 import PhdThesisLean.RationalWitnesses
 import PhdThesisLean.RationalWitnessBounds
 import PhdThesisLean.RationalWitnessEncoding
+import PhdThesisLean.FixedDivisorBinary
+import PhdThesisLean.PadicValuationMachine
 import PhdThesisLean.AllDifferentCSPPositiveScanInitialization
 import PhdThesisLean.AllDifferentCSPPositiveControl
 import PhdThesisLean.AllDifferentCSPPositiveDispatch

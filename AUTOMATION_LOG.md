@@ -7832,3 +7832,71 @@
 - **Next:** iterate isolation over diagonal positions and prove `Valid` by
   prefix/zero-boundary induction; then separately address controlled growth
   and actual binary machine costs. `thm:max-polytime` remains Partial.
+
+## 2026-10-31 — polynomial-time fixed-prime valuation on binary inputs
+
+- **Scope and baseline:** `p-adic-regression-complexity-proofs`; followed the
+  explicit request to work here despite the agenda's dedicated-repository
+  proposal. The automation memory was absent, so read the current repository
+  ledger and prior certificate evidence. Started clean at `d702a27`, fetched
+  and fast-forwarded to `15656d7`, retaining the concurrent Smith-isolation
+  increment. Re-read AGENTS, THEOREM_STATUS, TODO, declarations and working-tree
+  state before choosing the binary arithmetic obligation. Sibling libraries
+  were read-only references; no dependency pin, thesis file or schedule changed.
+- **Specification:** thesis commit `34622264de177c225699cdcd3550e4764d079a6d`,
+  `complexity-regimes/eth-addendum.tex`, `prop:regression-np-complete`.
+  The addendum's SHA-256 remains
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`;
+  the 28 October agenda's SHA-256 remains
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+- **Completed long-division obligation:** `FixedDivisorBinary.lean` supplies
+  a finite three-stack TM2 for each fixed positive divisor. It reverses the
+  standard little-endian input, scans most-significant digits, suppresses
+  leading quotient zeros, and records the remainder in `Fin p`.
+  `division_pass` proves quotient and remainder correctness in exactly `2s+2`
+  transitions; `division_run` and `computableInPolyTime` produce the canonical
+  binary quotient alone in `2s+3`, including the final state reset. Here `s`
+  is actual input length. Digit arithmetic is on a fixed finite state space,
+  not an unbounded unit-cost integer register.
+- **Completed valuation obligation:** `PadicValuationMachine.lean` repeats
+  that binary division, appending one output mark only for positive exact
+  divisions. `again_iff` checks the loop guard, and `valuation_run` proves the
+  actual run computes mathlib's `padicValNat`, preserving a supplied output
+  suffix. Zero has valuation zero; a nonmultiple terminates; both work stacks
+  are empty and finite control is reset on exit. `runtime` is an exact
+  recurrence charging both scans, empty checks, final failed division and
+  quotient cleanup. `size_div_lt` and `runtime_le` prove at most `4(s+1)^2`
+  TM2 transitions. `outputsInTime` and `computableInPolyTime` package the
+  binary-input/unary-output machine; `valuation_le_size` proves its output
+  has at most `s` symbols. The exponent output is explicitly unary, while
+  all repeatedly divided magnitudes stay binary.
+- **Statement correspondence and limits:** this closes the repeated-division
+  arithmetic ingredient in the thesis's rational-verifier argument for each
+  fixed prime. It is a checked machine runtime, not an arithmetic-operation
+  estimate. It is not uniform in a binary-encoded prime. Uniform parsing of
+  complete rational instances/certificates, signed arithmetic and intermediate
+  width bounds, numerator/denominator norm composition, summed loss and
+  comparison remain absent. Consequently the full verifier, NP membership,
+  and NP-completeness remain pending; semantic attainment and polynomial
+  certificate size retain their separate completed status. The hardness
+  encoding bridge, counting circuits, conditional transfers, sampling and
+  applications remain open. No external counter assumption or thesis
+  mathematical correction was used or made.
+- **Validation:** both new modules pass targeted Lean checks without warnings.
+  Full `lake build PhdThesisLean DiscreteMetricRegression` passed (9,299 jobs).
+  The separate import/type/axiom audit covers eighteen new endpoints, two
+  certificate endpoints and both existing binary hardness endpoints: all
+  twenty-two use only `propext`, `Classical.choice`, `Quot.sound` or subsets.
+  All 1,176 axiom reports in the full build likewise use only those axioms.
+  A comment/string-aware scan of 169 project/adapter Lean sources found no
+  `sorry`, `admit`, axiom declarations, `sorryAx`, `native_decide`, `unsafe`
+  or `proof_wanted`. Final build/audit logs contain no errors or `sorryAx`.
+  `git diff --check` passed. Earlier failed elaboration diagnostics are not
+  accepted audit evidence. Evidence is in this run's projectless `work/`,
+  particularly `full-build.log`, `final-axiom-audit.log`, `ValuationAudit.lean`
+  and `source-scan.log`.
+- **Next obligation:** binary input/certificate parsing and finite-machine
+  signed arithmetic with intermediate bit bounds, then compose the proved
+  valuation primitive into the complete rational-loss verifier and hardness
+  bridge. Do not repeat the completed valuation proof or promote it to NP.
+- **Run time:** 2026-10-30 20:24 UTC (31 October in Sydney).

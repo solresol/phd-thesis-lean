@@ -1189,9 +1189,9 @@ entropy formulas can be derived later if useful.
 ## Rational witnesses and conditional counting consequences (28 October additions)
 
 Specification: `../phd-thesis/complexity-regimes/eth-addendum.tex`, at thesis
-commit `6a21a00c5c5b04f61b5c8b42b8b28a5a2508de58`, SHA-256
+commit `34622264de177c225699cdcd3550e4764d079a6d`, SHA-256
 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
-Audited on 30 October 2026 (Sydney). These additions are separate from the
+Audited on 31 October 2026 (Sydney). These additions are separate from the
 earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 
 | Obligation | Status | Checked declaration or remaining work |
@@ -1200,7 +1200,8 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Contact refinement and rational attainment | Complete (semantic) | `contact_refinement` produces a full independent contact set in the reduced design without increasing any original residual norm. `finite_candidateModels`, `exists_candidate_le`, and `exists_global_minimizer` prove finite-family domination and attainment for arbitrary rational matrices and targets. `threshold_iff_candidate` covers every rational threshold. `exists_affine_global_minimizer` adds the column of ones. |
 | Exact determinant representation | Complete (algebraic) | `contact_cramer` proves nonsingularity of the selected row minor and Cramer's formula. `exists_global_minimizer_cramer` exhibits an optimum supported on `rank A` columns whose coefficients are ratios of determinants of a nonsingular `rank A` square minor and its target-column replacements. This is not a coefficient-size bound. |
 | Polynomial certificate bit length | Complete (size, ordinary and affine) | `RationalWitnessBounds.commonDen_le_pow`, `cleared_natAbs_le`, `det_size_le`, and `det_ratio_sizes_le` bound denominator clearing, integer determinants and reduced rational fields. `exists_global_minimizer_bits` applies the bound to a genuine global optimum. For actual binary input length `L`, `RationalWitnessEncoding.exists_global_minimizer_encoding` bounds a complete dense certificate by `12L³ + 9L + 1`; `threshold_iff_short_certificate` restricts threshold witnesses to that bound. `exists_affine_minimizer_encoding` bounds the intercept and all coefficients by `28(L+1)³ + 9(L+1) + 1` in the original input length. Binary dimensions, signs, denominators and framing are charged. |
-| Polynomial-time verifier on binary rational data | Pending | `RationalWitnessEncoding.encodeInput` now specifies binary dimensions, indexed rational data and threshold; rational/list prefix parsers have round-trip proofs and the certificate serializer is injective. Still required: a uniform runtime-dimension input record/decoder and actual finite machine, with bit bounds and runtime for parsing, arithmetic, p-adic valuation, summation and comparison. Arithmetic-operation counts alone do not suffice. |
+| Fixed-prime valuation of binary magnitudes | Complete (machine primitive) | `FixedDivisorBinary.division_pass` retains quotient and remainder after exactly `2s+2` TM2 steps; `computableInPolyTime` outputs the canonical binary quotient after `2s+3`. `PadicValuationMachine.valuation_run` proves actual repeated binary division computes `padicValNat p n`, including zero. `outputsInTime` and `computableInPolyTime` give at most `4(s+1)²` steps from the standard binary input alone to the library unary output, with both work stacks empty and state reset. `valuation_le_size` bounds that output by `s` bits. Here `s = Nat.size n`; `p` is fixed in the finite control, not another binary input. |
+| Polynomial-time verifier on binary rational data | Pending as a whole | The magnitude-valuation machine above is complete. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold; prefix parsers have round-trip proofs. Still required: uniform runtime-dimension input/certificate parsing, signed integer and rational arithmetic with intermediate bit bounds, composition of numerator/denominator valuations into the rational norm, exact summation and comparison, and the complete finite-machine verifier. Arithmetic-operation counts alone do not suffice. |
 | NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
@@ -1232,11 +1233,23 @@ The proof reuses `RegularisedCandidates.hindependent_contact_refinement` and
 `Matrix.range_mulVecLin`, row-independence/invertibility equivalence, and
 adjugate identity supply the linear algebra. The size proof additionally uses
 mathlib's Leibniz determinant bound, factorial/power bounds, `Nat.size`, and
-divisibility of canonical rational fields. All eight earlier and eighteen new
-recorded endpoint audits use only `propext`, `Classical.choice`, and `Quot.sound`.
-No external SAT counter
-is used. Such a counter must remain an explicit theorem hypothesis until its
-actual theorem, encoding, machine model, toolchain and axioms are compatible
+divisibility of canonical rational fields. The earlier semantic/size audits
+and the eighteen division/valuation endpoint audits use only `propext`, `Classical.choice`, and `Quot.sound`.
+The new machine theorem checks the repeated-division ingredient in the
+thesis proof of `prop:regression-np-complete`. Each long-division digit transition
+uses only a remainder in `Fin p` and finitely many Boolean flags, so the
+control arithmetic is a finite lookup at fixed `p`. The quotient is kept in
+canonical binary, and its bit length strictly decreases on each positive
+exact division. The exact runtime recurrence charges both scans, all empty
+checks, the terminal failed division and quotient cleanup. Its quadratic bound
+is in the supplied **binary** magnitude length, not in the integer value.
+The valuation output is explicitly unary and has at most that length; this
+is suitable for subsequent norm computation but is not yet a complete rational
+input verifier. No uniform-in-`p` claim is made. Neither ordinary nor affine
+NP membership follows yet. No thesis correction was needed or made.
+
+No external SAT counter is used. Such a counter must remain an explicit theorem
+hypothesis until its actual theorem, encoding, machine model, toolchain and axioms are compatible
 and checked; assuming it will not verify an ETH refutation.
 
 ## Supporting-statement formalisations
