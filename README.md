@@ -116,15 +116,19 @@ proves the algorithm's formula for any Smith decomposition `UAV = S`: the
 explicit rational optimiser `β = Vγ` with `γ_i = b'_i / s_i` is a global
 minimiser, `ρ_max = max_{i>t} |b'_i|_p` over the zero rows of `S`
 (`rhoMax_smith`), and for rational data
-`ρ_max(X, y) = |D|_p⁻¹ max_{i>t} |b'_i|_p` (`rhoMax_rational_smith`). Computing
-the Smith decomposition and the polynomial running time of `thm:max-polytime`
-remain external.
+`ρ_max(X, y) = |D|_p⁻¹ max_{i>t} |b'_i|_p` (`rhoMax_rational_smith`).
+[`SmithDiagonalization.decompose_valid`](PhdThesisLean/SmithDiagonalization.lean)
+now proves that a terminating algorithm computes the required weak integer
+decomposition, including both integral inverses, for singular, rectangular and
+empty inputs. Canonical Smith normalization, global coefficient bounds,
+polynomial encoded-machine running time and final optimizer composition remain
+open; `thm:max-polytime` stays partial.
 
 [`PhdThesisLean/SmithEncoding.lean`](PhdThesisLean/SmithEncoding.lean) supplies
 checked canonical signed-binary matrix storage with unary dimension headers,
 including rectangular and empty cases. Its exact bit-count formula includes
 all headers and entry framing. The serialization upper bound assumes an entry
-bit bound; no decomposition algorithm or machine runtime is asserted.
+bit bound; this codec alone asserts no algorithm or machine runtime.
 
 [`PhdThesisLean/SmithTrace.lean`](PhdThesisLean/SmithTrace.lean) interprets finite
 integer row/column addition traces, accumulating forward and inverse maps and
@@ -1961,8 +1965,9 @@ See [cloud bootstrap instructions](docs/cloud-bootstrap.md) for resource guards,
 runtime paths, warm validation and prepared-environment publication limits.
 If Lean is already installed through [elan](https://github.com/leanprover/elan),
 the ordinary `lake build` command remains supported. The next research target is
-the [polynomial-bit Smith decomposition plan](docs/smith-complexity-plan.md);
-the existing formula theorem does not yet compute the supplied decomposition.
+the [polynomial-bit Smith decomposition plan](docs/smith-complexity-plan.md).
+The weak decomposition is now computed with checked total correctness;
+controlled global growth and actual binary-machine costs remain unresolved.
 
 ## Scope
 

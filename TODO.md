@@ -25,7 +25,7 @@ does not enable or modify any schedule.
 
 ## Active target: polynomial-bit-complexity Smith decomposition
 
-Latest source-backed review: [24 October 2026](docs/2026-10-24-literature-review.md).
+Latest source-backed review: [30 October 2026](docs/2026-10-30-literature-review.md).
 Review Ji's existing Kannan–Bachem artifact before duplicating its proof
 architecture; its nonsingular-square arithmetic model does not close our
 rectangular encoded-machine target. The headline status remains partial.
@@ -78,8 +78,12 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   all integral maps/inverses and protected prefixes, and advance both zero-block
   boundaries. Missing positions and empty rectangles are no-ops. This does not
   yet recurse over all diagonal positions or bound global growth/runtime.
-- [ ] Implement a computable decomposition returning integral transformations and
-  inverses satisfying that contract.
+- [x] Implement a computable decomposition returning integral transformations and
+  inverses satisfying that contract (`SmithDiagonalization.decompose_valid`).
+  Recursion over diagonal positions is terminating and preserves the completed
+  off-diagonal prefix, including singular, rectangular and empty inputs. This
+  is the weak diagonal contract, without canonical Smith normalization or a
+  global coefficient-growth or polynomial-time claim.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

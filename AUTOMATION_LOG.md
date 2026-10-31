@@ -7909,3 +7909,72 @@
   and live remote `main` parity were verified. The subsequent documentation
   correction records the unset-`CODEX_HOME` lookup accurately; proof sources
   and validation evidence are unchanged. Remote CI was not checked this run.
+
+## 2026-10-31 — computed weak integer diagonal decomposition (UTC)
+
+- **Result first:** `SmithDiagonalization.decompose_valid` proves
+  `∀ A : Dense, Valid A.toMatrix (decompose A)`. The algorithm computes all
+  five dense matrices from the input alone, with both integral inverse
+  directions and `U*A*V=S`, and zero off-diagonal entries. Singular,
+  rectangular, negative and empty inputs are included. This completes the
+  first unfinished construction obligation, without completing
+  `thm:max-polytime` or canonical Smith form.
+- **Question/attempt:** lift the existing single-position isolation to every
+  diagonal position. `Prefix` retains all completed off-diagonal entries,
+  including both zero-block boundaries. `isolate_prefix_succ` advances it;
+  `finish` recurses on `min m n-k`. `finish_invariant`, `finish_diagonal`,
+  `decompose_check` and `decompose_of_empty` give correctness, checker
+  acceptance and empty-state preservation. An ordinary/dependent conditional
+  rewrite mismatch in the empty guard was repaired by case splitting; no
+  mathematical assumption was introduced. No retired failed controller was
+  retried.
+- **Limits:** input/output encodings are unchanged, with all five stored
+  matrices and explicit dimension charges. The complete output-bit bound
+  remains conditional on all coefficient widths. Numeric inner descent is
+  not a bit-polynomial bound. Global widths, polynomial operation counts,
+  uniform signed-binary/structural machines and final optimizer composition
+  remain open; the headline remains Partial.
+- **Sources/reuse:** read the newer 30 October human-literature review before
+  choosing this increment. Ji v2 (1 August 2026), artifact `3f80f95`, was
+  accessed by that review on 30 October; its nonzero-determinant square
+  hypotheses and arithmetic-trace exclusions do not supply this project's
+  rectangular encoded-machine result. No fresh external access, daily broad
+  search, new paper theorem, external artifact replay or copied proof is
+  claimed. Source URLs, versions, access dates and classification are in the
+  review and the new proof-plan entry. Pinned `lean-np-hardness` encoding and
+  binary-arithmetic APIs were inspected read-only; no foundations duplicated.
+- **Workspace/runtime:** clean authorized origin, fetched main `b812845`,
+  identical ancestry verified, generated `work` preserved and tracking `main`
+  created. Read AGENTS and shared START; no separate saved Start skill found.
+  Required sourced `check.py` passed, and refreshed pin hashes matched the
+  prepared receipt. Runtime status exposes a different configuration-ID
+  namespace/value from the parent's supplied identifier; exact saved runtime,
+  pins and dependency artifacts passed, without inferring ID equivalence or
+  changing configuration. No installation, dependency upgrade, adapter work,
+  schedule change, security/credential edit, publication or user-machine
+  access occurred.
+- **Checked declarations:** `Prefix`, `prefix_zero`, `isolate_prefix_succ`,
+  `finish`, `finish_of_done`, `finish_invariant`, `finish_diagonal`,
+  `decompose`, `decompose_valid`, `decompose_check`, `decompose_of_empty`, all
+  under `PhdThesisLean.SmithDiagonalization`. Eleven new axiom audits and the
+  two existing max-formula interface audits use only `propext`,
+  `Classical.choice`, `Quot.sound` or subsets.
+- **Commands/evidence:** guarded `lake build PhdThesisLean.SmithDiagonalization`
+  passed (3,202 jobs); guarded full
+  `lake build PhdThesisLean DiscreteMetricRegression` passed (9,300 jobs).
+  The separate `lake env lean` import/type/axiom audit passed. Finite kernel
+  specializations and separate guarded evaluator regressions cover both
+  rectangular orientations, rank deficiency, negative entries, zero pivots,
+  zero-before-nonzero diagonals and all empty orientations. Evidence is in
+  `.research/smith-diagonalization-2026-10-31/`; the universal theorems, not
+  evaluated examples, establish correctness.
+- **Next:** controlled global growth for `S,U,Uinv,V,Vinv` and bit-polynomial
+  operation counts, then concrete uniform binary machines and final optimizer
+  composition. Stop at this coherent audited correctness increment.
+- **Final scan:** all 170 project/adapter Lean files passed the
+  comment/string-aware prohibited-token scan. All 1,215 full-build axiom
+  reports use only standard foundational axioms or subsets. Existing-module
+  warnings were replayed (22 target, 551 full build); the new module and
+  separate final audit have none. Exact prepared pin hashes, dependency HEADs
+  and clean tracked dependency sources passed recheck; `git diff --check`
+  passed.

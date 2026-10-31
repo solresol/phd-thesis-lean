@@ -631,3 +631,113 @@ diagonalizer, not a polynomial-bit Smith result. Global bounds for
 and structural machines, and optimizer composition remain separate obligations.
 `thm:max-polytime` stays Partial. This run stops at audited single-position
 isolation rather than starting another research increment.
+
+### Full weak diagonal decomposition (31 October 2026 UTC)
+
+**Checked increment.** The first unfinished construction obligation is now
+proved exactly:
+
+```lean
+decompose (A : SmithEncoding.Dense) : SmithDecomposition.Result A.rows A.cols
+decompose_valid (A : SmithEncoding.Dense) :
+  SmithDecomposition.Valid A.toMatrix (decompose A)
+```
+
+Both declarations are in `PhdThesisLean.SmithDiagonalization`. This is the weak
+integer diagonal contract consumed by the optimizer, without canonical signs,
+zero ordering or successive divisibility. The function takes the input alone;
+there is no supplied trace, decomposition, nonzero-pivot witness or assumed
+runtime witness. It covers arbitrary singular/rectangular matrices and empty
+orientations. All five matrices are materialized, including integral inverses
+in both directions.
+
+**Invariant and proof.** `Prefix Q k` says every off-diagonal entry touching a
+row or column strictly before `k` is zero. This includes the completed diagonal
+block as well as both zero-block boundaries; the boundaries alone would not
+state that earlier diagonal positions were completed. `isolate_prefix_succ`
+combines the existing protected-prefix theorem and advancement of both block
+boundaries. The new `finish Q k` recurses on `min m n - k`, using the existing
+terminating isolation at each available position. `finish_invariant` retains
+`Uinv*U=U*Uinv=1`, `V*Vinv=Vinv*V=1` and `U*A*V=S`. `finish_diagonal` concludes
+that every off-diagonal entry is zero when all available positions are done.
+Packing the final state therefore yields `decompose_valid` and
+`decompose_check`. `finish_of_done` and `decompose_of_empty` retain the complete
+initial state when the rectangular diagonal is empty. A zero diagonal entry
+may still precede a nonzero entry; that is permitted by `Valid`.
+
+**Encoding and limits.** Input is still the checked unary-dimension,
+row-major signed-binary `Dense` encoding. Output is still the five framed dense
+matrices, charging signs, dimensions, all four transformations and their entries.
+There is no extra control-index input to `decompose`. The existing full-output
+bound `2*(5s+10+2s²*(2b+2))+5` remains conditional on a common bit-width bound
+`b` for all entries. No polynomial bound on `b` is proved, and this terminating
+algorithm is not asserted to have controlled growth. The outer dimension
+recursion does not bound the inner numeric-magnitude descent, intermediate
+coefficients, arithmetic operations, parsing, traversal or serialization.
+There is no uniform machine or final optimizer composition. Consequently
+`thm:max-polytime` remains Partial.
+
+**Literature and reuse.** Read the newer
+[30 October weekly review](2026-10-30-literature-review.md) before choosing work
+on **31 October 2026 UTC**; it supersedes the 24 October review as the current
+checkpoint. Reuse its source inspection and versions/access dates, without a
+new external access or broad daily search. Ji
+[v2, Theorem 2.1 and §6.2](https://arxiv.org/html/2607.22524v2)
+(1 August 2026), artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+was re-accessed **30 October** by that review. Its explicit `hdet : A.det ≠ 0`
+and square input are stronger assumptions than our arbitrary rectangular,
+possibly singular input, and its arithmetic-trace bound excludes structural
+machine costs. The review classifies that evidence as source inspection, not
+independent replay or axiom audit. The review's descriptive-complexity v1.4.0
+artifact and norm-oracle preprint likewise supply no Smith runtime theorem.
+The Kannan–Bachem full-text access gap remains. This increment uses only the
+existing isolation theorems, with no copied external proof or new dependency.
+The signed nonnegative-remainder and unmodified alternating gcd-sweep
+approaches remain retired. Read-only inspection of pinned `lean-np-hardness`
+`FinEncoding`, `BinaryNatLists` and `BinaryArithmetic` confirms the reusable
+binary codecs and finite-machine addition interface; it provides no global
+matrix-growth invariant or general signed division/gcd controller here.
+
+**Validation and attempt record.** Read repository `AGENTS.md` and the saved
+shared `START.md`; no separately exposed Start skill was found. Sourced
+`/workspace/shared/theorem-provers/env.sh` and passed the required `check.py`
+before any proof command; no installation was needed. Verified the clean
+`solresol/phd-thesis-lean` origin, fetched `b812845`, preserved generated `work`
+and created tracking `main` after verifying identical ancestry. Refreshed pins
+still matched the prepared receipt. The runtime status exposes a `cecfg`
+identifier different from the parent's supplied `asenvcfg` identifier; no
+identity equivalence is inferred. The exact runtime/toolchain/pin/artifact
+checks passed, without configuration changes.
+
+The first elaboration failed only when rewriting an ordinary conditional in a
+dependent-conditional goal in `finish_of_done`. Explicit case splitting repaired
+it; failed output containing elaborator-generated placeholders is not accepted
+proof evidence. The final guarded target build passed (3,202 jobs) and full
+`lake build PhdThesisLean DiscreteMetricRegression` passed (9,300 jobs), with
+two threads, the existing cache and unchanged resource guards. A separate
+import/type/axiom audit covers all eleven new declarations and the existing
+`MaxObjectiveSmith.rhoMax_rational_smith` and `SmithDecomposition.rhoMax_of_valid`.
+Only `propext`, `Classical.choice`, `Quot.sound` or subsets occur. Kernel-checked
+specializations cover rectangular, negative/rank-deficient and empty inputs;
+guarded evaluations separately check multi-pass output, a zero diagonal before
+a nonzero one, and supplied-output checker acceptance. These computations are
+regression evidence, not the universal proof or a complexity bound. Build/audit
+and source-scan evidence is retained under ignored
+`.research/smith-diagonalization-2026-10-31/`.
+
+The comment/string-aware scan of 170 project/adapter Lean files found no
+prohibited tokens. All 1,215 axiom reports in the full build likewise use only
+the three standard axioms above or subsets. Build logs replay existing module
+and deprecation warnings (22 in the target closure, 551 in the full library);
+the new module and separate final audit have no warnings or errors. The exact
+prepared pin hashes, all dependency HEADs and clean tracked dependency sources
+were rechecked. `git diff --check` passed.
+
+**Next unresolved step.** Establish a controlled-growth algorithm/invariant for
+all five matrices, including inverse widths, and bit-polynomial operation
+counts; the current naive recursion has no such guarantee. Compare the
+rectangular/singular hypotheses before transferring any Kannan–Bachem bound.
+Then implement the actual signed-binary arithmetic and structural machines and
+compose the optimizer with denominator clearing and residual evaluation costs.
+This run stops at the audited total-correctness increment.

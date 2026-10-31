@@ -39,8 +39,9 @@ bounds their total by `2*(5s+10+2s²*(2b+2))+5`, conditional on every stored
 coefficient having binary magnitude length at most `b`. This is not an
 algorithmic output-growth bound. Its nine audited declarations use only
 `propext`, `Classical.choice` and `Quot.sound` (or subsets). The combined output
-decoder, construction algorithm, global growth bound and uniform machine remain
-absent.
+decoder, global growth bound and uniform machine remain absent. A terminating
+construction of the weak contract is now supplied by `SmithDiagonalization.lean`
+below.
 `SmithTrace.lean` constructs all five stored matrices by interpreting finite
 row/column addition traces. `step_invariant`, `run_invariant` and
 `execute_equivalence` prove both integral inverse directions and `U*A*V=S`;
@@ -120,11 +121,27 @@ all five matrices in the existing encoding, and its equivalence, isolation and
 prefix theorems refer to that computed result. The eighteen recorded axiom
 audits use only `propext`, `Classical.choice`, `Quot.sound` or subsets. The
 unmeasured seeding pass may increase a zero pivot, so descent is claimed only
-after it; no bit-polynomial iteration or width bound follows. Recursion over
-all diagonal positions, full `Valid` construction, canonical Smith conditions,
-global growth and uniform machine costs remain open.
-No complete Smith algorithm, global coefficient bound, operation count or polynomial-time
-machine follows from these increments alone. The headline completion counts below
+after it; no bit-polynomial iteration or width bound follows. The recursion over
+all diagonal positions is now completed by `SmithDiagonalization.lean`.
+
+`SmithDiagonalization.decompose` computes all five dense output matrices from
+the input alone. `isolate_prefix_succ` advances the invariant that every
+off-diagonal entry touching a completed position is zero. `finish` recurses
+through `min m n` positions; `finish_invariant` and `finish_diagonal` prove all
+integral inverse identities, `U*A*V=S` and rectangular diagonality.
+`decompose_valid` therefore establishes the full weak contract for every `Dense`
+input, without a supplied trace, nonzero pivot, rank or square hypothesis.
+`decompose_check` proves acceptance by the existing checker.
+`decompose_of_empty` fixes the complete initial state in both empty orientations.
+The eleven new declarations audit with only `propext`, `Classical.choice`,
+`Quot.sound` or subsets. Finite evaluator regressions are separate evidence,
+not the justification for the universal correctness theorem.
+
+This completes a terminating weak integer diagonalizer. Canonical signs, zero
+ordering and successive divisibility are not claimed. The unchanged output
+bound still assumes a bound on every entry of all five matrices; there is no
+global coefficient bound, polynomial operation count or encoded-machine runtime
+theorem. Full optimizer composition remains open. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.
 
 ## Headline statement catalogue
@@ -138,7 +155,7 @@ are unchanged, and the all-different CSP corollary stays complete.
 | `prop:medoid-robustness` | Complete | `Medoid.medoid_robustness`. |
 | `thm:threshold-coreset` | Complete | `Coreset.threshold_coreset`. |
 | `prop:subset-summary-lower-bound` | Complete | `SubsetSummary.bounded_information_subset_summaries` and its weighted/unweighted component theorems. |
-| `thm:max-polytime` | Partial | `MaxObjective.max_objective_attained` proves the minimum defining `ρ_max` is attained (for arbitrary `p`-adic data), and `max_objective_rational_optimum` proves that for rational data an optimal `β` may be chosen in `ℚ^n`, realising `ρ_max` (`max_objective_rational_optimum_rhoMax`); `exists_rat_solution_of_padic_solution` closes the exact-fit case by base change. The algorithm's reductions are checked: sup-norm invariance under `GL_m(ℤ)` (`norm_mulVec_generalLinearGroup`) and denominator clearing (`isGlobalMin_clear_denominators_iff`); `sum_objective_not_unimodular_invariant` witnesses the thesis's closing remark. `MaxObjectiveSmith` proves the algorithm's formula for any Smith decomposition `UAV = S` (`U`, `V` unimodular, `S` with zero off-diagonal): `smith_isGlobalMin` exhibits the optimiser `β = Vγ` with `γ_i = b'_i/s_i` (the image of a rational vector, `smith_optimizer_rational`), `rhoMax_smith` gives `ρ_max = max_{i>t}|b'_i|_p` over the zero rows of `S`, and `rhoMax_rational_smith` gives the thesis's `ρ_max(X, y) = |D|_p⁻¹ max_{i>t}|b'_i|_p`. Remaining: computing the Smith decomposition and the polynomial running time (Kannan–Bachem) are external. |
+| `thm:max-polytime` | Partial | `MaxObjective.max_objective_attained` proves the minimum defining `ρ_max` is attained (for arbitrary `p`-adic data), and `max_objective_rational_optimum` proves that for rational data an optimal `β` may be chosen in `ℚ^n`, realising `ρ_max` (`max_objective_rational_optimum_rhoMax`); `exists_rat_solution_of_padic_solution` closes the exact-fit case by base change. The algorithm's reductions are checked: sup-norm invariance under `GL_m(ℤ)` (`norm_mulVec_generalLinearGroup`) and denominator clearing (`isGlobalMin_clear_denominators_iff`); `sum_objective_not_unimodular_invariant` witnesses the thesis's closing remark. `MaxObjectiveSmith` proves the algorithm's formula for any Smith decomposition `UAV = S` (`U`, `V` unimodular, `S` with zero off-diagonal): `smith_isGlobalMin` exhibits the optimiser `β = Vγ` with `γ_i = b'_i/s_i` (the image of a rational vector, `smith_optimizer_rational`), `rhoMax_smith` gives `ρ_max = max_{i>t}|b'_i|_p` over the zero rows of `S`, and `rhoMax_rational_smith` gives the thesis's `ρ_max(X, y) = |D|_p⁻¹ max_{i>t}|b'_i|_p`. `SmithDiagonalization.decompose_valid` now proves that a terminating rectangular integer algorithm computes a decomposition satisfying the weak contract. Global coefficient bounds, polynomial encoded-machine runtime and final optimizer composition remain open. |
 | `thm:equidistributed-sum-refines-max` | Complete | `EquidistributedSumRefinesMax.equidistributed_sum_refines_max`: for `x_i ∈ ℤ_p^d` exactly equidistributed modulo `p`, an intercept in the model, and no exact affine fit, every `L_1` minimiser is an `L_∞` minimiser. The stronger `isGlobalMin_Linf_of_isGlobalMin_L1` drops the no-exact-fit hypothesis. The Lean proof is purely finite (a counting lemma `card_affZ_zero_mul_le` for nonzero affine functions on `𝔽_p^d` plus an average over `p` intercept shifts) and replaces the thesis's compactness and Haar-measure steps; the conclusion is identical. |
 | `thm:nested-easy-hard-easy` | Complete | `NestedEasyHardEasy.nested_easy_hard_easy` constructs the literal multiset nesting `A_G ≤ A'_G ≤ A''_G` over `ℚ_[5]` for any self-loop-free (multi)graph and proves all three stages: `stage1_globalMin_iff` (unique optimum `0`, loss `0`); `loss_A'` and `card_A'` (the loss of `A'_G` is exactly the fixed-prime Max-Cut objective, with `5|E|+2|V|` rows); and `stage3_globalMin_iff`, `stage3_optimum`, `loss_A''_optimum` (for every `L ≥ 1` the global minimisers of `A''_G` are exactly the grid `T^n`, with `(c,…,c)` optimal at the closed-form value `m_H 5^L + 4nN5^L`). `NestedEasyHardEasyHardness.loss_A'_eq_maxCutLoss` identifies the Stage 2 loss with `FixedPrimeMaxCut.maxCutLoss`, so `stage2_globalMin_iff` and `stage2_optimal_value` give the Max-Cut characterisation of the hard stage; `nested_easy_hard_easy_with_hardness` bundles all three stages. The Stage 2 complexity clause is checked: `NestedStage2Reduction.maxCut_iff_stage2` proves that the map to the rows of `A'_{G''}` (for `G''` the graph with a pendant edge to a fresh vertex absorbing the threshold, padded to the input length `L`) preserves Max-Cut membership with bound `3|E| + 2 + L - K`; `stage2_rows_eq_A'_G` shows the produced rows are literally the multiset `A'_G` of that loopless graph; `NestedStage2Machine` computes the map with the two-pass machine (the second pass reads the reversed input and uses a flag so that the threshold's marks do not enter the bound, avoiding subtraction); and `satStage2_NPHard` with `satStage2_dataset_eq_A'_G` gives a polynomial-time reduction from CNF-SAT, through the library's chain and Max-Cut gadget reductions, all of whose datasets are `A'_G` of loopless graphs. |
 | `thm:discrete-regularised` | Complete | `DiscreteRegularization.discrete_regularized_regression`. |
