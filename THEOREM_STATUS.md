@@ -1208,7 +1208,7 @@ entropy formulas can be derived later if useful.
 Specification: `../phd-thesis/complexity-regimes/eth-addendum.tex`, at thesis
 commit `34622264de177c225699cdcd3550e4764d079a6d`, SHA-256
 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
-Audited on 31 October 2026 (Sydney). These additions are separate from the
+Audited on 1 November 2026 (Sydney). These additions are separate from the
 earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 
 | Obligation | Status | Checked declaration or remaining work |
@@ -1218,7 +1218,8 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Exact determinant representation | Complete (algebraic) | `contact_cramer` proves nonsingularity of the selected row minor and Cramer's formula. `exists_global_minimizer_cramer` exhibits an optimum supported on `rank A` columns whose coefficients are ratios of determinants of a nonsingular `rank A` square minor and its target-column replacements. This is not a coefficient-size bound. |
 | Polynomial certificate bit length | Complete (size, ordinary and affine) | `RationalWitnessBounds.commonDen_le_pow`, `cleared_natAbs_le`, `det_size_le`, and `det_ratio_sizes_le` bound denominator clearing, integer determinants and reduced rational fields. `exists_global_minimizer_bits` applies the bound to a genuine global optimum. For actual binary input length `L`, `RationalWitnessEncoding.exists_global_minimizer_encoding` bounds a complete dense certificate by `12L³ + 9L + 1`; `threshold_iff_short_certificate` restricts threshold witnesses to that bound. `exists_affine_minimizer_encoding` bounds the intercept and all coefficients by `28(L+1)³ + 9(L+1) + 1` in the original input length. Binary dimensions, signs, denominators and framing are charged. |
 | Fixed-prime valuation of binary magnitudes | Complete (machine primitive) | `FixedDivisorBinary.division_pass` retains quotient and remainder after exactly `2s+2` TM2 steps; `computableInPolyTime` outputs the canonical binary quotient after `2s+3`. `PadicValuationMachine.valuation_run` proves actual repeated binary division computes `padicValNat p n`, including zero. `outputsInTime` and `computableInPolyTime` give at most `4(s+1)²` steps from the standard binary input alone to the library unary output, with both work stacks empty and state reset. `valuation_le_size` bounds that output by `s` bits. Here `s = Nat.size n`; `p` is fixed in the finite control, not another binary input. |
-| Polynomial-time verifier on binary rational data | Pending as a whole | The magnitude-valuation machine above is complete. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold; prefix parsers have round-trip proofs. Still required: uniform runtime-dimension input/certificate parsing, signed integer and rational arithmetic with intermediate bit bounds, composition of numerator/denominator valuations into the rational norm, exact summation and comparison, and the complete finite-machine verifier. Arithmetic-operation counts alone do not suffice. |
+| Intermediate verifier bit lengths | Complete (size and arithmetic correctness) | `RationalVerifierBounds` evaluates unreduced fractions without gcd normalization. `check_correct` proves exact agreement with the thesis loss, for arbitrary thresholds and all shapes. `residual_prefix_bounds`, `norm_power_bounds`, `loss_prefix_bounds` and `comparison_bounds` bound every stored accumulation prefix, norm power and final signed comparison product in actual combined input/certificate length `S` (positive row count). `compareWidth_polynomial` gives `2*size(p)*S³ + 3*size(p)*S² + (size(p)+3)*S + 1` bits for each comparison product. `Fraction.encode_length_le` charges signs and frames. `short_comparison_bounds` specializes to the proved cubic certificate bound; `threshold_iff_short_check` connects the executable arithmetic checker to short witnesses. No complete machine runtime follows. |
+| Polynomial-time verifier on binary rational data | Pending as a whole | Magnitude valuation has a complete machine theorem, and the unreduced-fraction arithmetic checker now has semantic correctness and polynomial intermediate-width bounds. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold; prefix parsers have round-trip proofs. Still required: uniform runtime-dimension parsing, finite-machine signed arithmetic and fixed-base powering, composition with valuation, exact summation and comparison, and the end-to-end verifier time bound. The executable Lean checker and width bounds do not supply these machine witnesses. |
 | NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
@@ -1264,6 +1265,35 @@ The valuation output is explicitly unary and has at most that length; this
 is suitable for subsequent norm computation but is not yet a complete rational
 input verifier. No uniform-in-`p` claim is made. Neither ordinary nor affine
 NP membership follows yet. No thesis correction was needed or made.
+
+The 1 November increment discharges the intermediate-width obligation for a
+specific exact arithmetic evaluation. `Fraction` stores an integer numerator
+and a positive natural denominator, without requiring coprimality. Addition,
+subtraction and multiplication use cross-products; `Fraction.value_norm`
+proves that `p^(v_p denominator) / p^(v_p |numerator|)` is the exact norm of
+any nonzero stored fraction, with zero handled separately. No gcd is needed.
+This is executable Lean arithmetic, not a finite-machine implementation.
+
+For `S = length(encodeInput A y B) + length(encodeRats beta)`, put
+`R = (S+1)(2S+1)`, `Q = size(p)*R+1`, and `F = 1+S*(Q+1)`.
+Every original coefficient product has field width at most `2S`; each
+left-to-right residual prefix has width at most `R`; each norm and each
+power prefix used to compute it has width at most `Q`; and every accumulated
+loss prefix has width at most `F`. Both final comparison cross-products have
+width at most `F+S`. Generic cross-product bounds also bound the temporary
+arithmetic products. A raw fraction with both fields bounded by `h` has at
+most `4h+3` encoded bits, including sign and framing. All these bounds are on
+unreduced fields; cancellation is not assumed. Substituting the existing short
+certificate bound gives `S ≤ 12L³+10L+1`, hence a degree-nine size bound in
+original input length. These are bounds on stored numbers, not operation counts
+or execution times. `r > 0` charges dense dimensions, as in the thesis;
+`d = 0`, rank deficiency, repeated/conflicting rows, negative thresholds and
+zero residuals remain covered. Arithmetic correctness itself permits `r = 0`.
+The independent endpoint audit includes the checker, valuation, certificate and
+hardness declarations and uses only the standard foundational axioms.
+No mathematical discrepancy with `prop:regression-np-complete` was found.
+The remaining work is the explicit machine implementation/composition and
+hardness encoding bridge, rather than another semantic or width proof.
 
 No external SAT counter is used. Such a counter must remain an explicit theorem
 hypothesis until its actual theorem, encoding, machine model, toolchain and axioms are compatible

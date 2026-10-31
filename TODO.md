@@ -119,6 +119,13 @@ source hash and separate semantic, size and machine milestones.
   TM2 steps; `PadicValuationMachine.computableInPolyTime` uses at most
   `4(s+1)²`, returning unary valuation of length at most `s`. Zero, final
   failed division, canonical quotients, state reset and cleanup are checked.
+- [x] Bound the intermediate unreduced fractions in exact residual evaluation,
+  norm computation, loss summation and threshold cross-products.
+  `RationalVerifierBounds.check_correct` and `threshold_iff_short_check` prove
+  the executable arithmetic checker correct; prefix and power bounds are
+  polynomial in actual combined input/certificate bits. Raw sign/framing costs
+  and substitution of the short-certificate bound are checked. This completes
+  arithmetic correctness/widths, not finite-machine implementation or time.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -128,13 +135,13 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing and finite-machine
-signed arithmetic with intermediate bit bounds, then compose the now-proved
-magnitude-valuation machine into rational norm computation, exact summed loss
-and comparison. The complete rational-loss verifier remains absent. Reuse the
-certificate bounds, prefix-parser round trips and valuation runtime theorem;
-a computable function or arithmetic-operation count is not a machine-runtime
-result. The existing hardness language still needs a checked encoding bridge
-before NP-completeness can be concluded.
+signed arithmetic and fixed-base powering; compose the magnitude-valuation
+machine with the now-checked unreduced-fraction evaluation, summation and
+comparison. Reuse its polynomial prefix, power and cross-product width bounds.
+No gcd is needed by this evaluator. The complete machine verifier remains
+absent: the executable Lean checker is not a machine-time theorem. Then connect
+the certificate bounds to NP membership and prove the binary-rational encoding
+bridge from existing hardness before concluding NP-completeness.
 
 ## Precision-indexed p-adic prediction growth
 

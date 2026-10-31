@@ -7978,3 +7978,65 @@
   separate final audit have none. Exact prepared pin hashes, dependency HEADs
   and clean tracked dependency sources passed recheck; `git diff --check`
   passed.
+
+## 2026-11-01 — Exact rational checker and polynomial intermediate widths
+
+- **Request/checkout:** continued the ordinary summed-regression part of the
+  28 October ETH addendum. Read automation memory, AGENTS, status, declarations,
+  TODO and the 30 October literature review before selecting work. Started
+  clean at `4ea1d6d`; fetched/fast-forwarded to `af69c6e`, preserving both the
+  literature review and Smith diagonalization. No thesis, sibling, dependency,
+  adapter or schedule changes.
+- **Completed obligation:** added `RationalVerifierBounds.lean` to the default
+  library. An executable arithmetic checker stores unreduced signed fractions
+  with positive denominators. `Fraction.value_norm` proves exact p-adic norms
+  from numerator/denominator valuations even without coprimality;
+  `check_correct` proves equivalence with the thesis summed-loss inequality.
+  No gcd normalization is used. The semantic checker accepts typed rational
+  data; it is not a parser or finite-machine verifier.
+- **Bit growth:** for combined binary input/certificate length `S`, proved
+  product width `2S`, residual-prefix width `R=(S+1)(2S+1)`, norm/power width
+  `Q=size(p)*R+1`, and loss-prefix width `F=1+S*(Q+1)`.
+  `residual_prefix_bounds`, `norm_power_bounds` and `loss_prefix_bounds` apply
+  to all accumulation/power prefixes; `comparison_bounds` bounds both actual
+  signed cross-products. `compareWidth_polynomial` expands their width `F+S`
+  to `2*size(p)*S^3+3*size(p)*S^2+(size(p)+3)*S+1`.
+  `Fraction.encode_length_le` charges raw sign/framing costs (`4h+3` bits).
+  `short_comparison_bounds` substitutes `S≤12L^3+10L+1`, and
+  `threshold_iff_short_check` joins arithmetic checking with the existing
+  polynomial certificate result. These are correctness/size results, with no
+  unsupported arithmetic-operation or machine-time claim.
+- **Statement comparison:** thesis commit
+  `34622264de177c225699cdcd3550e4764d079a6d`, addendum SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`,
+  agenda SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+  The new statements discharge intermediate-size requirements in the rational
+  arithmetic sentence of `prop:regression-np-complete`; they do not establish
+  that sentence's polynomial-time conclusion. Positive row count charges dense
+  dimensions, as in the thesis. Zero columns, arbitrary rank, repeated and
+  conflicting rows, zero residuals and negative thresholds are retained;
+  semantic correctness also permits zero rows. No discrepancy or thesis
+  correction was needed. No SAT-counter hypothesis was used.
+- **Validation:** targeted elaboration passed without warnings; full
+  `lake build PhdThesisLean DiscreteMetricRegression` passed (9,301 jobs).
+  Independent import/type/axiom audit checked all 64 new declarations and five
+  earlier valuation/certificate/hardness endpoints: standard foundational
+  axioms only (`propext`, `Classical.choice`, `Quot.sound`, or subsets).
+  Six executable checks cover inconsistent repeated rows, rational denominator
+  norms, threshold equality/failure, negative thresholds, empty dimensions and
+  zero residuals. Universal proofs establish correctness; evaluations are
+  sanity checks. Comment/string-aware scan passed for all 171 project/adapter
+  Lean files with no prohibited tokens; diff check passed. All ten pinned
+  dependencies match their manifest revisions and have clean tracked sources;
+  toolchain/manifest/lakefile are unchanged. Evidence is in this run's
+  projectless `work/`: `full-build.log`, `WidthAudit.lean`,
+  `final-axiom-audit.log`, `audit_sources.py`, and `source-scan.log`.
+  Failed intermediate diagnostics are not validation evidence.
+- **Next:** implement uniform binary input/certificate parsing, finite-machine
+  signed arithmetic and fixed-base powering; compose them with the existing
+  valuation machine and the now-checked unreduced evaluator. Then prove the
+  end-to-end runtime, NP membership, and the encoding bridge from the existing
+  hardness language. Whole-verifier runtime, NP-completeness, counting circuits,
+  conditional transfer, sampling and applications remain open. Do not repeat
+  the semantic witness, certificate size, valuation or intermediate-width work.
