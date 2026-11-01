@@ -84,6 +84,11 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   off-diagonal prefix, including singular, rectangular and empty inputs. This
   is the weak diagonal contract, without canonical Smith normalization or a
   global coefficient-growth or polynomial-time claim.
+- [x] Bound the semantic sweep-pair count of one existing isolation by `s+1`
+  in its own complete dense input bit length (`SmithIsolationCount.lean`).
+  A failed nonzero pair halves the pivot magnitude; the count replays the
+  exact five-matrix result and includes zero seeding and missing positions.
+  This does not count arithmetic within a pair or bound later-stage widths.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

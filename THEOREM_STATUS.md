@@ -144,6 +144,22 @@ global coefficient bound, polynomial operation count or encoded-machine runtime
 theorem. Full optimizer composition remains open. The headline completion counts below
 are unchanged, and the all-different CSP corollary stays complete.
 
+`SmithIsolationCount.lean` now bounds one isolation's semantic sweep-pair count
+by `s+1`, where `s` is that isolation input's complete dense encoded length.
+`cross_pivot_dvd` and `cross_failure_halves` strengthen strict numeric descent
+to proper-divisor halving. `nonzeroPasses_le_size` gives one pair per pivot
+magnitude bit after seeding. `cross_pivot_le` bounds the seed pivot by the
+incoming matrix height, even when initially zero; this yields
+`isolationPasses_le_input_length` for arbitrary runtime positions and singular,
+rectangular or empty inputs. `isolationPasses_replay` and
+`isolate_eq_bounded_crosses` identify the exact existing result, including all
+integral maps and inverses. This counts recurrence transitions, without a cost
+for their tests, pairwise arithmetic, Lean evaluation or machine execution.
+Later diagonal stages have transformed inputs: their encoded lengths are not
+yet polynomially bounded in the original input. Global widths of all five
+matrices, complete arithmetic counts, uniform machines and optimizer composition
+therefore remain open; `thm:max-polytime` stays Partial.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |

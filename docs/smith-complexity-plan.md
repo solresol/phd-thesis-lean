@@ -741,3 +741,105 @@ rectangular/singular hypotheses before transferring any Kannan–Bachem bound.
 Then implement the actual signed-binary arithmetic and structural machines and
 compose the optimizer with denominator clearing and residual evaluation costs.
 This run stops at the audited total-correctness increment.
+
+### Binary descent for one isolation (1 November 2026 UTC)
+
+**Question and chosen subobligation.** Can the numeric descent of the existing
+weak diagonalizer be sharpened to a bit-length bound before attempting a global
+growth proof? The first unfinished obligation remains a controlled-growth
+algorithm, not mere existence of diagonal form. The bounded increment here is
+the semantic sweep-pair count for one call of its already checked isolator:
+
+```lean
+isolationPasses_le_input_length (A : SmithEncoding.Dense) (k : ℕ) :
+  isolationPasses (SmithTrace.initial A.toMatrix) k ≤
+    (SmithEncoding.encode A).length + 1
+
+isolate_eq_bounded_crosses (A : SmithEncoding.Dense) (k : ℕ) :
+  ∃ count ≤ (SmithEncoding.encode A).length + 1,
+    crosses (SmithTrace.initial A.toMatrix) k count =
+      SmithIsolation.isolate (SmithTrace.initial A.toMatrix) k
+```
+
+The namespace is `PhdThesisLean.SmithIsolationCount`. The counter follows the
+existing branches; replay equality covers the entire five-matrix state. A
+semantic transition has no assigned arithmetic, evaluation or machine cost.
+
+**Proof and encoding.** Each selected gcd divides the incoming pivot magnitude;
+this composes across both sweeps. Strict descent therefore implies
+`2*new ≤ old` (`cross_failure_halves`) and strict binary-size descent
+(`cross_failure_size`). `nonzeroPasses_le_size` counts at most one pair per
+incoming pivot bit, including the successful pair. For zero seeding,
+`cross_pivot_le` bounds the seed by the incoming matrix height: a column sweep
+ending in zero was entirely idle, while a nonzero result cannot grow during
+the row sweep. The dependency's `BinaryNatLists.encodeNat_length_eq_size`
+and new `entry_size_le_input_length` charge pivot bits to the exact encoding.
+The extra one pays for seeding; missing positions take zero pairs.
+
+The existing unary-dimension/signed-binary dense input and five framed output
+matrices retain signs, canonical zero, framing, empty-dimension costs and both
+integer inverses. Supplied `k` has no new codec. There are no square, rank or
+nonzero initial-pivot hypotheses; exact replay preserves integral equivalence.
+
+**Unresolved invariant.** Later diagonal stages receive transformed matrices;
+their encoded lengths have no proved polynomial bound in the original input.
+Repeated local row-addition bounds compound their factors. Pivot halving alone
+bounds neither the other entries of `S,U,Uinv,V,Vinv` nor internal Euclidean
+work. The inspected controlled-Hermite route requires nonzero-minor hypotheses
+unavailable for a general singular rectangle; no global-bound transfer was
+proved. This bounded attempt stops at the checked semantic iteration invariant.
+
+**Sources and reuse.** Read the [30 October weekly review](2026-10-30-literature-review.md)
+on **1 November 2026 UTC**. Targeted re-access that day covered Ji
+[arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2) (1 August 2026),
+§§3.2, 5, 6.2 and 7.2, and its
+[pinned endpoint](https://github.com/JJYYY-JJY/lean-normal-forms/blob/3f80f9524d88a124a49330eb36a2acb5ed41e179/NormalForms/Research/KannanBachem/Bounds.lean)
+at `3f80f9524d88a124a49330eb36a2acb5ed41e179`. Its square/nonsingular
+input and prepared nonzero-minor invariant do not cover this arbitrary
+rectangular/singular target; its arithmetic trace excludes structural machine
+costs. The elementary binary-divisor argument also appears in its §5.
+This increment independently proves it for the existing local controller;
+no external code, theorem or dependency was imported. This was source
+inspection, without external replay or axiom audit. The review's original
+Kannan–Bachem full-text access gap remains; no new access to it or broad daily
+search is claimed. Read-only inspection of pinned `lean-np-hardness`
+`BinaryNatLists`, `FinEncoding` and `BinaryArithmetic` reused the codec bridge,
+without finding a ready signed division/gcd or global matrix machine here.
+
+**Validation and attempts.** Read `AGENTS.md` and saved shared
+`/workspace/shared/theorem-provers/START.md`; no separate Start skill was exposed
+in filesystem or executor/cloud catalogs. Published environment version/readiness
+matched. Sourced `env.sh` and passed `check.py` before proofs and after the
+builds, using exact prepared Lean 4.35.0, pins and clean dependency artifacts.
+Verified clean authorized `solresol/phd-thesis-lean` origin and fetched `main`.
+Generated `work` and `origin/main` both equalled
+`7bc0d35e4a0b6b4691d895b4508aca1fbbcc5fb3`; preserved `work` before creating
+tracking `main`. No unrelated checkout, dependency, configuration or schedule
+changes occurred; Raksasa was not accessed.
+
+The general proofs elaborated without mathematical changes. A missing
+`Nat.size_mul` API probe led to the existing `Nat.size_bit` bridge. Nonzero
+well-founded traces did not kernel-reduce under `decide`; explicitly labeled
+guarded evaluations check them instead. Universal proofs are independent of
+those computations. Kernel examples cover all-zero, both empty orientations,
+`0 × 0` and missing counts. An unreachable tactic warning was removed.
+
+Guarded `lake build PhdThesisLean.SmithIsolationCount` (3,202 jobs) and
+`lake build PhdThesisLean DiscreteMetricRegression` (9,302 jobs) passed. The
+separate import/`#print axioms` audit covers all 26 new public declarations,
+`SmithDiagonalization.decompose_valid`, `rhoMax_rational_smith` and
+`rhoMax_of_valid`; only `propext`, `Classical.choice`, `Quot.sound` or subsets
+occur. All 1,197 full-build axiom reports satisfy the same check. The
+comment/string-aware scan of 172 project/adapter Lean files found no prohibited
+tokens; `git diff --check` passed. The new module/audit have no warnings or
+errors; the builds replay 22/551 existing warnings. Resource guards and two
+threads were retained. Logs, scan and intermediate failures remain in ignored
+`.research/smith-isolation-count-2026-11-01/`.
+
+**Next.** Establish a polynomial global width invariant for
+`S,U,Uinv,V,Vinv` through every rectangular/singular diagonal stage, with a
+controlled reduction algorithm if necessary. Then combine semantic pass
+counts with internal Euclidean/arithmetic counts and actual binary machines,
+including parsing, traversal, copying and complete serialization. Finish the
+optimizer composition with denominator clearing and residual costs. The weak
+diagonalizer is correct; the headline `thm:max-polytime` remains Partial.
