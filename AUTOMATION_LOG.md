@@ -8040,3 +8040,72 @@
   hardness language. Whole-verifier runtime, NP-completeness, counting circuits,
   conditional transfer, sampling and applications remain open. Do not repeat
   the semantic witness, certificate size, valuation or intermediate-width work.
+
+## 2026-11-02 — Quadratic fixed-base powering and binary valuation composition
+
+- **Request/checkout:** continued `prop:regression-np-complete` from the thesis
+  addendum. Read automation memory, AGENTS, status, TODO, current declarations,
+  working-tree state and the 30 October literature review. Started clean at
+  `7bc0d35`, fetched and fast-forwarded to `7402609`, preserving the upstream
+  Smith isolation-count increment. No thesis, sibling, dependency, adapter or
+  schedule changes.
+- **Completed obligation:** added `FixedBasePowerMachine.lean`, imported by the
+  default library. `mulBits_encodeNat` proves canonical binary multiplication
+  by a positive fixed base; the finite machine carries only a value in `Fin p`
+  and one optional bit. `scan_run`, `flush_run`, `reverse_run` and
+  `multiply_run` prove exact execution, including final carry emission and
+  reversal. `multiplyTime_le` gives `2s+2*size(p)+3` TM2 steps for a pass on an
+  `s`-bit magnitude. No operation on an unbounded integer is hidden in control.
+- **Power and composition:** `power_run` proves unary countdown with a binary
+  accumulator; `powerTime_le`, `outputsInTime` and `computableInPolyTime`
+  bound `p^e` computation by `(2*size(p)+7)(e+1)^2` actual TM2 steps on a
+  unary exponent. `valuationPowerOutputsInTime` and
+  `valuationPowerComputableInPolyTime` use the existing binary valuation
+  machine and the checked sequential composition machine, including its
+  `4v+4` intermediate transfer steps. The resulting binary-input/binary-output
+  function `n ↦ p^(padicValNat p n)` takes at most
+  `(2*size(p)+15)(size(n)+1)^2` steps. Work stacks are empty and the finite
+  state is reset at termination; output length is at most
+  `size(p)*size(n)+1`. This closes a machine-runtime component, not merely an
+  arithmetic-operation estimate or an interface.
+- **Statement comparison:** thesis commit
+  `c700eca04c2d8a819c0403252a97134475857038`, addendum SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`,
+  agenda SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+  Both specification files are unchanged. The new component implements the
+  two valuation-power terms in the already-proved `Fraction.value_norm`
+  formula, addressing the rational-arithmetic sentence of the proposition.
+  The base is fixed; arbitrary binary exponents are not claimed polynomial.
+  Any positive fixed base is supported by powering, including one; exponent
+  zero gives one. For binary input zero, the composed output is one because
+  `padicValNat p 0 = 0`; the existing rational norm evaluator separately
+  handles zero numerators. No mathematical discrepancy or thesis correction
+  was found. No external SAT-counter assumption was used.
+- **Validation:** warning-free targeted elaboration passed. Full
+  `lake build PhdThesisLean DiscreteMetricRegression` passed (9,303 jobs).
+  Independent import/type/axiom audit covered all 36 new public declarations
+  and six existing valuation, norm, certificate and hardness endpoints: 33
+  standard-only axiom reports and nine axiom-free declarations. All 1,208
+  full-build axiom-dependency reports use only `propext`, `Classical.choice`,
+  `Quot.sound` or subsets; 29 further reports are axiom-free. The full build
+  replays 555 existing warnings; the new module and separate audit have none.
+  Five executions of the actual power machine check zero exponent, base one,
+  binary shifting and nonbinary carry chains, as well as work-stack cleanup
+  and state reset. Two kernel-checked bit examples cover zero multiplication
+  and a carry chain. Universal execution proofs establish the result; these
+  finite examples are regression checks. Comment/string-aware prohibited-token
+  scan passed for all 173 project/adapter Lean files; all ten dependencies
+  match their pins with clean tracked sources. Toolchain, manifest and lakefile
+  are unchanged; diff whitespace check passed. Evidence is in
+  `/Users/gregb/Documents/Codex/2026-11-02/advance-the-formal-proof-programme-for/work/`:
+  `full-build.log`, `PowerAudit.lean`, `final-axiom-audit.log`,
+  `PowerExamples.lean`, `examples.log`, `source-scan.log`,
+  `dependency-audit.log`. Failed intermediate elaborations are not evidence.
+- **Next:** uniform binary input/certificate parsing and finite-machine signed
+  arithmetic, then composition of both valuation-power calls into rational
+  norms, residuals, loss summation and comparison. Reuse the existing width
+  bounds. The whole verifier, NP membership and the checked rational-input
+  hardness bridge remain open, as do the later counting-circuit, conditional
+  transfer, sampling and application milestones. No completed semantic,
+  certificate-size, valuation or width obligation was repeated.

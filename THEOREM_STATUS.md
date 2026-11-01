@@ -1222,9 +1222,9 @@ entropy formulas can be derived later if useful.
 ## Rational witnesses and conditional counting consequences (28 October additions)
 
 Specification: `../phd-thesis/complexity-regimes/eth-addendum.tex`, at thesis
-commit `34622264de177c225699cdcd3550e4764d079a6d`, SHA-256
+commit `c700eca04c2d8a819c0403252a97134475857038`, SHA-256
 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
-Audited on 1 November 2026 (Sydney). These additions are separate from the
+Audited on 2 November 2026 (Sydney). These additions are separate from the
 earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 
 | Obligation | Status | Checked declaration or remaining work |
@@ -1235,7 +1235,8 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Polynomial certificate bit length | Complete (size, ordinary and affine) | `RationalWitnessBounds.commonDen_le_pow`, `cleared_natAbs_le`, `det_size_le`, and `det_ratio_sizes_le` bound denominator clearing, integer determinants and reduced rational fields. `exists_global_minimizer_bits` applies the bound to a genuine global optimum. For actual binary input length `L`, `RationalWitnessEncoding.exists_global_minimizer_encoding` bounds a complete dense certificate by `12L³ + 9L + 1`; `threshold_iff_short_certificate` restricts threshold witnesses to that bound. `exists_affine_minimizer_encoding` bounds the intercept and all coefficients by `28(L+1)³ + 9(L+1) + 1` in the original input length. Binary dimensions, signs, denominators and framing are charged. |
 | Fixed-prime valuation of binary magnitudes | Complete (machine primitive) | `FixedDivisorBinary.division_pass` retains quotient and remainder after exactly `2s+2` TM2 steps; `computableInPolyTime` outputs the canonical binary quotient after `2s+3`. `PadicValuationMachine.valuation_run` proves actual repeated binary division computes `padicValNat p n`, including zero. `outputsInTime` and `computableInPolyTime` give at most `4(s+1)²` steps from the standard binary input alone to the library unary output, with both work stacks empty and state reset. `valuation_le_size` bounds that output by `s` bits. Here `s = Nat.size n`; `p` is fixed in the finite control, not another binary input. |
 | Intermediate verifier bit lengths | Complete (size and arithmetic correctness) | `RationalVerifierBounds` evaluates unreduced fractions without gcd normalization. `check_correct` proves exact agreement with the thesis loss, for arbitrary thresholds and all shapes. `residual_prefix_bounds`, `norm_power_bounds`, `loss_prefix_bounds` and `comparison_bounds` bound every stored accumulation prefix, norm power and final signed comparison product in actual combined input/certificate length `S` (positive row count). `compareWidth_polynomial` gives `2*size(p)*S³ + 3*size(p)*S² + (size(p)+3)*S + 1` bits for each comparison product. `Fraction.encode_length_le` charges signs and frames. `short_comparison_bounds` specializes to the proved cubic certificate bound; `threshold_iff_short_check` connects the executable arithmetic checker to short witnesses. No complete machine runtime follows. |
-| Polynomial-time verifier on binary rational data | Pending as a whole | Magnitude valuation has a complete machine theorem, and the unreduced-fraction arithmetic checker now has semantic correctness and polynomial intermediate-width bounds. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold; prefix parsers have round-trip proofs. Still required: uniform runtime-dimension parsing, finite-machine signed arithmetic and fixed-base powering, composition with valuation, exact summation and comparison, and the end-to-end verifier time bound. The executable Lean checker and width bounds do not supply these machine witnesses. |
+| Fixed-base powers and valuation composition | Complete (machine primitive) | `FixedBasePowerMachine.mulBits_encodeNat` and `multiply_run` prove canonical binary multiplication by a fixed positive base, with carry in `Fin p`; `multiplyTime_le` bounds a full pass by `2s+2*size(p)+3` TM2 steps. `power_run`, `outputsInTime` and `computableInPolyTime` compute `p^e` in at most `(2*size(p)+7)(e+1)²` steps from a **unary** exponent. `valuationPowerOutputsInTime` and `valuationPowerComputableInPolyTime` compose the existing binary valuation machine with powering and the checked transfer machine: binary `n` to binary `p^(padicValNat p n)` in at most `(2*size(p)+15)(size(n)+1)²` steps. All work stacks are cleared and control reset. |
+| Polynomial-time verifier on binary rational data | Pending as a whole | Magnitude valuation and its fixed-base power now have complete machine theorems, and the unreduced-fraction arithmetic checker has semantic correctness and polynomial intermediate-width bounds. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold; prefix parsers have round-trip proofs. Still required: uniform runtime-dimension parsing, finite-machine signed arithmetic, composition of both valuation-power calls into rational norms, exact summation and comparison, and the end-to-end verifier time bound. The executable Lean checker and width bounds do not supply these machine witnesses. |
 | NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
@@ -1310,6 +1311,30 @@ hardness declarations and uses only the standard foundational axioms.
 No mathematical discrepancy with `prop:regression-np-complete` was found.
 The remaining work is the explicit machine implementation/composition and
 hardness encoding bridge, rather than another semantic or width proof.
+
+The 2 November increment closes fixed-base powering and its **actual machine
+composition** with binary valuation. Multiplication processes little-endian
+bits with carry in `Fin p`; each control transition is a finite lookup for
+fixed `p`. The final carry is emitted bit by bit, then the result is reversed
+into canonical binary. `scanTime`, `multiplyTime` and `powerTime` describe exact
+executions, charging empty checks, carry emission, reversals, loop control and
+halting. `mulBits_encodeNat` includes zero magnitudes and arbitrary initial
+natural carries; the machine uses bounded carries. The power machine permits
+any positive fixed base, including one, and exponent zero returns one.
+
+The standalone exponent is **unary**, exactly the encoding produced by
+`PadicValuationMachine`. This does not assert polynomial time in arbitrary
+binary exponents. The composed `valuationPowerOutputsInTime` uses
+`valuation_le_size` and the library's checked `compositionMachine_outputsInTime`
+(including `4v+4` steps for transfer of `v` unary valuation marks) to obtain the
+explicit quadratic bound in the original binary magnitude length. The output
+is the canonical binary encoding of `p^(padicValNat p n)` and has at most
+`size(p)*size(n)+1` bits. For `n=0`, mathlib's valuation convention gives output
+one; the existing `Fraction.norm` handles a zero numerator separately. Thus
+the component matches both power fields in the thesis verifier's exact norm
+formula, without asserting that their extraction, assembly, or the rest of the
+rational verifier has been implemented. No new thesis assumption or correction
+is needed, and no uniform-in-`p` runtime is claimed.
 
 No external SAT counter is used. Such a counter must remain an explicit theorem
 hypothesis until its actual theorem, encoding, machine model, toolchain and axioms are compatible

@@ -151,6 +151,7 @@ import PhdThesisLean.RationalWitnessEncoding
 import PhdThesisLean.FixedDivisorBinary
 import PhdThesisLean.PadicValuationMachine
 import PhdThesisLean.RationalVerifierBounds
+import PhdThesisLean.FixedBasePowerMachine
 import PhdThesisLean.AllDifferentCSPPositiveScanInitialization
 import PhdThesisLean.AllDifferentCSPPositiveControl
 import PhdThesisLean.AllDifferentCSPPositiveDispatch

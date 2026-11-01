@@ -131,6 +131,12 @@ source hash and separate semantic, size and machine milestones.
   polynomial in actual combined input/certificate bits. Raw sign/framing costs
   and substitution of the short-certificate bound are checked. This completes
   arithmetic correctness/widths, not finite-machine implementation or time.
+- [x] Implement fixed-base binary powering from the valuation machine's unary
+  exponent and compose their actual machines. `FixedBasePowerMachine` computes
+  `p^e` within `(2*size(p)+7)(e+1)²` TM2 steps, then computes
+  `p^(padicValNat p n)` from binary `n` within
+  `(2*size(p)+15)(size(n)+1)²` steps, including transfer and complete cleanup.
+  Zero exponent, zero magnitude and any positive fixed base are covered.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -140,9 +146,9 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing and finite-machine
-signed arithmetic and fixed-base powering; compose the magnitude-valuation
-machine with the now-checked unreduced-fraction evaluation, summation and
-comparison. Reuse its polynomial prefix, power and cross-product width bounds.
+signed arithmetic; compose the now-checked binary valuation-power machine into
+both fields of each rational norm, then residual evaluation, summation and
+comparison. Reuse the polynomial prefix, power and cross-product width bounds.
 No gcd is needed by this evaluator. The complete machine verifier remains
 absent: the executable Lean checker is not a machine-time theorem. Then connect
 the certificate bounds to NP membership and prove the binary-rational encoding
