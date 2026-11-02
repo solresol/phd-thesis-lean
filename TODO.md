@@ -145,6 +145,11 @@ source hash and separate semantic, size and machine milestones.
   `p^(padicValNat p n)` from binary `n` within
   `(2*size(p)+15)(size(n)+1)²` steps, including transfer and complete cleanup.
   Zero exponent, zero magnitude and any positive fixed base are covered.
+- [x] Compose the full exact rational-norm machine on the original signed,
+  framed binary fraction encoding. `RationalNorm.computableInPolyTime` includes
+  parsing both fields, retaining the zero flag, both valuation-power calls,
+  field exchange, binary serialization and cleanup. It covers unreduced and
+  zero fractions with actual polynomial TM2 runtime for every fixed prime.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -154,9 +159,9 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing and finite-machine
-signed arithmetic; compose the now-checked binary valuation-power machine into
-both fields of each rational norm, then residual evaluation, summation and
-comparison. Reuse the polynomial prefix, power and cross-product width bounds.
+signed arithmetic; compose residual evaluation with the now-complete rational
+norm machine, then summation and comparison. Include invalid-input rejection.
+Reuse the polynomial prefix, power and cross-product width bounds.
 No gcd is needed by this evaluator. The complete machine verifier remains
 absent: the executable Lean checker is not a machine-time theorem. Then connect
 the certificate bounds to NP membership and prove the binary-rational encoding

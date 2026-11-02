@@ -153,6 +153,7 @@ import PhdThesisLean.FixedDivisorBinary
 import PhdThesisLean.PadicValuationMachine
 import PhdThesisLean.RationalVerifierBounds
 import PhdThesisLean.FixedBasePowerMachine
+import PhdThesisLean.RationalNormMachine
 import PhdThesisLean.AllDifferentCSPPositiveScanInitialization
 import PhdThesisLean.AllDifferentCSPPositiveControl
 import PhdThesisLean.AllDifferentCSPPositiveDispatch

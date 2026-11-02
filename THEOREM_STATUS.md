@@ -1240,7 +1240,7 @@ entropy formulas can be derived later if useful.
 Specification: `../phd-thesis/complexity-regimes/eth-addendum.tex`, at thesis
 commit `c700eca04c2d8a819c0403252a97134475857038`, SHA-256
 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
-Audited on 2 November 2026 (Sydney). These additions are separate from the
+Audited on 3 November 2026 (Sydney). These additions are separate from the
 earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 
 | Obligation | Status | Checked declaration or remaining work |
@@ -1252,7 +1252,8 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Fixed-prime valuation of binary magnitudes | Complete (machine primitive) | `FixedDivisorBinary.division_pass` retains quotient and remainder after exactly `2s+2` TM2 steps; `computableInPolyTime` outputs the canonical binary quotient after `2s+3`. `PadicValuationMachine.valuation_run` proves actual repeated binary division computes `padicValNat p n`, including zero. `outputsInTime` and `computableInPolyTime` give at most `4(s+1)²` steps from the standard binary input alone to the library unary output, with both work stacks empty and state reset. `valuation_le_size` bounds that output by `s` bits. Here `s = Nat.size n`; `p` is fixed in the finite control, not another binary input. |
 | Intermediate verifier bit lengths | Complete (size and arithmetic correctness) | `RationalVerifierBounds` evaluates unreduced fractions without gcd normalization. `check_correct` proves exact agreement with the thesis loss, for arbitrary thresholds and all shapes. `residual_prefix_bounds`, `norm_power_bounds`, `loss_prefix_bounds` and `comparison_bounds` bound every stored accumulation prefix, norm power and final signed comparison product in actual combined input/certificate length `S` (positive row count). `compareWidth_polynomial` gives `2*size(p)*S³ + 3*size(p)*S² + (size(p)+3)*S + 1` bits for each comparison product. `Fraction.encode_length_le` charges signs and frames. `short_comparison_bounds` specializes to the proved cubic certificate bound; `threshold_iff_short_check` connects the executable arithmetic checker to short witnesses. No complete machine runtime follows. |
 | Fixed-base powers and valuation composition | Complete (machine primitive) | `FixedBasePowerMachine.mulBits_encodeNat` and `multiply_run` prove canonical binary multiplication by a fixed positive base, with carry in `Fin p`; `multiplyTime_le` bounds a full pass by `2s+2*size(p)+3` TM2 steps. `power_run`, `outputsInTime` and `computableInPolyTime` compute `p^e` in at most `(2*size(p)+7)(e+1)²` steps from a **unary** exponent. `valuationPowerOutputsInTime` and `valuationPowerComputableInPolyTime` compose the existing binary valuation machine with powering and the checked transfer machine: binary `n` to binary `p^(padicValNat p n)` in at most `(2*size(p)+15)(size(n)+1)²` steps. All work stacks are cleared and control reset. |
-| Polynomial-time verifier on binary rational data | Pending as a whole | Magnitude valuation and its fixed-base power now have complete machine theorems, and the unreduced-fraction arithmetic checker has semantic correctness and polynomial intermediate-width bounds. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold; prefix parsers have round-trip proofs. Still required: uniform runtime-dimension parsing, finite-machine signed arithmetic, composition of both valuation-power calls into rational norms, exact summation and comparison, and the end-to-end verifier time bound. The executable Lean checker and width bounds do not supply these machine witnesses. |
+| Exact rational norm on binary fractions | Complete (machine component) | `RationalNorm.computableInPolyTime` computes the existing `Fraction.norm p` in the original signed/framed binary input and output encoding for every fixed prime, allowing unreduced fractions and zero. `Prepare.outputsInTime` parses both frames and retains the zero flag in at most `2L+3` TM2 steps. `pairPowerComputableInPolyTime` and `fieldsPowerComputableInPolyTime` execute both valuation-power calls with checked pair retention; `Assemble.outputsInTime` swaps fields, restores frames, handles zero and clears all stacks in at most `5T+5` steps in its tagged input length. Checked composition supplies an actual polynomial TM2 runtime, including all transfers. `assemble_power_prepare` identifies the exact output with `Fraction.norm`; `rationalOutputsInTime` and `rational_value_correct` connect the thesis rational encoding and norm. |
+| Polynomial-time verifier on binary rational data | Pending as a whole | Exact binary rational norms now have a complete machine theorem; the unreduced-fraction arithmetic checker has semantic correctness and polynomial intermediate-width bounds. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold. Still required: uniform runtime-dimension input/certificate parsing with invalid-input rejection, finite-machine signed arithmetic, residual evaluation, exact summation and comparison, and the end-to-end verifier time bound. The norm component accepts well-formed encoded fractions; it does not certify a decider on arbitrary input strings. |
 | NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
@@ -1351,6 +1352,47 @@ the component matches both power fields in the thesis verifier's exact norm
 formula, without asserting that their extraction, assembly, or the rest of the
 rational verifier has been implemented. No new thesis assumption or correction
 is needed, and no uniform-in-`p` runtime is claimed.
+
+The 3 November increment closes the **complete exact-norm machine component**.
+`RationalNormRouting.lean` reads the existing `Fraction.encode` bitstream: a
+sign, framed binary magnitude, then framed positive denominator. Unary frame
+lengths are held on a work stack, never in an unbounded control register. The
+canonical numerator payload is empty exactly for zero. Its exact routing run
+is `3*(a+b)+9` steps for payload lengths `a,b`, at most `2L+3` in the actual
+input length `L=2a+2b+3`. `decodeFraction_encode` retains unreduced fields and
+proves the new bundled encoding is the existing wire format.
+
+`RationalNormMachine.lean` composes this router, the two existing binary
+valuation-power machines, the checked left/right pair adapters and the output
+assembler. The zero flag survives both calls. `RationalNormAssembly.lean`
+swaps the fields into numerator `p^(v_p denominator)` and denominator
+`p^(v_p |numerator|)`, generating the original Boolean frames and positive sign.
+For zero it drains the computed result and emits `0/1`. The assembler takes at
+most `5T+5` steps, including that drain. All scratch stacks are empty and finite
+control is reset at each component boundary. Polynomial closure here invokes
+actual machine/transfer execution theorems; no arithmetic-operation oracle,
+supplied runtime hypothesis or unbounded integer control is introduced.
+
+`assemble_power_prepare` proves literal output-bit equality with the prior
+`Fraction.norm`; `value_correct` and `rational_value_correct` prove the thesis
+norm. `ofRat_encode` identifies the input with `encodeRat`, and
+`rationalOutputsInTime` supplies its actual execution. Shared numerator and
+denominator factors are allowed; no gcd normalization is performed. The output
+has at most `4*size(p)*L+7` bits. Runtime is polynomial for each **fixed** prime;
+no tight degree or uniform-in-prime bound is claimed for the adapter-composed
+machine. The independent audit covers all 63 explicitly declared public names
+plus six earlier norm/certificate/hardness endpoints. All use only `propext`,
+`Classical.choice`, `Quot.sound` or subsets. Eight concrete routing/assembly
+executions check zero, negative and positive numerators, shared factors,
+field order, unequal lengths, cleanup and reset; three kernel-checked examples
+check the corresponding rational values.
+
+This closes the norm operation in the rational-arithmetic sentence of
+`prop:regression-np-complete`, with the unchanged thesis commit and addendum hash
+above. It does not implement residual multiplication/addition, matrix traversal,
+summing norms, threshold comparison, or a rejecting verifier for arbitrary
+strings. The full verifier and NP-completeness remain pending. No mathematical
+claim or thesis assumption changed.
 
 No external SAT counter is used. Such a counter must remain an explicit theorem
 hypothesis until its actual theorem, encoding, machine model, toolchain and axioms are compatible

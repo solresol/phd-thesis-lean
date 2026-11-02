@@ -8109,3 +8109,74 @@
   hardness bridge remain open, as do the later counting-circuit, conditional
   transfer, sampling and application milestones. No completed semantic,
   certificate-size, valuation or width obligation was repeated.
+
+## 2026-11-03 — Polynomial-time exact rational norms in the original binary encoding
+
+- **Request/checkout:** continued the rational verifier in
+  `prop:regression-np-complete`. Read automation memory, AGENTS, status, TODO,
+  current declarations, working-tree state and the 30 October literature
+  review. Started clean at `0f1b6df`, fetched and fast-forwarded to `09f7f04`,
+  preserving the upstream Smith pivot-bound increment. No thesis, sibling,
+  dependency, adapter or schedule changes.
+- **Completed obligation:** added `RationalNormRouting.lean`,
+  `RationalNormAssembly.lean` and `RationalNormMachine.lean`, imported by the
+  default library. `RationalNorm.computableInPolyTime` is a complete finite
+  TM2 implementation of the existing `Fraction.norm p`, using its original
+  signed/framed Boolean encoding for both input and output. It supports
+  negative numerators, zero and unreduced fractions at every fixed prime.
+  `decodeFraction_encode` proves the bundled input encoding retains both
+  original fields, and `ofRat_encode` identifies canonical rational input
+  literally with the thesis serializer `encodeRat`.
+- **Concrete execution:** the router discards the sign, counts each unary
+  frame prefix on a stack, copies its binary payload, and retains the zero
+  flag. Its exact run is `3*(a+b)+9` steps for payload lengths `a,b`, at most
+  `2L+3` for actual input length `L=2a+2b+3`. Checked left/right pair
+  adapters execute both existing binary valuation-power machines and retain
+  the flag. The assembler swaps the fields, restores both binary frames and
+  the positive sign, and for zero drains the computed output and emits `0/1`.
+  It takes at most `5T+5` steps in its tagged input length `T`. All scratch
+  stacks are cleared and finite control reset. The final polynomial bound
+  comes from actual TM2 composition/transfer theorems, not an operation-count
+  estimate or a supplied arithmetic runtime. No tight degree or uniform-in-p
+  runtime is claimed for this adapter-composed machine.
+- **Statement comparison:** thesis commit
+  `c700eca04c2d8a819c0403252a97134475857038`, addendum SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`,
+  agenda SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+  The specification files are unchanged. `assemble_power_prepare` proves
+  literal output-bit equality with the prior `Fraction.norm` evaluator;
+  `value_correct` and `rational_value_correct` identify its value with the
+  thesis p-adic norm. `rationalOutputsInTime` gives the corresponding binary
+  execution; `output_length_le` bounds serialized output by
+  `4*size(p)*L+7` bits. Shared factors remain unreduced. This closes the exact
+  norm operation in the proposition's rational-arithmetic sentence. No
+  discrepancy, changed mathematical claim or new SAT-counter assumption.
+- **Validation:** warning-free targeted build passed. Full
+  `lake build PhdThesisLean DiscreteMetricRegression` passed (9,307 jobs).
+  Independent type/axiom audit checked all 63 explicitly declared public
+  names and six earlier valuation/norm/certificate/hardness endpoints: 49
+  standard-only reports and 20 axiom-free declarations. The full build's
+  1,238 dependency reports are standard-only, with 33 further axiom-free
+  reports; it replays 551 existing warnings and no new-module warnings.
+  Eight executions of the actual routing/assembly machines check zero,
+  negative/positive numerators, common factors, field order, unequal lengths,
+  cleanup and reset. Three kernel-checked numeric examples check norm values.
+  All 177 project/adapter Lean files passed the comment/string-aware prohibited
+  token scan. All ten dependencies match their pins with clean tracked
+  sources; toolchain, lakefile and manifest unchanged; diff check passed.
+  Evidence is in
+  `/Users/gregb/Documents/Codex/2026-11-03/advance-the-formal-proof-programme-for/work/`:
+  `norm-build.log`, `full-build.log`, `NormAudit.lean`,
+  `final-axiom-audit.log`, `NormExamples.lean`, `examples.log`,
+  `source-scan.log`, and `dependency-audit.log`. Failed intermediate
+  elaborations are not evidence for the completed result.
+- **Remaining obligations:** uniform runtime-dimension input/certificate
+  parsing with invalid-input rejection; finite-machine signed arithmetic;
+  residual evaluation, loss summation and threshold comparison using the
+  existing prefix/width bounds. Then full verifier runtime, NP membership
+  and the checked binary-rational hardness bridge. Norm correctness/runtime
+  covers well-formed encoded fractions; it does not certify a decider on all
+  strings. The full verifier and NP-completeness remain pending, as do the
+  counting circuits, conditional transfers, sampling and applications.
+  Do not repeat the now-completed norm machine or earlier witness/width work.
