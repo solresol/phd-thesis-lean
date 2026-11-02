@@ -89,6 +89,14 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   A failed nonzero pair halves the pivot magnitude; the count replays the
   exact five-matrix result and includes zero seeding and missing positions.
   This does not count arithmetic within a pair or bound later-stage widths.
+- [x] Bound every prefix of one computed Euclidean pivot on all five matrices
+  (`SmithPivotBounds.lean`). Its trace has at most eight additions per bit of
+  the second selected entry, and all multipliers have bounded magnitude.
+  For complete dense input length `s`, every intermediate magnitude is at most
+  `2^(8s²+9s)`; the complete single-pivot output has quartic encoded length.
+  The total single-entry reducer has the same output bound in both orientations,
+  including empty/missing cases. This is local growth and a semantic addition
+  count, without a global polynomial width invariant or machine runtime.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

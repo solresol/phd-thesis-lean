@@ -843,3 +843,94 @@ counts with internal Euclidean/arithmetic counts and actual binary machines,
 including parsing, traversal, copying and complete serialization. Finish the
 optimizer composition with denominator clearing and residual costs. The weak
 diagonalizer is correct; the headline `thm:max-polytime` remains Partial.
+
+### Local pivot widths and complete output size (2 November 2026 UTC)
+
+**Question and exact increment.** The first unfinished obligation remains a
+controlled-growth algorithm for arbitrary singular rectangles. Can the internal
+Euclidean work, including both inverse maps and temporary signed-swap additions,
+be bounded before attempting its global invariant? In the new namespace
+`PhdThesisLean.SmithPivotBounds`, `gcdTrace_length_le` proves
+
+```lean
+(gcdTrace (n := n) r s h a b).length ≤ 8 * b.natAbs.size
+```
+
+Two nonterminal divisions at least halve the second magnitude. Every multiplier
+is bounded by the incoming pair's common height (`gcdTrace_coefficient_le`).
+`gcdTrace_prefix_pow_bound` then bounds all five matrices after **any prefix**
+of the actual addition trace by `2^(d+8c(c+1))`, given incoming state height
+`2^d` and pair magnitudes strictly below `2^c`. This controls even incomplete
+signed swaps and the inverse updates in their opposite composition order.
+
+For complete dense input length `s`, `pivot_prefix_bound` supplies the bound
+`2^(8s²+9s)` with no supplied trace or output-width assumption.
+`pivotDense_output_length_le` and `reduceDense_output_length_le` consequently
+bound the full five-matrix encoding by `64s⁴+72s³+16s²+10s+25` bits. The latter
+is the existing total single-entry reduction in either orientation, including
+exact division, zero pivots, equal/missing indices and empty shapes. Input is
+the unchanged unary-dimension, row-major signed-binary encoding; output charges
+every sign, field frame, dimension and inverse entry. Supplied control indices
+have no new codec. Existing integer equivalence theorems are unchanged.
+
+**Attempt and unresolved invariant.** To compose the general bound using only
+its incoming state height, one can take `c=d+1`; repeatedly applying that
+quadratic width update does not produce a polynomial in the original input.
+The new local proof therefore does not close even a whole isolation's global
+width bound. A sharper invariant must control the selected active entries
+independently across reductions and diagonal stages, while retaining bounds on
+`U,Uinv,V,Vinv,S`. This is a limitation of the available bound, not a proved
+superpolynomial lower bound for the algorithm. The trace length counts row
+additions; division, multiplication, parsing, traversal, copying, list
+construction and complete serialization have no assigned machine runtime here.
+
+**Sources and reuse.** Read the latest
+[30 October weekly review](2026-10-30-literature-review.md) on **2 November**.
+Reuse its source/access record without fresh external access: Ji
+[arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2), dated 1 August 2026,
+and artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+accessed 30 October by the review and re-accessed 1 November as recorded above.
+Its square/nonsingular hypotheses and arithmetic-trace scope still exclude
+this general target. This is reviewed preprint/source evidence, not an external
+replay or axiom audit. The original Kannan–Bachem full-text access gap remains.
+No external theorem is needed for this elementary local proof; the retired
+nonnegative-remainder and unmodified alternating-gcd approaches remain retired.
+Read-only inspection of pinned `lean-np-hardness` `BinaryNatLists`,
+`FinEncoding` and `BinaryArithmetic` reuses the binary-size bridge and confirms
+the existing addition/codec APIs; no generic foundations, dependencies or pins
+were duplicated or changed. No broad daily search is claimed.
+
+**Commands, repairs and checked evidence.** Read `AGENTS.md` and shared saved
+`START.md`; the executor skill catalog is empty, so no separate Start skill was
+available. The published environment version and current readiness matched.
+Sourced `env.sh` and passed required `check.py` before proofs and after builds,
+without installation. Clean generated `work` and live `origin/main` both equalled
+`0f1b6dfc4a8ee80e20dc643a80e790dc25f8fb64`; preserved `work` and created tracking
+`main`. No unrelated checkout, configuration or schedule was changed; Raksasa
+was not accessed. The initial auxiliary natural lemma needed an explicit positive
+divisor: modulo zero does not justify descent. Its callers supply that fact
+from the existing nonzero branch. Controlled unfolding repaired recursive
+simplification; the prefix-length API was corrected to bound by the full trace.
+These repairs added no target assumption.
+
+Using the unchanged guarded runner and two threads,
+`lake build PhdThesisLean.SmithPivotBounds` passed (3,203 jobs), followed by
+`lake build PhdThesisLean DiscreteMetricRegression` (9,304 jobs). A separate
+import/type/`#print axioms` audit of all 21 new public declarations and
+`decompose_valid`, `rhoMax_rational_smith`, `rhoMax_of_valid` passed with only
+`propext`, `Classical.choice`, `Quot.sound` or subsets. All 1,260 full-build
+axiom reports satisfy the same check. Kernel computations cover Fibonacci and
+signed/zero division traces, both empty orientations, `0 × 0`, missing indices
+and the documented quartic expansion. The new module and final audit have no
+warnings/errors; builds replay 22/555 existing warnings. The comment/string-aware
+scan of 174 project/adapter Lean files found no prohibited tokens, and
+`git diff --check` passed. Logs and intermediate failures are retained under
+ignored `.research/smith-pivot-bounds-2026-11-02/`.
+
+**Next.** Establish a global controlled-growth invariant for selected active
+entries and all four integral transformations, valid for singular rectangles,
+then combine it with the local bounds and semantic counts. Concrete uniform
+signed-binary arithmetic and structural machines, their polynomial encoded-bit
+costs and final optimizer composition remain absent. `thm:max-polytime` stays
+Partial. This run stops at the audited local increment.

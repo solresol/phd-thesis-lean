@@ -160,6 +160,22 @@ yet polynomially bounded in the original input. Global widths of all five
 matrices, complete arithmetic counts, uniform machines and optimizer composition
 therefore remain open; `thm:max-polytime` stays Partial.
 
+`SmithPivotBounds.lean` bounds the actual internal Euclidean addition trace.
+`gcdTrace_length_le` gives at most `8 * natAbs(b).size` additions, and
+`gcdTrace_coefficient_le` bounds every multiplier by the incoming pair's common
+height (at least one). `gcdTrace_prefix_pow_bound` includes the temporary signed
+swap additions and all entries of `S,U,Uinv,V,Vinv`. For one pivot from a dense
+input of complete encoded length `s`, `pivot_prefix_bound` bounds every prefix
+magnitude by `2^(8s²+9s)`. `pivotDense_output_length_le` and
+`reduceDense_output_length_le` bound all five framed output matrices by
+`64s⁴+72s³+16s²+10s+25` bits. The latter includes both reduction orientations,
+divisible and zero branches, missing indices and empty shapes. The twenty-one
+public declarations audit with only `propext`, `Classical.choice`, `Quot.sound`
+or subsets. These are local bounds and a semantic addition count, with no
+arithmetic-machine or traversal/serialization runtime theorem. Repeated local
+width bounds still compound; no polynomial global invariant through a whole
+isolation or all diagonal stages is supplied. Headline status stays Partial.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |
