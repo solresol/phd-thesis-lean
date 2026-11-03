@@ -1,5 +1,16 @@
 # Reproducible thesis cloud setup
 
+For the saved multi-project **theorem-provers** environment, the reviewed
+shared-runtime sources, pin allowlists, install command and publication procedure
+are maintained in [scripts/theorem_provers](../scripts/theorem_provers/README.md).
+Ordinary tasks source `/workspace/shared/theorem-provers/env.sh` and run its
+`check.py`; a missing receipt stops startup. The explicit Install/repair path
+generates receipts only after actual preparation and complete builds. Keep those
+machine artifacts outside Git. Committed bootstrap sources and a successfully
+tested published filesystem are separate requirements.
+
+The following standalone procedure remains available for isolated checkouts.
+
 On a Linux x86_64 worker, from this repository's root:
 
 ```sh

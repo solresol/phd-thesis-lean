@@ -1,0 +1,7 @@
+# Generated readiness and machine artifacts belong in shared state, never Git.
+*-ready.json
+*-imports.lean
+runtime/
+cache/
+logs/
+prepare.lock
