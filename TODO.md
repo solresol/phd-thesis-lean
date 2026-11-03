@@ -150,6 +150,13 @@ source hash and separate semantic, size and machine milestones.
   parsing both fields, retaining the zero flag, both valuation-power calls,
   field exchange, binary serialization and cleanup. It covers unreduced and
   zero fractions with actual polynomial TM2 runtime for every fixed prime.
+- [x] Decide validity of individual signed/framed fraction strings on **all**
+  Boolean inputs. `RationalFractionValidity.valid_iff` characterizes exactly
+  the existing `Fraction.encode` image; `Machine.outputsInTime` supplies a
+  concrete finite TM2 bound of `3L+10` steps, including rejection and cleanup.
+  Canonical magnitude bits, positive denominators and positive zero sign are
+  enforced; unreduced fractions remain allowed. This is one field validator,
+  not runtime-dimension input/certificate parsing or the full loss verifier.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -160,7 +167,12 @@ source hash and separate semantic, size and machine milestones.
 
 Next obligation: uniform binary input/certificate parsing and finite-machine
 signed arithmetic; compose residual evaluation with the now-complete rational
-norm machine, then summation and comparison. Include invalid-input rejection.
+norm machine, then summation and comparison. Reuse the completed fraction-string
+validator; still reject invalid dimensions, counts and whole input/certificate
+structures, and charge traversal and machine composition.
+In particular, retain the decoded fields, check the `r*(d+1)` data count and
+`d` certificate count, and reject oversized binary counts without expanding
+them into exponentially long unary loops.
 Reuse the polynomial prefix, power and cross-product width bounds.
 No gcd is needed by this evaluator. The complete machine verifier remains
 absent: the executable Lean checker is not a machine-time theorem. Then connect

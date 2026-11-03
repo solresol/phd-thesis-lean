@@ -8255,3 +8255,64 @@
   and `install-correction-20261103.log`. Publication remains held for the parent's
   supported editor, then an independent fresh-task gate. No configuration,
   credentials, access/security settings, schedules or Raksasa were changed.
+
+
+## 2026-11-04 — Linear-time fraction validity on arbitrary binary strings
+
+- **Scope and starting state:** the p-adic regression complexity automation,
+  separate from the Smith programme. Read automation memory, AGENTS, current
+  status/declarations/changes, TODO, and the 30 October literature review.
+  Started clean at `f510979`; fetched and fast-forwarded to
+  `038f365f89743f51f2814c48447e27e141e49160`, preserving the upstream bootstrap
+  and shared theorem-prover infrastructure changes. No sibling sources,
+  toolchain, dependencies, adapters or schedules changed.
+- **Closed obligation:** `RationalFractionValidity.lean` proves that the Boolean
+  validator accepts exactly the existing `Fraction.encode` image.
+  `lastBit_iff` characterizes canonical magnitude bits; `field_iff` gives the
+  exact framed-prefix language with an arbitrary retained suffix. `valid_iff`
+  enforces positive denominator and positive zero sign, permits unreduced
+  numerator/denominator pairs, and excludes malformed or trailing data.
+  `valid_rational` covers every original canonical rational input.
+- **Actual machine:** `RationalFractionValidityMachine.lean` implements the
+  validator as a finite three-stack TM2, default imported. `step_cfg` identifies
+  each abstract transition with one real machine step. `advance_decreases`
+  proves strict descent of `3*input.length + 2*count + phaseWeight`; the count
+  is stored as stack marks, not an unbounded control register. `run`,
+  `outputsInTime` and `computableInPolyTime` give at most `3L+10` steps on every
+  raw Boolean string of length `L`. All malformed-input branches, trailing-data
+  rejection, empty-stack checks, output, input/count cleanup and control reset
+  are included. No supplied parser/arithmetic runtime assumption is used.
+- **Thesis comparison:** the completed component belongs to the binary-rational
+  verifier ingredient of `prop:regression-np-complete`. Rechecked thesis commit
+  `c700eca04c2d8a819c0403252a97134475857038`, addendum SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`, and agenda
+  SHA-256 `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+  No discrepancy or thesis correction. Accepted unreduced fractions match the
+  existing evaluator; this does not assert reduced canonical rational storage.
+- **Validation:** targeted build and full
+  `lake build PhdThesisLean DiscreteMetricRegression` passed (9,309 jobs).
+  Independent type/axiom audit checked all 42 explicit new public declarations
+  plus six earlier norm/checker/certificate/hardness endpoints: 26 standard-only
+  reports and 22 axiom-free. Full build: 1,241 standard-only reports and 33
+  axiom-free; 555 existing warnings, none in either new module. Fourteen actual
+  executions passed expected results and cleanup/reset checks. All 2,047 raw
+  strings of length at most ten matched independently enumerated fraction
+  encodings; three concrete parser equalities were kernel-checked. All 179
+  project/adapter Lean sources passed the comment/string-aware prohibited-token
+  scan; ten dependency pins and tracked sources are clean; configuration and
+  toolchain unchanged; diff check passed.
+- **Evidence:** `/Users/gregb/Documents/Codex/2026-11-04/advance-the-formal-proof-programme-for/work/`:
+  `validity-machine-build.log`, `full-build.log`, `ValidityAudit.lean`,
+  `final-axiom-audit.log`, `ValidityExamples.lean`, `examples.log`,
+  `source-scan.log`, `dependency-audit.log`. Failed intermediate elaborations
+  are excluded from completion evidence. Remote CI is not claimed verified.
+- **Remaining obstacle:** this is a standalone single-fraction recognizer,
+  not a whole-input parser or guarded composition with the norm machine.
+  Retain decoded runtime dimensions and fields, check `r*(d+1)` data entries
+  and `d` coefficient entries, reject oversized binary counts without unary
+  expansion, and implement signed arithmetic, residual evaluation, norm
+  summation and threshold comparison with charged machine composition.
+  End-to-end verifier runtime, NP membership and the binary-rational hardness
+  encoding bridge remain open. Counting circuits, conditional transfer,
+  approximation and applications remain pending. No external SAT assumption
+  is introduced or used.
