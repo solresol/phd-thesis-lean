@@ -934,3 +934,101 @@ then combine it with the local bounds and semantic counts. Concrete uniform
 signed-binary arithmetic and structural machines, their polynomial encoded-bit
 costs and final optimizer composition remain absent. `thm:max-polytime` stays
 Partial. This run stops at the audited local increment.
+
+### Complete sweep-pair widths (3 November 2026 UTC)
+
+**Question and exact increment.** The first unfinished obligation remains a
+controlled-growth algorithm for arbitrary singular rectangles. Can the existing
+selected-column invariant avoid compounding the single-pivot width update at
+every target in a finite sweep? Yes: `SmithSweepBounds.lean` now proves
+
+```lean
+sweepRows_prefix_pow_bound ... (hc : 0 < c)
+    (hQ : Bounded Q (2 ^ d))
+    (hS : ∀ i, (Q.S i j).natAbs < 2 ^ c) :
+  Bounded (run Q ((sweepRowsTrace Q r j rows).take t))
+    (2 ^ (d + rows.length * (8 * c * (c + 1))))
+```
+
+The column hypothesis concerns only the incoming selected column. The existing
+`reduceRows_column_bound` preserves it at pair boundaries, including a zero
+pivot, so every pair uses the same `c`. `sweepRowsTrace_run` replays the actual
+divisibility-aware controller on all five matrices. Repeated targets and the
+pivot itself are permitted. Prefixes include temporary signed-swap additions;
+the inverse updates retain their opposite composition order.
+
+For actual complete dense input length `s`, put `W=s+8s²(s+1)` and
+`C=W+8s(W+1)(W+2)`. Transposition turns the second sweep into actual column
+instructions. `crossTrace_run` proves `run Q (crossTrace Q k) = cross Q k`;
+`crossTrace_input_prefix_bound` bounds **every** prefix magnitude of all five
+matrices by `2^C`. `crossTrace_length` and
+`crossAdditions_le_input_length` bound the semantic addition count by
+`8s²+8s(W+1)`. `crossDense_output_length_le` bounds the complete five-matrix
+output by `2*(5s+10+2s²*(2(C+1)+2))+5`. Thus one pair has degree-seven widths,
+degree-four addition counts and degree-nine output size. This proves the
+suggested fixed-column exponent for the current controller rather than assuming
+it or iterating the prior coarse bound blindly.
+
+**Encoding and remaining invariant.** Input remains the decoder-checked unary
+dimension headers and row-major signed binary integers; output includes five
+framed dense matrices, signs, zero fields, dimensions and both integral inverses.
+There are no square, rank or nonzero-pivot hypotheses. Missing positions and both
+empty orientations have empty traces. The runtime position `k` still has no new
+codec. Addition counts assign no cost to division, multiplication, traversal,
+trace construction, copying, tests or serialization. A pair need not isolate
+the pivot: the rectangular regression still has a nonzero lower arm afterward.
+Iterating this degree-seven width update over a bit-bounded number of pairs does
+not yield a polynomial global bound. That is a limitation of the available bound,
+not a superpolynomial lower bound on the algorithm. Repeated isolation and all
+later diagonal stages need a sharper invariant or controlled reduction method,
+followed by uniform binary machines and optimizer composition.
+`thm:max-polytime` stays Partial.
+
+**Sources and reuse.** Read the latest available
+[30 October review](2026-10-30-literature-review.md) on **3 November UTC**;
+no newer review was present after fetching current main. Reuse its version and
+access record for Ji [arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2),
+dated 1 August 2026, artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+accessed 30 October by the review and 1 November as recorded above. Its square,
+nonsingular arithmetic model is not the rectangular encoded-machine theorem.
+This remains source inspection, without external replay or an external axiom
+audit. The original Kannan–Bachem full text remains unverified here under the
+recorded access limitation; no fresh access or broad literature search is claimed.
+This increment needs no new external theorem. Read-only inspection of pinned
+`lean-np-hardness` `FinEncoding`, `BinaryNatLists` and `BinaryArithmetic` reuses
+the existing size/codec and machine boundary; no generic foundations or signed
+division/gcd machine were duplicated, and no dependencies changed.
+
+**Attempts, commands and checked evidence.** Read `AGENTS.md`, saved shared
+`START.md`, TODO and status. The independent fresh-task runtime gate passed
+before proof work, with source/receipt persistence recorded before sourcing.
+Verified the clean authorized origin, fetched `main` at
+`b4da47e5dc9c4f0a18cbfe48bb00a1d47ae888ba`, verified ancestry and unchanged pins,
+preserved generated `work` at `038f365`, and created tracking `main`.
+The initial elaborations needed explicit simplification of an empty-trace branch
+and the correct `List.map_take` orientation. These proof-script repairs added
+no mathematical assumption. All failures remain in ignored logs.
+
+Using `prepare.py`'s guarded runner, exact absolute Lean/Lake 4.35.0 binaries,
+two threads and existing caches, `lake build PhdThesisLean.SmithSweepBounds`
+passed (3,204 jobs), then `lake build PhdThesisLean DiscreteMetricRegression`
+passed (9,310 jobs). The separate import/type/`#print axioms` audit covers all
+34 new public declarations and eight correctness/optimizer endpoints; all use
+only `propext`, `Classical.choice`, `Quot.sound` or subsets. All 1,306 full-build
+axiom reports satisfy the same check. The new module and separate audit have
+no warnings or errors; builds replay 22/551 existing warnings. Six kernel
+computations cover exact division, repeated targets, zeros, missing indices and
+empty shapes. Two explicitly labeled evaluator regressions check nonzero
+Euclidean recursion, a protected prefix, trace counts and a still-unisolated
+rectangle; these computations do not prove the universal bounds. The
+comment/string-aware scan of 180 project/adapter Lean files found no prohibited
+tokens. Final runtime/pin/dependency checks and `git diff --check` passed.
+Evidence remains under ignored `.research/smith-sweep-bounds-2026-11-03/`.
+No other repository, configuration, schedule or user computer was changed.
+
+**Next.** Control widths across repeated sweep pairs and diagonal stages in the
+original input bits, retaining all four transformation matrices and inverse
+identities. Then assign actual binary arithmetic and structural machine costs
+and compose denominator clearing, optimizer construction and residual evaluation.
+This run stops at the audited single-pair increment.

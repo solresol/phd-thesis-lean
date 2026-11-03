@@ -97,6 +97,13 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   The total single-entry reducer has the same output bound in both orientations,
   including empty/missing cases. This is local growth and a semantic addition
   count, without a global polynomial width invariant or machine runtime.
+- [x] Bound every addition prefix of one complete divisibility-aware column/row
+  sweep pair (`SmithSweepBounds.lean`). A selected-column invariant prevents
+  compounding the local width bound at each target. The computed trace replays
+  the existing controller exactly, with a degree-four semantic addition count,
+  degree-seven widths and degree-nine full output size in original dense input
+  bits. Both inverse maps, zero pivots and rectangular/empty guards are covered.
+  Repeated isolation/global growth and uniform machine costs remain open.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

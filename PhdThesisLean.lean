@@ -8,6 +8,7 @@ import PhdThesisLean.SmithPivotBounds
 import PhdThesisLean.SmithColumn
 import PhdThesisLean.SmithReduction
 import PhdThesisLean.SmithSweep
+import PhdThesisLean.SmithSweepBounds
 import PhdThesisLean.SmithIsolation
 import PhdThesisLean.SmithIsolationCount
 import PhdThesisLean.SmithDiagonalization

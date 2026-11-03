@@ -176,6 +176,27 @@ arithmetic-machine or traversal/serialization runtime theorem. Repeated local
 width bounds still compound; no polynomial global invariant through a whole
 isolation or all diagonal stages is supplied. Headline status stays Partial.
 
+`SmithSweepBounds.lean` extends those local bounds to one complete
+divisibility-aware column/row sweep pair. `sweepRows_prefix_pow_bound` uses
+the preserved selected-column height to bound all five matrices by
+`2^(d+length(rows)*8c(c+1))`, including temporary signed swaps, repeated targets
+and zero pivots. `crossTrace_run` replays the existing `cross` on the entire
+five-matrix state. For complete dense input length `s`, put
+`W=s+8s²(s+1)` and `C=W+8s(W+1)(W+2)`.
+`crossTrace_input_prefix_bound` bounds every actual addition prefix by `2^C`;
+`crossAdditions_le_input_length` bounds its semantic length by
+`8s²+8s(W+1)`. `crossDense_output_length_le` bounds all five framed matrix
+encodings by `2*(5s+10+2s²*(2(C+1)+2))+5`. These are degree-seven widths,
+degree-four addition counts and degree-nine output size, retaining signs,
+dimensions and both inverse matrices for arbitrary singular rectangles and
+empty inputs. The 34 public declarations audit with only `propext`,
+`Classical.choice`, `Quot.sound` or subsets. No quotient, arithmetic, traversal,
+trace-construction or serialization machine cost is assigned. Iterating the
+degree-seven width update over a bit-bounded number of pairs does not yield
+a polynomial global bound. Polynomial widths through full isolation and all
+diagonal stages, uniform machine runtime and final optimizer composition
+therefore remain open; `thm:max-polytime` stays Partial.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |
