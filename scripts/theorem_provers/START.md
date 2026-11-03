@@ -16,6 +16,11 @@ Targets: /workspace/phd-thesis-lean (4.35.0), /workspace/function-field-littlewo
 
 For each project command, set MATHLIB_CACHE_DIR to its archive directory above. Do not install or warm adapters/complexitylib or its separate release-candidate toolchain. Run projects sequentially with LEAN_NUM_THREADS=2. Use prepare.py's guarded runner for costly builds (2 GiB reserve, 12 GiB process-group RSS, 30 minute command timeout). Do not delete unrelated caches or increase limits to bypass failures.
 
+Use the absolute pinned Lean/Lake binaries returned by the shared bootstrap's
+`installed_tools` with `prepare.py`'s per-project `env_for`, including for
+guarded build commands. Do not use unqualified elan toolchain proxies: retained
+directory overrides can select another release. Preserve the override settings.
+
 After repository refreshes, changed toolchain, manifest, or Lake configuration hashes cause a hard stop before setup. Report the exact change for review. Never automatically bless new hashes, overwrite source changes, reset repositories, run lake update, or auto-upgrade. Re-preparation for reviewed pins is a separate explicit action. Missing readiness receipts or artifacts mean preparation is incomplete; report the failure instead of silently reinstalling on task startup.
 
 The saved filesystem retains tools and dependency outputs; shell exports must be reapplied each task. Publication and successful restoration in a new task remain separate checks. No credentials or network permissions are installed by these instructions.

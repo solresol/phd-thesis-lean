@@ -12,6 +12,11 @@ import re
 import subprocess
 import tempfile
 
+if __package__:
+    from . import deployment_guard
+else:
+    import deployment_guard
+
 
 B = Path(os.environ.get("THEOREM_PROVERS_STATE_DIR", "/workspace/shared/theorem-provers"))
 projects = {
@@ -22,9 +27,8 @@ projects = {
 # Reuse the existing tested installer/resource runner rather than copying its
 # implementation into another version-controlled module. deploy.py supplies
 # the same source beside the deployed helpers.
-helper = Path(__file__).resolve().parent.parent / "bootstrap_lean.py"
-if not helper.is_file():
-    helper = Path(__file__).resolve().parent / "bootstrap-tested.py"
+helper = (Path(__file__).resolve().parent.parent / "bootstrap_lean.py" if __package__
+          else Path(__file__).resolve().parent / "bootstrap-tested.py")
 spec = importlib.util.spec_from_file_location("theorem_provers_bootstrap", helper)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
@@ -37,12 +41,9 @@ def pins(root):
 
 
 def env_for(name):
-    env = os.environ.copy()
-    for key in ("ELAN_TOOLCHAIN", "LEAN_SYSROOT", "LEAN_PATH"):
-        env.pop(key, None)
+    env = m.toolchain_env(B / "runtime", "leanprover/lean4:v" + projects[name][1], os.environ)
     env.update(
         ELAN_HOME=str(B / "runtime/elan"),
-        PATH=str(B / "runtime/elan/bin") + os.pathsep + env["PATH"],
         MATHLIB_CACHE_DIR=str(B / ("runtime/mathlib-cache" if name in
                                   ("thesis", "littlewood") else "cache/scholz")),
         LEAN_NUM_THREADS="2",
@@ -75,7 +76,14 @@ def atomic_json(path, data):
             temporary = Path(stream.name)
             json.dump(data, stream, indent=2)
             stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
         temporary.replace(path)
+        directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
@@ -100,8 +108,8 @@ def prepare_project(name):
                     ("leanprover--lean4---v" + version) / "bin/lean").is_file())
     m.require_disk(B, ((14 if name == "thesis" else 8) if cold else 2) * m.GIB)
     try:
-        m.install_elan(B / "runtime", root, env, disks)
-        m.run(["lake", "--version"], root, env, disks)
+        lean, lake = m.prepare_tools(B / "runtime", root, env, disks)
+        m.run([str(lake), "--version"], root, env, disks)
         imports = set()
         for source in root.rglob("*.lean"):
             if any(part in (".lake", "vendor", ".git", "adapters")
@@ -113,17 +121,15 @@ def prepare_project(name):
             imports = {"Mathlib"}
         if not imports:
             raise RuntimeError("No targeted Mathlib imports")
-        if name in ("thesis", "littlewood"):
-            m.run(["python3", "scripts/bootstrap_lean.py", "--runtime-dir",
-                   str(B / "runtime"), "--run", "lake", "build"], root, env, disks)
-        else:
-            m.run(["lake", "exe", "cache", "get", *sorted(imports)], root, env, disks)
+        # One guarded process layer: do not wrap a bootstrap that starts its own
+        # detached Lake sessions. Reuse its primitives directly for all projects.
+        m.run([str(lake), "exe", "cache", "get", *sorted(imports)], root, env, disks)
         m.verify_dependencies(root)
         smoke = B / (name + "-imports.lean")
         smoke.write_text("\n".join("import " + module for module in sorted(imports))
                          + "\n#check Nat\n")
-        m.run(["lake", "env", "lean", str(smoke)], root, env, disks)
-        m.run(["lake", "build"], root, env, disks)
+        m.run([str(lake), "env", str(lean), str(smoke)], root, env, disks)
+        m.run([str(lake), "build"], root, env, disks)
         m.verify_dependencies(root)
         verify_existing_dependencies(root)
     finally:
@@ -150,8 +156,11 @@ def main():
     (B / "runtime").mkdir(parents=True, exist_ok=True)
     with (B / "prepare.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        for name in args.projects or projects:
-            prepare_project(name)
+        deployment_guard.verify(B)
+        with (B / "runtime/bootstrap.lock").open("a") as runtime_lock:
+            fcntl.flock(runtime_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            for name in args.projects or projects:
+                prepare_project(name)
 
 
 if __name__ == "__main__":

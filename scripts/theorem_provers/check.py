@@ -8,8 +8,10 @@ import subprocess
 
 if __package__:
     from . import prepare as p
+    from . import deployment_guard
 else:
     import prepare as p
+    import deployment_guard
 
 
 def check_project(name):
@@ -32,31 +34,29 @@ def check_project(name):
                 "imports": "passed", "build": "passed"}
     if not isinstance(ready, dict) or any(ready.get(key) != value for key, value in required.items()):
         raise RuntimeError("Invalid readiness receipt: " + str(receipt))
-    tool = p.B / "runtime/elan/toolchains" / ("leanprover--lean4---v" + version) / "bin/lean"
-    if not tool.is_file():
-        raise RuntimeError("Missing prepared toolchain " + version + "; no download attempted")
-    actual = subprocess.check_output([str(tool), "--version"], text=True).strip()
-    if "version " + version + "," not in actual:
-        raise RuntimeError("Installed toolchain mismatch: " + actual)
-    print(actual, flush=True)
+    env = p.env_for(name)
+    lean, lake = p.m.installed_tools(p.B / "runtime", "leanprover/lean4:v" + version, env)
+    print("Verified installed Lean/Lake " + version, flush=True)
     p.m.verify_dependencies(root)
     for package in json.loads((root / "lake-manifest.json").read_text())["packages"]:
         dep = root / ".lake/packages" / package["name"]
         if subprocess.check_output(["git", "-C", str(dep), "status", "--porcelain",
                                     "--untracked-files=no"], text=True):
             raise RuntimeError("Modified dependency: " + str(dep))
-    p.m.run(["lake", "env", "lean", str(p.B / (name + "-imports.lean"))],
-            root, p.env_for(name), (root, p.B))
+    p.m.run([str(lake), "env", str(lean), str(p.B / (name + "-imports.lean"))],
+            root, env, (root, p.B))
     print(name + ": exact pins, dependency HEADs, and representative imports verified", flush=True)
 
 
 def main():
     with (p.B / "prepare.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        deployment_guard.verify(p.B)
         if any(shutil.which(tool) != str(p.B / "runtime/elan/bin" / tool)
                for tool in ("elan", "lean", "lake")):
             raise RuntimeError("Source " + str(p.B / "env.sh") + " first: incorrect PATH")
-        if not subprocess.check_output(["elan", "--version"], text=True).startswith("elan 4.2.4 "):
+        if not subprocess.check_output([str(p.B / "runtime/elan/bin/elan"), "--version"],
+                                       env=p.env_for("thesis"), text=True).startswith("elan 4.2.4 "):
             raise RuntimeError("Unexpected elan version")
         for name in p.projects:
             check_project(name)

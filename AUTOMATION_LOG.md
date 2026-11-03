@@ -8218,3 +8218,40 @@
   pins, secrets, grants or access settings; install, require the final gate,
   publish the prepared filesystem, and verify the gate independently in a fresh
   task without repair. No schedule, security setting or publication changed.
+
+
+## 2026-11-03 — Close bootstrap review findings before publication
+
+- **Scope:** infrastructure correction only; no Smith proof research resumed.
+  Review found that bare elan toolchain proxies could select retained directory
+  overrides, nested bootstrap sessions could outlive an outer timeout, and
+  truncating deployment writes could leave a false-success empty checker.
+- **Exact pins:** all preparation/check commands now use absolute installed
+  Lean/Lake paths and an exact per-command toolchain environment. Check validates
+  both binaries without proxy selection or installation. Only explicit
+  preparation may install the exact official reviewed pin, rejecting custom elan
+  download sources. Retained overrides and HTTP proxy configuration are preserved.
+- **Owned processes:** shared preparation calls common bootstrap primitives
+  directly, removing the nested timed bootstrap. Nested guarded calls elsewhere
+  share the validated outer owned process group; cleanup also kills surviving
+  owned descendants after their group leader exits. Real subprocess tests cover
+  timeout, ignored SIGTERM, failed leaders, and an unrelated process surviving.
+- **Atomic deployment:** stage/fsync complete sources, atomically replace the
+  checker first, mark deployment in progress, replace remaining files and publish
+  the final hash manifest. Gate rejects incomplete/mixed deployments. Preserve
+  verified pin bytes even with equivalent JSON formatting; back up legacy helper
+  bytes atomically, verify backups, reject later local source edits, and support
+  interrupted retry. Deployed helper loading is restricted to the adjacent
+  manifest-covered bootstrap source.
+- **Validation:** 35 tests pass, including real process cleanup, mismatched
+  inherited toolchain selectors/proxies, interrupted deployment at five boundaries,
+  preserved pin formatting, corrupt backup rejection and competing helper lookup.
+  Shell syntax and diff checks pass. Complete corrected warm Install exited 0:
+  thesis 9,305 jobs, Littlewood 2,626, Scholz 1,134, followed by the exact-binary
+  full startup gate. Deployed-source manifest verification passed; reviewed pin
+  files and sibling sources remain unchanged. A read-only second source review
+  found no remaining material issue.
+- **Evidence:** `/workspace/shared/theorem-provers/logs/correction-tests-20261103.log`
+  and `install-correction-20261103.log`. Publication remains held for the parent's
+  supported editor, then an independent fresh-task gate. No configuration,
+  credentials, access/security settings, schedules or Raksasa were changed.

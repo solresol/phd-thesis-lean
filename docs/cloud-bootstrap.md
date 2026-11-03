@@ -38,8 +38,14 @@ python3 scripts/bootstrap_lean.py --runtime-dir /workspace/thesis-runtime --run 
 source /workspace/thesis-runtime/env.sh
 ```
 
-The generated `env.sh` unsets `ELAN_TOOLCHAIN`, `LEAN_SYSROOT`, `LEAN_PATH` and
-exports absolute `ELAN_HOME`, `MATHLIB_CACHE_DIR`, prefixed `PATH`, plus:
+The generated standalone `env.sh` clears `LEAN_PATH` and selects the exact
+installation using `ELAN_TOOLCHAIN`, `LEAN_SYSROOT`, `LEAN`, `LAKE_HOME`,
+`LAKE_OVERRIDE_LEAN=0`, absolute `ELAN_HOME`, `MATHLIB_CACHE_DIR` and prefixed
+`PATH`. Preparation calls the absolute pinned Lean/Lake binaries directly;
+retained elan directory overrides are preserved and cannot select another
+release. Only explicit preparation may install a missing reviewed pin, using
+`elan toolchain install` with that exact official name. Startup never installs.
+Additional exports include:
 
 ```sh
 export LEAN_NUM_THREADS=2

@@ -24,6 +24,7 @@ ELAN_URL = ("https://github.com/leanprover/elan/releases/download/v4.2.4/"
 ELAN_SHA256 = "42b94d4244e8353142c456ec0e4ca6528fd898a6c604d4059f494e706e431f63"
 GIB = 1024 ** 3
 PIN_FILES = ("lean-toolchain", "lake-manifest.json", "lakefile.lean")
+GUARD_OWNER = "_LEAN_BOOTSTRAP_GUARD_OWNER"
 
 
 def require_disk(path, minimum):
@@ -50,7 +51,20 @@ def child_rss(pid):
 def run(argv, root, env, disks, timeout=1800):
     """Inherit logs; stop this command group if resources or time run out."""
     print("+ " + shlex.join(map(str, argv)), flush=True)
-    proc = subprocess.Popen(argv, cwd=root, env=env, start_new_session=True)
+    child_env = env.copy()
+    owner = child_env.get(GUARD_OWNER)
+    nested = owner is not None
+    if nested:
+        # Nested guarded commands inherit the outer command's owned group.
+        # Validate its leader is a direct child of the advertised live guard;
+        # never borrow or signal an unrelated shell/process group.
+        group = os.getpgrp()
+        stat = Path(f"/proc/{group}/stat").read_text().rsplit(")", 1)[1].split()
+        if not owner.isdecimal() or int(stat[1]) != int(owner):
+            raise RuntimeError("invalid inherited bootstrap process-group ownership")
+    else:
+        child_env[GUARD_OWNER] = str(os.getpid())
+    proc = subprocess.Popen(argv, cwd=root, env=child_env, start_new_session=not nested)
     started = time.monotonic()
     try:
         while proc.poll() is None:
@@ -63,15 +77,76 @@ def run(argv, root, env, disks, timeout=1800):
             time.sleep(1)
         if proc.returncode:
             raise subprocess.CalledProcessError(proc.returncode, argv)
-    except BaseException:
-        if proc.poll() is None:
-            os.killpg(proc.pid, signal.SIGTERM)
+    finally:
+        if nested:
+            # The outer guard owns this group and cleans up all descendants
+            # when a nested failure propagates, even if their parent exits.
+            if proc.poll() is None:
+                proc.terminate()
+        else:
+            try:
+                os.killpg(proc.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
             try:
                 proc.wait(timeout=10)
             except subprocess.TimeoutExpired:
+                pass
+            # Also kill surviving descendants after the group leader exits;
+            # waiting only for that leader does not prove the group is empty.
+            try:
                 os.killpg(proc.pid, signal.SIGKILL)
-                proc.wait()
-        raise
+            except ProcessLookupError:
+                pass
+            proc.wait()
+
+
+def toolchain_name(root):
+    name = (root / "lean-toolchain").read_text().strip()
+    if not re.fullmatch(r"leanprover/lean4:v[0-9]+\.[0-9]+\.[0-9]+", name):
+        raise RuntimeError("expected a pinned stable official Lean toolchain")
+    return name
+
+
+def toolchain_env(runtime, name, inherited):
+    """Pin nested tools too; retained elan directory overrides stay untouched."""
+    env = inherited.copy()
+    sysroot = runtime / "elan/toolchains" / name.replace("/", "--").replace(":", "---")
+    env.pop("LEAN_PATH", None)
+    env.update(ELAN_HOME=str(runtime / "elan"), ELAN_TOOLCHAIN=name,
+               LEAN_SYSROOT=str(sysroot), LEAN=str(sysroot / "bin/lean"),
+               LAKE_HOME=str(sysroot), LAKE_OVERRIDE_LEAN="0",
+               ELAN=str(runtime / "elan/bin/elan"),
+               PATH=str(sysroot / "bin") + os.pathsep + str(runtime / "elan/bin")
+                    + os.pathsep + env.get("PATH", ""))
+    return env
+
+
+def installed_tools(runtime, name, env):
+    """Read-only exact-binary validation: no elan proxy or auto-installation."""
+    sysroot = runtime / "elan/toolchains" / name.replace("/", "--").replace(":", "---")
+    lean, lake = sysroot / "bin/lean", sysroot / "bin/lake"
+    if not all(path.is_file() and os.access(path, os.X_OK) for path in (lean, lake)):
+        raise RuntimeError("Missing prepared toolchain binaries: " + str(sysroot)
+                           + "; no download attempted")
+    version = name.split(":v", 1)[1]
+    actual = subprocess.check_output([str(lean), "--version"], env=env, text=True).strip()
+    lake_actual = subprocess.check_output([str(lake), "--version"], env=env, text=True).strip()
+    if "version " + version + "," not in actual or "Lean version " + version + ")" not in lake_actual:
+        raise RuntimeError("Installed toolchain mismatch for " + name)
+    return lean, lake
+
+
+def prepare_tools(runtime, root, env, disks):
+    """Only explicit preparation may install the exact reviewed official pin."""
+    name = toolchain_name(root)
+    install_elan(runtime, root, env, disks)
+    sysroot = runtime / "elan/toolchains" / name.replace("/", "--").replace(":", "---")
+    if not all((sysroot / "bin" / tool).is_file() for tool in ("lean", "lake")):
+        if any(env.get(key) for key in ("ELAN_DIST_SERVER", "ELAN_UPDATE_ROOT")):
+            raise RuntimeError("Custom elan download source requires review; no toolchain installed")
+        run([str(runtime / "elan/bin/elan"), "toolchain", "install", name], root, env, disks)
+    return installed_tools(runtime, name, env)
 
 
 def install_elan(runtime, root, env, disks):
@@ -130,11 +205,8 @@ def bootstrap(root, runtime, command):
     if not re.fullmatch(r"leanprover/lean4:v[0-9]+\.[0-9]+\.[0-9]+\n?", pins["lean-toolchain"].decode()):
         raise RuntimeError("expected a pinned stable official Lean toolchain")
     runtime.mkdir(parents=True, exist_ok=True)
-    env = os.environ.copy()
-    for key in ("ELAN_TOOLCHAIN", "LEAN_SYSROOT", "LEAN_PATH"):
-        env.pop(key, None)  # Never override the repository toolchain or import path.
-    env.update(ELAN_HOME=str(runtime / "elan"), MATHLIB_CACHE_DIR=str(runtime / "mathlib-cache"),
-               PATH=str(runtime / "elan/bin") + os.pathsep + env["PATH"], LEAN_NUM_THREADS="2")
+    env = toolchain_env(runtime, toolchain_name(root), os.environ)
+    env.update(MATHLIB_CACHE_DIR=str(runtime / "mathlib-cache"), LEAN_NUM_THREADS="2")
     # Current public endpoint; the pinned client's optional GET_URL uses the legacy layout.
     env["MATHLIB_CACHE_GET_URL"] = "https://cache.mathlib.org/mathlib4"
     env["MATHLIB_CACHE_BASE_URL"] = "https://cache.mathlib.org"
@@ -147,15 +219,21 @@ def bootstrap(root, runtime, command):
         for disk in disks:
             require_disk(disk, (14 if cold else 2) * GIB)
         try:
-            install_elan(runtime, root, env, disks)
-            run(["lake", "--version"], root, env, disks)
-            run(["lake", "exe", "cache", "get", *mathlib_imports(root)], root, env, disks)
+            lean, lake = prepare_tools(runtime, root, env, disks)
+            run([str(lake), "--version"], root, env, disks)
+            run([str(lake), "exe", "cache", "get", *mathlib_imports(root)], root, env, disks)
             verify_dependencies(root)
-            exports = "unset ELAN_TOOLCHAIN LEAN_SYSROOT LEAN_PATH\n" + "\n".join(f"export {key}={shlex.quote(env[key])}" for key in
-                                ("ELAN_HOME", "MATHLIB_CACHE_DIR", "PATH", "LEAN_NUM_THREADS",
+            exports = "unset LEAN_PATH\n" + "\n".join(f"export {key}={shlex.quote(env[key])}" for key in
+                                ("ELAN_HOME", "ELAN_TOOLCHAIN", "LEAN_SYSROOT", "LEAN", "LAKE_HOME",
+                                 "LAKE_OVERRIDE_LEAN", "ELAN", "MATHLIB_CACHE_DIR", "PATH", "LEAN_NUM_THREADS",
                                  "MATHLIB_CACHE_GET_URL", "MATHLIB_CACHE_BASE_URL")) + "\n"
             (runtime / "env.sh").write_text(exports)
             if command:
+                command = list(command)
+                if command[0] in ("lean", "lake"):
+                    command[0] = str(lean if command[0] == "lean" else lake)
+                if command[1:3] == ["env", "lean"]:
+                    command[2] = str(lean)
                 run(command, root, env, disks)
         finally:
             changed = [name for name, content in pins.items() if (root / name).read_bytes() != content]

@@ -5,3 +5,6 @@ runtime/
 cache/
 logs/
 prepare.lock
+deployment.json
+deployment-backups/
+.deployment-stage-*/
