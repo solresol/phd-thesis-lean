@@ -157,6 +157,7 @@ import PhdThesisLean.RationalVerifierBounds
 import PhdThesisLean.FixedBasePowerMachine
 import PhdThesisLean.RationalNormMachine
 import PhdThesisLean.RationalFractionValidityMachine
+import PhdThesisLean.RationalThresholdComparison
 import PhdThesisLean.AllDifferentCSPPositiveScanInitialization
 import PhdThesisLean.AllDifferentCSPPositiveControl
 import PhdThesisLean.AllDifferentCSPPositiveDispatch

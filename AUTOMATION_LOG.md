@@ -8372,3 +8372,63 @@
   structural machine costs and optimizer composition. This run stops at one
   audited conditional increment; no schedules/configuration changed, and the
   coordinator must arrange any Raksasa fast-forward separately.
+
+
+## 2026-11-05 — Linear-time signed comparison for the rational verifier
+
+- **Scope and starting state:** the p-adic regression complexity automation.
+  Read its memory, AGENTS, current theorem status/declarations/working tree,
+  TODO and the 30 October literature review. Started clean at `b4da47e`;
+  fetched and fast-forwarded to `27a65ca`, preserving the latest Smith sweep
+  and forward-transformation bounds. No thesis/sibling sources, toolchain,
+  dependency pins, adapters or schedules changed; unrelated thesis working
+  changes were left intact.
+- **Closed obligation:** `SignedIntegerComparison.lean` implements comparison
+  of two concatenated existing `SmithEncoding.encodeInt` words. `field_run`
+  proves frame parsing and magnitude retention; `scan_run` compares aligned
+  bits and handles signed order. `run` proves exactly
+  `3(a+b)+max(a,b)+9` actual TM2 transitions for magnitude widths `a,b`.
+  `outputsInTime` and `computableInPolyTime` give at most `2L+1` steps in
+  complete signed/framed input bits. The input and every private stack are
+  empty at halt and finite control is reset. Zero, equal values, all four
+  sign combinations, negative order reversal and unequal widths are covered.
+  The contract is encoded integer pairs, not arbitrary raw-string validation.
+- **Thesis connection:** `RationalThresholdComparison.lean` supplies
+  `fraction_answer_correct` and `loss_answer_correct` for the existing
+  unreduced evaluator. `lossComparisonOutputsInTime` consumes the **already
+  computed, serialized cross-products** and takes at most
+  `16*size(p)*S³ + 24*size(p)*S² + 8*(size(p)+3)*S + 17` actual steps in original
+  combined input/certificate length `S`. This derives a machine-time bound
+  from the previous width theorem, not a unit-cost arithmetic estimate.
+  Constructing/serializing the products is explicitly outside that theorem.
+- **Statement comparison:** the result closes the signed comparison operation
+  in `prop:regression-np-complete`, not the entire verifier. Rechecked thesis
+  commit `c700eca04c2d8a819c0403252a97134475857038`, addendum SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`, and agenda
+  SHA-256 `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+  No discrepancy, thesis correction or external SAT-counter assumption.
+- **Validation:** targeted build and full
+  `lake build PhdThesisLean DiscreteMetricRegression` pass (9,313 jobs).
+  Independent type/axiom audit: all 39 new public declarations plus six
+  earlier endpoints; 28 standard-only reports and 17 axiom-free. Full build:
+  1,289 standard-only reports and 38 axiom-free, 551 existing warnings,
+  none in the new source modules. Twelve named machine executions, all
+  4,225 signed pairs in `[-32,32]²`, and five fraction cross-product executions
+  pass output, exact runtime, cleanup and reset checks; three concrete
+  comparisons are kernel-checked. The example file has two unused-simp
+  advisories. All 183 project/adapter Lean sources pass the comment/string-aware
+  prohibited-token scan; ten dependency pins/tracked sources are clean;
+  configuration/toolchain unchanged; diff check passes.
+- **Evidence:** `/Users/gregb/Documents/Codex/2026-11-05/advance-the-formal-proof-programme-for/work/`:
+  `comparison-build.log`, `full-build.log`, `ComparisonAudit.lean`,
+  `final-axiom-audit.log`, `ComparisonExamples.lean`, `examples.log`,
+  `source-scan.log`, `dependency-audit.log`. Failed intermediate elaborations
+  are excluded from completion evidence. Remote CI is not claimed verified.
+- **Remaining obstacle:** whole-input/certificate parsing with retained
+  dimensions/fields, count/structure rejection and bounded handling of huge
+  binary counts; finite-machine signed addition/subtraction and multiplication;
+  residual/loss evaluation; cross-product construction/serialization and
+  complete machine composition. Then NP membership and the checked
+  binary-rational hardness bridge. Counting circuits, conditional transfer,
+  approximation and applications remain pending. Reuse the completed
+  comparison and norm machines; do not count them again as the full verifier.

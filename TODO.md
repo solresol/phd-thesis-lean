@@ -170,6 +170,13 @@ source hash and separate semantic, size and machine milestones.
   Canonical magnitude bits, positive denominators and positive zero sign are
   enforced; unreduced fractions remain allowed. This is one field validator,
   not runtime-dimension input/certificate parsing or the full loss verifier.
+- [x] Implement signed comparison on two concatenated existing integer words.
+  `SignedIntegerComparison.outputsInTime` proves at most `2L+1` actual TM2
+  steps, including signs, frames, reversals, comparison and cleanup/reset.
+  `RationalThresholdComparison.lossComparisonOutputsInTime` specializes this
+  to the final loss/threshold products with a cubic bound in combined source
+  bits. Its input consists of **already computed and serialized products**;
+  multiplication and producing this input are not included.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -179,9 +186,10 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing and finite-machine
-signed arithmetic; compose residual evaluation with the now-complete rational
-norm machine, then summation and comparison. Reuse the completed fraction-string
-validator; still reject invalid dimensions, counts and whole input/certificate
+signed addition/subtraction and multiplication; compose residual evaluation
+with the completed rational norm machine, then exact summation and the final
+comparison machine. Charge construction and serialization of its cross-products.
+Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate
 structures, and charge traversal and machine composition.
 In particular, retain the decoded fields, check the `r*(d+1)` data count and
 `d` certificate count, and reject oversized binary counts without expanding
