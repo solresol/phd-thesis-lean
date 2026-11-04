@@ -5,6 +5,7 @@ import PhdThesisLean.SmithDecomposition
 import PhdThesisLean.SmithTrace
 import PhdThesisLean.SmithPivot
 import PhdThesisLean.SmithPivotBounds
+import PhdThesisLean.SmithForwardBounds
 import PhdThesisLean.SmithColumn
 import PhdThesisLean.SmithReduction
 import PhdThesisLean.SmithSweep

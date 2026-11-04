@@ -8316,3 +8316,59 @@
   encoding bridge remain open. Counting circuits, conditional transfer,
   approximation and applications remain pending. No external SAT assumption
   is introduced or used.
+
+## 2026-11-04 — Reduce Smith state widths to the forward maps (18:15 UTC run)
+
+- **Question / first unfinished obligation:** establish a polynomial global
+  coefficient invariant through repeated sweep pairs and diagonal stages in the
+  original dense binary input length. The last single-pair bound does not
+  compose to a fixed polynomial. This bounded attempt instead removes three
+  independent state-growth obligations; it does not claim a global bound.
+- **Checked increment:** new default-imported `SmithForwardBounds.lean` proves
+  `inverse_entry_natAbs_eq_adjugate`, `inverse_natAbs_le_pow`,
+  `mul_entry_natAbs_le`, `bounded_of_forward`, `bounded_of_input_forward`,
+  `trace_prefix_bound` and `output_length_le_of_forward`, supported by
+  `adjugate_natAbs_le_pow` and `stateWidth`. Integral inverse identities plus
+  `|Uij|,|Vij| <= 2^d` imply all five matrices have magnitudes at most
+  `2^((s+2)*(d+s+1))`, with `s` the original complete encoded input length.
+  Complete five-matrix output is at most
+  `2*(5s+10+2s²*(2((s+2)*(d+s+1)+1)+2))+5` bits. Reused the existing
+  determinant bound and codec rather than duplicate generic foundations.
+- **Meaning / limits:** forward-map bounds are explicit hypotheses, not a
+  proved polynomial invariant of the diagonalizer. Empty/rectangular inputs,
+  negative determinants, both inverses and every actual addition prefix are
+  covered. Existing correctness, conditional arithmetic/encoding sizes, global
+  widths and uniform machine runtime remain separate. No new algorithm,
+  arithmetic-machine cost or optimizer composition is claimed; headline partial.
+- **Sources:** read the latest 30 October human-literature review before
+  choosing work. Reused Ji v2 (1 August 2026), artifact
+  `3f80f9524d88a124a49330eb36a2acb5ed41e179`, source URLs/access dates and
+  nonsingular-square/arithmetic-model comparison recorded in the Smith plan.
+  No fresh external access, replay or broad daily search. Original
+  Kannan–Bachem full text remains unverified under its access restriction.
+  Read pinned `lean-np-hardness` codec/binary arithmetic APIs read-only.
+- **Environment / repository:** read AGENTS and shared saved START; separate
+  Start skill absent from all exposed catalogues and checkout skill paths.
+  Sourced env.sh and passed the published check.py gate without installation.
+  Verified repository ID 1307230856, public origin, clean `work` and identical
+  live main at `b1d0934330b861ceb7ee85d53cae8f11708c2b19`; preserved work and
+  created tracking main after ancestry verification. Pins and all ten
+  dependency HEADs/tracked sources remain unchanged. No user machine accessed.
+- **Attempts / commands:** guarded exact-binary Lean checks, then
+  `lake build PhdThesisLean.SmithForwardBounds` (3,212 jobs) and
+  `lake build PhdThesisLean DiscreteMetricRegression` (9,311 jobs) passed.
+  Repaired unavailable size/sum API spellings and one empty-matrix example
+  without changing mathematical hypotheses. Seven kernel cases pass.
+  Independent import/type/#print-axioms audit: nine new declarations and six
+  prior correctness/optimizer endpoints, fourteen standard-only and one
+  axiom-free. All 1,315 full-build axiom reports pass; no new warnings.
+  Prohibited-token scan passes all 181 project/adapter Lean sources.
+  Final complete startup/pin/dependency gate and diff checks also pass.
+  Evidence: ignored `.research/smith-forward-bounds-2026-11-04/` build,
+  audit, source-scan and runtime-gate logs. Failed checks are not evidence.
+- **Next / stopping point:** prove a uniform polynomial forward-map invariant
+  across the actual repeated sweeps and diagonal stages, or select a controlled
+  reduction with such an invariant. Then prove actual binary arithmetic and
+  structural machine costs and optimizer composition. This run stops at one
+  audited conditional increment; no schedules/configuration changed, and the
+  coordinator must arrange any Raksasa fast-forward separately.

@@ -104,6 +104,12 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   degree-seven widths and degree-nine full output size in original dense input
   bits. Both inverse maps, zero pivots and rectangular/empty guards are covered.
   Repeated isolation/global growth and uniform machine costs remain open.
+- [x] Reduce the five-matrix growth obligation to bounds on the two forward
+  transformations (`SmithForwardBounds.lean`). Integral inverse identities and
+  the existing determinant bound control both inverse maps; `U*A*V=S` controls
+  the transformed matrix. The implication covers every actual trace prefix and
+  complete encoded output, including empty rectangles. Its forward-map bounds
+  are hypotheses, not a proved global invariant for the diagonalizer.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

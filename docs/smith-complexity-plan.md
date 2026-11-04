@@ -1032,3 +1032,111 @@ original input bits, retaining all four transformation matrices and inverse
 identities. Then assign actual binary arithmetic and structural machine costs
 and compose denominator clearing, optimizer construction and residual evaluation.
 This run stops at the audited single-pair increment.
+
+### Forward maps suffice for state widths (4 November 2026 UTC)
+
+**First unfinished obligation and bounded attempt.** The missing ingredient is
+still a controlled-growth decomposition for every singular rectangular `Dense`
+input: find a fixed polynomial in its original encoded length bounding every
+intermediate coefficient through repeated sweep pairs and diagonal stages,
+then implement and bound a uniform machine. The existing weak diagonalizer's
+correctness is already proved. Iterating `crossWidth` is still inadequate;
+this run does not repeat that substitution as a proposed polynomial proof.
+Instead, remove the need for independent growth recurrences for three of the
+five state matrices.
+
+The exact new implication in `SmithForwardBounds.lean` is
+
+```lean
+bounded_of_input_forward (A : Dense) (Q : State A.rows A.cols) (d : ℕ)
+    (hQ : Invariant A.toMatrix Q)
+    (hU : ∀ i j, (Q.U i j).natAbs ≤ 2 ^ d)
+    (hV : ∀ i j, (Q.V i j).natAbs ≤ 2 ^ d) :
+  Bounded Q (2 ^ stateWidth (SmithEncoding.encode A).length d)
+```
+
+Here `stateWidth s d = (s+2)*(d+s+1)`. For an integral square map `T` with
+integral left inverse `B`, `inverse_entry_natAbs_eq_adjugate` proves
+`|(B)ij| = |(adjugate T)ij|`, since `det T` is a unit. Reusing
+`RationalWitnessBounds.det_natAbs_le_pow` on the cofactor row-replacement
+formula gives `inverse_natAbs_le_pow`:
+
+```
+|Tij| <= 2^d and B*T=1  ==>  |Bij| <= 2^(m*(d+size(m))).
+```
+
+`mul_entry_natAbs_le` charges every summand of a rectangular product.
+Consequently `U*A*V=S` gives `|Sij| <= 2^(2d+3s)` using dimensions and input
+entries charged to the original encoding. The common exponent above dominates
+both inverse bounds and this product bound. `trace_prefix_bound` applies the
+implication to any actual addition prefix; the existing `run_invariant` proves
+its integral identities, including unfinished signed swaps. No square,
+nonsingular, rank, sign or nonempty hypothesis is imposed on the input.
+
+**Encoding, output and exact remaining invariant.** Input is still unary
+runtime dimension headers followed by signed/framed row-major binary entries.
+For `B=(s+2)*(d+s+1)`, `output_length_le_of_forward` bounds all five stored
+matrix encodings by `2*(5s+10+2s²*(2(B+1)+2))+5`, including both inverses,
+signs, canonical zero fields, framing and dimensions. Thus a polynomial bound
+on the two forward maps would suffice for polynomial state and output widths.
+The two forward-map bounds are **hypotheses of this implication**, not completed
+evidence for the global target. No uniform polynomial `d=P(s)` through the
+computed repeated sweeps and diagonal stages has been proved. This is the next
+unresolved invariant; a different controlled reduction may still be necessary.
+Arithmetic identities, existing algorithm correctness, this conditional size
+reduction, global growth, semantic operation counts and actual uniform-machine
+runtime remain separate claims. Division, multiplication, traversal, copying,
+trace construction and serialization receive no machine cost here. Final
+optimizer composition is unchanged and `thm:max-polytime` remains Partial.
+
+**Literature and reuse.** Before choosing the increment, read the latest
+[30 October weekly human-literature review](2026-10-30-literature-review.md);
+no newer review exists on the fetched `main`. Its source record is reused:
+Ji [arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2), v2 dated
+1 August 2026, artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+accessed 30 October in the review and 1 November in the recorded source check.
+Its Theorem 2.1 and section 6.2 require nonsingular square inputs and exclude
+structural machine costs, so they do not discharge our singular rectangular
+encoded-machine target. This remains reviewed preprint/artifact inspection,
+not an independent external build or axiom audit. No new external theorem is
+used or fresh paper access claimed on 4 November; this step uses the existing
+kernel-checked determinant bound and inspected pinned mathlib adjugate APIs.
+The original Kannan–Bachem full text remains unverified under the recorded
+access restriction. No broad daily search or author contact occurred. The
+nonnegative-remainder and unmodified alternating-gcd approaches remain retired.
+Read-only inspection of pinned `lean-np-hardness` `BinaryNatLists` and
+`BinaryArithmetic` reuses the existing codec/size boundary; no signed gcd or
+matrix-controller machine was found or duplicated. Dependencies are unchanged.
+
+**Validation and attempts.** The saved Start skill is absent from the executor
+and cloud catalogues and checkout `.agents/skills`; read the saved shared
+`START.md` and repository `AGENTS.md`. The fresh task passed the complete
+published runtime gate before proof work, without installation. Verified the
+public authorized repository ID `1307230856`, origin and clean generated `work`
+at `b1d0934330b861ceb7ee85d53cae8f11708c2b19`; fetched identical live `main`,
+verified ancestry, preserved `work` and created tracking `main`. Exact pins,
+dependency sources and prepared artifacts remained unchanged.
+
+The core proof checked after two API corrections (`Nat.size_le` with
+`Nat.lt_two_pow_self`, and the finite-sum interface). One empty-case example
+needed the existing dense zero matrix rather than an unnecessary definitional
+equality to the abstract zero function. These were proof-script repairs,
+without changed assumptions. Seven kernel-checked specializations cover a
+negative determinant, an unfinished swap in a rectangle, both empty orientations
+with nontrivial transformation maps, `0 × 0`, and an empty product dimension.
+Using the saved guarded runner, exact Lean/Lake 4.35.0 and two threads,
+`lake build PhdThesisLean.SmithForwardBounds` passed (3,212 jobs), then
+`lake build PhdThesisLean DiscreteMetricRegression` passed (9,311 jobs).
+The separate import/type/axiom audit covers all nine new declarations and six
+prior endpoints, including `decompose_valid`, `rhoMax_rational_smith` and
+`rhoMax_of_valid`: fourteen reports use only `propext`, `Classical.choice`,
+`Quot.sound` or subsets; `stateWidth` is axiom-free. All 1,315 full-build axiom
+reports pass the same check. New module and independent audit have no warnings;
+builds replay 47/551 existing warnings. All 181 project/adapter Lean sources
+pass the comment/string-aware prohibited-token scan; diff checks pass.
+The final complete runtime/pin/dependency startup gate also passed unchanged.
+Evidence and failed intermediate scripts remain in ignored
+`.research/smith-forward-bounds-2026-11-04/`. No other checkout, adapter,
+configuration, schedule or user computer was changed. Stop at this one audited
+conditional increment; the coordinator handles any later Raksasa synchronization.

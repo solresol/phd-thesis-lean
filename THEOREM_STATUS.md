@@ -197,6 +197,22 @@ a polynomial global bound. Polynomial widths through full isolation and all
 diagonal stages, uniform machine runtime and final optimizer composition
 therefore remain open; `thm:max-polytime` stays Partial.
 
+`SmithForwardBounds.lean` reduces the required global size invariant to the
+two forward transformations, conditionally. `inverse_entry_natAbs_eq_adjugate`
+uses an integral left inverse to identify its entry magnitudes with cofactors;
+`inverse_natAbs_le_pow` reuses the existing determinant bound to give
+`|(Uinv)ij| <= 2^(m*(d+size(m)))` when `|Uij| <= 2^d`, and likewise for `V`.
+For original complete dense input length `s`, `bounded_of_input_forward` proves
+all five matrices have magnitudes at most `2^B`, where
+`B=(s+2)*(d+s+1)`, from the two forward bounds and the existing integral
+state invariant. `trace_prefix_bound` applies to any actual addition prefix,
+including an unfinished signed swap; `output_length_le_of_forward` gives the
+full framed output bound `2*(5s+10+2s²*(2(B+1)+2))+5`.
+These implications preserve arbitrary singular/rectangular and empty shapes.
+The hypotheses on `U,V` have not been established uniformly across repeated
+sweep pairs and diagonal stages. No global polynomial, new algorithm, machine
+runtime or optimizer composition is inferred; `thm:max-polytime` stays Partial.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |
