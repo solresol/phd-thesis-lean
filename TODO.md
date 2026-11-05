@@ -183,6 +183,13 @@ source hash and separate semantic, size and machine milestones.
   to the final loss/threshold products with a cubic bound in combined source
   bits. Its input consists of **already computed and serialized products**;
   multiplication and producing this input are not included.
+- [x] Implement multiplication of two variable binary magnitudes with a finite
+  machine. `BinaryMultiplication.computableInPolyTime` proves a complete
+  six-stack TM2 run within `6(L+1)²+12(L+1)` transitions, including routing,
+  shifts, finite-carry additions, factor restoration and cleanup/reset.
+  Here `L=size(m)+size(n)` counts the library tagged-pair symbols; the output
+  is canonical binary, including zero, and has at most `L` bits.
+  Signed/framed integer and rational multiplication are still to be composed.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -192,7 +199,9 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing and finite-machine
-signed addition/subtraction and multiplication; compose residual evaluation
+signed addition/subtraction and multiplication (reuse `BinaryMultiplication`
+for the magnitudes, adding sign/frame routing and serialization); compose
+residual evaluation
 with the completed rational norm machine, then exact summation and the final
 comparison machine. Charge construction and serialization of its cross-products.
 Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate

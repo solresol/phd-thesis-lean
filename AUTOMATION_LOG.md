@@ -8432,3 +8432,64 @@
   binary-rational hardness bridge. Counting circuits, conditional transfer,
   approximation and applications remain pending. Reuse the completed
   comparison and norm machines; do not count them again as the full verifier.
+
+
+## 2026-11-06 — Quadratic finite-machine multiplication of binary magnitudes
+
+- **Scope and starting state:** the p-adic regression complexity automation.
+  Read its previous-run memory, AGENTS, theorem status, declarations, working
+  tree, TODO and the 30 October literature review. Started clean at `51581cc`;
+  fetched/fast-forwarded to `7ad6db7`, preserving the Smith trace-count work.
+  The review was reused as local context; no fresh literature search or
+  external artifact replay is claimed. No thesis/sibling sources, adapters,
+  toolchain, dependency pins or schedules changed.
+- **Closed obligation:** `BinaryMultiplication.lean` gives a concrete finite
+  six-stack TM2 computing the canonical product of two variable binary natural
+  magnitudes. `horner_encode` proves the arithmetic identity; `add_run` proves
+  finite-carry addition while retaining the factor; `round_run` charges shifts
+  and both restoration passes. `loop_run` and `run` prove exact execution,
+  including input routing, empty-stack checks and final factor draining.
+  All non-output stacks are empty and control reset. Zero in either position,
+  unequal widths and arbitrary carries are covered.
+- **Actual runtime:** `next_size`, `loopTime_le` and `runtime_le` establish
+  `6(L+1)²+12(L+1)` TM2 transitions, with `L=size(m)+size(n)` in the library
+  `PairEncoding` over `Sum Bool Bool`. Each symbol carries a side tag and a
+  payload bit. `outputsInTime` and `computableInPolyTime` expose this actual
+  execution bound with no supplied arithmetic/runtime premise or unbounded
+  integer register. `output_length_le` bounds the canonical Boolean output
+  by `L` bits. Signed/framed and rational multiplication are not yet composed.
+- **Thesis comparison:** this closes the natural-magnitude multiplication
+  ingredient in the rational-arithmetic sentence of
+  `prop:regression-np-complete`; the proposition remains Partial. Checked
+  unchanged thesis commit `c700eca04c2d8a819c0403252a97134475857038`, addendum
+  SHA-256 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`,
+  and agenda SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+  No discrepancy, thesis correction or external SAT-counter assumption.
+- **Validation:** warning-free targeted elaboration and full default/prototype
+  `lake build PhdThesisLean DiscreteMetricRegression` pass (9,315 jobs).
+  Independent import/type/axiom audit of all 43 explicit public declarations
+  plus seven prior endpoints: 38 standard-only and 12 axiom-free reports.
+  Full build: 1,297 standard-only and 38 axiom-free reports; 555 existing
+  warnings, none in the new module. Twelve named machine executions, all
+  1,089 pairs in `[0,32]²` and three kernel-evaluated concrete machine examples
+  pass output, exact steps, quadratic bound, cleanup and reset checks.
+  Cases include zero, powers of two, 128-bit carry chains and 129-bit operands.
+  All 185 project/adapter sources pass the comment/string-aware prohibited-token
+  scan. All ten dependency pins and tracked sources are unchanged; diff check
+  passes. Remote CI is not claimed verified.
+- **Evidence:** `/Users/gregb/Documents/Codex/2026-11-06/advance-the-formal-proof-programme-for/work/`:
+  `full-build.log`, `MultiplicationAudit.lean`, `final-axiom-audit.log`,
+  `MultiplicationExamples.lean`, `examples.log`, `source-scan.log` and
+  `dependency-audit.log`. Failed intermediate elaborations are not completion
+  evidence. The module is imported by the default library; theorem status and
+  TODO record the completed component and remaining interfaces.
+- **Next obligation:** compose this multiplier with sign/frame extraction,
+  zero-sign handling and serialization on the original signed integer words;
+  implement signed addition/subtraction and rational operations. Whole-input
+  and certificate validation with runtime dimensions/counts, residual/loss
+  traversal, cross-products and full verifier composition remain open. Then
+  NP membership and the checked binary-rational hardness bridge. The later
+  unique-extension linear threshold circuits, conditional transfer, uniform
+  sampling and applications remain pending. Do not repeat the magnitude
+  multiplier or count it as an end-to-end rational verifier.

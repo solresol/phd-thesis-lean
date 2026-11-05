@@ -1292,7 +1292,7 @@ entropy formulas can be derived later if useful.
 Specification: `../phd-thesis/complexity-regimes/eth-addendum.tex`, at thesis
 commit `c700eca04c2d8a819c0403252a97134475857038`, SHA-256
 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
-Audited on 5 November 2026 (Sydney). These additions are separate from the
+Audited on 6 November 2026 (Sydney). These additions are separate from the
 earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 
 | Obligation | Status | Checked declaration or remaining work |
@@ -1307,7 +1307,8 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Exact rational norm on binary fractions | Complete (machine component) | `RationalNorm.computableInPolyTime` computes the existing `Fraction.norm p` in the original signed/framed binary input and output encoding for every fixed prime, allowing unreduced fractions and zero. `Prepare.outputsInTime` parses both frames and retains the zero flag in at most `2L+3` TM2 steps. `pairPowerComputableInPolyTime` and `fieldsPowerComputableInPolyTime` execute both valuation-power calls with checked pair retention; `Assemble.outputsInTime` swaps fields, restores frames, handles zero and clears all stacks in at most `5T+5` steps in its tagged input length. Checked composition supplies an actual polynomial TM2 runtime, including all transfers. `assemble_power_prepare` identifies the exact output with `Fraction.norm`; `rationalOutputsInTime` and `rational_value_correct` connect the thesis rational encoding and norm. |
 | Fraction-string validity on arbitrary binary inputs | Complete (machine component) | `RationalFractionValidity.valid_iff` proves acceptance exactly for the existing `Fraction.encode` image: canonical binary magnitudes, positive zero sign and positive denominator, permitting unreduced fractions. `field_iff` characterizes framed prefixes with arbitrary unused suffixes. `Machine.step_cfg` connects each abstract transition to one actual finite TM2 step; `run`, `outputsInTime` and `computableInPolyTime` decide validity in at most `3L+10` steps for **every** Boolean string of length `L`. Missing signs/separators/payload, redundant high zeros, negative zero, zero denominators and trailing data are rejected. Both private stacks are emptied and control reset on all paths. |
 | Signed integer and final cross-product comparison | Complete (machine component) | `SignedIntegerComparison.computableInPolyTime` compares two concatenated `SmithEncoding.encodeInt` words in at most `2L+1` actual TM2 steps, including sign/frame reading, stack reversals, magnitude comparison and cleanup/reset. All sign combinations, zero and unequal widths are covered. `RationalThresholdComparison.lossComparisonOutputsInTime` consumes the **already computed and serialized** final cross-products and takes at most `16*size(p)*S³ + 24*size(p)*S² + 8*(size(p)+3)*S + 17` steps in original combined input/certificate bits `S`; `loss_answer_correct` identifies the thesis threshold. Constructing those products and rejecting malformed input remain separate obligations. |
-| Polynomial-time verifier on binary rational data | Pending as a whole | Exact binary rational norms, individual fraction-string validity and signed-integer comparison now have complete machine theorems; the unreduced-fraction arithmetic checker has semantic correctness and polynomial intermediate-width bounds. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold. Still required: uniform runtime-dimension input/certificate parsing with dimension/count/structure rejection, finite-machine signed addition/subtraction and multiplication, residual evaluation, exact summation, cross-product construction/serialization, and the end-to-end verifier time bound. The standalone validity machine is not yet composed with the norm machine or a whole regression-input parser. |
+| Multiplication of two binary magnitudes | Complete (machine component) | `BinaryMultiplication.run` computes the canonical binary product with a concrete six-stack TM2. `outputsInTime` and `computableInPolyTime` bound all routing, Horner shifts, finite-carry additions, factor restoration and final cleanup by `6(L+1)² + 12(L+1)` transitions, where `L = size(m)+size(n)` is the tagged-pair input length. Both factors vary; no unbounded arithmetic register or runtime hypothesis is used. `output_length_le` bounds the result by `L` bits. This uses the library pair encoding over `Sum Bool Bool`; signed/framed integer and fraction integration remain open. |
+| Polynomial-time verifier on binary rational data | Pending as a whole | Exact binary rational norms, individual fraction-string validity, signed-integer comparison and magnitude multiplication now have complete machine theorems; the unreduced-fraction arithmetic checker has semantic correctness and polynomial intermediate-width bounds. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold. Still required: uniform runtime-dimension input/certificate parsing with dimension/count/structure rejection, finite-machine signed addition/subtraction and multiplication, residual evaluation, exact summation, cross-product construction/serialization, and the end-to-end verifier time bound. The standalone validity machine is not yet composed with the norm machine or a whole regression-input parser. |
 | NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
@@ -1524,6 +1525,55 @@ The signed-comparison obligation in the rational-arithmetic sentence of
 Signed addition/subtraction and multiplication, whole-input parsing,
 residual/loss evaluation, product serialization and complete machine
 composition still block NP membership and the hardness encoding bridge.
+
+
+### Binary multiplication increment (6 November 2026)
+
+`BinaryMultiplication.lean` closes multiplication of two variable natural
+magnitudes, a required arithmetic component of the rational verifier. The
+input is the existing library `PairEncoding` of two canonical binary words:
+a left/right tag and one payload bit per symbol in `Sum Bool Bool`. Thus
+`L = size(m)+size(n)` counts tagged symbols; this is not the concatenated
+signed/framed `SmithEncoding.encodeInt` format or a raw Boolean-string parser.
+The output is the canonical Boolean word for `m*n`, of length at most `L`.
+
+The machine has six stacks, seven labels and finite Boolean/optional-symbol
+control. It routes the first operand in most-significant-first order, retains
+the second operand, then uses the Horner recurrence `a ↦ 2a + bit*n`.
+`shift_encode` handles the empty zero word without introducing a redundant
+zero digit. `add_run` proves each ripple-carry pass and preservation of the
+factor; `round_run` includes restoration of both the result and factor.
+`horner_encode` and `loop_run` identify the final stack with the product.
+`run` proves the exact recursive runtime, including routing and draining the
+retained factor at halt. All non-output stacks are empty and control is reset.
+
+`next_size` bounds accumulator growth at each digit; `loopTime_le` then bounds
+the actual repeated execution. `runtime_le`, `outputsInTime` and
+`computableInPolyTime` give `6(L+1)²+12(L+1)` TM2 transitions. Both operands
+are binary inputs of arbitrary width; the machine has no unbounded arithmetic
+register, unit-cost multiplication instruction, supplied runtime hypothesis
+or dependence on a fixed multiplier. Zero in either position is included.
+
+Correspondence: this proves the natural-magnitude multiplication ingredient
+in the rational-arithmetic sentence of `prop:regression-np-complete`, at the
+unchanged thesis commit and addendum hash above. It is a partial component of
+that proposition, not the complete signed/rational multiplication operation.
+Sign/frame extraction, canonical zero-sign handling and product serialization
+must still be composed with this machine. Signed addition/subtraction,
+whole-input validation, residual/loss computation and complete verifier
+composition remain open, followed by NP membership and the hardness encoding
+bridge. No thesis claim or mathematical assumption changed.
+
+Validation: `lake build PhdThesisLean DiscreteMetricRegression` passes (9,315
+jobs). The independent type/axiom audit checks all 43 explicit public names
+and seven prior norm/checker/certificate/comparison/hardness endpoints:
+38 reports use only standard axioms, and 12 are axiom-free. The new module
+has no warnings. Twelve named executions (including 128-bit carry chains
+and 129-bit unequal operands), all 1,089 pairs in `[0,32]²`, and three
+kernel-evaluated machine examples pass output, exact runtime, polynomial
+bound, cleanup and control-reset checks. All 185 project/adapter sources
+pass the prohibited-token scan; all ten dependency revisions and tracked
+sources match their pins.
 
 No external SAT counter is used. Such a counter must remain an explicit theorem
 hypothesis until its actual theorem, encoding, machine model, toolchain and axioms are compatible
