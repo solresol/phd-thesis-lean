@@ -1140,3 +1140,131 @@ Evidence and failed intermediate scripts remain in ignored
 `.research/smith-forward-bounds-2026-11-04/`. No other checkout, adapter,
 configuration, schedule or user computer was changed. Stop at this one audited
 conditional increment; the coordinator handles any later Raksasa synchronization.
+
+### Complete trace and width-dependent addition count (5 November 2026 UTC)
+
+**Question and bounded attempt.** The first unfinished obligation is still a
+single fixed polynomial `P`, independent of dimensions and entries, bounding
+both forward maps by `2^(P(s))` at every prefix of the computed diagonalizing
+trace, for every `Dense A` with original length `s=(SmithEncoding.encode A).length`.
+Yesterday's cofactor implication does not establish it. Inspection of pivot
+descent and determinant bounds did not produce that invariant; iterating the
+inadequate degree-seven `crossWidth` bound was not repeated as a polynomial
+proof. A bounded independent integer simulator explored small-entry matrices
+and banded families with an explicit width cap. It suggests swelling, but is an
+unverified mirror, not a Lean replay, counterexample family or superpolynomial
+lower bound. Its tentative measurements are excluded from checked evidence.
+The coherent checked increment instead reduces the **global semantic addition
+count** to a width invariant, connecting all sweeps and diagonal stages.
+
+**Exact checked increment.** In `PhdThesisLean.SmithTraceCount`, the computed
+`crossesTrace`, `isolateTrace`, `finishTrace` and `decomposeTrace` lists replay
+the existing controllers. `isolationPasses` supplies the count internally; no
+supplied trace, count or decomposition is extra input. The corresponding `_run`
+theorems prove equality of complete five-matrix states. In particular:
+
+```lean
+decomposeTrace_result (A : Dense) :
+  (run (initial A.toMatrix) (decomposeTrace A)).result = decompose A
+
+decomposeTrace_valid (A : Dense) :
+  Valid A.toMatrix (run (initial A.toMatrix) (decomposeTrace A)).result
+```
+
+These statements have no width, nonzero-pivot, rank, square or runtime premise.
+They preserve both integral inverse directions and `U*A*V=S`. The missing-index
+and empty-shape theorems return empty traces; dense output still pays for the
+identity maps. `PrefixWidth Q ops b` means exactly
+`forall t i j, |(run Q (ops.take t)).S i j| < 2^b`. For `b>0`,
+`crossTrace_length_le_of_width` gives `8*(m+n)*b` additions per pair;
+`isolationPasses_le_of_width` gives `b+1` pairs including zero seeding;
+`finishTrace_length_le_of_width` sums over `min(m,n)-k` stages. The final theorem
+is `decomposeTrace_length_le_of_width A b hb h`:
+
+```
+h : PrefixWidth (initial A.toMatrix) (decomposeTrace A) b,  hb : 0 < b
+  ==> (decomposeTrace A).length <= 8*s*s*b*(b+1).
+```
+
+The width hypothesis covers **every addition prefix**, including the actual
+column/row midpoint and unfinished signed swaps. A final-output-only bound
+would not suffice. `PrefixWidth.initial`, `.left` and `.right` transfer it to
+the correct starting state of each recursive subtrace.
+
+`decomposeTrace_length_le_of_forward` explicitly assumes that every prefix has
+`|Uij| <= 2^d` and `|Vij| <= 2^d`. The preceding forward-map theorem then gives
+`b=B+1`, where `B=(s+2)*(d+s+1)`, and count `8*s*s*(B+1)*(B+2)`.
+**No polynomial `d=P(s)` is proved.** Input/output retain the decoder-checked
+unary dimensions, row-major signed/framed binary entries and five framed dense
+matrices. `dimensions_le_length` charges empty dimensions and bounds the stage
+count and `m+n` by `s`. The existing conditional output bound remains
+`2*(5s+10+2s^2*(2(B+1)+2))+5`; it is not a new unconditional result.
+Elementary row/column additions are counted, without charging their scalar
+implementation, multiplication, signed division, traversal, copying, tests,
+trace construction or serialization. The trace is not claimed to be efficiently
+constructed. Arithmetic correctness, global growth, this conditional semantic
+count, uniform machine runtime and optimizer composition remain separate.
+`thm:max-polytime` stays Partial.
+
+**Literature and reuse.** Read the latest available
+[30 October weekly review](2026-10-30-literature-review.md) on **5 November UTC**;
+no newer review exists on fetched main `51581cc`. Reuse its source/access record:
+Ji [arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2), v2 dated
+**1 August 2026**, artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+accessed **30 October** by the review (also recorded on 1 November above).
+Its Theorem 2.1/section 6.2 require nonsingular square input and exclude
+structural machine costs; they do not prove our rectangular/singular invariant.
+This is source inspection, not external replay or axiom audit. The review's
+descriptive-complexity v1.4.0 and norm-oracle paper likewise supply no such
+invariant. The Kannan--Bachem full-text access limitation remains. No fresh
+external access, broad daily search, new external theorem or copied code is
+claimed. Read-only inspection of pinned `lean-np-hardness` `FinEncoding`,
+`BinaryNatLists` and `BinaryArithmetic.binaryAdd_outputsInTime` reuses the codec
+and genuine binary-machine boundary. No generic foundation or signed gcd
+machine was duplicated. Retired approaches and dependency pins stay unchanged.
+
+**Gates, attempts and validation.** The coordinator resolved the apparent
+configuration-ID mismatch as different identifier namespaces and supplied the
+catalogue name/repository mapping. Supported status reports running/connected
+at the expected published version. Verified clean authorized origin
+`solresol/phd-thesis-lean`, fetched `51581cc5ce838c2ac230a3a938770c9e54083b73`,
+verified ancestry, preserved generated `work` and created tracking `main`.
+No other environment/worker was launched. Saved Start skill locations remain
+empty; read repository `AGENTS.md` and shared `START.md`. The full startup and
+final `check.py` gates passed: exact tools, prepared artifacts, pins, dependency
+HEADs, clean dependency sources and representative imports. No installation,
+upgrade, configuration publication or user-machine access occurred.
+
+Proof scripts needed a case split instead of nonexistent `List.take_min`, and
+explicit positivity before natural subtraction. Direct finite `decide` attempts
+could not unfold well-founded controller recursion and were removed; no failed
+script is accepted evidence. The saved resource-guarded runner, absolute pinned
+Lean/Lake 4.35.0, two threads and existing caches built
+`PhdThesisLean.SmithTraceCount` (3,215 jobs), then
+`PhdThesisLean DiscreteMetricRegression` (9,314 jobs). The new module has no
+warnings; build logs replay 47/555 existing warnings. All 1,325 library-build
+axiom reports use only standard axioms. A **separate Lean process by this same
+worker**, not review by another agent/person, checks types and `#print axioms`
+for all 23 new declarations and six existing correctness/forward/optimizer
+endpoints. All 29 reports use only `propext`, `Classical.choice`, `Quot.sound`
+or subsets, with no audit warnings/errors.
+
+Five kernel theorem specializations cover a signed rank-deficient rectangle,
+three empty orientations and a missing position. A labeled exact-division
+execution gives four additions, `[2,0,0,6]` and checker acceptance. Eight separate
+guarded evaluator cases compare all five outputs with the old diagonalizer,
+check validity, measured prefix widths and both count formulas: exact division,
+a multi-pass rectangle, negative/rank-deficient input, zero seeding, a zero
+before a nonzero diagonal, and empty shapes. Counts are `4,15,10,18,2,0,0,0`.
+These are regression evidence, not universal or asymptotic proofs. All 184
+project/adapter sources pass the comment/string-aware prohibited-token scan;
+`git diff --check` passes. Evidence is under ignored
+`.research/smith-growth-2026-11-05/`.
+
+**Next.** Prove a fixed input-bit polynomial for both forward maps at every
+prefix, or supply and verify a controlled-growth replacement. The new theorem
+would then bound semantic additions; actual arithmetic/structural machines,
+complete output handling and optimizer composition remain required. Stop at
+this audited trace/count reduction. The coordinator handles Raksasa sync and
+keeps its old schedule paused.

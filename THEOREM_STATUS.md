@@ -213,6 +213,21 @@ The hypotheses on `U,V` have not been established uniformly across repeated
 sweep pairs and diagonal stages. No global polynomial, new algorithm, machine
 runtime or optimizer composition is inferred; `thm:max-polytime` stays Partial.
 
+`SmithTraceCount.lean` reifies the entire existing diagonalizer's selected row
+and column additions. `decomposeTrace_result` proves exact equality with all
+five computed matrices; `decomposeTrace_valid` has no width premise. For a
+positive common transformed-entry width `b` at **every addition prefix**,
+`decomposeTrace_length_le_of_width` bounds the semantic row/column addition
+count by `8s²b(b+1)`, where `s` is the complete original dense input length.
+`decomposeTrace_length_le_of_forward` gives `8s²(B+1)(B+2)`, with
+`B=(s+2)*(d+s+1)`, assuming the two forward transformations have magnitude at
+most `2^d` uniformly through the computed trace. These width assumptions are
+still open, and no global polynomial `d=P(s)` is supplied. Rectangular,
+singular, zero-pivot and empty cases are retained. All 23 new declarations
+audit with only standard axioms. The count charges elementary matrix additions,
+not their scalar implementation, division, traversal, trace construction,
+serialization or uniform-machine execution. The headline remains Partial.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |

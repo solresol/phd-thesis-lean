@@ -110,6 +110,12 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   the transformed matrix. The implication covers every actual trace prefix and
   complete encoded output, including empty rectangles. Its forward-map bounds
   are hypotheses, not a proved global invariant for the diagonalizer.
+- [x] Reify the complete existing diagonalizer as an addition trace and prove
+  exact five-matrix replay (`SmithTraceCount.lean`). Given a positive common
+  transformed-entry width `b` at every prefix, its row/column addition count
+  is at most `8s²b(b+1)` in actual dense input length `s`. The prior forward-map
+  hypotheses imply the corresponding count bound. The common width remains
+  unproved globally; no arithmetic, trace-construction or machine cost follows.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines
