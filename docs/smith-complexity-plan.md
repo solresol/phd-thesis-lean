@@ -8,9 +8,10 @@ remaining target is a uniform polynomial-time algorithm, measured in encoded bit
 not a theorem assuming its own runtime witness.
 
 Latest weekly human-literature review:
-[30 October 2026 UTC](2026-10-30-literature-review.md). Ji's scope is unchanged;
-the newer descriptive-complexity release and norm-oracle paper do not discharge
-the rectangular Smith or encoded-machine obligations below.
+[6 November 2026 UTC](2026-11-06-literature-review.md). No usable new source
+was located for the forward-map prefix invariant or uniform-machine obligation.
+Ji's nonsingular-square arithmetic scope and the prior interface limits remain;
+continue controlled-growth work without reopening completed scalar machines.
 
 ## Output and input contracts
 

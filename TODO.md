@@ -25,7 +25,7 @@ does not enable or modify any schedule.
 
 ## Active target: polynomial-bit-complexity Smith decomposition
 
-Latest source-backed review: [30 October 2026](docs/2026-10-30-literature-review.md).
+Latest source-backed review: [6 November 2026](docs/2026-11-06-literature-review.md).
 Review Ji's existing Kannan–Bachem artifact before duplicating its proof
 architecture; its nonsingular-square arithmetic model does not close our
 rectangular encoded-machine target. The headline status remains partial.
