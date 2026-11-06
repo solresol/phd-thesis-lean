@@ -8493,3 +8493,68 @@
   unique-extension linear threshold circuits, conditional transfer, uniform
   sampling and applications remain pending. Do not repeat the magnitude
   multiplier or count it as an end-to-end rational verifier.
+
+
+## 2026-11-07 — signed binary multiplication for the rational verifier
+
+- **Starting state:** clean `main` at
+  `0acae9a132c8a5fad41e3b013d3eed743a8e4bdd`; `git fetch origin` found no newer
+  upstream commit. Read the automation memory, AGENTS, current declarations,
+  status, TODO and working-tree state. Reused the 30 October literature review;
+  it is eight days old and largely concerns the separate Smith programme. No
+  fresh literature search or external-counter compatibility audit was done.
+- **Specification:** thesis `complexity-regimes/eth-addendum.tex`, rational
+  arithmetic sentence of `prop:regression-np-complete`, and the 28 October
+  agenda. Thesis commit `c700eca04c2d8a819c0403252a97134475857038`; addendum
+  SHA-256 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`;
+  agenda SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+  These hashes are unchanged. No mathematical discrepancy or thesis edit.
+  Unrelated thesis Makefile/thesis.tex/ornament changes were preserved. No
+  schedule, sibling repository, dependency, toolchain or adapter source changed.
+- **Closed obligation:** `SignedIntegerMultiplication.computableInPolyTime`
+  implements multiplication on two concatenated original signed/framed Boolean
+  integer words, returning exactly `SmithEncoding.encodeInt (a*b)`. Its finite
+  machine includes sign/frame extraction, existing variable-magnitude
+  multiplication, sign retention, canonical zero-sign handling, serialization,
+  transfers, cleanup and reset. There is no arithmetic-cost or runtime premise.
+  This covers encoded pairs, not arbitrary malformed-string rejection.
+- **Proof details:** `SignedMultiplicationRouting.Prepare` (namespace
+  `SignedIntegerMultiplication.Prepare`) has exact runtime `3(u+v)+10` and bound
+  `2L+2`, where `L=2(u+v)+4` counts all original Boolean input bits.
+  `SignedMultiplicationAssembly` proves exact `3w+4` output assembly, equivalent
+  to `3T+1` in tagged input length `T=w+1`. The sign is gated by nonempty
+  canonical magnitude; zero is positive even with a negative supplied flag.
+  `fieldsComputableInPolyTime` uses the proved pair-retaining adapter, and
+  `serializedComputableInPolyTime` uses actual sequential composition.
+  `product_sign` and `assemble_multiply_prepare` identify the signed product;
+  `output_length_le` bounds the framed result by `L`. The composed runtime is
+  polynomial; no tight degree is asserted for the adapters' polynomial.
+- **Validation:** warning-free targeted build; full
+  `lake build PhdThesisLean DiscreteMetricRegression` passes (9,318 jobs).
+  Independent type/axiom audit of all 59 new explicit public declarations and
+  eight earlier endpoints: 42 standard-only and 25 axiom-free reports. The full
+  build has 1,306 standard-only and 38 axiom-free reports; its 555 warnings are
+  in existing modules. Twelve named actual executions, including 128-bit carry
+  chains and 129-bit unequal operands, and all 1,089 pairs in `[-16,16]²` pass
+  three-phase output and routing/assembly exact-runtime/cleanup/reset checks.
+  The negative-zero assembly flag and three kernel-reduced examples also pass.
+  Phase tests use concrete machines; generic adapter transfers are established
+  by the composition theorem. All 188 project/adapter sources pass the
+  comment/string-aware forbidden-token scan. Ten dependency pins and tracked
+  source trees are unchanged and clean; `git diff --check` passes.
+- **Evidence:**
+  `/Users/gregb/Documents/Codex/2026-11-07/advance-the-formal-proof-programme-for/work/`:
+  `signed-build.log`, `full-build.log`, `SignedMultiplicationAudit.lean`,
+  `final-axiom-audit.log`, `SignedMultiplicationExamples.lean`, `examples.log`,
+  `validation-summary.log`, `source-scan.log` and `dependency-audit.log`.
+  Failed intermediate elaborations are excluded. The default library imports
+  the completed module; THEOREM_STATUS and TODO record its precise boundary.
+- **Next obligation:** implement signed addition/subtraction and compose
+  rational field operations with the now-complete signed multiplier. The
+  runtime-dimension whole-input/certificate parser, residual/loss traversal,
+  cross-product routing and complete verifier composition remain open. Then
+  prove NP membership and the binary-rational hardness bridge. Unique-extension
+  linear threshold circuits, conditional transfer, sampling and applications
+  remain pending. No SAT-counter assumption was introduced or audited, and
+  this increment makes no ETH-refutation or NP-completeness claim.

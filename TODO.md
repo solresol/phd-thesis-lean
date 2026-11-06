@@ -189,7 +189,14 @@ source hash and separate semantic, size and machine milestones.
   shifts, finite-carry additions, factor restoration and cleanup/reset.
   Here `L=size(m)+size(n)` counts the library tagged-pair symbols; the output
   is canonical binary, including zero, and has at most `L` bits.
-  Signed/framed integer and rational multiplication are still to be composed.
+- [x] Compose signed integer multiplication on concatenated original Boolean
+  words. `SignedIntegerMultiplication.computableInPolyTime` includes sign/frame
+  extraction, magnitude multiplication, sign retention, zero-sign correction,
+  serialization and every adapter transfer. `Prepare.outputsInTime` gives
+  `2L+2`; `Assemble.outputsInTime` gives `3T+1`. Their composition is polynomial
+  without a supplied arithmetic-cost premise; no tight degree is claimed.
+  Output is exactly `SmithEncoding.encodeInt (a*b)` with length at most `L`.
+  Rational field routing and multiplication composition remain open.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -199,9 +206,8 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing and finite-machine
-signed addition/subtraction and multiplication (reuse `BinaryMultiplication`
-for the magnitudes, adding sign/frame routing and serialization); compose
-residual evaluation
+signed addition/subtraction and rational operations (reuse the completed
+`SignedIntegerMultiplication` on signed/framed words); compose residual evaluation
 with the completed rational norm machine, then exact summation and the final
 comparison machine. Charge construction and serialization of its cross-products.
 Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate

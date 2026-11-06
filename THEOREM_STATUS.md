@@ -1575,6 +1575,59 @@ bound, cleanup and control-reset checks. All 185 project/adapter sources
 pass the prohibited-token scan; all ten dependency revisions and tracked
 sources match their pins.
 
+### Signed multiplication increment (7 November 2026)
+
+`SignedIntegerMultiplication.computableInPolyTime` closes signed integer
+multiplication on the original Boolean format: the input is the concatenation
+of two `SmithEncoding.encodeInt` words and the output is exactly
+`SmithEncoding.encodeInt (a*b)`. There is no arithmetic-cost or runtime premise.
+The contract covers encoded integer pairs, including zero and arbitrary signs;
+it does not assert rejection of malformed raw strings.
+
+`SignedMultiplicationRouting.lean` extracts both canonical magnitudes and the
+xor of their signs, using finite Boolean/optional-symbol control and a stack
+counter for each length frame. `Prepare.run` proves exactly `3(u+v)+10` TM2
+transitions, where `u,v` are magnitude widths. With full Boolean input length
+`L=2(u+v)+4`, `Prepare.outputsInTime` gives `2L+2`.
+`SignedMultiplicationAssembly.lean` serializes a magnitude and sign. It checks
+whether the magnitude stack is empty before retaining a negative sign, so zero
+is canonical even when supplied with a negative flag. `Assemble.run` proves
+exactly `3w+4` transitions, or `3T+1` in its tagged input length `T=w+1`.
+Both machines clear their input and scratch stacks and reset finite control.
+
+The already-checked natural multiplier is lifted through the pair-retaining
+adapter, then composed with these two machines using the checked sequential
+adapter. Thus sign retention, all transfers, multiplication, framing and
+cleanup have a polynomial TM2 bound. No tight degree is claimed for the
+adapter-composed bound. `product_sign` and `assemble_multiply_prepare` prove
+signed arithmetic and exact serialized-output agreement; `output_length_le`
+bounds the complete framed output by the complete framed input length.
+
+Correspondence: this closes signed integer multiplication within the rational
+arithmetic sentence of `prop:regression-np-complete`, at thesis commit
+`c700eca04c2d8a819c0403252a97134475857038`, with unchanged addendum SHA-256
+`25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+It remains a component of that proposition. Rational field routing and operation
+composition, signed addition/subtraction, whole-input/certificate parsing,
+residual/loss traversal, and final comparison composition remain open, followed
+by NP membership and the binary-rational hardness bridge. The existing
+semantic, certificate-size and hardness milestones retain their separate
+statuses. No thesis claim or mathematical assumption changed.
+
+Validation: the full `lake build PhdThesisLean DiscreteMetricRegression`
+passes (9,318 jobs). The independent audit covers all 59 new explicit public
+declarations and eight earlier multiplication/norm/checker/certificate/
+comparison/hardness endpoints: 42 reports use only `propext`, `Classical.choice`
+and `Quot.sound` (or subsets); 25 are axiom-free. None of the three new modules
+has warnings. Twelve named executions, including 128-bit carry chains and
+129-bit unequal operands, and all 1,089 pairs in `[-16,16]²` pass actual
+three-phase output checks and routing/assembly exact-step, cleanup and reset
+checks. A separate negative-zero flag test and three kernel-evaluated examples
+also pass. These executions test the three concrete phases; adapter transfers
+are covered by the composition proof. All 188 project/adapter sources pass
+the prohibited-token scan, and all ten dependency revisions and tracked sources
+match their pins.
+
 No external SAT counter is used. Such a counter must remain an explicit theorem
 hypothesis until its actual theorem, encoding, machine model, toolchain and axioms are compatible
 and checked; assuming it will not verify an ETH refutation.
