@@ -196,7 +196,17 @@ source hash and separate semantic, size and machine milestones.
   `2L+2`; `Assemble.outputsInTime` gives `3T+1`. Their composition is polynomial
   without a supplied arithmetic-cost premise; no tight degree is claimed.
   Output is exactly `SmithEncoding.encodeInt (a*b)` with length at most `L`.
-  Rational field routing and multiplication composition remain open.
+  Rational field routing and multiplication are supplied by the next increment.
+- [x] Compose multiplication and comparison directly on pairs of original
+  signed/framed binary fractions, including unreduced and zero fractions.
+  `RationalArithmetic.multiplicationComputableInPolyTime` computes both fields;
+  `comparisonComputableInPolyTime` constructs and serializes both cross-products
+  before comparing them. The router takes exactly `2L+10` steps; assembly takes
+  at most `2T+2`; checked composition charges both multipliers and all transfers.
+  Each serialized fraction product or cross-product pair has length at most `L`.
+  This covers encoded fraction pairs, not malformed-string rejection or loss
+  evaluation. The final loss-comparison specialization consumes an already
+  evaluated and serialized loss fraction.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -206,10 +216,11 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing and finite-machine
-signed addition/subtraction and rational operations (reuse the completed
-`SignedIntegerMultiplication` on signed/framed words); compose residual evaluation
-with the completed rational norm machine, then exact summation and the final
-comparison machine. Charge construction and serialization of its cross-products.
+signed addition/subtraction and fraction addition/subtraction. Reuse the completed
+`RationalArithmetic` multiplication and comparison machines, including their
+cross-product construction and serialization; compose residual evaluation with
+the rational norm machine, exact summation and final comparison. Charge the
+full traversal and production of the loss fraction.
 Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate
 structures, and charge traversal and machine composition.
 In particular, retain the decoded fields, check the `r*(d+1)` data count and

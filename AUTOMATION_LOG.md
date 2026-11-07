@@ -8558,3 +8558,77 @@
   linear threshold circuits, conditional transfer, sampling and applications
   remain pending. No SAT-counter assumption was introduced or audited, and
   this increment makes no ETH-refutation or NP-completeness claim.
+
+## 2026-11-08 — fraction multiplication and complete fraction comparison
+
+- **Starting state:** clean `main` at
+  `41345e663660507f52eaf592562cbc918dbb0b11`; fetched and fast-forwarded to
+  `6e3a6ac23937af7c15aba177e508ba8441971fd7`, retaining the new human-literature
+  review and theorem-prover restore changes. Read automation memory, AGENTS,
+  status, TODO, current declarations and working-tree state before choosing the
+  obligation. Reused the 6 November literature review, whose scope is largely
+  the separate Smith programme. No fresh literature search was claimed.
+- **Specification:** multiplication and comparison in the rational-arithmetic
+  sentence of thesis `prop:regression-np-complete`, plus the 28 October agenda.
+  Thesis commit `c700eca04c2d8a819c0403252a97134475857038`; addendum SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`;
+  agenda SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+  Both remain unchanged. No mathematical discrepancy or thesis correction.
+  Existing thesis Makefile/thesis.tex/ornament work was preserved. No sibling,
+  dependency, adapter, toolchain or automation schedule changed.
+- **Closed obligations:** `RationalArithmetic.multiplicationComputableInPolyTime`
+  computes the exact unreduced fraction product from two concatenated original
+  Boolean fraction encodings. `comparisonComputableInPolyTime` computes both
+  signed cross-products, serializes them and executes signed comparison. It no
+  longer requires supplied cross-products. The input domain is encoded pairs
+  with positive denominators, allowing unreduced fractions, zero and arbitrary
+  numerator signs; arbitrary-string rejection is not included.
+- **Actual runtime:** the four-field router has exactly `2L+10` TM2 transitions
+  in full original input bits. The assembler has input length plus retained
+  output length plus two transitions, at most `2T+2`. Both use finite control
+  and clear all private/input stacks. The checked pair and sequential adapters
+  charge both signed multipliers, preservation, transfers, assembly and final
+  comparison. No arithmetic-cost premise or tight composed degree is asserted.
+  `multiplication_length_le` and `crossProducts_length_le` bound serialized
+  output by original input length. `loss_input_length_le` bounds the final
+  comparison input by `4W+6` in original combined input/certificate bits `S`,
+  where `W` is the earlier explicit cubic width. `lossComparisonTime` composes
+  the actual machine polynomial with this bound;
+  `boundedLossComparisonOutputsInTime` proves that runtime (positive row count).
+  The **already evaluated and serialized loss fraction** is still supplied.
+- **Semantics and scope:** `assemble_mul`, `assemble_crossProducts`, the value
+  correctness theorems and `loss_answer_correct` identify the exact fraction
+  representation, rational operations and thesis threshold. This closes two
+  arithmetic components, not the complete verifier or NP membership. Semantic
+  existence, certificate size and existing hardness retain their separate
+  audited statuses. No external SAT-counter hypothesis was introduced, used
+  or audited; no ETH-refutation claim follows.
+- **Validation:** targeted build and full
+  `lake build PhdThesisLean DiscreteMetricRegression` pass (9,321 jobs).
+  Independent type/axiom audit of 84 new explicit public declarations and nine
+  earlier endpoints: 70 standard-only and 23 axiom-free reports. Full build:
+  1,317 standard-only and 38 axiom-free reports; 555 existing warnings, none
+  in the three new modules. Ten named executions including 129-bit fields,
+  and all 1,296 fraction pairs with numerators `[-4,4]` and denominators `[1,4]`,
+  pass both operation modes and routing/assembly exact steps, bounds, cleanup
+  and reset. Three kernel-reduced routing/assembly examples pass. Executions
+  cover the concrete phases; the composition proof covers adapter transfers.
+  All 191 project/adapter sources pass the prohibited-token scan. All ten
+  dependency revisions and tracked sources match pins; configuration unchanged.
+  Failed intermediate diagnostics are excluded from validation evidence.
+- **Evidence:**
+  `/Users/gregb/Documents/Codex/2026-11-08/advance-the-formal-proof-programme-for/work/`:
+  `arithmetic-build.log`, `full-build.log`, `RationalArithmeticAudit.lean`,
+  `final-axiom-audit.log`, `RationalArithmeticExamples.lean`, `examples.log`,
+  `source-scan.log`, `dependency-audit.log`, `validation-summary.log`.
+  The default library imports the new module; THEOREM_STATUS and TODO record
+  completed obligations and the remaining boundary. Remote CI was not checked.
+- **Next obligation:** signed addition/subtraction, then fraction
+  addition/subtraction and full residual/loss traversal. Reuse the completed
+  multiplication, norm and comparison machines. Runtime-dimension parsing must
+  retain fields, verify data/certificate counts and reject oversized binary
+  counts without exponential unary expansion. Compose the whole verifier,
+  then NP membership and the binary-rational hardness bridge. Linear
+  unique-extension threshold circuits, conditional algorithm transfer,
+  sampling and compiler applications remain pending.
