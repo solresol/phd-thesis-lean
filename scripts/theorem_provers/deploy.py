@@ -18,7 +18,8 @@ else:
 
 
 SOURCE = Path(__file__).resolve().parent
-SOURCE_FILES = ("prepare.py", "check.py", "deployment_guard.py", "install.sh", "env.sh", "START.md")
+SOURCE_FILES = ("prepare.py", "check.py", "deployment_guard.py", "install.sh",
+                "restore.sh", "env.sh", "START.md")
 
 
 def validate():

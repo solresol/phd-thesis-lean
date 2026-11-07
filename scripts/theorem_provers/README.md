@@ -7,20 +7,38 @@ toolchain, Lake manifest and Lake configuration, not declarations of readiness.
 Changing them requires separate review; deployment rejects checkout or saved
 allowlist drift. No dependency version is selected from a moving branch here.
 
-## Installation and repair
+## Restore hook and explicit preparation
 
-The environment's supported **Install** field should run:
+For this **prepared** environment, the supported **Install** field should run:
 
 ```bash
 #!/bin/bash
 set -euo pipefail
-python3 /workspace/phd-thesis-lean/scripts/theorem_provers/deploy.py
-bash /workspace/shared/theorem-provers/install.sh
+bash /workspace/phd-thesis-lean/scripts/theorem_provers/restore.sh
 ```
 
 The managed thesis checkout must contain this committed directory before these
 commands run. Keep the configured repositories, refs, access settings, secrets
-and variables unchanged. `deploy.py` validates every reviewed project first,
+and variables unchanged. `restore.sh` deploys reviewed helper sources, sources
+the saved environment and runs the **unchanged full** `check.py` gate. It never
+prepares a project, removes a receipt, fetches a cache or installs a toolchain.
+Missing artifacts still stop startup. A source refresh still requires the
+research worker's appropriate build; a readiness receipt is not evidence that
+new proofs were built.
+
+The Install hook may run again on a fresh task. Do not put unconditional
+preparation in that hook: `prepare.py` deliberately removes the old readiness
+receipt before changing artifacts, so a later interruption leaves the gate
+closed. A warm restore must verify the prepared snapshot instead of invalidating
+its existing evidence. Cold setup and explicitly authorized repair run separately
+in the setup workspace **before** saving/publishing its prepared filesystem:
+
+```bash
+python3 /workspace/phd-thesis-lean/scripts/theorem_provers/deploy.py
+bash /workspace/shared/theorem-provers/install.sh
+```
+
+`deploy.py` validates every reviewed project first,
 takes the shared preparation lock and copies only helper sources and pin
 allowlists. Complete files are staged and fsynced, then atomically replaced;
 the final completion manifest hashes every deployed source and saved allowlist.
@@ -85,10 +103,16 @@ never repairs, downloads or installs. Missing readiness names the exact path
 and the repair command, and stops. Startup must not silently fabricate it.
 
 Committing these sources makes preparation reproducible; it does not update a
-published environment. Use the supported environment editor to save the Install
-field above and Start content, run installation, require its final gate to pass,
-then publish the prepared filesystem. Finally launch an independent fresh task
-from that published version and rerun the complete gate without preparation.
+published environment. In the setup workspace, explicitly run the complete
+preparation above (or the authorized single-project repair) and require the full
+gate to pass. Use the supported environment editor to save the restore-only
+Install field above and the existing Start content, preserving all other fields.
+Run that exact Install hook and require its full gate to pass **without changing
+any receipt bytes**; then publish the prepared filesystem. Finally launch an
+independent fresh task from that published version and rerun the same restore
+hook and complete gate without preparation. Verify receipt bytes and all pins
+are retained. The hook must fail if the prepared filesystem is absent, rather
+than silently regenerating evidence.
 Do not claim fresh-task persistence until that test passes. A worker without
 configuration/publication tools must hand these steps to the parent.
 
@@ -99,7 +123,8 @@ python3 -m unittest discover -s tests -p 'test*bootstrap*.py' -v
 python3 -m unittest discover -s tests -p test_theorem_provers.py -v
 ```
 
-Offline tests cover missing/invalid receipts, failed cache/import/build paths,
+Offline tests cover restore-hook success/failure without preparation or receipt
+mutation, missing/invalid receipts, failed cache/import/build paths,
 pin drift, concurrent pin changes, project selection, lock contention,
 inherited toolchain overrides/proxies, real nested process cleanup, and atomic
 deployment interruption/retry with preserved pins and user changes.

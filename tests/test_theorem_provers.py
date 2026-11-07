@@ -285,5 +285,67 @@ class PreparationTests(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), str(self.state / "bootstrap-tested.py"))
 
 
+class RestoreTests(unittest.TestCase):
+    """Exercise the real shell hook; PreparationTests cover the real gate."""
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.base = Path(temp.name)
+        self.state = self.base / "state"
+        self.state.mkdir()
+        source = Path(deploy.__file__).with_name("restore.sh")
+        self.restore = self.base / "restore.sh"
+        self.restore.write_bytes(source.read_bytes())
+        self.deployer = self.base / "deploy.py"
+        self.deployer.write_text("print('modeled helper deployment')\n")
+        (self.state / "env.sh").write_text("export THEOREM_PROVERS_TEST_ACTIVATED=1\n")
+        (self.state / "check.py").write_text(
+            "import os, sys\nfrom pathlib import Path\n"
+            "assert os.environ['THEOREM_PROVERS_TEST_ACTIVATED'] == '1'\n"
+            "state = Path(__file__).parent\n"
+            "(state / 'gate-called').touch()\n"
+            "sys.exit(0 if (state / 'scholz-ready.json').is_file() else 17)\n")
+        # A sentinel: running preparation here would destroy the test receipt.
+        (self.state / "prepare.py").write_text(
+            "from pathlib import Path\nstate = Path(__file__).parent\n"
+            "(state / 'preparation-called').touch()\n"
+            "(state / 'scholz-ready.json').unlink(missing_ok=True)\n"
+            "raise RuntimeError('restore must never prepare')\n")
+        self.receipt = self.state / "scholz-ready.json"
+
+    def run_restore(self):
+        return subprocess.run(
+            ["bash", str(self.restore)], cwd=self.base,
+            env={**os.environ, "THEOREM_PROVERS_STATE_DIR": str(self.state)},
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+
+    def test_restored_evidence_is_preserved_and_full_gate_is_called(self):
+        evidence = b"modeled previously verified evidence\n"
+        self.receipt.write_bytes(evidence)
+        result = self.run_restore()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.receipt.read_bytes(), evidence)
+        self.assertTrue((self.state / "gate-called").exists())
+        self.assertFalse((self.state / "preparation-called").exists())
+
+    def test_missing_evidence_fails_without_preparation_or_replacement(self):
+        result = self.run_restore()
+        self.assertEqual(result.returncode, 17, result.stderr)
+        self.assertFalse(self.receipt.exists())
+        self.assertTrue((self.state / "gate-called").exists())
+        self.assertFalse((self.state / "preparation-called").exists())
+
+    def test_deployment_failure_stops_before_gate_and_preserves_evidence(self):
+        evidence = b"modeled previously verified evidence\n"
+        self.receipt.write_bytes(evidence)
+        self.deployer.write_text("raise SystemExit(23)\n")
+        result = self.run_restore()
+        self.assertEqual(result.returncode, 23, result.stderr)
+        self.assertEqual(self.receipt.read_bytes(), evidence)
+        self.assertFalse((self.state / "gate-called").exists())
+        self.assertFalse((self.state / "preparation-called").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

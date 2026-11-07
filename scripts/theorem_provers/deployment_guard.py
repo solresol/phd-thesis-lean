@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 REQUIRED = {"check.py", "prepare.py", "deployment_guard.py", "bootstrap-tested.py",
-            "env.sh", "install.sh", "START.md"}
+            "env.sh", "install.sh", "restore.sh", "START.md"}
 
 
 def digest(data):
