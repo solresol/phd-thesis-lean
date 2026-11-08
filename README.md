@@ -143,6 +143,15 @@ zero columns, and returns all five dense matrices with the same integral
 identities. Truncating division avoids the slow signed-swap/nonnegative-remainder
 variant. This does not select a full diagonalization or bound its bit costs.
 
+[`PhdThesisLean/SmithPivotMinors.lean`](PhdThesisLean/SmithPivotMinors.lean)
+proves that selected ordinary and mixed forward-map minors are preserved at
+every Euclidean addition prefix. It identifies each cleared target entry's
+exact determinantal numerator for both reduction orientations, and bounds the
+cleared forward row from an initial dense input by `s+1` magnitude bits in
+original input length `s`. A checked fixed-input shear family also shows why
+small transformed entries alone cannot bound forward maps for arbitrary traces.
+These local results do not establish global controlled growth or machine costs.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

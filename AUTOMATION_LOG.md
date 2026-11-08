@@ -8632,3 +8632,71 @@
   then NP membership and the binary-rational hardness bridge. Linear
   unique-extension threshold circuits, conditional algorithm transfer,
   sampling and compiler applications remain pending.
+
+## 2026-11-08 — Smith pivot minors and cleared-target forward bounds
+
+- **Question and first open target:** one fixed polynomial `P(s)` must bound
+  both forward maps at every addition prefix of the actual `decomposeTrace`,
+  uniformly for singular, rectangular and empty dense inputs of original
+  encoded length `s`. The existing conditional state/output/count theorems do
+  not prove it. Investigated a determinantal-numerator invariant instead of
+  repeating the compounding sweep-width estimate.
+- **Checked increment:** `SmithPivotMinors.gcdTrace_prefix_minors` preserves
+  selected `S,S` and mixed `S,U` minors at every Euclidean addition prefix.
+  `pivot_target_numerators`, `reduceRows_target_numerators` and
+  `reduceCols_target_numerators` identify signed-gcd times each cleared target
+  entry with its incoming 2-by-2 minor, for both actual reduction branches and
+  orientations. Scaled bounds retain the gcd divisor. With selected height
+  `H`, source row height `K` and map height `F`, a nonzero pair's target heights
+  are at most `2HK` and `2HF`. From identity maps the target forward coefficients
+  satisfy `gcd(a,b)*abs(u) <= max(abs(a),abs(b))`; the dense specialization
+  bounds them by `2^s` and `s+1` magnitude bits, including the all-zero pair.
+  This controls only a completed pair's cleared target row. Input remains unary
+  dimensions plus signed/framed row-major binary entries; output remains five
+  framed dense matrices with both inverses. No new serializer/machine cost.
+- **Substantive obstacle:** `fixed_column_shear t` checks a fixed rank-one
+  `2 x 1` input `[[1],[0]]` unchanged by `[row 0 1 t]`, with all integral inverse
+  identities and `U[0,1]=t`. Thus transformed entries/minors alone do not bound
+  forward maps for unrestricted traces. This is not an execution family or
+  lower bound for the computed diagonalizer. Its pivot rows still require a
+  controller-specific invariant or a controlled-growth replacement. Global
+  widths, actual uniform machines, full output costs and optimizer composition
+  remain open; `thm:max-polytime` remains Partial.
+- **Literature:** read the current 6 November weekly review at `97e2cc2` before
+  selecting work. Reused its 6 November external-access record for Ji
+  `2607.22524v2` (1 August, artifact `3f80f9524d88a124a49330eb36a2acb5ed41e179`),
+  whose square nonsingular arithmetic scope does not supply this invariant.
+  Full source URLs/versions and Kannan–Bachem full-text/access and partial-search
+  limits are retained in the dated Smith-plan entry. No fresh external access,
+  broad daily search, external replay, copied code or new dependency is claimed.
+  Inspected pinned `lean-np-hardness` encoding and binary-machine APIs read-only;
+  no generic foundation or completed scalar machine was duplicated.
+- **Runtime and repository:** supported startup completed in the selected
+  saved theorem-provers runtime, native config/version recorded in the plan.
+  The coordinator verified selector mapping and absence of thesis overlap.
+  Read AGENTS and shared START (no separate exposed Start skill). The complete
+  startup, post-fetch and final readiness gates passed for all three projects,
+  including Scholz. No repair, installation, receipt fabrication, pin upgrade,
+  configuration/schedule change, publication or user-machine access. Verified
+  clean authorized origin at `355327ef8f45a57c3dc391609ebf6c5240a3fd7e`, fetched
+  identical main, preserved generated `work` and created tracking `main`.
+- **Validation:** saved guarded runner with absolute Lean/Lake 4.35.0 and two
+  threads passed targeted build (3,203 jobs) and full
+  `lake build PhdThesisLean DiscreteMetricRegression` (9,322 jobs). New module
+  has no warnings; 22/555 existing targeted/full warnings are replayed. A
+  separate Lean process by this same worker, not another person or agent,
+  checks all ten new declarations and eight existing correctness/optimizer/
+  prefix/empty endpoints: 18 standard-only axiom reports, no warnings/errors.
+  All 1,365 full-build reports pass (38 axiom-free). Eleven kernel specializations
+  cover signed gcds, temporary swap, exact division, zero seeding/all-zero,
+  rank deficiency, transposed rectangular forward-map orientation, three empty/missing guards
+  and the parametric obstruction. All 192 project/adapter Lean sources pass
+  the comment/string-aware prohibited-token scan; diff checks pass. Failed
+  intermediate proof scripts and their diagnostics are excluded as evidence.
+- **Evidence and next step:** ignored `.research/smith-minors-2026-11-08/`
+  retains guarded runner, targeted/full logs, separate `Audit.lean`/log, scanner
+  and final gate. Prove bounded pivot-row representatives through actual mixed
+  sweeps/stages, or verify a replacement; do not repeat the unrestricted minor
+  inference. Reuse the conditional inverse/output/count reductions afterward.
+  Stop at this coherent audited local increment; the coordinator handles safe
+  Raksasa synchronization and keeps its old thesis schedule paused.

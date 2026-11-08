@@ -228,6 +228,31 @@ audit with only standard axioms. The count charges elementary matrix additions,
 not their scalar implementation, division, traversal, trace construction,
 serialization or uniform-machine execution. The headline remains Partial.
 
+`SmithPivotMinors.lean` now proves exact determinantal numerators for the existing
+pair reducer. At every addition prefix of `gcdTrace`, both selected `S,S` minors
+and mixed `S,U` minors are fixed, including unfinished swaps. For row reduction
+from selected entries `a=S[r,j]`, `b=S[s,j]`, let `g` be the **signed resulting
+pivot**, `R=reduceRows Q r s h j`. Then
+`g*R.S[s,l]=a*Q.S[s,l]-b*Q.S[r,l]` and
+`g*R.U[s,c]=a*Q.U[s,c]-b*Q.U[r,c]`. The transposed theorem covers `S,V` for
+column reduction. Both zero entries and the exact-division shortcut are included.
+The gcd-scaled magnitude bounds yield target heights `2HK` in `S` and `2HF`
+in `U` for a nonzero selected pair with selected height `H`, source-row height
+`K`, and source-map height `F`. From identity maps the target's forward
+coefficients have magnitude at most `2^s` and at most `s+1` binary magnitude
+bits in original dense input length `s`, including the all-zero branch.
+These endpoint bounds cover the cleared target, not the pivot row or the
+complete five-matrix output. Existing integral inverse and empty-case contracts
+are unchanged. Ten new declarations audit with only standard axioms.
+
+The checked parametric family `A=[[1],[0]]`, trace `[row 0 1 t]`, leaves `S=A`
+and all integral inverse identities intact while `U[0,1]=t`. Thus transformed
+entries and their minors alone cannot control forward maps for arbitrary traces;
+the actual diagonalizer needs a stronger controller-specific invariant. This is
+not a lower bound or counterexample for `decomposeTrace`. The global polynomial
+prefix bound, actual encoded-machine runtime, full output handling and optimizer
+composition remain open; `thm:max-polytime` remains Partial.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |

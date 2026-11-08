@@ -116,6 +116,14 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   is at most `8s²b(b+1)` in actual dense input length `s`. The prior forward-map
   hypotheses imply the corresponding count bound. The common width remains
   unproved globally; no arithmetic, trace-construction or machine cost follows.
+- [x] Prove exact determinantal target numerators for the existing row/column
+  pair reducers (`SmithPivotMinors.lean`), and preservation of `S,S` and `S,U`
+  minors at every Euclidean addition prefix. The gcd-scaled target bounds
+  give at most `s+1` magnitude bits for the cleared forward row from an initial
+  dense input of length `s`, including an all-zero pair. A parametric fixed-input
+  shear proves that small transformed entries/minors alone cannot bound forward
+  maps for arbitrary traces. This is a local invariant and an obstruction to
+  one attempted global argument, not a global bound for the computed trace.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines
