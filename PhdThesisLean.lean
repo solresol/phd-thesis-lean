@@ -1,4 +1,5 @@
 import PhdThesisLean.AdditiveContact
+import PhdThesisLean.BinarySubtractionMachine
 import PhdThesisLean.SmithRowOperations
 import PhdThesisLean.SmithEncoding
 import PhdThesisLean.SmithDecomposition

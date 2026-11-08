@@ -215,6 +215,12 @@ source hash and separate semantic, size and machine milestones.
   This covers encoded fraction pairs, not malformed-string rejection or loss
   evaluation. The final loss-comparison specialization consumes an already
   evaluated and serialized loss fraction.
+- [x] Prove natural subtraction of aligned canonical binary magnitudes with an
+  actual finite machine. `BinarySubtraction.Machine.computableInPolyTime`
+  computes `m-n` in exactly `2L+2` transitions, including borrow propagation,
+  underflow disposal, high-zero normalization and cleanup/reset. Here
+  `L=max(size(m),size(n))` counts the library aligned-pair symbols; output has
+  at most `L` bits. This is not yet signed/framed arithmetic or its input router.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -225,6 +231,8 @@ source hash and separate semantic, size and machine milestones.
 
 Next obligation: uniform binary input/certificate parsing and finite-machine
 signed addition/subtraction and fraction addition/subtraction. Reuse the completed
+aligned magnitude subtraction machine; supply actual sign/frame routing and
+input alignment when composing it with the existing aligned adder. Reuse
 `RationalArithmetic` multiplication and comparison machines, including their
 cross-product construction and serialization; compose residual evaluation with
 the rational norm machine, exact summation and final comparison. Charge the

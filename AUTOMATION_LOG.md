@@ -8700,3 +8700,75 @@
   inference. Reuse the conditional inverse/output/count reductions afterward.
   Stop at this coherent audited local increment; the coordinator handles safe
   Raksasa synchronization and keeps its old thesis schedule paused.
+
+
+## 2026-11-09 — linear-time binary magnitude subtraction
+
+- **Scope and starting state:** continued the user-requested rational-verifier
+  programme in this repository. Started clean at `355327e`; fetched and
+  fast-forwarded to `f72229f`, preserving the Smith pivot-minor increment.
+  Read automation memory, AGENTS, current declarations/status/TODO and the
+  6 November human-literature review. That review mainly concerns Smith growth;
+  no fresh literature search or external-counter verification is claimed.
+  The `/workspace` bootstrap instructions concern the separate isolated cloud
+  setup; this run used the existing macOS checkout and its pinned Lean 4.35.0.
+- **Completed obligation:** added default-imported `BinarySubtraction.lean` and
+  `BinarySubtractionMachine.lean`. `BinarySubtraction.Machine.run` computes
+  natural subtraction with a concrete three-stack finite TM2 in exactly
+  `2L+2` transitions. `outputsInTime` and `computableInPolyTime` package the
+  actual execution without an arithmetic-cost or runtime premise. The machine
+  propagates one Boolean borrow, then either discards an underflow result or
+  removes high zeros while reversing the output. Empty zero, either empty
+  operand, equality, unequal widths and arbitrarily long borrow chains are
+  included. Every discarded bit, both exhaustion transitions, cleanup and
+  state reset are charged.
+- **Encoding boundary:** `L=max(size(m),size(n))` counts all symbols of the
+  library `BinaryNatPair.finEncoding`, over `Option Bool × Option Bool`.
+  These are aligned binary magnitudes. This is not concatenated signed/framed
+  Boolean input, an alignment/router theorem, or malformed-string rejection.
+  `subtract_identity` proves the exact positional invariant;
+  `subtract_borrow` identifies underflow; `subtract_encode` proves arithmetic
+  correctness; `pushBit_encode` proves canonical normalization; and
+  `output_length_le` bounds the result by the full input length.
+- **Thesis comparison:** the component supplies magnitude subtraction needed
+  for opposite-sign addition in the rational-arithmetic sentence of
+  `prop:regression-np-complete`. The thesis remains at
+  `c700eca04c2d8a819c0403252a97134475857038`; addendum SHA-256 remains
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`;
+  agenda SHA-256 remains
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+  No discrepancy or mathematical claim change was needed. Semantic witnesses,
+  certificate size, machine components, full verifier runtime and NP results
+  remain separately audited. No external SAT hypothesis was used.
+- **Validation:** warning-free targeted new-module build; full
+  `lake build PhdThesisLean DiscreteMetricRegression` passed (9,324 jobs).
+  Independent type/axiom audit: all 43 new explicit public declarations and
+  seven prior verifier/certificate/hardness endpoints, with 35 standard-only
+  reports and 15 axiom-free reports. Full-build axiom reports: 1,336
+  standard-only and 38 axiom-free; 555 existing warnings, none new. Twelve
+  named machine executions, including 1,025-bit operands, and every one of
+  the 4,225 pairs in `[0,64]^2` pass output, exact steps, scratch cleanup,
+  state reset, output width and borrow classification. Three concrete machine
+  examples reduce in the kernel. The imported well-founded zipper does not
+  reduce directly in those examples, so they use literal aligned input;
+  general encoding correctness remains part of the audited theorem.
+  All 194 project/adapter Lean sources pass the comment/string-aware
+  prohibited-token scan. All ten dependency pins and tracked sources are
+  clean; toolchain/Lake configuration and adapters are unchanged. Failed
+  intermediate diagnostics are excluded from validation evidence.
+- **Evidence:** `/Users/gregb/Documents/Codex/2026-11-09/advance-the-formal-proof-programme-for/work/`:
+  `subtraction-build.log`, `full-build.log`, `SubtractionAudit.lean`,
+  `final-axiom-audit.log`, `SubtractionExamples.lean`, `examples.log`,
+  `source-scan.log`, `dependency-audit.log`, `validation-summary.log`.
+- **Next:** implement actual sign/frame extraction and aligned-input routing,
+  choose addition or correctly ordered subtraction, then serialize the signed
+  result with canonical zero. Compose fraction addition/subtraction and full
+  residual/loss traversal with the existing multiplication, norm and comparison
+  machines. Runtime-dimension parsing with bounded count rejection, complete
+  verifier composition, NP membership and the rational hardness-encoding bridge
+  remain open, followed by the separate conditional counting/sampling programme.
+- **Preservation and version control:** updated THEOREM_STATUS and TODO;
+  commit/push and final remote parity are recorded in automation memory. No
+  thesis, sibling, dependency, adapter or schedule edits. Existing thesis
+  Makefile/thesis.tex/ornaments work was preserved. Remote CI is not checked;
+  the validation reported above is local.
