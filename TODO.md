@@ -228,6 +228,15 @@ source hash and separate semantic, size and machine milestones.
   underflow disposal, high-zero normalization and cleanup/reset. Here
   `L=max(size(m),size(n))` counts the library aligned-pair symbols; output has
   at most `L` bits. This is not yet signed/framed arithmetic or its input router.
+- [x] Implement signed addition and subtraction on the original concatenated
+  Boolean integer words. `SignedIntegerAddition.additionComputableInPolyTime`
+  and `subtractionComputableInPolyTime` each use at most `4L` actual finite TM2
+  transitions. Both frames, magnitude comparison with digit retention, recovery,
+  finite carry/borrow arithmetic, high-zero removal, sign selection, output
+  framing and cleanup/reset are charged. Output is exactly the original signed
+  encoding of the result and has length at most `L`. Equal/mixed signs, zero,
+  cancellation and unequal widths are included. This is encoded-pair arithmetic,
+  not arbitrary malformed-string validation or full rational-loss evaluation.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -236,10 +245,9 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: uniform binary input/certificate parsing and finite-machine
-signed addition/subtraction and fraction addition/subtraction. Reuse the completed
-aligned magnitude subtraction machine; supply actual sign/frame routing and
-input alignment when composing it with the existing aligned adder. Reuse
+Next obligation: fraction addition/subtraction using the completed signed
+addition/subtraction and multiplication machines, and uniform binary
+input/certificate parsing. Reuse
 `RationalArithmetic` multiplication and comparison machines, including their
 cross-product construction and serialization; compose residual evaluation with
 the rational norm machine, exact summation and final comparison. Charge the

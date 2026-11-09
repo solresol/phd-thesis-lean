@@ -163,6 +163,7 @@ import PhdThesisLean.RationalNormMachine
 import PhdThesisLean.RationalFractionValidityMachine
 import PhdThesisLean.BinaryMultiplication
 import PhdThesisLean.SignedIntegerMultiplication
+import PhdThesisLean.SignedIntegerAddition
 import PhdThesisLean.RationalArithmeticMachine
 import PhdThesisLean.RationalThresholdComparison
 import PhdThesisLean.AllDifferentCSPPositiveScanInitialization

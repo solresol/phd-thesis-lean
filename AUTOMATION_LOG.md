@@ -8772,3 +8772,71 @@
   thesis, sibling, dependency, adapter or schedule edits. Existing thesis
   Makefile/thesis.tex/ornaments work was preserved. Remote CI is not checked;
   the validation reported above is local.
+
+## 10 November 2026 (Sydney): signed addition and subtraction on original binary words
+
+- **Scope and starting state:** read AGENTS, THEOREM_STATUS, TODO, current
+  declarations and changes, the previous automation record, and the 6 November
+  human-literature checkpoint. Started clean at `a6aff98`; fetched and
+  fast-forwarded to `daa9abd`, preserving the new Smith linear-bound work.
+  Used the installed macOS Lean 4.35.0 toolchain. No fresh literature search or
+  external SAT formalisation audit is claimed.
+- **Completed obligation:** added default-imported `SignedAdditionBits.lean`
+  and `SignedIntegerAddition.lean`. `additionComputableInPolyTime` and
+  `subtractionComputableInPolyTime` compute signed integer sum/difference from
+  two concatenated original `SmithEncoding.encodeInt` words to one word in the
+  same format. The concrete six-stack finite TM2 includes sign/frame parsing,
+  magnitude comparison with all digits saved, recovery, finite carry/borrow,
+  high-zero removal, sign selection, output framing, scratch cleanup and reset.
+  The second sign flip selects subtraction without changing the input format.
+  All signs, empty zero magnitudes, exact cancellation, unequal widths and
+  arbitrary carry/borrow chains are covered. Negative zero is never output.
+- **Actual runtime and width:** `run` proves the exact transition count
+  `4(u+v)+2 max(u,v)+length(w)+size(value(w))+14` for input magnitude widths
+  `u,v` and raw arithmetic bits `w`. `runtime_le` and `outputsInTime` bound it
+  by `4L` in complete Boolean source length `L=2(u+v)+4`.
+  `output_length_le` bounds the full signed/framed result by `L`.
+  No arithmetic-cost or runtime premise, unbounded machine register, or
+  uncharged adapter/transfer is used. Contract: encoded integer pairs; this
+  does not establish arbitrary malformed-input rejection or rational evaluation.
+- **Thesis correspondence:** this closes signed addition/subtraction within
+  the rational-arithmetic sentence of `prop:regression-np-complete`, which
+  remains Partial. Thesis commit `c700eca04c2d8a819c0403252a97134475857038`,
+  addendum SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`, and
+  agenda SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`
+  are unchanged. No discrepancy or thesis mathematical correction was needed.
+  Semantic existence, certificate size, machine components, whole verifier
+  runtime and NP results remain separate. No external SAT assumption was used.
+- **Validation:** targeted new-module build and full
+  `lake build PhdThesisLean DiscreteMetricRegression` pass (9,327 jobs).
+  Independent type/axiom audit: 58 new explicit public declarations and seven
+  previous verifier/certificate/hardness endpoints, with 43 standard-only and
+  22 axiom-free reports. Full build: 1,361 standard-only and 38 axiom-free
+  reports; 555 pre-existing warnings, none in the new modules. Sixteen named
+  pairs run under both operation modes (including 1,025-bit operands), plus
+  all 8,450 operations in `[-32,32]^2`, pass exact steps, `4L` bound, output,
+  scratch cleanup, state reset and result-width checks. Four kernel-reduced
+  executions use literal step counts because `Nat.size` does not reduce in
+  those test expressions; general proofs and executable checks retain the
+  actual formula. All 197 project/adapter sources pass the prohibited-token
+  scan. Ten dependency pins/tracked trees are clean; toolchain, Lake settings
+  and adapters unchanged. Failed intermediate diagnostics are not evidence.
+- **Evidence:** `/Users/gregb/Documents/Codex/2026-11-10/advance-the-formal-proof-programme-for/work/`:
+  `add-build.log`, `full-build.log`, `SignedAdditionAudit.lean`,
+  `final-axiom-audit.log`, `SignedAdditionExamples.lean`, `examples.log`,
+  `source-scan.log`, `dependency-audit.log`, `validation-summary.log`.
+- **Next:** compose fraction addition/subtraction using the completed signed
+  arithmetic and existing fraction routing/multiplication; then full residual
+  evaluation, rational norms, loss accumulation and serialization. Still needed:
+  uniform runtime-dimension input/certificate parsing retaining fields and
+  rejecting oversized counts without unary expansion, whole verifier runtime,
+  NP membership and the binary-rational hardness bridge. Counting-preserving
+  linear-size circuits, conditional counting transfers, sampling and the three
+  applications remain pending.
+- **Preservation and version control:** updated THEOREM_STATUS and TODO.
+  Commit/push, clean committed-tree build and final remote parity are recorded
+  in automation memory. No thesis, sibling, dependency, adapter or schedule
+  edits; thesis Makefile/thesis.tex/ornaments work preserved. All verification
+  above is local; remote CI status is reported separately if checked.
