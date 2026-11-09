@@ -1404,3 +1404,144 @@ minor-to-forward-map inference above. Then reuse the existing conditional invers
 output and addition-count bounds before addressing actual uniform machines and
 optimizer composition. Stop at this audited local increment. The coordinator
 handles any Raksasa synchronization and keeps its old thesis schedule paused.
+
+### Quotient-telescoping local prefix widths (9 November 2026 UTC)
+
+**Question and first unfinished obligation.** The target remains one fixed
+`P : Polynomial ℕ` such that, for every `A : Dense` and every addition prefix
+`Q = run (initial A.toMatrix) ((decomposeTrace A).take t)`, both
+`(Q.U i j).natAbs` and `(Q.V i j).natAbs` are at most `2 ^ P.eval s`, where
+`s = (SmithEncoding.encode A).length`. This is still unproved. Input uses
+unary dimension headers and signed/framed row-major binary entries, with exact
+length `m+n+2+sum_entries(2*size(abs(z))+2)`; output remains all five framed
+dense matrices. Empty dimensions still pay for their transformation identities.
+
+The 8 November minor identities leave the pivot row uncontrolled globally.
+Rather than repeat the invalid inference from small transformed entries or
+state validity alone, this increment uses the **actual Euclidean quotients**.
+The bounded question is whether a single pivot's previous quadratic bit-width
+estimate can be replaced by a linear estimate, including its pivot row and
+temporary addition prefixes. No algorithm or dependency is replaced.
+
+**Checked mathematics.** In `SmithPivotLinearBounds.lean`, `pairStep_bound`
+proves that a completed quotient subtraction and signed swap multiplies a
+common all-five magnitude bound `H` by at most `|q|+1`. On the two selected
+rows its forward action is `[[0,1],[-1,q]]`; the inverse update uses
+`[[q,-1],[1,0]]`. Both have linear quotient dependence. The separate
+`pairStep_prefix_bound` includes the three unfinished swap additions with
+factor `8*(|q|+1)`. Neither theorem assumes an invariant or a nonzero pivot.
+
+For `q=a.tdiv b`, `quotient_height_bound` proves
+
+```
+(|q|+1)*|b| <= 2*max(1,|a|,|b|).
+```
+
+When `b` is nonzero, the next maximum is exactly `|b|`, since the truncating
+remainder is smaller. This couples coefficient growth to magnitude descent.
+Induction through the actual generated trace proves
+`gcdTrace_prefix_height_bound`: for every `t`, all five matrices of
+`run Q ((gcdTrace r s h a b).take t)` have magnitude at most
+
+```
+H * max(1,|a|,|b|) * 2^L,  L = (gcdTrace r s h a b).length.
+```
+
+The first four additions cost at most `16*H*max(1,|a|,|b|)`; the recursive
+endpoint estimate costs only twice this incoming magnitude factor. Each is
+absorbed by `2^4` for those four additions. The all-zero branch is an empty
+trace and uses `max(1,...)`, so there is no lost zero case or illicit division.
+The scalar parameters may be arbitrary relative to `Q`: the theorem bounds
+the trace they generate. The dense specializations use the actual entries.
+
+The existing semantic count `L<=8c`, for selected magnitudes below `2^c`,
+then gives `gcdTrace_prefix_pow_bound` with exponent **`d+9c`** for incoming
+height `2^d`, replacing `d+8c(c+1)`. This includes `c=0` and every temporary
+swap prefix on both forward maps, both inverses and the transformed matrix.
+`pivot_prefix_bound` specializes to **`2^(10s)`** in original dense input bits.
+`reduceRows_pow_bound` retains the exact-division shortcut; total column/row
+wrappers retain all missing-index guards. The existing encoding theorem now
+gives `pivotDense_output_length_le` and `reduceDense_output_length_le`:
+
+```
+complete five-matrix output length <= 80s^3 + 16s^2 + 10s + 25.
+```
+
+The latter theorem covers both orientations, singular/rectangular inputs and
+empty/missing no-ops. The previous quadratic local width and quartic output
+estimates remain valid, but are superseded for this single-entry use. These
+are arithmetic and full serialization-size proofs, not serializer or arithmetic
+machine-time bounds. No new global operation count or uniform machine follows.
+
+**Sources and reuse.** Read the latest available
+[6 November weekly human-literature review](2026-11-06-literature-review.md)
+before selecting this work; no newer review exists on fetched main `a6aff98`.
+Reuse its source versions and access dates, **6 November 2026 UTC**:
+Ji [arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2), v2 dated
+**1 August 2026**, artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+has nonsingular-square hypotheses and an arithmetic cost model excluding
+structural operations. It does not supply our rectangular/singular global
+prefix bound. The
+[Kannan–Bachem publisher abstract](https://epubs.siam.org/doi/10.1137/0208040)
+does not establish a bound for our controller, and the review's full-text
+access limitation remains. Its Senellart–Gnatenko
+[2609.18261v1](https://arxiv.org/abs/2609.18261), **16 September 2026**, and
+descriptive-complexity **v1.4.0** findings do not close this invariant either.
+Coverage remains partial. This run makes no fresh external-access claim,
+daily broad search, external artifact replay or axiom audit. The proof above
+uses project definitions and pinned Lean integer division identities alone;
+no proposed step depends on a newly imported external theorem.
+Read-only inspection of pinned `lean-np-hardness` `FinEncoding`,
+`BinaryNatLists` and `BinaryArithmetic.binaryAdd_outputsInTime` confirms reuse
+of the existing codec and the separate true TM2 cost boundary. No generic
+foundation, arithmetic machine or Complexitylib adapter was duplicated.
+
+**Environment, attempts and checks.** The coordinator verified the named
+theorem-provers selector and no overlapping research task before launching this
+worker. Runtime status reports the same native source configuration/version as
+the 8 November record above, running/connected with current observations.
+The full shared startup gate passed thesis, Littlewood and Scholz without repair.
+Read repository `AGENTS.md` and shared `START.md`; no separate filesystem Start
+skill was exposed. Verified the authorized origin, clean generated `work` at
+`a6aff9872cb73df07a76fed2a7194bb2d9200d6f`, fetched identical live main, checked
+ancestry, preserved `work` and created tracking `main`. No additional cloud
+worker, installation, pin change, configuration publication, schedule change
+or user-machine access occurred. A delegated **read-only** mathematical review
+checked the quotient argument and final code/documentation; the reviewer made
+no edits and ran no builds. This worker performed all Lean executions.
+
+Initial failed scripts used a missing Python import path, insufficiently
+general matrix dimensions, and nonlinear arithmetic tactics that did not
+normalize nested products. Explicit matrix cases, exact inverse formulas and
+monotonicity of multiplication resolved these failures without new assumptions.
+Failed logs are not accepted proof evidence. The saved resource-guarded runner,
+absolute pinned Lean/Lake 4.35.0, `env_for('thesis')`, two threads and existing
+caches passed the changed module build (3,204 jobs), then
+`lake build PhdThesisLean DiscreteMetricRegression` (9,325 jobs).
+The new module has zero warnings; the builds replay 22/551 existing warnings.
+All 1,384 full-build axiom reports use only `propext`, `Classical.choice`,
+`Quot.sound` or subsets (38 are axiom-free).
+A separate Lean process checks the types and `#print axioms` of all 12 new
+public declarations and eight existing decomposition, empty-guard, trace/count,
+forward-bound, shear-obstruction and optimizer endpoints: all 20 reports use
+only standard axioms, with no warnings/errors. Five kernel specializations
+cover zero scalar width, signed rank-deficient rectangular input at every
+prefix, both empty orientations and a missing position. They exercise scope;
+the universal theorems above establish the asymptotic claims. All 195 project
+and adapter Lean sources pass the comment/string-aware prohibited-token scan;
+`git diff --check` and the final full three-project readiness gate pass.
+Evidence and failed attempts are in ignored `.research/smith-linear-2026-11-09/`.
+
+**Next exact obstacle.** Control both forward maps at every addition prefix
+through **alternating sweeps and diagonal stages** by one polynomial in the
+original input length, or prove such a bound for a controlled-growth
+replacement. The new local estimate charges current selected widths; it does
+not prove those widths remain polynomial in the original input. Naively
+iterating it can still compound the incoming width. The arbitrary-trace shear
+obstruction is not a counterexample to the computed diagonalizer and remains
+retired as a route to a global bound. Then reuse conditional inverse/output
+and semantic addition-count theorems before proving actual binary arithmetic,
+structural machines, total encoded runtime and optimizer composition.
+`thm:max-polytime` remains Partial. Stop at this coherent local increment;
+the coordinator handles Raksasa synchronization and keeps its old schedule paused.

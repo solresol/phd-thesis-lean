@@ -152,6 +152,13 @@ original input length `s`. A checked fixed-input shear family also shows why
 small transformed entries alone cannot bound forward maps for arbitrary traces.
 These local results do not establish global controlled growth or machine costs.
 
+[`SmithPivotLinearBounds.lean`](PhdThesisLean/SmithPivotLinearBounds.lean)
+uses the actual Euclidean quotients to sharpen every single-pivot intermediate
+magnitude to `2^(10s)` in original dense input length `s`, including all five
+matrices and temporary swap steps. The complete stored single-entry reducer's
+output has at most `80s³+16s²+10s+25` bits, in either orientation and including
+empty cases. Repeated sweeps, global growth and machine runtime remain open.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

@@ -124,6 +124,13 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   shear proves that small transformed entries/minors alone cannot bound forward
   maps for arbitrary traces. This is a local invariant and an obstruction to
   one attempted global argument, not a global bound for the computed trace.
+- [x] Sharpen one computed Euclidean pivot's all-five, every-addition-prefix
+  width by charging each quotient against the next selected magnitude
+  (`SmithPivotLinearBounds.lean`). The local exponent is `d+9c`, replacing
+  `d+8c(c+1)`; from dense input length `s` it is `10s`. Complete single-entry
+  output length is at most `80s³+16s²+10s+25`, in either orientation and with
+  empty/missing guards. This uses the actual quotient choices and bounds the
+  pivot row too; it does not control iterated sweeps/stages or machine runtime.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

@@ -253,6 +253,28 @@ not a lower bound or counterexample for `decomposeTrace`. The global polynomial
 prefix bound, actual encoded-machine runtime, full output handling and optimizer
 composition remain open; `thm:max-polytime` remains Partial.
 
+`SmithPivotLinearBounds.lean` sharpens the existing actual Euclidean pivot,
+without changing its trace. `pairStep_bound` pays only `|q|+1` for the completed
+four-addition step on all five matrices, including the reversed inverse update.
+`quotient_height_bound` charges that quotient to the next magnitude:
+`(|a.tdiv b|+1)*|b| <= 2*max(1,|a|,|b|)`.
+`gcdTrace_prefix_height_bound` then bounds every addition prefix by
+`H*max(1,|a|,|b|)*2^L`, for incoming height `H` and actual trace length `L`.
+The three temporary signed-swap additions are explicitly included. Combining
+this with the existing `L<=8c` theorem gives the local exponent **`d+9c`**,
+replacing `d+8c(c+1)`. No sign, nonzero-pair, rank or square premise is needed.
+For original dense input length `s`, `pivot_prefix_bound` gives magnitude
+`2^(10s)`. `pivotDense_output_length_le` and `reduceDense_output_length_le`
+bound the complete five-matrix encoding by **`80s³+16s²+10s+25`**, including
+the existing unary dimensions, signs and frames. The total single-entry reducer
+retains exact division, both orientations, singular/rectangular inputs and
+empty/missing no-op cases. These are arithmetic and encoding-size proofs.
+The incoming widths of successive sweeps/stages are still uncontrolled in the
+original input length. No fixed global polynomial for both forward maps,
+uniform machine runtime or optimizer composition follows; the headline stays
+Partial. The earlier quadratic local bound remains valid but is superseded
+for this single-pivot/single-entry use.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |
