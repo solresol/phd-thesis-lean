@@ -237,6 +237,16 @@ source hash and separate semantic, size and machine milestones.
   encoding of the result and has length at most `L`. Equal/mixed signs, zero,
   cancellation and unequal widths are included. This is encoded-pair arithmetic,
   not arbitrary malformed-string validation or full rational-loss evaluation.
+- [x] Compose fraction addition/subtraction on original Boolean fraction pairs.
+  `RationalAddition.additionComputableInPolyTime` and
+  `subtractionComputableInPolyTime` compute exactly the existing unreduced
+  `Fraction.add`/`Fraction.sub` output. Three variable signed products, signed
+  addition/subtraction, full source copying, denominator projection, retained
+  components, serialization and all pair/sequential transfers are charged.
+  Copying takes exactly `3L+3` steps; projection takes `u+2v+2`; output length
+  is at most `2L`. No gcd, arithmetic-cost premise or runtime hypothesis is
+  needed. This is encoded-pair arithmetic, without whole-input validation or
+  traversal/accumulation across regression rows and columns.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -245,13 +255,12 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: fraction addition/subtraction using the completed signed
-addition/subtraction and multiplication machines, and uniform binary
-input/certificate parsing. Reuse
-`RationalArithmetic` multiplication and comparison machines, including their
-cross-product construction and serialization; compose residual evaluation with
-the rational norm machine, exact summation and final comparison. Charge the
-full traversal and production of the loss fraction.
+Next obligation: uniform binary input/certificate parsing retaining all fields,
+and finite-machine residual/loss traversal and accumulation. Reuse
+`RationalAddition` addition/subtraction and `RationalArithmetic` multiplication
+and comparison, including their field construction and serialization. Compose
+residual evaluation with the rational norm machine, exact summation and final
+comparison. Charge every iteration and production of the loss fraction.
 Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate
 structures, and charge traversal and machine composition.
 In particular, retain the decoded fields, check the `r*(d+1)` data count and

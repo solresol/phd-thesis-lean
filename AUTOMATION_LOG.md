@@ -8840,3 +8840,70 @@
   in automation memory. No thesis, sibling, dependency, adapter or schedule
   edits; thesis Makefile/thesis.tex/ornaments work preserved. All verification
   above is local; remote CI status is reported separately if checked.
+
+
+## 2026-11-11 — Fraction addition and subtraction on original binary words
+
+- **Starting state:** clean `main` at `10437b36ffb6d8292409ad9ac0b2d6709d2d564e`;
+  fetched origin and confirmed parity before choosing work. Read AGENTS, current
+  status/TODO/declarations and working changes, prior automation memory, thesis
+  agenda/addendum and the 6 November literature record. The latter concerned
+  Smith bounds; no new literature search is claimed. Used installed macOS
+  Lean 4.35.0; the `/workspace` cloud bootstrap instructions do not describe
+  this environment. Existing theorem-prover setup and pins were preserved.
+- **Completed:** `RationalAdditionRouting.lean` and
+  `RationalAdditionMachine.lean`, imported by the default library.
+  `RationalAddition.additionComputableInPolyTime` and
+  `subtractionComputableInPolyTime` compute exactly the existing unreduced
+  `Fraction.add`/`Fraction.sub` from original Boolean fraction pairs.
+  `numerator_eq`, `denominator_eq`, `assemble_operation` and `value_correct`
+  establish stored-field, serialization and rational-value correspondence.
+- **Actual finite-machine computation:** duplicate the complete source, compute
+  numerator cross-products and signed sum/difference on the first copy, route
+  and project denominator fields on the second, multiply those denominators,
+  retain both results with checked pair adapters and serialize the fraction.
+  All three products, signed arithmetic, data retention and pair/sequential
+  transfers have actual machine-time bounds. No arithmetic-cost premise, gcd
+  call, unbounded register or uncharged transfer is introduced. The composed
+  polynomial is supplied by checked machine composition; no tight degree is
+  claimed. `Copy.run` takes exactly `3L+3`; `Right.run` takes `u+2v+2`, at most
+  `2(u+v)+2`. Both reset control and empty scratch/input. Output length is at
+  most `2L`. All numerator signs, zero, cancellation, unreduced fractions and
+  unequal fields are included; malformed words remain outside the contract.
+- **Thesis comparison:** rational addition/subtraction within the
+  rational-arithmetic sentence of `prop:regression-np-complete`. Thesis remains
+  at `c700eca04c2d8a819c0403252a97134475857038`; addendum SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`
+  and agenda SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`
+  are unchanged. No discrepancy, thesis correction or external SAT hypothesis.
+  This is a completed machine component; the whole proposition stays Partial.
+- **Validation:** targeted build and full
+  `lake build PhdThesisLean DiscreteMetricRegression` pass (9,329 jobs).
+  Independent audit: 41 new explicit public declarations and seven earlier
+  endpoints, 39 standard-only and nine axiom-free reports. Full build: 1,370
+  standard-only and 38 axiom-free reports, 555 existing warnings, none new.
+  All 2,592 operations on 1,296 small fraction pairs, ten named pairs under both
+  modes (including 129-bit fields), and five kernel copy/projection executions
+  pass. Concrete phases execute actual arithmetic, copying, projection and
+  serialization; composition proofs cover the adapters. Checks include exact
+  copy/projection counts, cleanup/reset, exact arithmetic output/value and
+  `2L` width. All 199 project/adapter Lean sources pass the prohibited-token
+  scan; ten pinned dependencies have matching HEADs and clean tracked trees.
+  Toolchain/Lake configuration and adapters unchanged. Failed intermediate
+  elaboration and diagnostic logs are not counted as evidence.
+- **Evidence:** `/Users/gregb/Documents/Codex/2026-11-11/advance-the-formal-proof-programme-for/work/`:
+  `addition-build.log`, `full-build.log`, `RationalAdditionAudit.lean`,
+  `final-axiom-audit.log`, `RationalAdditionExamples.lean`, `examples.log`,
+  `source-scan.log`, `dependency-audit.log`, `validation-summary.log`.
+- **Remaining:** runtime-dimension whole-input/certificate parser retaining
+  source fields, dimension/count/structure checks and bounded rejection of
+  oversized binary counts; full residual/loss traversal, accumulation and
+  serialization; complete verifier runtime; NP membership and a checked
+  binary-rational hardness bridge. Linear unique-extension threshold circuits,
+  conditional counting transfers, sampling and all three applications remain
+  separate and pending. Next reuse the completed arithmetic/norm/comparison
+  machines instead of repeating component work.
+- **Preservation/version control:** updated THEOREM_STATUS and TODO. No thesis,
+  sibling, dependency, adapter or schedule edits. Commit/push and final remote
+  parity are recorded in automation memory; remote CI is not claimed here.
