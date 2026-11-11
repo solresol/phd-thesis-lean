@@ -247,6 +247,15 @@ source hash and separate semantic, size and machine milestones.
   is at most `2L`. No gcd, arithmetic-cost premise or runtime hypothesis is
   needed. This is encoded-pair arithmetic, without whole-input validation or
   traversal/accumulation across regression rows and columns.
+- [x] Prove actual polynomial-time runtime-length fraction summation.
+  `RationalSum.computableInPolyTime` and `sumComputableInPolyTime` consume a
+  delimited internal list and return the exact unreduced fold/sum. Every
+  addition and controller/transfer step is charged; the remaining tail is
+  retained. An additive source-width budget bounds every accumulator prefix,
+  giving total time `(L+1)*(P(8L+6)+24L+24)` and output length `4L+3`.
+  `boundedLossOutputsInTime` charges summation of the already serialized norm
+  list in original combined input/certificate bits. The original binary-counted
+  parser and production of that norm list are still absent.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -256,11 +265,12 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing retaining all fields,
-and finite-machine residual/loss traversal and accumulation. Reuse
+and finite-machine residual/product traversal and norm-list production. Reuse
 `RationalAddition` addition/subtraction and `RationalArithmetic` multiplication
 and comparison, including their field construction and serialization. Compose
-residual evaluation with the rational norm machine, exact summation and final
-comparison. Charge every iteration and production of the loss fraction.
+residual evaluation with the rational norm machine, the completed `RationalSum`
+loop and final comparison. Charge every iteration and production of the serialized
+norm list; the summation loop now charges production of the loss fraction from it.
 Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate
 structures, and charge traversal and machine composition.
 In particular, retain the decoded fields, check the `r*(d+1)` data count and

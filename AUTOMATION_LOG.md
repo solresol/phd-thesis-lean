@@ -8907,3 +8907,73 @@
 - **Preservation/version control:** updated THEOREM_STATUS and TODO. No thesis,
   sibling, dependency, adapter or schedule edits. Commit/push and final remote
   parity are recorded in automation memory; remote CI is not claimed here.
+
+
+## 2026-11-12 — Polynomial-time repeated fraction summation
+
+- **Starting state:** clean `main` at `149343d3d9224025a347fad09f1343e094ec17bd`;
+  fetched origin and confirmed parity before choosing the obligation, and
+  checked again before committing. Read automation memory, AGENTS, current
+  declarations/status/TODO/working changes, thesis agenda/addendum, and the
+  6 November literature checkpoint (mainly Smith; no new literature search).
+  Used installed macOS Lean 4.35.0. No theorem-prover setup or dependency change.
+- **Completed:** default-imported `RationalSumEncoding.lean`,
+  `RationalSumMachine.lean` and `RationalSum.lean`.
+  `RationalSum.computableInPolyTime` computes the exact unreduced left fold from
+  an initial fraction and a runtime-length list; `sumComputableInPolyTime`
+  specializes to the existing evaluator's sum from zero. The internal wire
+  retains each original Boolean fraction word with an `Option Bool` delimiter;
+  all source bits, frames, signs, delimiters and the initial fraction are charged.
+  It is not the original binary-counted regression record.
+- **Actual execution:** the controller consumes one list fraction per cycle,
+  retains the untouched tail, calls the previously proved binary addition machine,
+  restores the exact result and its delimiter, then continues. `body_run` proves
+  preservation through the embedded machine; `iteration_cycle` bounds a cycle
+  by `P(u+v)+2(u+v)+2w+6`. `exit_run` uses `2u+3` transitions, including
+  output, exhaustion, cleanup and reset. All control/alphabets/stacks are finite.
+  No arithmetic-cost/runtime premise, unbounded register or uncharged transfer.
+- **Size and complete-loop runtime:** `budget_step`, `prefix_bounded` and
+  `budget_le_length` bound all accumulator fields by an additive budget in the
+  original serialized length L. `run_bounded`/`time_eval` prove total actual
+  time `(L+1)*(P(8L+6)+24L+24)` with P the proved addition-machine polynomial;
+  output length is at most `4L+3`. No tight composed degree is claimed. Empty
+  lists, zero, signs, cancellation, repetitions and unequal widths are covered.
+- **Regression specialization:** `lossOutputsInTime` outputs the evaluator's
+  exact stored loss fraction from its already serialized norm list.
+  `loss_input_length_le` bounds that list by `6+S*(4Q+4)`, where S is original
+  combined input/certificate bits and `Q=size(p)*(S+1)*(2S+1)+1`.
+  `boundedLossOutputsInTime` composes this cubic with the actual loop polynomial.
+  It does not compute residuals or produce that norm list. Whole-input malformed
+  rejection and whole-verifier composition remain outside the contract.
+- **Thesis correspondence:** repeated summation in the rational-arithmetic
+  sentence of `prop:regression-np-complete`; the proposition remains Partial.
+  Thesis commit `c700eca04c2d8a819c0403252a97134475857038`, addendum SHA-256
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`, agenda SHA-256
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` unchanged.
+  No discrepancy, thesis correction or external SAT assumption.
+- **Validation:** full `lake build PhdThesisLean DiscreteMetricRegression` passes
+  (9,332 jobs). Separate type/axiom audit: 69 new public declarations plus eight
+  earlier endpoints; 74 standard-only, three axiom-free. Full build: 1,377
+  standard-only, 38 axiom-free reports, 551 existing warnings and none new.
+  Three kernel controller traces pass. Executable decoder/arithmetic/width
+  checks pass 252 varying-list and five named cases, including 129-bit numerators
+  and repeated zeros. The tests do not execute the composed noncomputable
+  addition witness end to end; the embedding/cycle/loop proofs cover that.
+  All 202 project/adapter sources pass the prohibited-token scan; ten dependency
+  pins/tracked trees are clean; configuration and adapters unchanged; diff check
+  passes. Failed intermediate diagnostics are excluded.
+- **Evidence:** `/Users/gregb/Documents/Codex/2026-11-12/advance-the-formal-proof-programme-for/work/`:
+  `full-build.log`, `RationalSumAudit.lean`, `final-axiom-audit.log`,
+  `RationalSumExamples.lean`, `examples.log`, `source-scan.log`,
+  `dependency-audit.log`, `validation-summary.log` and audit scripts.
+- **Remaining:** runtime-dimension original input/certificate parsing, retaining
+  fields and rejecting invalid/oversized dimensions and counts; residual/product
+  traversal and norm-list production; composition with the completed norm,
+  summation and comparison machines. Then NP membership and the binary-rational
+  hardness bridge. Linear unique-extension counting circuits, conditional
+  transfers, sampling and three applications remain pending.
+- **Preservation/version control:** updated THEOREM_STATUS and TODO; no thesis,
+  sibling, dependency, adapter or schedule edits. Existing thesis Makefile,
+  thesis.tex and ornaments work preserved. Commit/push, clean committed build
+  and final remote parity are recorded in automation memory; remote CI is not
+  claimed here.

@@ -175,3 +175,4 @@ import PhdThesisLean.AllDifferentCSPObjectiveEncoding
 import PhdThesisLean.AllDifferentCSPObjectiveHeader
 import PhdThesisLean.AllDifferentCSPCorollary
 import PhdThesisLean.RationalAdditionMachine
+import PhdThesisLean.RationalSum
