@@ -8977,3 +8977,28 @@
   thesis.tex and ornaments work preserved. Commit/push, clean committed build
   and final remote parity are recorded in automation memory; remote CI is not
   claimed here.
+
+### 2026-11-12 UTC — computed Smith growth reduces to transformed prefixes
+
+- **Question/result:** the missing global forward-map polynomial remains open.
+  `SmithComputedBounds` proves that width `b>0` of `S` at every prefix of the
+  actual computed trace bounds all five matrices by exponent
+  `W=s+8s²b(b+1)²` and the complete encoded output by
+  `2*(5s+10+2s²*(2*(W+1)+2))+5`. It also proves equivalence of polynomial
+  transformed-prefix and forward-prefix growth, without supplying either
+  witness. Actual quotient selection is essential; the arbitrary-trace shear
+  obstruction and retired compounding-width approach remain in force.
+- **Validation:** readiness passed all three projects without repair. Exact
+  pinned/resource-guarded module and full-library builds passed (3,216/9,333
+  jobs), with no new-module warnings. Separate type/axiom audit passed all ten
+  new declarations and nine earlier endpoints; all 1,423 library axiom reports
+  are standard-only or axiom-free. All 203 project/adapter Lean sources and
+  diff checks passed. The optional evaluator was stopped without results;
+  none are counted as evidence. No pins, adapters, schedules, configuration,
+  sibling checkout or user machine changed.
+- **Sources/next:** reused the 6 November human-literature review and its dated
+  primary-source checks; no broad daily search or external replay. The exact
+  statement, encoding, commands, limitations and next transformed-prefix
+  invariant are recorded in [the dated Smith plan](docs/smith-complexity-plan.md#computed-trace-growth-reduction-12-november-2026-utc).
+  `thm:max-polytime` remains Partial. Evidence is retained in ignored
+  `.research/smith-computed-2026-11-12/`; the parent handles later Raksasa sync.

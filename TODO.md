@@ -131,6 +131,13 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   output length is at most `80s³+16s²+10s+25`, in either orientation and with
   empty/missing guards. This uses the actual quotient choices and bounds the
   pivot row too; it does not control iterated sweeps/stages or machine runtime.
+- [x] Reduce the computed diagonalizer's global growth obligation to transformed
+  entries alone (`SmithComputedBounds.lean`). A positive prefix width `b` for
+  `S` bounds actual quotients, then all five matrices by exponent
+  `s+8s²b(b+1)²`, and bounds the complete encoded output. The polynomial
+  transformed-prefix and forward-prefix growth obligations are proved equivalent
+  for this controller. Neither polynomial witness is constructed; arbitrary
+  traces do not admit this reduction, and no machine time is claimed.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

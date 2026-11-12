@@ -16,6 +16,7 @@ import PhdThesisLean.SmithIsolation
 import PhdThesisLean.SmithIsolationCount
 import PhdThesisLean.SmithDiagonalization
 import PhdThesisLean.SmithTraceCount
+import PhdThesisLean.SmithComputedBounds
 import PhdThesisLean.SmithPivotMinors
 import PhdThesisLean.AllDifferent
 import PhdThesisLean.AllDifferentCSP

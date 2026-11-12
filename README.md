@@ -159,6 +159,15 @@ matrices and temporary swap steps. The complete stored single-entry reducer's
 output has at most `80s³+16s²+10s+25` bits, in either orientation and including
 empty cases. Repeated sweeps, global growth and machine runtime remain open.
 
+[`SmithComputedBounds.lean`](PhdThesisLean/SmithComputedBounds.lean) reduces
+global growth for the actual diagonalizer to its transformed matrix `S`.
+If `S` has width `b` at every addition prefix, the actual quotient choices and
+the checked addition count bound all five matrices by exponent
+`s+8s²b(b+1)²` in original input length `s`, and bound the full encoded output.
+Polynomial transformed-prefix growth is equivalent to polynomial forward-map
+growth for this controller; both existence claims remain unproved. The result
+covers rectangular and empty cases and supplies no machine runtime.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

@@ -13,6 +13,11 @@ was located for the forward-map prefix invariant or uniform-machine obligation.
 Ji's nonsingular-square arithmetic scope and the prior interface limits remain;
 continue controlled-growth work without reopening completed scalar machines.
 
+The [12 November computed-trace reduction](#computed-trace-growth-reduction-12-november-2026-utc)
+proves that a polynomial transformed-entry prefix width suffices for all five
+matrices, and is equivalent to the forward-map growth obligation. Neither
+polynomial witness nor a uniform machine bound has been constructed.
+
 ## Output and input contracts
 
 Return an executable finite record containing dimensions, `U,U',V,V',S`, with
@@ -1545,3 +1550,116 @@ and semantic addition-count theorems before proving actual binary arithmetic,
 structural machines, total encoded runtime and optimizer composition.
 `thm:max-polytime` remains Partial. Stop at this coherent local increment;
 the coordinator handles Raksasa synchronization and keeps its old schedule paused.
+
+### Computed-trace growth reduction (12 November 2026 UTC)
+
+**Question and first unfinished obligation.** The existing target remains
+
+```lean
+∃ P : Polynomial ℕ, ∀ (A : Dense) (t : ℕ),
+  let Q := run (initial A.toMatrix) ((decomposeTrace A).take t)
+  (∀ i j, (Q.U i j).natAbs ≤ 2 ^ P.eval (SmithEncoding.encode A).length) ∧
+  (∀ i j, (Q.V i j).natAbs ≤ 2 ^ P.eval (SmithEncoding.encode A).length)
+```
+
+It is still unproved. Input is the existing canonical row-major signed/framed
+binary codec with unary dimension headers, of exact length
+`s=m+n+2+sum_entries(2*size(abs(z))+2)`. Output remains five framed dense
+matrices `U,Uinv,V,Vinv,S`; empty dimensions still pay for identity maps.
+The bounded attempt asks whether this **computed** controller permits a
+reduction to the widths of `S` alone. The arbitrary-trace shear obstruction
+from 8 November prevents an unrestricted inference from `S` or its minors.
+The new argument uses actual quotient selection and the checked semantic
+addition count; it does not repeat that retired inference or iterate the
+compounding local width recurrence as a polynomial proof.
+
+**Checked increment.** `SmithComputedBounds.lean` proves
+`decomposeTrace_coefficient_le`: if `b>0` and
+`PrefixWidth (initial A.toMatrix) (decomposeTrace A) b`, every actual trace
+multiplier has magnitude at most `2^b`. `PrefixWidth` bounds `S` at **every
+addition prefix**, including unfinished swaps. The selected-column invariant
+bounds one sweep's Euclidean quotients; the second sweep uses the actual
+column/row midpoint. Concatenation transfers this argument through every
+computed isolation and diagonal stage, with missing/empty guards unchanged.
+
+The previous semantic count `N≤8s²b(b+1)` and the existing per-addition growth
+theorem then give `decomposeTrace_prefix_bound`: all entries of all five
+matrices at every prefix have magnitude at most `2^W`, where
+
+```
+W = computedWidth s b = s + 8s²b(b+1)².
+```
+
+`decompose_output_length_le` bounds the complete original output encoding by
+`2*(5s+10+2s²*(2*(W+1)+2))+5`. Both integral inverse maps are explicitly
+included; no rational inversion, rank or square premise is introduced.
+`polynomial_growth_iff` proves that the target above is equivalent to
+`∃ P : Polynomial ℕ, ∀ A, PrefixWidth ... (P.eval s+1)`. In the forward
+direction its polynomial is `X+8X²(P+1)(P+2)²`; the reverse direction reuses
+the cofactor/state bound `(X+2)(P+X+1)` and one extra bit. This is an
+equivalence between two **unresolved existence claims**, not a witness for
+either. It is specific to `decomposeTrace`; arbitrary valid traces still
+admit the unbounded shear. This reduction is polynomial growth conditional
+on `b`, with separate arithmetic correctness and semantic counts. It supplies
+no arithmetic/structural machine, encoded runtime or optimizer composition.
+`thm:max-polytime` remains Partial.
+
+**Literature and reuse.** Read the latest saved
+[6 November weekly review](2026-11-06-literature-review.md) before choosing work;
+no newer review is present on fetched main `37756af`. Reused its primary-source
+checks, with external access date **6 November 2026 UTC**: Ji
+[arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2), v2 dated
+**1 August 2026**, and author artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179).
+Theorem 2.1/section 6.2 retain nonsingular-square hypotheses and exclude
+structural costs; they do not establish this project's singular/rectangular
+uniform-machine theorem. The review's
+[Kannan–Bachem abstract](https://epubs.siam.org/doi/10.1137/0208040) is not a
+bound for our controller; its full-text access limitation remains. These are
+recorded human-source results/source inspection, without independent external
+artifact replay. No fresh external access, new paper theorem, broad daily
+search, or copied code is claimed. This step depends only on checked project
+lemmas. Read-only inspection of pinned `lean-np-hardness` at
+`21e6eb462b14c0b612895b4ff03add15eea54e70` confirmed `FinEncoding`,
+`BinaryNatLists` framing and `BinaryArithmetic.binaryAdd_outputsInTime`:
+the codec and true TM2 cost boundary are reused, with no duplicated generic
+foundation, arithmetic machine or Complexitylib adapter.
+
+**Environment and validation.** Used only the explicitly selected published
+theorem-provers instance. Current runtime status was running/connected with
+current observations and enforced policy; full shared startup and final gates
+passed thesis, Littlewood and Scholz, including the repaired Scholz receipt.
+Read `AGENTS.md` and shared saved `START.md`; sourced its environment. Verified
+clean authorized origin, fetched live main `37756afa180b3d44fc799cdeca930ef17ac0e312`,
+verified ancestry, preserved generated `work` and created tracking `main`.
+No other production research process was present at startup. No other worker,
+installation, pin change, preparation, receipt generation, environment
+publication, schedule edit or user-machine access occurred.
+
+Using `prepare.py`'s guarded runner, `env_for('thesis')`, absolute installed
+Lean/Lake **4.35.0**, two threads and existing caches, these commands passed:
+`lake build PhdThesisLean.SmithComputedBounds` (3,216 jobs), then
+`lake build PhdThesisLean DiscreteMetricRegression` (9,333 jobs).
+The new module has no warnings; builds replay 47/555 warnings in existing
+sources. Its two kernel specializations cover both empty orientations with
+nonempty identity maps. A separate Lean process checked types and `#print
+axioms` for all ten new public declarations and nine prior correctness,
+empty-case, count, shear and optimizer endpoints: 18 standard-only reports
+and one axiom-free definition, no warnings/errors. All 1,423 full-build axiom
+reports use only `propext`, `Classical.choice`, `Quot.sound` or subsets
+(39 axiom-free). All 203 tracked/new project and adapter Lean sources pass
+the nested-comment/string-aware prohibited-token scan; diff checks pass.
+The optional eight-case evaluator was stopped after about two minutes without
+returning a result. Its script/log is retained and no finite-output evidence
+is accepted from it; the universal proofs and separate audits above passed.
+Proof builds themselves needed no failed-script repair. Evidence is in ignored
+`.research/smith-computed-2026-11-12/`.
+
+**Next exact obstacle.** Prove a single polynomial transformed-prefix width
+`b=P(s)+1` throughout alternating sweeps and all diagonal stages, or verify a
+controlled-growth replacement. A final-state bound or arbitrary-trace validity
+is insufficient. The new reduction then bounds all five matrices and complete
+output; existing counts give semantic additions. Concrete uniform arithmetic,
+control/traversal/serialization machines, total correctness on the codec and
+final optimizer composition remain separate requirements. Stop at this audited
+reduction. The parent coordinates any later Raksasa fast-forward.

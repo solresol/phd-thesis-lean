@@ -275,6 +275,26 @@ uniform machine runtime or optimizer composition follows; the headline stays
 Partial. The earlier quadratic local bound remains valid but is superseded
 for this single-pivot/single-entry use.
 
+`SmithComputedBounds.lean` now uses the actual controller's quotient selection
+to reduce global growth to transformed entries alone. Given `b>0` and
+`SmithTraceCount.PrefixWidth (initial A.toMatrix) (decomposeTrace A) b`, every
+selected multiplier has magnitude at most `2^b`. The existing conditional count
+then bounds all five matrices at every addition prefix by
+`2^(s+8s²b(b+1)²)`, where `s` is the original complete dense input length.
+`decompose_output_length_le` bounds the complete five-matrix encoding by
+`2*(5s+10+2s²*(2*(s+8s²b(b+1)²+1)+2))+5`. Unary dimensions, inverse maps,
+singular rectangles and empty inputs remain covered.
+`polynomial_growth_iff` proves equivalence of existence of a polynomial
+transformed-prefix width and existence of a polynomial bound for both forward
+maps, specifically for the computed trace. It supplies neither polynomial
+witness. This does not contradict the arbitrary-trace shear obstruction: that
+trace has no controller-selected quotient guarantee. Arithmetic correctness,
+conditional growth and semantic counts remain separate from machine costs.
+No uniform machine, unconditional global growth bound or optimizer composition
+is added; `thm:max-polytime` stays Partial. All ten new public declarations
+were separately audited with only standard axioms (the width definition is
+axiom-free); see the dated research record in the Smith plan.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |
