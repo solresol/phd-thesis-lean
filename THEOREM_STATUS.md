@@ -1359,7 +1359,7 @@ entropy formulas can be derived later if useful.
 Specification: `../phd-thesis/complexity-regimes/eth-addendum.tex`, at thesis
 commit `c700eca04c2d8a819c0403252a97134475857038`, SHA-256
 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
-Audited on 11 November 2026 (Sydney). These additions are separate from the
+Audited on 13 November 2026 (Sydney). These additions are separate from the
 earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 
 | Obligation | Status | Checked declaration or remaining work |
@@ -1380,8 +1380,9 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Subtraction of aligned binary magnitudes | Complete (machine component) | `BinarySubtraction.Machine.run`, `outputsInTime` and `computableInPolyTime` compute natural subtraction, returning zero on underflow, in exactly `2L+2` finite TM2 transitions. Here `L=max(size(m),size(n))` is the complete library aligned-pair length over `Option Bool × Option Bool`. Borrow propagation, high-zero removal, canonical empty zero, input/work cleanup and state reset are included. `subtract_borrow` identifies the underflow bit; `output_length_le` bounds output by `L`. Signed addition/subtraction on the original framed words is supplied by the following increment. |
 | Signed integer addition and subtraction | Complete (machine components) | `SignedIntegerAddition.run`, `outputsInTime`, `additionComputableInPolyTime` and `subtractionComputableInPolyTime` consume two concatenated `SmithEncoding.encodeInt` words and return the exact sum or difference in that same format. A concrete six-stack finite TM2 takes at most `4L` transitions in all source Boolean bits, including parsing, comparison with digit retention, recovery, finite carry/borrow, high-zero removal, sign selection, framing and cleanup/reset. `output_length_le` bounds the complete result by `L`. No arithmetic-cost premise or adapter runtime assumption is used; arbitrary malformed-string rejection remains outside this encoded-pair contract. |
 | Fraction addition and subtraction | Complete (machine components) | `RationalAddition.additionComputableInPolyTime` and `subtractionComputableInPolyTime` consume the original concatenated Boolean fraction words and return exactly the existing unreduced `Fraction.add`/`Fraction.sub` encoding. Three signed products, signed addition/subtraction, source duplication, denominator projection, preservation and every adapter transfer are charged. `Copy.run` takes exactly `3L+3` steps; `Right.run` takes `u+2v+2` for its tagged component lengths. `assemble_operation` proves exact serialization; `value_correct` gives rational semantics; `output_length_le` bounds the full result by `2L`. No arithmetic-cost or runtime premise is supplied. Malformed-input rejection and iteration across regression data remain separate. |
-| Repeated fraction summation | Complete (machine component) | `RationalSum.computableInPolyTime` and `sumComputableInPolyTime` run a uniform finite TM2 over an initial fraction and a runtime-length delimited list. Every addition, delimiter, transfer, tail retention and final output is charged. An additive source-width budget bounds every accumulator prefix; the complete time is `(L+1)*(P(8L+6)+24L+24)` in actual serialized length, where `P` is the proved addition-machine polynomial. `boundedLossOutputsInTime` specializes to the already serialized norm list and charges summation against original combined input/certificate bits. The original regression parser and norm-list production remain pending. |
-| Polynomial-time verifier on binary rational data | Pending as a whole | Exact binary rational norms, individual fraction-string validity, signed-integer arithmetic components, fraction multiplication, addition, subtraction, comparison and runtime-length summation now have complete machine theorems; the unreduced-fraction arithmetic checker has semantic correctness and polynomial intermediate-width bounds. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold. Still required: uniform runtime-dimension input/certificate parsing with dimension/count/structure rejection, residual evaluation and norm-list production, composition with the completed summation/comparison machines, and the end-to-end verifier time bound. The standalone validity machine is not yet composed with the norm machine or a whole regression-input parser. |
+| Repeated fraction summation | Complete (machine component) | `RationalSum.computableInPolyTime` and `sumComputableInPolyTime` run a uniform finite TM2 over an initial fraction and a runtime-length delimited list. Every addition, delimiter, transfer, tail retention and final output is charged. An additive source-width budget bounds every accumulator prefix; the complete time is `(L+1)*(P(8L+6)+24L+24)` in actual serialized length, where `P` is the proved addition-machine polynomial. `boundedLossOutputsInTime` specializes to the already serialized norm list and charges summation against original combined input/certificate bits. Norm-list production from serialized residuals is supplied by the following increment; original regression parsing and residual computation remain pending. |
+| Norm-list traversal and summed loss from residuals | Complete (machine components) | `RationalNormList.computableInPolyTime` maps the original binary norm machine over a runtime-length delimited fraction list, preserving order and multiplicities and producing the exact summation encoding. All calls, tail/prefix preservation, transfers, delimiters, reversal and the six-symbol zero prefix are charged. In complete source length `L`, time is `(L+1)*(P(L)+(8*size(p)+2)*L+20)` and output length is at most `(4*size(p)+8)*L+6`. `sumComputableInPolyTime` composes this with actual fraction summation; `boundedLossOutputsInTime` returns the exact stored loss fraction from serialized residuals in polynomial original combined input/certificate length. The original parser and residual-list generation remain open. |
+| Polynomial-time verifier on binary rational data | Pending as a whole | Exact binary rational norms, individual fraction-string validity, signed-integer arithmetic components, fraction multiplication, addition, subtraction, comparison, runtime-length norm traversal and summation now have complete machine theorems; the unreduced-fraction arithmetic checker has semantic correctness and polynomial intermediate-width bounds. `RationalWitnessEncoding.encodeInput` specifies binary dimensions, indexed rational data and threshold. Still required: uniform runtime-dimension input/certificate parsing with dimension/count/structure rejection, residual evaluation/list production, composition with the completed norm/summation/comparison machines, and the end-to-end verifier time bound. The standalone validity machine is not yet composed with the norm machine or a whole regression-input parser. |
 | NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
@@ -2001,6 +2002,81 @@ excluded from the final evidence.
 No external SAT counter is used. Such a counter must remain an explicit theorem
 hypothesis until its actual theorem, encoding, machine model, toolchain and axioms are compatible
 and checked; assuming it will not verify an ETH refutation.
+
+
+### Norm-list traversal and loss composition increment (13 November 2026)
+
+`RationalNormListMachine.lean` and `RationalNormList.lean` close production of
+all norms and their exact sum from a serialized runtime-length residual list.
+`computableInPolyTime` maps `Fraction.norm p`; `sumComputableInPolyTime` then
+composes it with the checked `RationalSum` machine. These are actual uniform
+finite TM2 computations for each fixed prime, with no supplied arithmetic-cost
+or runtime assumption. The source alphabet is `Option Bool`, retaining each
+original `Fraction.encode` Boolean word and adding one delimiter per fraction.
+Unlike the prior summation source, it has no initial accumulator. `encoding`
+has a checked decoder round trip. The produced norm list includes the exact
+six-symbol zero prefix expected by `RationalSum.listEncoding`.
+
+The controller scans and loads each source word, embeds the existing norm
+machine while preserving both the remaining tail and the accumulated output,
+collects each result into a reversed output list and appends its delimiter.
+After exhaustion it reverses that list once, emits the constant zero prefix,
+clears scratch stacks and resets control. `body_run` proves preservation during
+every embedded step. `iteration_cycle` charges `P(u)+2u+v+4`, with `u,v` the
+complete source/result word lengths and `P` the previously checked norm-machine
+time polynomial. `exit_run` charges `a+2` for an accumulated list of length `a`,
+including empty input. The constant prefix is a fixed finite TM2 statement,
+not a variable-length operation hidden in one transition.
+
+`run_bounded` charges all later output reversal as well as each call.
+`time_eval` gives `(L+1)*(P(L)+(8*size(p)+2)*L+20)` in full internal input length
+`L`. `output_length_le` gives `(4*size(p)+8)*L+6` for the complete produced list.
+No tight degree is claimed for the composed map/sum machine. Fractions may be
+unreduced, signed or zero; empty lists, repeated fractions and unequal widths
+are included. Order and observation multiplicities are preserved.
+
+`map_residuals` identifies the produced list with `RationalVerifierBounds.losses`.
+`lossOutputsInTime` returns its exact stored sum fraction; `loss_value_correct`
+identifies its rational value with the thesis summed loss. The internal source
+has length at most `S*(4*(S+1)*(2S+1)+4)`, where `S` is the original combined
+input/certificate bit length. `boundedLossOutputsInTime` composes this bound
+with the actual map/sum runtime, assuming positive row count only for that size
+charging. It starts with serialized residuals: their generation, the original
+binary-counted input/certificate parser, malformed-structure rejection and
+final threshold assembly/comparison are not part of this endpoint. Existing
+comparison machines still need composition with these phases.
+
+Correspondence: this closes norm traversal and its summation composition in the
+rational-arithmetic sentence of `prop:regression-np-complete`, checked against
+thesis `c700eca04c2d8a819c0403252a97134475857038` and the unchanged addendum hash
+above. The agenda hash is
+`9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`.
+There is no mathematical discrepancy or thesis claim change. The proposition
+remains Partial; semantic existence and certificate size remain complete,
+whereas the whole verifier, NP membership, the hardness encoding bridge and
+NP-completeness remain open. No external SAT-counter hypothesis is used.
+Counting circuits, conditional transfers, approximation and applications remain
+pending. Next implement the original bounded-count parser and residual-list
+production, then compose the existing norm/sum phase and final comparison.
+
+Validation: full `lake build PhdThesisLean DiscreteMetricRegression` passes
+(9,335 jobs). Independent type/axiom audit covers all 52 new explicit public
+declarations and nine prior endpoints: 57 standard-only and four axiom-free
+reports. Full-build reports: 1,393 standard-only, 39 axiom-free and 551 existing
+warnings, none new. Four literal controller executions reduce in the kernel
+(scanning with tail/prefix retention, empty exit, returned-result delimiter,
+and final reversal/prefix). Executable decoder, arithmetic-value, order/count
+and width checks pass 1,080 varying-list/prime cases and 18 named/prime cases
+at primes 2, 3 and 5, including unreduced fractions, repeated zeros, opposite
+signs and 129-bit numerators. A rank-deficient design with conflicting repeated
+rows has the checked expected loss. These examples do not execute the composed
+noncomputable norm/summation witnesses end to end; the embedding, loop and
+composition proofs establish that execution. All 205 project/adapter sources
+pass the prohibited-token scan, all ten dependencies match pins with clean
+tracked sources, and diff checks pass. Failed intermediate diagnostics are
+excluded. Toolchain, Lake configuration, adapters, siblings and schedules are
+unchanged. Remote CI is not claimed.
+
 
 ## Supporting-statement formalisations
 

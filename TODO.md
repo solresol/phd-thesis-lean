@@ -261,8 +261,17 @@ source hash and separate semantic, size and machine milestones.
   retained. An additive source-width budget bounds every accumulator prefix,
   giving total time `(L+1)*(P(8L+6)+24L+24)` and output length `4L+3`.
   `boundedLossOutputsInTime` charges summation of the already serialized norm
-  list in original combined input/certificate bits. The original binary-counted
-  parser and production of that norm list are still absent.
+  list in original combined input/certificate bits. Norm-list production is
+  supplied by the following increment; the original binary-counted parser and
+  residual-list production remain open.
+- [x] Runtime-length norm traversal and summed loss from serialized residuals:
+  `RationalNormList.computableInPolyTime` produces the exact norm list with its
+  summation prefix, charging every call, tail/prefix retention, delimiter and
+  reversal. In full internal source length `L`, time is
+  `(L+1)*(P(L)+(8*size(p)+2)*L+20)` and output length is at most
+  `(4*size(p)+8)*L+6`. `sumComputableInPolyTime` composes exact summation;
+  `boundedLossOutputsInTime` charges both phases in original combined bits.
+  This starts with serialized residuals; their production remains open.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -272,12 +281,13 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing retaining all fields,
-and finite-machine residual/product traversal and norm-list production. Reuse
+and finite-machine residual/product traversal producing the serialized residual list. Reuse
 `RationalAddition` addition/subtraction and `RationalArithmetic` multiplication
 and comparison, including their field construction and serialization. Compose
-residual evaluation with the rational norm machine, the completed `RationalSum`
-loop and final comparison. Charge every iteration and production of the serialized
-norm list; the summation loop now charges production of the loss fraction from it.
+residual evaluation with the completed `RationalNormList.sumComputableInPolyTime`
+and final comparison. Charge every residual/product iteration and its serialized
+output; norm traversal and exact summation now charge production of the loss
+fraction from that residual list.
 Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate
 structures, and charge traversal and machine composition.
 In particular, retain the decoded fields, check the `r*(d+1)` data count and

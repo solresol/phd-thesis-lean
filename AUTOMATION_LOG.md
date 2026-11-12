@@ -9002,3 +9002,42 @@
   invariant are recorded in [the dated Smith plan](docs/smith-complexity-plan.md#computed-trace-growth-reduction-12-november-2026-utc).
   `thm:max-polytime` remains Partial. Evidence is retained in ignored
   `.research/smith-computed-2026-11-12/`; the parent handles later Raksasa sync.
+
+
+### 2026-11-12 UTC — polynomial-time norm traversal and summed residual loss
+
+- Closed `RationalNormList.computableInPolyTime` and `sumComputableInPolyTime`:
+  runtime-length delimited binary fraction lists are mapped through the actual
+  fixed-prime norm machine, then exactly summed. Every norm call, tail/output
+  retention, transfer, delimiter, reversal, zero prefix and composition adapter
+  is charged. Map time is `(L+1)*(P(L)+(8*size(p)+2)*L+20)`; complete mapped
+  output length is at most `(4*size(p)+8)*L+6`.
+- `boundedLossOutputsInTime` computes the evaluator's exact stored loss from
+  serialized residuals, with source length at most `S*(4*(S+1)*(2S+1)+4)` in
+  original data/certificate bits. `loss_value_correct` identifies the thesis
+  objective. This does not produce residuals or parse the original binary-counted
+  input; those and whole-verifier/comparison composition remain. NP membership,
+  hardness encoding bridge, NP-completeness and the counting/sampling sequence
+  stay open. No external SAT assumption or thesis claim change.
+- Started clean at `37756af`, fetched and fast-forwarded `08db812` Smith work,
+  and preserved it. Read AGENTS, status/TODO, actual declarations and changes,
+  previous run and 6 November literature checkpoint; no fresh search claimed.
+  Thesis `c700eca` and agenda/addendum hashes are unchanged; correspondence is
+  the arithmetic sentence of `prop:regression-np-complete`, which stays Partial.
+  The installed macOS Lean 4.35.0 was used; the Linux `/workspace` readiness
+  instructions describe a different host. No dependency/configuration/adapter,
+  sibling or schedule changes; existing thesis edits were preserved.
+- Full `lake build PhdThesisLean DiscreteMetricRegression` passes (9,335 jobs).
+  Independent type/axiom audit: 52 new public declarations plus nine earlier
+  endpoints, 57 standard-only and four axiom-free reports. Full build: 1,393
+  standard-only, 39 axiom-free; 551 old warnings, none new. All 205 source files
+  pass the prohibited-token scan; ten dependency pins/tracked trees and diff
+  checks pass. Four kernel controller traces, 1,080 varying-list/prime cases,
+  18 named/prime cases and a conflicting repeated-row regression example pass.
+  Executable checks do not run the noncomputable composed witnesses end to
+  end; the machine proofs establish those runs. Failed intermediate diagnostics
+  are excluded; remote CI is not claimed.
+- Evidence: `/Users/gregb/Documents/Codex/2026-11-13/advance-the-formal-proof-programme-for/work/`:
+  `full-build.log`, `RationalNormListAudit.lean`, `final-axiom-audit.log`,
+  `RationalNormListExamples.lean`, `examples.log`, `source-scan.log`,
+  `dependency-audit.log`, `validation-summary.log` and audit scripts.
