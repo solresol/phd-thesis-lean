@@ -280,6 +280,16 @@ source hash and separate semantic, size and machine milestones.
   `(4*size(p)+8)*L+6`. `sumComputableInPolyTime` composes exact summation;
   `boundedLossOutputsInTime` charges both phases in original combined bits.
   This starts with serialized residuals; their production remains open.
+- [x] Compute a runtime-length rational dot product and one complete residual.
+  `RationalDotProduct.computableInPolyTime` traverses internal paired columns,
+  charges each product and all transfers, and emits the exact summation format
+  in `(L+1)*(P(L)+4L+6)` steps with length at most `L+6`. Its sum composition
+  performs accumulation. `RationalRowResidual.computableInPolyTime` retains the
+  response, erases pair tags and subtracts; `evaluate_row` identifies the exact
+  original unreduced residual. `boundedRowOutputsInTime` charges the full
+  arithmetic phase in original combined bits `S` via source bound `8S²+11S+3`.
+  The response and paired column list are already serialized; their production
+  and the outer observation loop remain open.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -289,13 +299,13 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing retaining all fields,
-and finite-machine residual/product traversal producing the serialized residual list. Reuse
-`RationalAddition` addition/subtraction and `RationalArithmetic` multiplication
-and comparison, including their field construction and serialization. Compose
-residual evaluation with the completed `RationalNormList.sumComputableInPolyTime`
-and final comparison. Charge every residual/product iteration and its serialized
-output; norm traversal and exact summation now charge production of the loss
-fraction from that residual list.
+and finite-machine row/certificate pairing and outer observation traversal.
+Reuse `RationalRowResidual.computableInPolyTime` for the completed arithmetic
+of each paired row, including product traversal, accumulation and subtraction.
+Produce the serialized residual list, then compose the already completed
+`RationalNormList.sumComputableInPolyTime` and final comparison. Charge all
+source preparation, dimension/count checks, row iterations and serialization;
+a polynomial source-size bound alone does not charge its production.
 Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate
 structures, and charge traversal and machine composition.
 In particular, retain the decoded fields, check the `r*(d+1)` data count and

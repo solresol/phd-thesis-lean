@@ -179,3 +179,4 @@ import PhdThesisLean.AllDifferentCSPCorollary
 import PhdThesisLean.RationalAdditionMachine
 import PhdThesisLean.RationalSum
 import PhdThesisLean.RationalNormList
+import PhdThesisLean.RationalRowResidual

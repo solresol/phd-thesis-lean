@@ -9079,3 +9079,69 @@
   `thm:max-polytime` stays Partial. Detailed statement/encoding/source record is
   in the dated Smith plan; local commands/audits are in ignored
   `.research/smith-exact-2026-11-13/`. Parent coordinates any Raksasa sync.
+
+
+### 2026-11-13 UTC — polynomial-time dot products and complete row residuals
+
+- Scope: advanced `prop:regression-np-complete` in the requested repository.
+  Read automation memory, AGENTS, status/TODO, actual declarations and changes,
+  thesis agenda/addendum, and the latest 6 November literature checkpoint.
+  Started clean at `de8175c`; fetched/fast-forwarded to `0d05ef4`, preserving
+  the new exact-division Smith work. Precommit fetch found no further upstream
+  change. Installed macOS Lean 4.35.0 was used; no fresh literature search or
+  external-counter compatibility audit was needed for this arithmetic task.
+- Added four default-imported modules: `RationalDotProductEncoding`,
+  `RationalDotProductMachine`, `RationalDotProduct`, `RationalRowResidual`.
+  The actual finite product-list controller preserves tail and accumulated
+  output, invokes the existing multiplication machine on every paired column,
+  emits delimiters and the six-symbol zero prefix, and performs full reversal,
+  cleanup and reset. Per-cycle bound `P(u)+2u+v+4`, complete traversal bound
+  `(L+1)*(P(L)+4L+6)`, complete product-list length at most `L+6`.
+  `sumComputableInPolyTime` composes actual exact summation.
+- `RationalRowResidual.computableInPolyTime` retains the response through that
+  complete dot product, reuses the proved cell-map machine for pair-tag erasure
+  (`2T+2` steps), and invokes fraction subtraction. `evaluate_row` proves exact
+  equality of the unreduced fraction with the existing fold-subtraction
+  residual. The runtime column count, empty row, unreduced/signed fractions,
+  cancellation, repeats and arbitrary rank are covered. All pair/composition
+  adapters and output construction are charged, without a runtime premise.
+- Input boundary: the response and paired columns are already serialized in
+  a fixed finite internal alphabet. Checked decoder round trips. Paired-row
+  source length is at most `S*(8S+7)` and response-plus-row length at most
+  `8S²+11S+3` in original combined data/certificate bits. The bound composes
+  with the actual residual-machine polynomial in `boundedRowOutputsInTime`;
+  it does not charge creating this source. No tight runtime degree claimed.
+- Thesis correspondence: current thesis commit
+  `c700eca04c2d8a819c0403252a97134475857038`; agenda/addendum SHA-256 remain
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` /
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+  This closes the per-row arithmetic ingredient of the proposition's
+  polynomial bit-time sentence. No discrepancy, thesis edit, SAT assumption
+  or ETH-refutation claim. Existing thesis Makefile/thesis.tex/ornaments work
+  is preserved; no sibling, dependency, adapter or schedule changes.
+- Validation: targeted build and full `lake build PhdThesisLean
+  DiscreteMetricRegression` pass (9,340 jobs). Independent type/axiom audit:
+  76 new explicit public declarations plus ten earlier endpoints; 79
+  standard-only and seven axiom-free reports. Full build: 1,420 standard-only,
+  40 axiom-free, 551 existing warnings and none new. Five kernel controller/
+  tag-erasure traces pass. Executable codec, arithmetic, exact unreduced
+  equality, order/count and length checks pass 405 varying-list and six named
+  cases, including 129-bit numerators; repeated-row residuals `[0,1,-1]`, loss
+  `2` at prime two, source bounds and zero-column identity also pass. Examples
+  do not execute noncomputable composed witnesses end to end; their executions
+  are established by the checked embedding/traversal/composition proofs.
+  All 210 project/adapter sources pass the prohibited-token scan; all ten
+  dependency pins/tracked sources are clean; configuration/adapters unchanged;
+  diff check passes. Failed intermediate diagnostics are excluded.
+- Evidence: `/Users/gregb/Documents/Codex/2026-11-14/advance-the-formal-proof-programme-for/work/`:
+  `product-machine-build.log`, `dot-product-build.log`, `row-residual-build.log`,
+  `full-build.log`, `RationalResidualAudit.lean`, `final-axiom-audit.log`,
+  `RationalResidualExamples.lean`, `examples.log`, `source-scan.log`,
+  `dependency-audit.log`, `validation-summary.log` and audit scripts.
+- Next: original input/certificate parsing and validation with bounded
+  oversized-count rejection; row/certificate pairing and the outer observation
+  loop that produces the serialized residual list. Reuse the completed row
+  residual machine, norm/sum and comparison machines; then whole-verifier
+  runtime, NP membership and the binary-rational hardness bridge. Counting
+  circuits, conditional transfers, sampling and three applications remain
+  pending. Remote CI was not checked; local validation is the evidence here.
