@@ -17,6 +17,9 @@ The [12 November computed-trace reduction](#computed-trace-growth-reduction-12-n
 proves that a polynomial transformed-entry prefix width suffices for all five
 matrices, and is equivalent to the forward-map growth obligation. Neither
 polynomial witness nor a uniform machine bound has been constructed.
+The [13 November exact-division increment](#exact-division-phases-13-november-2026-utc)
+proves a restricted local invariant for phases with divisible incoming arms;
+it does not discharge the global obligation.
 
 ## Output and input contracts
 
@@ -1663,3 +1666,102 @@ output; existing counts give semantic additions. Concrete uniform arithmetic,
 control/traversal/serialization machines, total correctness on the codec and
 final optimizer composition remain separate requirements. Stop at this audited
 reduction. The parent coordinates any later Raksasa fast-forward.
+
+
+### Exact-division phases (13 November 2026 UTC)
+
+**First unfinished obligation and bounded question.** On fetched live main
+`de8175cbf50ec2833f83fcf96e22b384d4476b74`, yesterday's five-matrix reduction
+is already complete. The remaining exact growth target is still
+
+```lean
+∃ P : Polynomial ℕ, ∀ A : Dense,
+  PrefixWidth (initial A.toMatrix) (decomposeTrace A)
+    (P.eval (SmithEncoding.encode A).length + 1)
+```
+
+Input remains canonical signed/framed binary row-major entries with unary
+dimension headers, of length `s=m+n+2+sum(2*size(abs(z))+2)`. Output remains
+five framed dense matrices `U,Uinv,V,Vinv,S`, including the identity maps in
+empty orientations. No representation or dependency pin changed. The bounded
+attempt asks whether exact-division stretches can avoid paying a fresh width
+factor for every cleared target. It does not assume the target prefix bound.
+
+**Checked increment.** `SmithExactDivision.lean` uses the existing controller.
+When its pivot `p=S[r,j]` divides the incoming selected column,
+`sweepRows_entry_of_dvd` identifies every visited nonpivot row entry as
+`S[i,l] - (S[i,j].tdiv p)*S[r,l]`; unvisited rows and the pivot row stay fixed.
+Repeated targets contribute zero after their first visit. Multiplication by
+`p` gives the exact incoming 2-by-2 minor (`sweepRows_target_numerator`),
+without rational inversion or cancellation at zero. Prefix replay identifies
+all five matrices with the same sweep on the visited targets, including zero
+quotients. Thus transformed magnitude is at most `H+H²` for the entire sweep
+and every prefix, independently of its number of targets.
+
+`ExactArms Q k` adds divisibility of the incoming pivot row and zero entries
+above the pivot column. After the column pass that column has no nonpivot
+entries. The row pass therefore retains or zeros entries of `S`, and leaves
+all nonpivot rows unchanged. `cross_target_numerator` gives the full pair's
+same incoming-minor formula. `crossTrace_prefix_width_of_dvd` proves width
+`2c+2` for every actual addition prefix from transformed width `c`.
+`crossTrace_length_of_dvd` gives at most `m+n` semantic additions. Reusing
+actual quotient bounds and the existing five-matrix step invariant gives
+`crossTrace_input_prefix_bound`: all five magnitudes at every prefix are at
+most `2^(2s²+4s)`. `crossDense_output_length_of_dvd` charges all signs,
+dimensions, inverse maps and output frames, yielding
+`16s⁴+32s³+16s²+10s+25` bits. Total runtime-indexed wrappers retain missing
+positions and both empty orientations. Kernel specializations exercise a
+negative nonunit pivot, repeated targets, zero and singular rectangles, empty
+orientations and a missing position; these examples are scope checks, while
+the universal proofs establish the bounds.
+
+**Exact remaining obstacle.** This is a local invariant with finite incoming
+divisibility premises, not an unconditional global bound. `ExactArms` is not
+proved for every stage: nondivisible arms trigger Euclidean reductions that
+change the pivot. Their interaction with the incoming-minor formula remains
+uncontrolled, as do the inputs to later diagonal stages. Even repeated exact
+local estimates `c ↦ 2c+2` alone can compound; no polynomial original-input
+bound follows without an additional cross-stage invariant. The inference from arbitrary-trace
+validity and the naive compounding-width route remain retired. Next, control
+the pivot-changing phases and relate the minors across stages, or verify a
+controlled-growth replacement. Uniform arithmetic/control/traversal and
+serialization machines, total encoded runtime and optimizer composition remain
+separate. `thm:max-polytime` stays Partial; no other research queue is reopened.
+
+**Literature and reuse.** Consulted the latest saved
+[6 November weekly human-literature review](2026-11-06-literature-review.md)
+before choosing work; no newer review exists on the fetched main. Its source
+access date is **6 November 2026 UTC**. Ji
+[arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2), v2 dated
+**1 August 2026**, and artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179)
+retain nonsingular-square hypotheses and an arithmetic-leaf model excluding
+structural costs. They do not supply this project's singular/rectangular
+uniform-machine theorem. The review's
+[Kannan–Bachem publisher abstract](https://epubs.siam.org/doi/10.1137/0208040)
+is not a bound for this controller; full-text access remained unavailable in
+that review. These are recorded human-source results and source inspection,
+without independent external artifact replay. No fresh external-access claim,
+broad daily search or newly imported paper theorem is made here. The new
+proof depends only on project lemmas and pinned integer identities. Read-only
+inspection of pinned `lean-np-hardness` `FinEncoding`, `BinaryNatLists` and
+`BinaryArithmetic.binaryAdd_outputsInTime` confirmed reuse of the codec and
+the separate true TM2 cost boundary. No generic foundations or adapter were
+duplicated.
+
+**Execution and verification.** Read `AGENTS.md` and saved shared `START.md`;
+the full startup gate passed all three projects using the published runtime.
+Origin was the authorized `solresol/phd-thesis-lean`; the generated `work`
+branch was clean at `de8175c`, identical to fetched main. Preserved it, verified
+ancestry and created tracking `main`. No overlapping research process was
+present. Used only this selected cloud checkout and its pinned Lean/Lake
+4.35.0, two threads, existing caches, `prepare.py`'s `env_for('thesis')` and
+resource-guarded runner. No installation, preparation, pin/receipt change,
+publication, schedule change, sibling edit or user-machine access occurred.
+Initial scripts failed on conditional normalization, proof-binder reduction
+and a missing list-length simplification; explicit rewrites repaired them.
+Failed elaborations and their temporary error-recovery axiom reports are not
+proof evidence. Final build/audit results are recorded in `AUTOMATION_LOG.md`;
+command transcripts and independent audit sources are retained in ignored
+`.research/smith-exact-2026-11-13/`. Stop after this audited increment; the
+parent coordinates any Raksasa fast-forward and preserves its paused schedule.

@@ -168,6 +168,15 @@ Polynomial transformed-prefix growth is equivalent to polynomial forward-map
 growth for this controller; both existence claims remain unproved. The result
 covers rectangular and empty cases and supplies no machine runtime.
 
+[`SmithExactDivision.lean`](PhdThesisLean/SmithExactDivision.lean) proves a
+restricted growth invariant for a sweep pair whose incoming pivot divides both
+arms and whose earlier pivot-column entries are zero. The trailing entries have
+exact Schur-complement numerators; transformed width stays within `2c+2` at
+every addition prefix, independently of the number of targets. All five matrices
+have exponent `2s²+4s` and the complete output has a quartic bit bound. The
+premises are not a global invariant: pivot-changing phases, growth through later
+stages and uniform machine runtime remain open.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

@@ -295,6 +295,25 @@ is added; `thm:max-polytime` stays Partial. All ten new public declarations
 were separately audited with only standard axioms (the width definition is
 axiom-free); see the dated research record in the Smith plan.
 
+`SmithExactDivision.lean` now proves a restricted incoming-state invariant
+for exact-division phases of that same controller. `ExactArms` requires the
+pivot to divide its incoming row and column, with earlier pivot-column entries
+zero; it is vacuous at missing positions. `sweepRows_entry_of_dvd` gives the
+exact Schur-complement entries, including repeated targets and zero pivots.
+`cross_target_numerator` transfers the incoming 2-by-2 minor formula to the
+complete sweep pair. `crossTrace_prefix_width_of_dvd` bounds transformed width
+by `2c+2` at every addition prefix; the second sweep cannot grow `S` once the
+pivot column is cleared. `crossTrace_length_of_dvd` counts at most `m+n`
+additions. In original dense input length `s`, the corresponding all-five prefix
+exponent is `2s²+4s`, and `crossDense_output_length_of_dvd` bounds complete
+output by `16s⁴+32s³+16s²+10s+25` bits, including both inverse maps and empty
+rectangles. The 16 public declarations audit with standard axioms or none.
+This does not prove `ExactArms` throughout the diagonalizer, or bound the
+pivot-changing phases or later-stage inputs. Iterating the local bound alone
+still compounds widths. The thesis correspondence is unchanged:
+`thm:max-polytime` remains **Partial**, with global encoded-bit bounds, uniform
+machines, total runtime and final optimizer composition still open.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |

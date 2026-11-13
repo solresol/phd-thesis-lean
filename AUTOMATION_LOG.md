@@ -9041,3 +9041,41 @@
   `full-build.log`, `RationalNormListAudit.lean`, `final-axiom-audit.log`,
   `RationalNormListExamples.lean`, `examples.log`, `source-scan.log`,
   `dependency-audit.log`, `validation-summary.log` and audit scripts.
+
+### 2026-11-13 UTC — exact-division Smith phases
+
+- **Question/result:** the first open target is still a polynomial transformed
+  width at every prefix of `decomposeTrace` in original encoded input bits.
+  `SmithExactDivision` proves a restricted incoming-state invariant: a pivot
+  dividing both arms, with earlier pivot-column entries zero, gives exact
+  Schur-complement numerators, transformed prefix width `2c+2` and at most
+  `m+n` additions for one sweep pair. Its all-five prefix exponent is `2s²+4s`;
+  the pair's full five-matrix output has at most
+  `16s⁴+32s³+16s²+10s+25` bits. Zero/nonunit signed pivots, repeated targets,
+  singular rectangles and empty/missing guards remain covered. This is a proof
+  of local arithmetic/size claims, not a global invariant or machine runtime.
+- **Attempt/checks:** conditional-rewrite and proof-binder diagnostics initially
+  failed; explicit rewrites repaired them. Those failed elaborations are not
+  evidence. Pinned resource-guarded `lake build PhdThesisLean.SmithExactDivision`
+  and `lake build PhdThesisLean DiscreteMetricRegression` passed (3,217/9,336
+  jobs). No new-module warnings; the full build replays 551 prior warnings.
+  Independent `lake env lean .../Audit.lean` checked 16 new and eight earlier
+  declarations: 23 standard-only axiom reports and one axiom-free definition.
+  Full build: 1,408 standard-only and 40 axiom-free reports. All 206 project/
+  adapter Lean sources pass the comment/string-aware prohibited-token scan;
+  diff checks pass. Kernel specializations check scope; no finite experiments
+  or external artifact replay are used as universal proof evidence.
+- **Sources/preservation/next:** reused the 6 November weekly human-literature
+  review and its dated source versions/hypothesis comparison; no broad daily
+  search. Read-only pinned dependency APIs supply the codec and machine-cost
+  boundary. Read AGENTS/shared START; startup and final gates passed all three projects.
+  Verified clean generated `work`, authorized origin and identical fetched/live
+  main `de8175c`; preserved `work` and created tracking `main`. Yesterday's
+  `08db812` reduction and the separate norm/sum increment are retained. No pin,
+  adapter, configuration, schedule, sibling or user-machine changes. The exact
+  obstacle is control of pivot-changing phases and incoming minors across
+  diagonal stages; repeated local width estimates still compound. Uniform
+  machines, total encoded runtime and optimizer composition remain separate;
+  `thm:max-polytime` stays Partial. Detailed statement/encoding/source record is
+  in the dated Smith plan; local commands/audits are in ignored
+  `.research/smith-exact-2026-11-13/`. Parent coordinates any Raksasa sync.

@@ -138,6 +138,14 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   transformed-prefix and forward-prefix growth obligations are proved equivalent
   for this controller. Neither polynomial witness is constructed; arbitrary
   traces do not admit this reduction, and no machine time is claimed.
+- [x] Prove exact Schur-complement entries and a noncompounding transformed
+  prefix bound for an exact-division sweep pair (`SmithExactDivision.lean`).
+  If the incoming pivot divides both arms and earlier pivot-column entries
+  vanish, transformed width is at most `2c+2` at every addition prefix, with
+  at most `m+n` additions. All five matrices have exponent `2s²+4s`, and the
+  complete output has at most `16s⁴+32s³+16s²+10s+25` bits. Missing/empty cases
+  are included. These premises are not proved through pivot-changing phases
+  or later stages; the global polynomial invariant and machine costs stay open.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines
