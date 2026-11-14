@@ -181,3 +181,4 @@ import PhdThesisLean.RationalAdditionMachine
 import PhdThesisLean.RationalSum
 import PhdThesisLean.RationalNormList
 import PhdThesisLean.RationalRowResidual
+import PhdThesisLean.RationalColumnPairing

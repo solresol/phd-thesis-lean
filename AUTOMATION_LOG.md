@@ -9199,3 +9199,68 @@
   `build-07.log`, `full-build.log`, `audit.lean`, `audit.log`, source scan and
   validation summary. Parent coordinates Raksasa separately after verified push
   and preserves its paused schedule.
+
+### 2026-11-14 UTC — separate column pairing and complete per-row composition
+
+- Read saved automation memory, the relevant registry entry, AGENTS, current
+  declarations/status/TODO, working changes and the 13 November literature
+  checkpoint before selecting work. Started clean at `71682bb`; fetched and
+  fast-forwarded `45bed5d`/`29a6442`, preserving the new Smith minor proofs and
+  literature record. Used installed macOS Lean/Lake 4.35.0. No fresh literature
+  search or imported external theorem was needed for this machine proof.
+- Added default-imported `RationalColumnPairingMachine.lean` and
+  `RationalColumnPairing.lean`. A four-stack, seven-label finite TM2 routes the
+  separate row and certificate lists, scans their fields backwards, and writes
+  the exact paired-column source in forward order. `outputsInTime` gives
+  `3L+2` steps in complete tagged source length, including all exhaustion and
+  reset steps. `rejectsInTime` gives `3L+5` for unequal field counts, clearing
+  both tails and any partial output. The rejection word is disjoint from every
+  valid paired fraction list (`reject_not_output`). Order, multiplicity, empty
+  lists and arbitrary word lengths are preserved; no numeric count expansion.
+- `rowComputableInPolyTime` retains the response through actual pairing, then
+  runs the existing complete residual arithmetic. `rowOutputsInTime` returns
+  exactly the original stored unreduced residual. `row_encode` exposes the
+  physical input as response plus separate row/certificate lists; the checked
+  decoder round trip does not supply a runtime assumption. Source size is
+  `8S²+12S+3` in original combined data/certificate bits, and
+  `boundedRowOutputsInTime` composes it with actual machine time. No tight
+  degree, whole-verifier runtime, NP membership or NP-completeness is claimed.
+- Contract boundary: these are internal delimited lists, retaining the original
+  Boolean fraction words. This machine checks list counts but does not validate
+  arbitrary malformed fraction strings or original binary dimension headers.
+  It consumes its row/certificate sources. Parsing the original record,
+  extracting lists, preserving a reusable certificate across rows and the outer
+  residual-list loop remain open. Reuse this completed pairing/residual machine,
+  then the completed norm/sum and final comparison machines.
+- Thesis comparison: `prop:regression-np-complete` at thesis commit
+  `3ed947f5c3f82710ab2e253d235e604e3a9e97de`; agenda/addendum SHA-256 unchanged:
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` /
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+  Partial machine ingredient of the proposition's bit-time sentence, with
+  no discrepancy or mathematical claim change. No SAT-counter assumption or
+  ETH-refutation claim. Thesis checkout was clean; no thesis/sibling changes.
+- Validation: targeted build and full `lake build PhdThesisLean
+  DiscreteMetricRegression` pass (9,343 jobs). Independent type/axiom audit
+  checks 58 new explicit public declarations plus ten earlier endpoints: 59
+  standard-only reports and nine axiom-free. Full build: 1,438 standard-only,
+  40 axiom-free reports; 551 old warnings, none new. Three kernel executions
+  check complete success, empty input, and mismatch after emitted output.
+  The actual machine executes 320 varying fraction-list cases, 36 named cases
+  (including signed/unreduced fractions, repeated zeros and 129-bit numerators)
+  and 36 raw-word cases (including empty words). Every run checks the stated
+  time bound, output, empty private stacks and reset control. These tests execute
+  the new pairing machine; composition with the noncomputable arithmetic
+  witnesses is established by proofs, not an end-to-end executable test.
+  All 213 project/adapter sources pass the prohibited-token scan; ten dependency
+  pins/tracked sources are clean; configuration/adapters unchanged; diff check
+  passes. Failed intermediate diagnostics are excluded from this evidence.
+- Evidence: `/Users/gregb/Documents/Codex/2026-11-15/advance-the-formal-proof-programme-for/work/`:
+  `pairing-composition-build.log`, `full-build.log`, `RationalPairingAudit.lean`,
+  `final-axiom-audit.log`, `RationalPairingExamples.lean`, `examples.log`,
+  `source-scan.log`, `dependency-audit.log`, `validation-summary.log` and scripts.
+  Remote CI was not checked. No dependency, adapter, toolchain or schedule edits.
+- Next: original runtime-dimension binary parser retaining fields with bounded
+  oversized-count rejection; source extraction/certificate reuse and outer row
+  traversal; whole-verifier composition; NP membership and the binary-rational
+  hardness bridge. Linear unique-extension counting circuits, conditional
+  transfers, sampling and the three applications remain pending.

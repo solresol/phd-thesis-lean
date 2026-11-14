@@ -298,6 +298,14 @@ source hash and separate semantic, size and machine milestones.
   arithmetic phase in original combined bits `S` via source bound `8S²+11S+3`.
   The response and paired column list are already serialized; their production
   and the outer observation loop remain open.
+- [x] Pair separate delimited row/certificate lists with a concrete finite
+  machine (`RationalColumnPairing`). Success takes at most `3L+2` transitions;
+  unequal field counts clear both source tails and partial output in `3L+5`,
+  producing a word disjoint from valid paired lists. Compose pairing with the
+  complete response-preserving residual machine. Original combined source
+  bits give bound `8S²+12S+3`; order, multiplicity, signs, unreduced fractions
+  and zero columns are covered. The original record parser, source-list
+  extraction, certificate reuse across rows and outer observation loop remain.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -307,9 +315,11 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: uniform binary input/certificate parsing retaining all fields,
-and finite-machine row/certificate pairing and outer observation traversal.
-Reuse `RationalRowResidual.computableInPolyTime` for the completed arithmetic
-of each paired row, including product traversal, accumulation and subtraction.
+source-list extraction, certificate copying/reuse and outer observation traversal.
+Reuse `RationalColumnPairing.rowComputableInPolyTime` for the completed pairing
+and arithmetic of each row from separate internal lists, including product
+traversal, accumulation and subtraction. This machine consumes the source lists;
+retaining the certificate across rows is still a separate charged operation.
 Produce the serialized residual list, then compose the already completed
 `RationalNormList.sumComputableInPolyTime` and final comparison. Charge all
 source preparation, dimension/count checks, row iterations and serialization;
