@@ -25,7 +25,7 @@ does not enable or modify any schedule.
 
 ## Active target: polynomial-bit-complexity Smith decomposition
 
-Latest source-backed review: [6 November 2026](docs/2026-11-06-literature-review.md).
+Latest source-backed review: [13 November 2026 checkpoint](docs/2026-11-06-literature-review.md#13-november-2026-checkpoint).
 Review Ji's existing Kannan–Bachem artifact before duplicating its proof
 architecture; its nonsingular-square arithmetic model does not close our
 rectangular encoded-machine target. The headline status remains partial.
@@ -146,6 +146,14 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   complete output has at most `16s⁴+32s³+16s²+10s+25` bits. Missing/empty cases
   are included. These premises are not proved through pivot-changing phases
   or later stages; the global polynomial invariant and machine costs stay open.
+- [x] Relate two consecutive exact pairs at successive positions to incoming
+  3-by-3 minors (`SmithExactMinors.lean`). All transformed-entry prefixes have
+  height at most `6H³`, hence width `3c+3`, instead of composing two quadratic
+  estimates. In actual input bits `s`, all five prefix magnitudes are at most
+  `2^(6s²+9s)` and complete output size is quartic. Zero pivots, missing positions
+  and empty rectangles are included. A checked counterexample shows that exact
+  arms need not persist to the next position; no global premise propagation,
+  polynomial width witness or machine-time theorem follows.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

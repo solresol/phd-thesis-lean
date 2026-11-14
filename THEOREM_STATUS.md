@@ -314,6 +314,27 @@ still compounds widths. The thesis correspondence is unchanged:
 `thm:max-polytime` remains **Partial**, with global encoded-bit bounds, uniform
 machines, total runtime and final optimizer composition still open.
 
+`SmithExactMinors.lean` controls two exact sweep pairs at successive runtime
+positions through their common incoming 3-by-3 minors. If `R=cross Q k` and
+`T=cross R (k+1)`, exact arms at both positions imply
+`Q.S[k,k] * R.S[k+1,k+1] * T.S[i,l]` equals the corresponding incoming
+3-by-3 determinant for `i>k+1`. The identity includes zero pivots without
+cancelling zero; an exact zero-pivot pair fixes all five matrices. Every
+transformed-entry addition prefix of an exact pair is bounded by a common
+bound for its endpoints.
+Consequently two successive pairs have transformed height at most `6H³` for
+incoming height `H≥1`, or width `3c+3` for incoming width `c`. This avoids
+composing the earlier quadratic estimate twice. Both inverse maps are included
+in the all-five input-bit exponent `6s²+9s`, and complete output has at most
+`48s⁴+72s³+16s²+10s+25` bits. The trace counts at most `2(m+n)` additions,
+without charging arithmetic, traversal or machine steps. Rectangular, singular,
+zero and missing-position cases remain covered. All 14 public declarations
+are separately axiom-audited. `exactArms_not_preserved` proves a concrete
+counterexample to propagating the premise to the next position. These are two
+conditional pairs, not a global growth bound for `decomposeTrace`; the arbitrary
+number of stages and pivot-changing phases remain unresolved. The thesis
+correspondence stays **Partial** for `thm:max-polytime`.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |

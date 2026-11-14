@@ -9145,3 +9145,57 @@
   runtime, NP membership and the binary-rational hardness bridge. Counting
   circuits, conditional transfers, sampling and three applications remain
   pending. Remote CI was not checked; local validation is the evidence here.
+
+### 2026-11-14 UTC — minors across two exact Smith positions
+
+- **Question and scope:** first unfinished obligation is one fixed polynomial
+  transformed-prefix width for `decomposeTrace`, in actual canonical dense input
+  bits. Read the 13 November 23:43 UTC weekly human-literature checkpoint before
+  selecting work; its dated source/hypothesis limits remain. Two substantive
+  read-only agent reviews independently proposed the same 3-by-3 minor identity
+  and found the same failure of premise propagation. No broad daily search or
+  new paper-dependent step. Existing unary-dimension/signed-binary input and
+  five framed matrix outputs are unchanged.
+- **Proof:** added default-imported `SmithExactMinors`. For two exact pairs at
+  successive positions, `two_cross_target_numerator` identifies `p*q*T[i,l]`
+  with an incoming 3-by-3 determinant. It includes zero and nonunit pivots.
+  `cross_eq_of_zero` proves all-five idle behavior for exact zero pivots;
+  `crossTrace_prefix_height_of_endpoints` controls transformed prefixes by
+  endpoints. `twoCrossTrace_prefix_height` gives the common-input bound `6H³`,
+  hence width `3c+3`, replacing the two-step compounding estimate `4c+6`.
+  At most `2(m+n)` semantic additions give all-five prefix exponent `6s²+9s`
+  and complete output length `48s⁴+72s³+16s²+10s+25`. Inverse maps, signs,
+  dimensions, frames, singular rectangles and empty/missing cases are included.
+- **Obstacle:** `exactArms_not_preserved` checks
+  `[[2,2,2],[2,4,5],[2,5,2]]`; the first exact pair leaves trailing block
+  `[[2,3],[3,0]]`, where the next pivot does not divide its arms. Retire the
+  attempted induction from one exact stage to the next. Both premises remain
+  explicit; this two-pair trace is not the complete diagonalizer. Control
+  nonexact pivot changes and minors through arbitrary stages next. Global
+  polynomial growth, uniform machine runtime and optimizer composition remain
+  open; `thm:max-polytime` stays Partial.
+- **Validation:** pinned resource-guarded
+  `lake build PhdThesisLean.SmithExactMinors` passed (3,218 jobs), followed by
+  `lake build PhdThesisLean DiscreteMetricRegression` (9,341 jobs). No new
+  warnings; 47/551 existing warnings were replayed. Independent type/axiom
+  audit checked all 14 public additions plus eight prior integer-invariant,
+  decomposition, empty-case, growth/count and max-optimizer endpoints: 22
+  standard-only reports, no warnings/errors. All 1,472 full-build axiom reports
+  are standard-only or axiom-free (40 axiom-free). All 211 tracked/new project
+  and adapter Lean sources pass the nested-comment/string-aware prohibited-token
+  scan. Kernel specializations include negative/nonunit, rectangular, zero,
+  missing and both empty orientations. No finite experiment is used as a
+  universal bound. Final mathematical review found no material issue.
+- **Execution/preservation:** read AGENTS and saved START, full startup and final gates
+  passed all three projects; reused absolute Lean/Lake 4.35.0, `env_for('thesis')`,
+  two threads and caches. Started clean on generated `work` at `45bed5d`,
+  verified authorized origin/ancestry, fetched and created tracking `main`,
+  preserving `work` and all prior increments. Read-only dependency API review
+  found no existing Smith or signed division/gcd machine. No installation,
+  dependency/receipt/configuration, adapter, schedule, sibling or user-machine
+  change. Failed intermediate elaborations were repaired by explicit vector,
+  guard and coercion rewrites; failed axiom diagnostics are excluded. Evidence:
+  ignored `.research/smith-exact-minors-2026-11-14/`, including successful
+  `build-07.log`, `full-build.log`, `audit.lean`, `audit.log`, source scan and
+  validation summary. Parent coordinates Raksasa separately after verified push
+  and preserves its paused schedule.

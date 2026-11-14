@@ -177,6 +177,16 @@ have exponent `2s²+4s` and the complete output has a quartic bit bound. The
 premises are not a global invariant: pivot-changing phases, growth through later
 stages and uniform machine runtime remain open.
 
+[`SmithExactMinors.lean`](PhdThesisLean/SmithExactMinors.lean) relates two
+consecutive exact sweep pairs at successive positions to incoming 3-by-3
+minors. Every transformed-entry prefix has height at most `6H³` in their
+common incoming height `H≥1`, instead of composing two quadratic estimates. The
+input-bit all-five exponent is `6s²+9s`, and complete five-matrix output is
+quartic. Zero pivots and empty/missing cases are included. A checked
+counterexample shows that exact divisibility need not hold at the next
+position. Global polynomial prefix growth, uniform machine costs and optimizer
+composition remain open; `thm:max-polytime` stays Partial.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

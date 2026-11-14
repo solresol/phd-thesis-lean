@@ -8,7 +8,7 @@ remaining target is a uniform polynomial-time algorithm, measured in encoded bit
 not a theorem assuming its own runtime witness.
 
 Latest weekly human-literature review:
-[6 November 2026 UTC](2026-11-06-literature-review.md). No usable new source
+[13 November 2026 UTC checkpoint](2026-11-06-literature-review.md#13-november-2026-checkpoint). No usable new source
 was located for the forward-map prefix invariant or uniform-machine obligation.
 Ji's nonsingular-square arithmetic scope and the prior interface limits remain;
 continue controlled-growth work without reopening completed scalar machines.
@@ -19,7 +19,10 @@ matrices, and is equivalent to the forward-map growth obligation. Neither
 polynomial witness nor a uniform machine bound has been constructed.
 The [13 November exact-division increment](#exact-division-phases-13-november-2026-utc)
 proves a restricted local invariant for phases with divisible incoming arms;
-it does not discharge the global obligation.
+it does not discharge the global obligation. The
+[14 November two-position minor increment](#minors-across-two-exact-positions-14-november-2026-utc)
+bounds two successive exact pairs cubically in their common incoming height,
+while proving that their divisibility premises need not propagate.
 
 ## Output and input contracts
 
@@ -1765,3 +1768,122 @@ proof evidence. Final build/audit results are recorded in `AUTOMATION_LOG.md`;
 command transcripts and independent audit sources are retained in ignored
 `.research/smith-exact-2026-11-13/`. Stop after this audited increment; the
 parent coordinates any Raksasa fast-forward and preserves its paused schedule.
+
+### Minors across two exact positions (14 November 2026 UTC)
+
+**Question, exact target and encoding.** On fetched main `45bed5d1b77deb292840d303fbe10bdd98a3be4c`,
+the first unfinished growth obligation is still
+
+```lean
+∃ P : Polynomial ℕ, ∀ A : Dense,
+  PrefixWidth (initial A.toMatrix) (decomposeTrace A)
+    (P.eval (SmithEncoding.encode A).length + 1)
+```
+
+It is unproved. Input remains canonical signed/framed binary row-major entries
+with unary dimension headers, of actual length
+`s=m+n+2+sum_entries(2*size(abs(z))+2)`. Output remains five framed dense integer
+matrices `U,Uinv,V,Vinv,S`, paying for identities even in empty orientations.
+Neither representation, dependencies nor target changed. The bounded question
+was whether consecutive exact pairs can use a common original minor instead of
+composing the local width estimate `c ↦ 2c+2` twice. Two independent read-only
+agent reviews identified the same determinant identity and premise obstruction.
+
+**Checked increment.** `SmithExactMinors.lean` defines `twoCrossTrace Q k` as
+`crossTrace Q k ++ crossTrace (cross Q k) (k+1)` and proves exact all-five replay.
+Write `R=cross Q k`, `T=cross R (k+1)`, `p=Q.S[k,k]`, `q=R.S[k+1,k+1]`.
+`two_cross_target_numerator` assumes `ExactArms Q k` and `ExactArms R (k+1)`.
+For present first two positions, any `i>k+1` and any column `l`, it proves
+
+```
+p*q*T.S[i,l] = det Q.S[{k,k+1,i}, {k,k+1,l}].
+```
+
+With a repeated column this means the displayed 3-by-3 determinant, also zero
+where appropriate. Four first-pair 2-by-2 identities and the second-pair
+identity give the result by integer polynomial arithmetic. The zero-first-pivot
+case uses its zero row; cancellation is used only after proving that pivot
+nonzero. No nonzero determinant, square/rank premise, unit pivot, rational
+inverse or assumed growth witness is required. `cross_eq_of_zero` proves that
+an exact zero-pivot pair fixes **all five matrices**, handling both zero-pivot
+branches of the size proof.
+
+`crossTrace_prefix_height_of_endpoints` bounds every actual addition prefix
+of an exact pair by a common bound for its endpoints. Column-prefix entries
+are unchanged or equal to their complete-pair counterparts; after the column
+is cleared, row-prefix entries are retained or zeroed. The determinant's six
+cubic terms then give `two_cross_height` and `twoCrossTrace_prefix_height`:
+for incoming height `H≥1`, all transformed-entry prefixes of both pairs have
+magnitude at most `6H³`. With incoming width `c`,
+`twoCrossTrace_prefix_width` yields **`3c+3`**, compared with `4c+6` from two
+applications of the previous local bound. This is a common-input estimate
+across two positions, rather than a global bound across arbitrarily many stages.
+
+`twoCrossTrace_length` counts at most `2(m+n)` additions. Actual quotient
+selection and the existing five-matrix step bounds imply
+`twoCrossTrace_input_prefix_bound`: every entry of every matrix at every
+prefix has magnitude at most **`2^(6s²+9s)`**. `two_cross_output_length`
+charges all signs, dimensions, inverse maps and framing, bounding complete
+output by **`48s⁴+72s³+16s²+10s+25`** bits. Runtime-indexed traces include
+missing positions and both empty orientations. Kernel specializations include
+a negative nonunit pivot in a rectangular matrix and singular zero-arm cases;
+the universal proofs, not finite examples, establish these bounds.
+
+**Substantive boundary and retired induction.** `exactArms_not_preserved`
+proves a concrete obstruction: `A=[[2,2,2],[2,4,5],[2,5,2]]` has exact arms at
+zero, but after that pair its trailing block is `[[2,3],[3,0]]`. The next
+pivot `2` does not divide `3`. Thus exactness at one position cannot be used
+as an induction premise for all later positions. The two-pair trace is not
+the full `finishTrace`, and its premises are not proved for every diagonalizer
+stage. Repeating even the new cubic bound alone still compounds. The next
+step needs a minor invariant through pivot-changing Euclidean phases and an
+arbitrary number of stages, or a checked controlled-growth replacement.
+Uniform signed division/gcd, control/traversal/serialization machines, total
+encoded runtime and final optimizer composition remain separate obligations.
+`thm:max-polytime` stays **Partial**. Stop after this coherent increment.
+
+**Human literature and reuse.** Before selecting work, read the latest weekly
+[13 November checkpoint](2026-11-06-literature-review.md#13-november-2026-checkpoint),
+appended to the 6 November file, with cutoff **13 November 23:43 UTC** and
+source access date **13 November 2026 UTC**. Its recheck of Ji
+[arXiv:2607.22524v2](https://arxiv.org/abs/2607.22524v2), v2 dated
+**1 August 2026**, and author artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179)
+retains nonsingular-square hypotheses and arithmetic-leaf costs excluding
+structural work. Those hypotheses do not establish our singular/rectangular
+uniform-machine target or this controller's global prefix invariant. The
+[Kannan–Bachem publisher source](https://doi.org/10.1137/0208040) still had
+only abstract/subscription access in that review; full text was not audited.
+
+The review supersedes the older class-bridge assessment with Senellart's
+[v1.4.1 release](https://github.com/PierreSenellart/descriptive-complexity/releases/tag/v1.4.1),
+**12 November**, commit `18e9b92a2f4782ff5d2051935ca3adfb619030b8`; its paper
+[2609.18261](https://arxiv.org/abs/2609.18261) remains v1, **16 September**.
+The inspected source concerns invariant finite-relational problems with
+capture hypotheses and a different binary codec, so it provides no Smith
+construction or dense-codec simulation. These are the review's human-source
+and formal-source records, without independent external artifact replay.
+No fresh external access, broad daily search or new external theorem is claimed
+here; this increment uses only checked local lemmas and pinned mathlib integer
+and determinant APIs. Read-only inspection of pinned `lean-np-hardness`
+`21e6eb462b14c0b612895b4ff03add15eea54e70` confirmed existing framing,
+`FinEncoding`, binary arithmetic and actual TM2 composition APIs, with no
+Smith implementation or signed binary division/gcd machine to reuse. No generic
+foundation or Complexitylib adapter was duplicated.
+
+**Execution and validation.** Read `AGENTS.md` and saved shared `START.md`.
+The complete shared startup gate passed thesis, Littlewood and Scholz, using
+the existing pinned runtime and artifacts. Verified clean generated `work`,
+authorized origin and ancestry; preserved `work`, fetched and created tracking
+`main` at `45bed5d`. The parent cleared task overlap; no other Lean research
+process was present locally. Used only this explicitly selected theorem-provers
+checkout, absolute Lean/Lake 4.35.0 from `installed_tools`, `env_for('thesis')`,
+two threads and the resource-guarded runner. No installation, pin/receipt change,
+configuration publication, schedule edit, sibling write or user-machine access.
+Failed intermediate elaborations involved vector-notation normalization,
+dimension guards in empty-case examples and integer-order coercions; explicit
+rewrites repaired them. Failed-script axiom reports are excluded from evidence.
+Commands, independent audit source and failed/successful build logs are retained
+in ignored `.research/smith-exact-minors-2026-11-14/`. Final validation counts
+are recorded in `AUTOMATION_LOG.md`. The parent coordinates Raksasa separately
+following verified push, preserving unrelated work and its paused schedule.
