@@ -187,6 +187,19 @@ counterexample shows that exact divisibility need not hold at the next
 position. Global polynomial prefix growth, uniform machine costs and optimizer
 composition remain open; `thm:max-polytime` stays Partial.
 
+[`SmithExactStages.lean`](PhdThesisLean/SmithExactStages.lean) extends minor
+control to any finite sequence of exact stages. Zero exact stages leave all
+five matrices fixed, so their indices are omitted from the selected incoming
+minor. For `k` stages and incoming height `H≥1`, every transformed-entry prefix
+has height at most `(k+1)! H^(k+1)`, with polynomial binary width. In original
+input length `s`, at most `min m n` exact stages give all-five prefix exponent
+`2s⁴+3s³+3s²+s` and a complete output bound of
+`16s⁶+24s⁵+24s⁴+8s³+16s²+10s+25` bits. Singular, rectangular, zero and empty
+cases are included. Exactness remains a separate premise at each stage and
+fails in the earlier counterexample. These bounds concern the successive-pair
+trace; no unconditional bound for `decomposeTrace`, uniform machine runtime
+or final optimizer composition is claimed.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

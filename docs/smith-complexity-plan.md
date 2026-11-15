@@ -23,6 +23,9 @@ it does not discharge the global obligation. The
 [14 November two-position minor increment](#minors-across-two-exact-positions-14-november-2026-utc)
 bounds two successive exact pairs cubically in their common incoming height,
 while proving that their divisibility premises need not propagate.
+The [15 November arbitrary exact-stage increment](#selected-minors-through-arbitrary-exact-stages-15-november-2026-utc)
+now controls any finite exact run, including zero pivots, through selected
+incoming minors. The unconditional computed-trace growth witness remains open.
 
 ## Output and input contracts
 
@@ -1887,3 +1890,140 @@ Commands, independent audit source and failed/successful build logs are retained
 in ignored `.research/smith-exact-minors-2026-11-14/`. Final validation counts
 are recorded in `AUTOMATION_LOG.md`. The parent coordinates Raksasa separately
 following verified push, preserving unrelated work and its paused schedule.
+
+### Selected minors through arbitrary exact stages (15 November 2026 UTC)
+
+**First unfinished obligation, encoding and question.** Fetched live main
+`95b95ad159c31d7b94882a9f15dbbb3dd250a914` was clean. The missing target is still
+
+```lean
+∃ P : Polynomial ℕ, ∀ A : Dense,
+  PrefixWidth (initial A.toMatrix) (decomposeTrace A)
+    (P.eval (SmithEncoding.encode A).length + 1)
+```
+
+No witness is supplied for this target. Input remains canonical signed/framed
+binary row-major integers with unary dimension headers, of actual bit length
+`s=m+n+2+sum_entries(2*size(abs(z))+2)`. Output remains the five framed dense
+integer matrices `U,Uinv,V,Vinv,S`, including identities in empty orientations.
+The bounded question was whether one original minor can control arbitrarily
+many exact stages, rather than repeatedly applying the previous quadratic or
+cubic bound. The unresolved invariant is the same bound through pivot-changing,
+nondivisible Euclidean phases. No pins, target or representation changed.
+
+**Checked mathematical increment.** `SmithExactStages.lean` introduces
+`stages Q 0=Q`, `stages Q (k+1)=cross (stages Q k) k`, and `stagesTrace` using
+those actual computed sweep pairs. `stagesTrace_run` replays all five matrices;
+`stages_invariant` retains both integer inverse directions and `U*A*V=S`.
+The explicit hypothesis is `∀ a<k, ExactArms (stages Q a) a`, separately at
+every visited position. `cross_minor` preserves any selected square submatrix's
+determinant when its rows and columns contain the pivot. The proof uses
+mathlib's determinant row-addition identity and the existing exact reducer;
+it introduces no rational inversion, new arithmetic primitive or external axiom.
+
+The first design used all completed indices and would need nonzero completed
+pivots to cancel their product. The zero-safe replacement instead uses
+`stages_minor_of_nonzero`: a zero exact stage fixes **all five matrices**, so
+its index need not appear in the selected minor. Select precisely the nonzero
+completed pivots together with a trailing row and column. The restricted output
+is diagonal; its determinant is the trailing entry times a product of nonzero
+integers, and it is equal to the selected original minor. No nonzero determinant,
+rank or square hypothesis is imposed. The usual determinant bound gives
+`stages_trailing_height`, then `stages_height` also retains earlier diagonals.
+Exact-pair endpoint interpolation yields
+
+```
+Every addition-prefix transformed height ≤ (k+1)! H^(k+1), for H≥1.
+Every addition-prefix transformed width  ≤ (k+1)(c+k+1)+1.
+```
+
+These are common-original-input bounds over **any finite exact run**, not a
+recurrence that compounds the local estimate. Zero stages, singular rectangles,
+missing positions and both empty orientations are retained.
+`stagesTrace_length` counts at most `k(m+n)` semantic additions. For actual
+input length `s` and `k≤min m n`, the dimension headers give `k(m+n)≤s²`.
+With `b=(s+1)(2s+1)+1`, actual quotient selection and the existing all-five
+step invariant give `stagesTrace_input_prefix_bound` with exponent
+
+```
+D(s)=s+s²(b+1)=2s⁴+3s³+3s²+s.
+```
+
+`stages_output_length` pays for all five dense matrices, every sign, dimension
+and frame: `16s⁶+24s⁵+24s⁴+8s³+16s²+10s+25` bits. `stages_valid` supplies the
+weak integer decomposition contract when all `min m n` stages are exact.
+Kernel specializations cover a singular 3-by-4 matrix with a zero first pivot,
+a negative nonunit second pivot, both empty orientations, and a missing position.
+These are scope checks; the universal proofs establish the bounds.
+
+**Exact obstacle and superseded route.** The earlier two-stage counterexample
+still has next pivot `2` not dividing `3`. The new proof does not infer exactness
+from an earlier exact stage and does not identify `stagesTrace` with
+`finishTrace`. Iterating local quadratic/cubic estimates is now superseded for
+arbitrary exact runs. What fails outside this case is specific: a Euclidean
+pivot update can add a target row into the pivot row when that target is outside
+the selected minor, so the determinant-preservation step no longer applies.
+Next, control these gcd mixtures and the dynamically selected minors, or verify
+a controlled-growth replacement. The unconditional polynomial witness for
+`decomposeTrace` remains open. Uniform signed division/gcd, control/traversal,
+serialization machines, total correctness on the codec, encoded runtime and
+final optimizer composition remain separate. `thm:max-polytime` stays **Partial**.
+Stop after this audited mathematical increment; no other research queue is opened.
+
+**Literature and dependency reuse.** Before choosing work, read the latest saved
+[13 November weekly checkpoint](2026-11-06-literature-review.md#13-november-2026-checkpoint),
+cutoff **13 November 2026 23:43 UTC**, source access date **13 November 2026 UTC**.
+Ji [arXiv:2607.22524v2](https://arxiv.org/abs/2607.22524v2), v2 dated
+**1 August 2026**, and the author artifact at
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179)
+retain nonsingular-square input and arithmetic-leaf costs excluding structural
+work in the review's Theorem 2.1/section 6.2 inspection. They do not establish
+our singular/rectangular uniform-machine target or this controller's invariant.
+The [Kannan–Bachem publisher source](https://doi.org/10.1137/0208040) remained
+abstract/subscription access in that review; full text was not audited.
+The newer Senellart [v1.4.1 release](https://github.com/PierreSenellart/descriptive-complexity/releases/tag/v1.4.1),
+**12 November**, commit `18e9b92a2f4782ff5d2051935ca3adfb619030b8`, concerns
+invariant finite-relational problems with capture hypotheses and another codec;
+its [paper 2609.18261](https://arxiv.org/abs/2609.18261) remained v1,
+**16 September**. It supplies no Smith construction or dense-codec simulation.
+These are the saved review's human-source and inspected formal-source records,
+not independent external replay or new results from computations. No fresh
+external-access claim or broad daily search is made; this increment uses only
+checked local lemmas and pinned mathlib determinant APIs. The saved review's
+coverage and access limitations remain. No copied external code or theorem.
+
+Read-only inspection of pinned `lean-np-hardness`
+`21e6eb462b14c0b612895b4ff03add15eea54e70` confirmed existing `FinEncoding`,
+`BinaryNatLists.frame`, `BinaryArithmetic.binaryAdd_outputsInTime`, and
+`MachineComposition.compositionMachine_outputsInTime`. Reuse their codecs and
+actual TM2 cost boundary. No signed binary division/gcd machine, generic
+foundation or Complexitylib adapter is duplicated here.
+
+**Execution and proof validation.** Read `AGENTS.md` and saved shared `START.md`.
+Used only the explicitly selected published theorem-provers environment and
+this authorized checkout. The startup and final gates passed thesis, Littlewood and Scholz
+with exact pins, artifacts and dependency sources. Origin was verified as
+`solresol/phd-thesis-lean`; fetched main agreed with clean generated `work`,
+which was preserved while creating tracking `main`. No other research process
+was present locally. Used `env_for('thesis')`, absolute installed Lean/Lake
+**4.35.0**, two threads, existing caches and `prepare.py`'s resource-guarded runner.
+No installation, receipt/pin change, publication, schedule edit, sibling write,
+user-machine access or subagent delegation occurred.
+
+Commands passed: targeted `lake build PhdThesisLean.SmithExactStages` (**3,219**
+jobs), then `lake build PhdThesisLean DiscreteMetricRegression` (**9,344** jobs).
+The new module has no warnings; the full build replays **555** existing warnings.
+Independent Lean `#check`/`#print axioms` checked all **20** new public declarations
+and ten previous correctness/empty/count/growth/optimizer endpoints: **30**
+standard-only reports, including one axiom-free definition, no warnings/errors.
+All **1,498** full-build axiom reports are standard-only, including **41**
+axiom-free. All **214** tracked/new project and adapter Lean sources pass the
+nested-comment/string-aware prohibited-token scan. All ten dependency HEADs
+match the manifest with clean tracked sources; diff checks pass. Intermediate
+failed elaborations concerned update/transpose normalization, dependent finite
+indices and determinant bound coercions; explicit rewrites and the zero-safe
+selected-minor design repaired them. Failed scripts are not proof evidence.
+Commands, intermediate logs, independent audit source and verification script
+are retained in ignored `.research/smith-exact-stages-2026-11-15/`.
+The parent coordinates any Raksasa fast-forward separately, preserving unrelated
+work and its paused old thesis schedule.

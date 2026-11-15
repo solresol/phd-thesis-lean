@@ -154,6 +154,15 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   and empty rectangles are included. A checked counterexample shows that exact
   arms need not persist to the next position; no global premise propagation,
   polynomial width witness or machine-time theorem follows.
+- [x] Control arbitrarily many exact stages by selected incoming minors
+  (`SmithExactStages.lean`). Zero exact stages are idle and their indices can
+  be omitted. For `k` successive stages, every transformed-entry prefix has
+  height at most `(k+1)! H^(k+1)`, hence width `(k+1)(c+k+1)+1`. For at most
+  `min m n` stages, all five matrices have a quartic exponent in original input
+  bits and complete output has a degree-six bit bound. Singular, rectangular,
+  zero-pivot and empty cases are included. Exactness is required separately
+  at every stage; pivot-changing phases, the unconditional computed-trace bound
+  and uniform machine runtime remain open.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

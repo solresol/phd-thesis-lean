@@ -9264,3 +9264,65 @@
   traversal; whole-verifier composition; NP membership and the binary-rational
   hardness bridge. Linear unique-extension counting circuits, conditional
   transfers, sampling and the three applications remain pending.
+
+### 2026-11-15 UTC — selected minors through arbitrary exact Smith stages
+
+- Question: can one original minor control arbitrarily many exact stages,
+  including zero pivots? The first unfinished target remains a fixed polynomial
+  transformed-entry bound at every prefix of `decomposeTrace`; no witness is
+  supplied. Actual input is signed/framed binary row-major integers plus unary
+  dimensions; output is all five framed dense matrices. Read TODO, the Smith
+  plan, status, AGENTS and saved shared START before work.
+- New default-imported `SmithExactStages.lean`: exact stages preserve a selected
+  minor containing their pivot row/column. A zero exact stage fixes all five
+  matrices and can be omitted from the selected minor. Select the nonzero
+  completed pivots and the trailing entry; the final restricted matrix is
+  diagonal. Its determinant gives every transformed-entry prefix height
+  `(k+1)! H^(k+1)`, hence width `(k+1)(c+k+1)+1`, without a square, rank or
+  nonzero-pivot premise. Singular, rectangular, empty and missing cases remain.
+- Trace replay preserves both integral inverse directions and `U*A*V=S`.
+  At most `k(m+n)` semantic additions. For `k≤min m n` and actual input bits
+  `s`, all-five prefix exponent is `2s⁴+3s³+3s²+s`; complete output has at most
+  `16s⁶+24s⁵+24s⁴+8s³+16s²+10s+25` bits. Full exact stages satisfy the existing
+  weak integer contract. Kernel specializations exercise a singular 3-by-4
+  input with zero and negative nonunit pivots, both empty orientations and a
+  missing position. These scope checks are separate from the universal proofs.
+- Exactness is required separately at each stage. The previous `2 ∤ 3`
+  counterexample remains; `stagesTrace` is not identified with `finishTrace`.
+  The earlier compounding-width route is superseded for exact runs. Next,
+  control Euclidean pivot mixtures involving rows outside the selected minor,
+  or verify a controlled-growth replacement. Uniform arithmetic/control and
+  serialization machines, encoded total runtime and optimizer composition stay
+  open. `thm:max-polytime` remains Partial; no completed CSP queue is reopened.
+- Read the 13 November weekly human-literature checkpoint (cutoff 23:43 UTC,
+  access date 13 November). Ji v2 (1 August), artifact `3f80f952`, still has
+  nonsingular-square arithmetic-leaf scope; Kannan–Bachem full text remained
+  unavailable. Senellart v1.4.1's finite-relational/capture and codec boundaries
+  remain. URLs, hypotheses and limitations are in the dated Smith-plan record.
+  No fresh external access/search or external replay is claimed. Inspected
+  pinned `lean-np-hardness` codecs, addition machine and actual TM2 composition
+  read-only; no generic foundation, signed division/gcd machine or adapter copy.
+- Used only the explicitly selected published theorem-provers environment.
+  Sourced shared env and passed its full startup check. Clean authorized origin
+  and fetched main `95b95ad159c31d7b94882a9f15dbbb3dd250a914` matched generated
+  `work`; preserved it and created tracking `main` after ancestry verification.
+  Used absolute installed Lean/Lake 4.35.0, `env_for('thesis')`, two threads,
+  existing caches and guarded runner. No overlapping local research process,
+  installation, pin/receipt change, publication, schedule change, sibling write,
+  user-machine access or subagent occurred.
+- Commands passed: targeted `lake build PhdThesisLean.SmithExactStages` (3,219
+  jobs); `lake build PhdThesisLean DiscreteMetricRegression` (9,344 jobs).
+  Independent `#check`/`#print axioms`: 20 new public declarations and ten prior
+  endpoints, 30 standard-only reports including one axiom-free, no warnings or
+  errors. Full build: 1,498 standard-only reports including 41 axiom-free;
+  555 existing warnings, none in the new module. All 214 project/adapter Lean
+  sources pass the nested-comment/string-aware prohibited-token scan. All ten
+  dependency HEADs match with clean tracked sources; diff checks pass.
+- Failed intermediate scripts involved update/transpose normalization,
+  dependent finite indices and determinant coercions; explicit rewrites and
+  omitting zero pivots repaired them. Failed elaborations are excluded from
+  evidence. Logs, audit source and verification script are retained in ignored
+  `.research/smith-exact-stages-2026-11-15/`. Stop after this audited increment;
+  the parent coordinates Raksasa separately with unrelated work preserved.
+- Final shared gate also passed all three projects after validation; exact
+  pins/artifacts and tracked dependency sources remain unchanged.

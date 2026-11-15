@@ -335,6 +335,40 @@ conditional pairs, not a global growth bound for `decomposeTrace`; the arbitrary
 number of stages and pivot-changing phases remain unresolved. The thesis
 correspondence stays **Partial** for `thm:max-polytime`.
 
+`SmithExactStages.lean` now controls an arbitrary number of successive exact
+pairs with one original minor bound, rather than repeating a local estimate.
+`cross_minor` preserves any selected minor containing the pivot row and column.
+`stages_minor_of_nonzero` omits zero exact stages because they fix all five
+matrices. Selecting the nonzero completed pivots and a trailing entry makes
+the restricted final matrix diagonal; its determinant is the trailing entry
+times the product of those nonzero pivots. This proves
+`stages_trailing_height`, including singular rectangles, without cancelling
+zero or assuming a nonzero determinant. Completed diagonal entries and exact-pair
+prefix interpolation give `stagesTrace_prefix_height`: every addition prefix
+has transformed height at most `(k+1)! H^(k+1)` in common incoming height
+`H≥1`. `stagesTrace_prefix_width` gives `(k+1)(c+k+1)+1` bits for incoming
+width `c`, avoiding exponential compounding over exact stages.
+
+The trace replays every component of `stages`, preserves the integer inverse
+identities, and counts at most `k(m+n)` additions. Missing positions contribute
+no additions; both empty orientations retain their identity maps. For original
+complete dense input length `s` and `k≤min m n`,
+`stagesTrace_input_prefix_bound` bounds all five matrices by
+`2^(2s⁴+3s³+3s²+s)`. `stages_output_length` charges every sign, dimension,
+inverse map and frame, giving `16s⁶+24s⁵+24s⁴+8s³+16s²+10s+25` bits.
+`stages_valid` establishes the weak integer contract when every rectangular
+stage is exact. All 20 public declarations are independently type/axiom-audited
+with standard axioms or none.
+
+These theorems require `ExactArms (stages Q a) a` separately at every visited
+position. The earlier checked counterexample still prevents an unconditional
+induction, and the new trace has not been identified with `finishTrace`.
+Arbitrarily many **exact** stages are now controlled; pivot-changing phases
+and their interaction with the selected-minor invariant remain open. No global
+polynomial witness for `decomposeTrace`, uniform arithmetic/control/serialization
+machine, total encoded runtime or optimizer composition follows. The thesis
+correspondence and headline status of `thm:max-polytime` remain **Partial**.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |
