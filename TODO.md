@@ -313,8 +313,8 @@ source hash and separate semantic, size and machine milestones.
   producing a word disjoint from valid paired lists. Compose pairing with the
   complete response-preserving residual machine. Original combined source
   bits give bound `8S²+12S+3`; order, multiplicity, signs, unreduced fractions
-  and zero columns are covered. The original record parser, source-list
-  extraction, certificate reuse across rows and outer observation loop remain.
+  and zero columns are covered. The following increment supplies certificate
+  reuse and all per-row sources; original parsing and outer arithmetic remain.
 - [x] Reuse one certificate across runtime-many observation sources:
   `RationalCertificateBroadcast.computableInPolyTime` copies/restores the
   certificate for every row and serializes the exact separated row inputs in

@@ -9380,6 +9380,8 @@
   elaborations are not evidence. `broadcast-build.log` is the final warning-free
   targeted build for the new modules; its dependencies retain existing warnings.
 - Updated THEOREM_STATUS and TODO with the precise completed obligation and
-  parser/outer arithmetic traversal boundary. Commit/push and clean committed
-  checkout verification follow the successful increment checks; remote CI is
-  not claimed without checking it.
+  parser/outer arithmetic traversal boundary. Proof increment `2191871` also
+  passes the full build from its clean committed checkout (9,346 jobs), with
+  evidence in `clean-commit-build.log`. This documentation follow-up removes
+  stale certificate-reuse pending wording from the headline queue. Remote CI
+  was not checked; local verification is complete.
