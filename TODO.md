@@ -315,6 +315,15 @@ source hash and separate semantic, size and machine milestones.
   bits give bound `8S²+12S+3`; order, multiplicity, signs, unreduced fractions
   and zero columns are covered. The original record parser, source-list
   extraction, certificate reuse across rows and outer observation loop remain.
+- [x] Reuse one certificate across runtime-many observation sources:
+  `RationalCertificateBroadcast.computableInPolyTime` copies/restores the
+  certificate for every row and serializes the exact separated row inputs in
+  at most `3L²+8L+5` actual TM2 steps. All cleanup and final reversal are charged;
+  output length is at most `L²+L`. `source_length_le` gives `L≤2S` in original
+  combined input/certificate bits, so `regressionOutputsInTime` takes at most
+  `12S²+16S+5` steps. Empty shapes and order/multiplicity are covered. The source
+  already contains delimited rows and one delimited certificate; binary parsing
+  and executing the row evaluator over the produced list remain open.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -323,14 +332,14 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: uniform binary input/certificate parsing retaining all fields,
-source-list extraction, certificate copying/reuse and outer observation traversal.
-Reuse `RationalColumnPairing.rowComputableInPolyTime` for the completed pairing
-and arithmetic of each row from separate internal lists, including product
-traversal, accumulation and subtraction. This machine consumes the source lists;
-retaining the certificate across rows is still a separate charged operation.
-Produce the serialized residual list, then compose the already completed
-`RationalNormList.sumComputableInPolyTime` and final comparison. Charge all
+Next obligation: uniform binary input/certificate parsing retaining all fields
+and producing `RationalCertificateBroadcast.sourceEncoding`; then evaluate the
+produced list of separated row words. Reuse the completed broadcast machine for
+certificate copying/restoration and source-list construction, and
+`RationalColumnPairing.rowComputableInPolyTime` for pairing and arithmetic of
+each row. The latter consumes each produced row word; a finite traversal must
+invoke it and serialize the resulting residuals. Then compose the completed
+`RationalNormList.sumComputableInPolyTime` and final comparison. Charge original
 source preparation, dimension/count checks, row iterations and serialization;
 a polynomial source-size bound alone does not charge its production.
 Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate

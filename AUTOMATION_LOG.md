@@ -9326,3 +9326,60 @@
   the parent coordinates Raksasa separately with unrelated work preserved.
 - Final shared gate also passed all three projects after validation; exact
   pins/artifacts and tracked dependency sources remain unchanged.
+
+
+### 2026-11-15 UTC — certificate reuse across observations
+
+- Started clean at `95b95ad`; fetched/fast-forwarded upstream `03738de` and
+  preserved its arbitrary-stage Smith work. Read automation memory, registry,
+  AGENTS, declarations, status, TODO, thesis agenda/addendum and the latest
+  13 November human-literature checkpoint before choosing the obligation.
+  Used installed macOS Lean/Lake 4.35.0 and the pinned dependencies. No sibling,
+  thesis, adapter, dependency, toolchain or automation-schedule mutation.
+- Added default-imported `RationalCertificateBroadcastMachine.lean` and
+  `RationalCertificateBroadcast.lean`. The concrete five-stack/eight-label TM2
+  keeps one input certificate, copies it for every internally serialized row,
+  restores it before the next row and constructs the exact existing separated
+  per-row input words. Order, multiplicity, all original fraction bits, empty
+  dimensions and signed/unreduced fields survive. Every stack is empty except
+  output at halt and control state resets.
+- Proved actual bound `3L²+8L+5`, output length `L²+L`, source size `L≤2S`, and
+  original-bit runtime `12S²+16S+5`. Endpoints: `Machine.cycle`, `rows_run`,
+  `outputsInTime`, `computableInPolyTime`, `output_length_le`,
+  `source_length_le`, `regression_output`, `regressionOutputsInTime`.
+  No operation-count hypothesis, binary-count expansion or preduplicated
+  certificate is hidden in the source. Decoder round trips are semantic only.
+- Exact boundary: original input/certificate binary parsing, validation,
+  dimension/count checking and generation of the internal source are pending.
+  This run constructs the row list, but executing the pairing/residual machine
+  over that list is still a separate finite traversal. Whole-verifier runtime,
+  NP membership and the binary-rational hardness bridge remain open; subsequent
+  counting circuits, conditional transfers, approximation and applications also
+  remain open. No SAT counter is assumed and no ETH refutation is claimed.
+- Thesis correspondence: partial machine ingredient of
+  `prop:regression-np-complete`, thesis commit
+  `3ed947f5c3f82710ab2e253d235e604e3a9e97de`; both specification hashes match
+  the preceding run. No discrepancy or thesis correction. Source length and
+  runtime specializations include zero rows and zero columns, beyond the
+  thesis's positive-dimension assumptions.
+- Passed targeted build and full `lake build PhdThesisLean
+  DiscreteMetricRegression` (9,346 jobs). Independent `#check`/`#print axioms`
+  checks all 63 new explicit public names plus ten earlier endpoints: 48
+  standard-only and 25 axiom-free. Full-build reports: 1,465 standard-only,
+  41 axiom-free; 551 existing warnings, none new. Three kernel complete traces
+  pass, plus 196 varying fraction-record executions, 25 named and 20 raw-word
+  executions. Every actual execution checks time, exact output, reset and all
+  private stacks; fraction tests compare the existing target format and size.
+  These tests execute the new concrete machine, not the noncomputable composed
+  arithmetic witnesses. All 216 project/adapter sources scan clean; all ten
+  dependency pins/tracked trees and diff checks pass.
+- Evidence: `/Users/gregb/Documents/Codex/2026-11-16/advance-the-formal-proof-programme-for/work/`:
+  `broadcast-build.log`, `full-build.log`, `RationalBroadcastAudit.lean`,
+  `final-axiom-audit.log`, `RationalBroadcastExamples.lean`, `examples.log`,
+  `source-scan.log`, `dependency-audit.log`, and audit scripts. Failed earlier
+  elaborations are not evidence. `broadcast-build.log` is the final warning-free
+  targeted build for the new modules; its dependencies retain existing warnings.
+- Updated THEOREM_STATUS and TODO with the precise completed obligation and
+  parser/outer arithmetic traversal boundary. Commit/push and clean committed
+  checkout verification follow the successful increment checks; remote CI is
+  not claimed without checking it.
