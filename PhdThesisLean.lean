@@ -185,3 +185,4 @@ import PhdThesisLean.RationalNormList
 import PhdThesisLean.RationalRowResidual
 import PhdThesisLean.RationalColumnPairing
 import PhdThesisLean.RationalCertificateBroadcast
+import PhdThesisLean.RationalRegressionInternal

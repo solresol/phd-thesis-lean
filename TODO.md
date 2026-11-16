@@ -304,7 +304,8 @@ source hash and separate semantic, size and machine milestones.
   `(L+1)*(P(L)+(8*size(p)+2)*L+20)` and output length is at most
   `(4*size(p)+8)*L+6`. `sumComputableInPolyTime` composes exact summation;
   `boundedLossOutputsInTime` charges both phases in original combined bits.
-  This starts with serialized residuals; their production remains open.
+  This component starts with serialized residuals; their production is supplied
+  by the internal checker below.
 - [x] Compute a runtime-length rational dot product and one complete residual.
   `RationalDotProduct.computableInPolyTime` traverses internal paired columns,
   charges each product and all transfers, and emits the exact summation format
@@ -313,8 +314,8 @@ source hash and separate semantic, size and machine milestones.
   response, erases pair tags and subtracts; `evaluate_row` identifies the exact
   original unreduced residual. `boundedRowOutputsInTime` charges the full
   arithmetic phase in original combined bits `S` via source bound `8S²+11S+3`.
-  The response and paired column list are already serialized; their production
-  and the outer observation loop remain open.
+  This component starts with serialized paired columns; the later pairing,
+  broadcast and residual-traversal increments supply them from internal rows.
 - [x] Pair separate delimited row/certificate lists with a concrete finite
   machine (`RationalColumnPairing`). Success takes at most `3L+2` transitions;
   unequal field counts clear both source tails and partial output in `3L+5`,
@@ -322,7 +323,8 @@ source hash and separate semantic, size and machine milestones.
   complete response-preserving residual machine. Original combined source
   bits give bound `8S²+12S+3`; order, multiplicity, signs, unreduced fractions
   and zero columns are covered. The following increment supplies certificate
-  reuse and all per-row sources; original parsing and outer arithmetic remain.
+  reuse and all per-row sources; the later internal checker supplies outer
+  arithmetic. Original binary parsing remains open.
 - [x] Reuse one certificate across runtime-many observation sources:
   `RationalCertificateBroadcast.computableInPolyTime` copies/restores the
   certificate for every row and serializes the exact separated row inputs in
@@ -331,7 +333,20 @@ source hash and separate semantic, size and machine milestones.
   combined input/certificate bits, so `regressionOutputsInTime` takes at most
   `12S²+16S+5` steps. Empty shapes and order/multiplicity are covered. The source
   already contains delimited rows and one delimited certificate; binary parsing
-  and executing the row evaluator over the produced list remain open.
+  remains open; the next increment executes the produced row list.
+- [x] Execute every row and compose the internal regression checker:
+  `RationalResidualList.computableInPolyTime` runs the existing pairing/residual
+  machine for each framed row, preserving the unprocessed tail and accumulated
+  residuals. In complete framed input length `L`, its actual bound is
+  `(L+1)*(P(L)+2Q(L)+2L+6)`, where `P` is the proved row-machine time and
+  `Q(L)=L+P(L)*machinePushBound` is a proved output bound. The finite loop charges
+  all transfers, delimiters, cleanup and final reversal. No cost premise is given.
+  `RationalRegressionInternal.computableInPolyTime` composes certificate reuse,
+  this traversal, exact norms and sum, threshold retention, cross-products and
+  comparison. `outputsInTime` gives polynomial time in original combined bits
+  `S`, via a proved full internal source bound `3S`. `check_correct` identifies
+  the thesis decision test. The typed source has equal row/certificate lengths;
+  original binary parsing, count checks and malformed-input rejection are open.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -340,26 +355,20 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: uniform binary input/certificate parsing retaining all fields
-and producing `RationalCertificateBroadcast.sourceEncoding`; then evaluate the
-produced list of separated row words. Reuse the completed broadcast machine for
-certificate copying/restoration and source-list construction, and
-`RationalColumnPairing.rowComputableInPolyTime` for pairing and arithmetic of
-each row. The latter consumes each produced row word; a finite traversal must
-invoke it and serialize the resulting residuals. Then compose the completed
-`RationalNormList.sumComputableInPolyTime` and final comparison. Charge original
-source preparation, dimension/count checks, row iterations and serialization;
-a polynomial source-size bound alone does not charge its production.
-Reuse the completed fraction-string validator; still reject invalid dimensions, counts and whole input/certificate
-structures, and charge traversal and machine composition.
-In particular, retain the decoded fields, check the `r*(d+1)` data count and
-`d` certificate count, and reject oversized binary counts without expanding
-them into exponentially long unary loops.
-Reuse the polynomial prefix, power and cross-product width bounds.
-No gcd is needed by this evaluator. The complete machine verifier remains
-absent: the executable Lean checker is not a machine-time theorem. Then connect
-the certificate bounds to NP membership and prove the binary-rational encoding
-bridge from existing hardness before concluding NP-completeness.
+Next obligation: implement uniform binary input/certificate parsing retaining
+all fields and producing `RationalRegressionInternal.encoding` (one certificate,
+all response/coefficient rows, and threshold). Compose the completed internal
+checker; do not rebuild its broadcast, residual loop, norms, sum or comparison.
+Reuse the completed fraction-string validator, retain decoded fields, check the
+`r*(d+1)` data count and `d` certificate count, and reject oversized/mismatched
+binary dimensions and counts within a polynomial bound in input bits. Do not
+expand oversized binary counts into unbounded unary loops. The semantic
+`Source` subtype and its decoder round trip are not a machine validation proof.
+The source-size theorem does not charge original parsing or translation.
+Then connect the short-certificate theorem to NP membership and prove the
+binary-rational encoding bridge from existing hardness before concluding
+NP-completeness. The external SAT counter remains an explicit hypothesis for
+later conditional results; none is used by this increment.
 
 ## Precision-indexed p-adic prediction growth
 

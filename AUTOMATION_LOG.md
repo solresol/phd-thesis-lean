@@ -9448,3 +9448,56 @@
   work preserved and its old thesis schedule paused.
 - Final shared gate passed thesis, Littlewood and Scholz again, with exact
   pins, dependency sources, readiness artifacts and representative imports.
+
+
+### 2026-11-16 UTC — complete internal regression checker
+
+- Started clean at `e0479d3`, fetched and fast-forwarded `22ed868`, preserving
+  the upstream Smith pivot/minor transport increment. Read automation memory,
+  registry, AGENTS, current declarations/status/TODO/working changes, the thesis
+  specification and 13 November human-literature checkpoint. Used installed
+  macOS Lean/Lake 4.35.0. No dependency, adapter, sibling, thesis or schedule edit.
+- Added default-imported `RationalResidualListMachine.lean`,
+  `RationalResidualList.lean` and `RationalRegressionInternal.lean`. The finite
+  outer row loop runs the existing pairing/residual machine with the remaining
+  rows and reversed residual prefix preserved. It charges all loading,
+  collection, delimiters, cleanup/reset and reversal. Actual time is
+  `(L+1)*(P(L)+2Q(L)+2L+6)`, with `P` the proved body time and
+  `Q(L)=L+P(L)*machinePushBound` derived from actual output growth.
+- Composed certificate broadcast, row traversal, norms, exact sum, threshold
+  retention, tag removal and full fraction comparison. The internal source has
+  one certificate, all response/coefficient rows and the threshold, at most `3S`
+  symbols in original combined bit length `S`. `outputsInTime` proves actual
+  polynomial runtime; `check_correct` matches the thesis decision predicate.
+  `residuals_regression` and `loss_regression` preserve the exact unreduced stored
+  fractions. Empty shapes, arbitrary rank, signs and multiplicities are allowed.
+- Boundary: equal column counts are a typed source contract. The semantic
+  decoder is not a machine parser; original binary parsing/validation,
+  bounded rejection of oversized/mismatched dimensions/counts, and source
+  translation remain open. Whole-verifier runtime, NP membership/completeness
+  and the binary-rational hardness bridge remain pending. Later counting,
+  conditional transfer, approximation and application obligations remain pending.
+- Thesis correspondence: internal machine ingredient of
+  `prop:regression-np-complete`, thesis `3ed947f5c3f82710ab2e253d235e604e3a9e97de`.
+  Agenda/addendum hashes match the preceding run. No discrepancy, mathematical
+  claim correction or external SAT-counter assumption. The weekly checkpoint
+  is source background only, not a replacement parser or whole verifier.
+- Targeted and full `lake build PhdThesisLean DiscreteMetricRegression` pass
+  (9,350 jobs). Independent type/axiom audit: all 73 new explicit public names
+  and ten earlier endpoints, 75 standard-only reports and eight axiom-free.
+  Full build: 1,496 standard-only, 42 axiom-free and 555 existing warnings; none
+  new. Fifteen semantic assertions pass at primes two/three across empty,
+  rank-deficient conflicting, signed/unreduced and threshold cases. These are
+  specification executions; no end-to-end execution test of the noncomputable
+  composed TM2 is claimed. Universal machine proofs supply that guarantee.
+  All 220 project/adapter sources scan clean; all ten dependency pins/tracked
+  sources and diff checks pass.
+- Evidence: `/Users/gregb/Documents/Codex/2026-11-17/advance-the-formal-proof-programme-for/work/`:
+  `internal-build.log`, `full-build.log`, `RationalInternalAudit.lean`,
+  `final-axiom-audit.log`, `RationalInternalExamples.lean`, `examples.log`,
+  `source-scan.log`, `dependency-audit.log` and validation scripts. The final
+  targeted/full/audit logs are authoritative; failed intermediate proof and
+  example diagnostics are excluded. No remote CI result is claimed.
+- Updated the status table, dated proof record and TODO so the next run starts
+  with original binary parsing and rejection bounds, without repeating the
+  now-completed internal checker composition.
