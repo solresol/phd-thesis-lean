@@ -20,6 +20,7 @@ import PhdThesisLean.SmithComputedBounds
 import PhdThesisLean.SmithExactDivision
 import PhdThesisLean.SmithExactMinors
 import PhdThesisLean.SmithExactStages
+import PhdThesisLean.SmithPivotMinorTransport
 import PhdThesisLean.SmithPivotMinors
 import PhdThesisLean.AllDifferent
 import PhdThesisLean.AllDifferentCSP

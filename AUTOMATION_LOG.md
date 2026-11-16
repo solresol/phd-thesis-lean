@@ -9385,3 +9385,66 @@
   evidence in `clean-commit-build.log`. This documentation follow-up removes
   stale certificate-reuse pending wording from the headline queue. Remote CI
   was not checked; local verification is complete.
+
+### 2026-11-16 UTC — selected-minor transport through one Euclidean reducer
+
+- Question: how does a selected minor change when a computed pivot mixes in
+  an outside row? First open target remains one fixed polynomial prefix width
+  for the full `decomposeTrace`; no witness is supplied. Input remains actual
+  signed/framed binary dense entries plus unary dimensions, and output all five
+  framed matrices. Read TODO, Smith plan, status, AGENTS and saved shared START.
+- Added default-imported `SmithPivotMinorTransport.lean`. Variable-row minors
+  follow the same additions as original entries when fixed rows avoid the mixed
+  pair. Exact replay covers every Euclidean/reducer prefix, including unfinished
+  swaps and the exact-division shortcut. Reusing the existing quotient-height
+  proof gives incoming minor exponent `d` plus `9c` for selected-pair width `c`,
+  independently of minor order; transpose covers column operations. Exposed two
+  existing pair-support declarations instead of duplicating them.
+- Reused the existing determinant-bit bound. `dense_selected_minor_prefix_bits`
+  gives `2s²+9s+1` magnitude bits for genuine row minors containing the pivot
+  and omitting the other mixed row, in complete original dense input length `s`.
+  The dimension header pays for minor order. Zero scalar pairs and a universal
+  negative/nonunit rectangular specialization check boundary cases. A kernel
+  counterexample on `[[2,1],[3,0],[0,1]]` changes the selected rows-0,2 minor
+  from `2` to `−1` under the actual nondivisible reducer: unchanged-minor
+  propagation through an outside mixture is retired.
+- Exact obstacle: no original-input bound on the evolving minor family across
+  successive row/column mixtures, nor an amortized bound on their `9c` charges.
+  Exact-stage divisibility still requires separate premises. No global width,
+  uniform machine, total binary runtime or optimizer-composition claim follows;
+  `thm:max-polytime` stays Partial. Existing integral inverses, rectangular and
+  empty-case correctness remain checked. No completed queue was reopened.
+- Read the 13 November weekly human-literature checkpoint before selection;
+  source access date 13 November/cutoff 23:43 UTC, read today. Ji v2 (1 August)
+  and artifact `3f80f952` remain nonsingular-square/arithmetic-leaf results.
+  Kannan–Bachem full text remained unavailable; Senellart v1.4.1 retains its
+  finite-relational/capture and codec boundaries. URLs, versions, hypotheses and
+  classifications are in the dated Smith-plan entry. No new external access,
+  broad daily search or artifact replay claimed. Inspected pinned dependency
+  codecs, binary addition and actual TM2 composition read-only; no foundation
+  or isolated adapter duplicated.
+- Started from clean generated `work` at `e0479d3`; authorized origin, fetched
+  main and ancestry matched. Preserved `work`, created tracking `main`, and
+  used only this checkout and the published runtime. Shared startup gate passed;
+  absolute installed Lean/Lake 4.35.0, `env_for('thesis')`, two threads, existing
+  caches and guarded runner. No installation, pin/receipt/configuration change,
+  publication, sibling write, schedule edit, user-machine access or subagent.
+- Passed targeted build (3,215 jobs) and both full libraries (9,347 jobs).
+  Independent type/axiom audit: 17 new public declarations, two reused exposed
+  declarations and ten prior endpoints; 29 standard-only reports including one
+  axiom-free, no warnings. Full build: 1,523 standard-only reports including
+  42 axiom-free, 551 existing warnings and none in changed modules. All 217
+  project/adapter Lean files pass the comment/string-aware prohibited-token
+  scan. All ten dependency HEADs/tracked sources and reviewed pins are unchanged
+  and clean; diff checks pass. Evidence is in ignored
+  `.research/smith-pivot-minor-transport-2026-11-16/`.
+- Failed elaborations involved update normalization, a guessed import path,
+  a power-comparison metavariable and an overly implicit dense-example term.
+  Explicit rewrites/types and a structural dimension proof repaired them,
+  without raising limits. Failed-script output is excluded from evidence.
+- Next: a stable original-input minor family and amortized growth invariant
+  across successive pivot mixtures, or a verified controlled-growth replacement.
+  Stop after this increment; parent handles Raksasa separately with unrelated
+  work preserved and its old thesis schedule paused.
+- Final shared gate passed thesis, Littlewood and Scholz again, with exact
+  pins, dependency sources, readiness artifacts and representative imports.

@@ -18,25 +18,27 @@ open Matrix SmithTrace SmithPivot SmithReduction SmithRowOperations SmithEncodin
 
 variable {m n : ℕ}
 
-private def rowPair (r s : Fin m) : Op m n → Prop
+/-- An addition between the two selected rows, in either direction. -/
+def RowPair (r s : Fin m) : Op m n → Prop
   | .row u v _ _ => (u = r ∧ v = s) ∨ (u = s ∧ v = r)
   | .col _ _ _ _ => False
 
-private theorem gcdTrace_rowPair (r s : Fin m) (h : r ≠ s) (a b : ℤ) :
-    ∀ op ∈ gcdTrace (n := n) r s h a b, rowPair r s op := by
+/-- The computed Euclidean trace touches only its selected pair of rows. -/
+theorem gcdTrace_rowPair (r s : Fin m) (h : r ≠ s) (a b : ℤ) :
+    ∀ op ∈ gcdTrace (n := n) r s h a b, RowPair r s op := by
   rw [gcdTrace]
   split_ifs with hb
   · simp
   · intro op hop
     rcases List.mem_append.mp hop with hop | hop
     · simp only [pairStep, List.mem_cons, List.not_mem_nil, or_false] at hop
-      rcases hop with rfl | rfl | rfl | rfl <;> simp [rowPair]
+      rcases hop with rfl | rfl | rfl | rfl <;> simp [RowPair]
     · exact gcdTrace_rowPair r s h b (-(a.tmod b)) op hop
 termination_by b.natAbs
 decreasing_by exact remainder_descent a b hb
 
 private theorem step_minors (Q : State m n) (r s : Fin m) (h : r ≠ s)
-    (op : Op m n) (hop : rowPair r s op) (j l : Fin n) (c : Fin m) :
+    (op : Op m n) (hop : RowPair r s op) (j l : Fin n) (c : Fin m) :
     ((step Q op).S r j * (step Q op).S s l -
         (step Q op).S s j * (step Q op).S r l =
       Q.S r j * Q.S s l - Q.S s j * Q.S r l) ∧
@@ -50,7 +52,7 @@ private theorem step_minors (Q : State m n) (r s : Fin m) (h : r ≠ s)
         constructor <;> simp [step, rowAdd, h, h.symm] <;> ring
 
 private theorem run_minors (Q : State m n) (r s : Fin m) (h : r ≠ s)
-    (ops : List (Op m n)) (hops : ∀ op ∈ ops, rowPair r s op)
+    (ops : List (Op m n)) (hops : ∀ op ∈ ops, RowPair r s op)
     (j l : Fin n) (c : Fin m) :
     ((run Q ops).S r j * (run Q ops).S s l -
         (run Q ops).S s j * (run Q ops).S r l =
@@ -243,6 +245,8 @@ theorem fixed_column_shear (t : ℤ) :
     fin_cases i <;> fin_cases j <;> simp [run, step, initial, rowAdd]
   · simp [run, step, initial, rowAdd]
 
+#print axioms RowPair
+#print axioms gcdTrace_rowPair
 #print axioms gcdTrace_prefix_minors
 #print axioms pivot_target_numerators
 #print axioms reduceRows_target_numerators

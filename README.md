@@ -200,6 +200,17 @@ fails in the earlier counterexample. These bounds concern the successive-pair
 trace; no unconditional bound for `decomposeTrace`, uniform machine runtime
 or final optimizer composition is claimed.
 
+[`SmithPivotMinorTransport.lean`](PhdThesisLean/SmithPivotMinorTransport.lean)
+controls a selected minor when a computed pivot mixes in an outside row.
+Variable-row determinants follow the same additions as the pivot entries,
+so incoming minor exponent `d` grows by at most `9c` for selected-entry width
+`c`, independently of minor order. Every temporary addition is included; the
+column statement follows by transpose. Genuine row minors through one reducer
+use at most `2s²+9s+1` magnitude bits in original dense input length `s`.
+A checked example rules out unchanged-minor propagation through outside row
+mixing. Global growth through successive pivots, uniform machine costs and
+optimizer composition remain open; `thm:max-polytime` stays Partial.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

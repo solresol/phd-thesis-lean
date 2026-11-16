@@ -163,6 +163,14 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   zero-pivot and empty cases are included. Exactness is required separately
   at every stage; pivot-changing phases, the unconditional computed-trace bound
   and uniform machine runtime remain open.
+- [x] Transport variable-row/column minors through every prefix of one actual
+  Euclidean or exact-division reducer (`SmithPivotMinorTransport.lean`). Fixed
+  selected rows avoid the mixed pair. An incoming minor exponent `d` grows to
+  at most `d+9c` for selected-entry width `c`, independently of minor order.
+  Genuine row minors omitting the mixed-in row use at most `2s²+9s+1` bits
+  through one reducer from dense input length `s`. A checked counterexample
+  rules out unchanged-minor propagation through an outside row mixture.
+  Repeated pivot/stage growth and uniform machine costs remain open.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

@@ -369,6 +369,47 @@ polynomial witness for `decomposeTrace`, uniform arithmetic/control/serializatio
 machine, total encoded runtime or optimizer composition follows. The thesis
 correspondence and headline status of `thm:max-polytime` remain **Partial**.
 
+`SmithPivotMinorTransport.lean` now treats a selected minor when a computed
+pivot mixes in a row outside that minor. `rowMinor_rowAdd` proves exact
+linearity in its distinguished row, provided the fixed rows avoid the mixed
+pair. `gcdTrace_prefix_rowMinor` and `reduceRowsTrace_prefix_rowMinor` replay
+these determinants as virtual entries under the same actual trace, including
+unfinished signed swaps and the exact-division shortcut. The existing
+quotient-height theorem then gives exponent **`d+9c`** from incoming minor
+exponent `d` and selected-entry width `c`, independently of minor order.
+The transposed prefix theorem covers column operations on rectangular matrices.
+The determinant bound is reused from `RationalWitnessBounds`; no new generic
+arithmetic or machine foundation is introduced.
+
+`dense_selected_minor_prefix_bits` bounds genuine selected row minors containing
+the pivot and omitting the mixed-in row by **`2s²+9s+1` magnitude bits** at every
+prefix of one reducer, in actual complete dense input length `s`. Injectivity
+and the existing paid dimension header supply the order bound. The all-zero
+selected pair, negative entries and singular rectangles are retained.
+`outside_mix_changes_minor` gives a kernel-checked example on
+`[[2,1],[3,0],[0,1]]`: the actual nondivisible pivot changes the minor on rows
+0 and 2 from `2` to `−1`. Equality of that one original minor therefore cannot
+be the invariant through an outside row mixture.
+
+These are local determinant transport and size theorems. They do not bound
+the evolving family of minors across successive pivot mixtures or propagate
+`ExactArms`; repeatedly charging `d+9c` with uncontrolled `c` does not produce
+the missing fixed polynomial. Integer unimodularity, the weak rectangular
+decomposition and both empty orientations retain their existing proofs.
+Global prefix widths, uniform arithmetic/control/serialization machines,
+actual total binary runtime and optimizer composition remain open.
+The thesis correspondence for `thm:max-polytime` remains **Partial**.
+
+Validation (16 November 2026 UTC): targeted module build and both complete
+libraries pass (9,347 full-build jobs). An independent type/axiom audit checks
+all 17 new public declarations, the two reused pair-support declarations made
+public, and ten existing correctness/empty/growth/optimizer endpoints: 29
+standard-only reports, including one axiom-free definition, with no warnings.
+The full build reports 1,523 standard-only axiom sets, including 42 axiom-free,
+and 551 existing warnings; neither changed module has warnings. All 217
+project/adapter Lean files pass the comment/string-aware prohibited-token scan.
+All ten dependency HEADs/tracked sources and reviewed pins remain unchanged.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |

@@ -26,6 +26,9 @@ while proving that their divisibility premises need not propagate.
 The [15 November arbitrary exact-stage increment](#selected-minors-through-arbitrary-exact-stages-15-november-2026-utc)
 now controls any finite exact run, including zero pivots, through selected
 incoming minors. The unconditional computed-trace growth witness remains open.
+The [16 November transport increment](#selected-minor-transport-through-one-euclidean-reducer-16-november-2026-utc)
+bounds selected minors through a single pivot mixing in an outside row;
+it does not yet control successive mixtures or close the global witness.
 
 ## Output and input contracts
 
@@ -2026,4 +2029,129 @@ selected-minor design repaired them. Failed scripts are not proof evidence.
 Commands, intermediate logs, independent audit source and verification script
 are retained in ignored `.research/smith-exact-stages-2026-11-15/`.
 The parent coordinates any Raksasa fast-forward separately, preserving unrelated
+work and its paused old thesis schedule.
+
+### Selected-minor transport through one Euclidean reducer (16 November 2026 UTC)
+
+**Question and exact open theorem.** Started from fetched clean main
+`e0479d3d8335b7b23094abecf86d2cc7869784dc`. The first unfinished global
+obligation remains the left side of `SmithComputedBounds.polynomial_growth_iff`:
+
+```lean
+∃ P : Polynomial ℕ, ∀ A : Dense,
+  PrefixWidth (initial A.toMatrix) (decomposeTrace A)
+    (P.eval (SmithEncoding.encode A).length + 1)
+```
+
+No witness is constructed here. Input is still signed/framed binary row-major
+integers with unary dimension headers, of actual length
+`s=m+n+2+sum_entries(2*size(abs(z))+2)`. Output is the existing five framed dense
+matrices `U,Uinv,V,Vinv,S`, paying for identity maps even in empty orientations.
+The new result bounds local determinants, not a newly serialized output or a
+machine's running time. The bounded question was how a selected minor changes
+when a Euclidean pivot mixes in a row outside its selected rows.
+
+**Checked increment.** `SmithPivotMinorTransport.rowMinor` replaces one selected
+row in its original slot. If the remaining fixed rows avoid the mixed pair,
+`rowMinor_rowAdd` proves that these determinants follow exactly the same
+addition as the original entries. `gcdTrace_prefix_rowMinor` replays them as
+virtual entries under the same computed trace, at every actual addition
+prefix. `reduceRowsTrace_prefix_rowMinor` covers the divisibility-aware
+controller, including its exact-division shortcut. The existing pair-support
+predicate and theorem in `SmithPivotMinors` are exposed and reused; no duplicate
+trace selector is introduced.
+
+The quotient-height theorem from `SmithPivotLinearBounds` then applies to the
+virtual entries. Incoming determinant magnitudes at most `2^d` and selected
+entry magnitudes less than `2^c` give determinant magnitudes at most
+**`2^(d+9c)`**, including temporary signed swaps. The extra width charge does
+not depend on the minor's order. `reduceColsTrace_prefix_minor_pow_bound`
+provides the rectangular column-operation statement by transpose. An all-zero
+pair is covered; the scalar Euclidean theorem even permits `c=0`. The actual
+reducer theorem uses `c>0` to charge its one-addition shortcut.
+
+`rowMinor_entry_pow_bound` reindexes to and reuses the existing
+`RationalWitnessBounds.det_natAbs_le_pow` rather than adding a determinant or
+binary-arithmetic foundation. For minor order `q`, incoming entry exponent
+`w` gives minor exponent at most `q(w+q)`. From original dense input length
+`s`, `dense_selected_minor_prefix_bits` supplies **`2s²+9s+1` magnitude bits**
+for every selected row minor containing the pivot row and omitting the other
+mixed row, through every prefix of one actual reducer. Injectivity and the
+paid dimension header supply `q≤rows≤s` internally. The variable-row version
+also permits repeated indices. A universal-prefix specialization checks negative,
+nonunit rectangular data; these scope checks supplement the universal proofs.
+
+**Retired extension and remaining invariant.** `outside_mix_changes_minor`
+proves an explicit obstruction on `[[2,1],[3,0],[0,1]]`. The selected minor on
+rows 0 and 2 starts at `2`; the actual nondivisible reduction of entries `2,3`
+changes it to `−1`. Thus the previous exact-stage equality cannot simply be
+extended to a minor omitting the mixed-in row. Transport controls this case
+locally, but its incoming minor bound is still local. A family of original-input
+minor bounds must survive successive changes of the fixed rows and alternating
+column mixtures, or a controlled-growth replacement must be proved. Repeatedly
+charging `d+9c` while `c` is uncontrolled gives no fixed polynomial witness.
+The earlier exact-stage theorem and its separate divisibility premises remain
+valid. No premise propagation, unconditional `decomposeTrace` width, global
+operation/output bound, uniform arithmetic/control/traversal/serialization
+machine, total encoded runtime or optimizer composition follows.
+`thm:max-polytime` stays **Partial**; the complete CSP queue remains closed.
+
+**Human literature and reuse.** Before choosing work, read the latest
+[13 November weekly checkpoint](2026-11-06-literature-review.md#13-november-2026-checkpoint)
+on **16 November 2026 UTC**. The review's source access date is **13 November**,
+cutoff **23:43 UTC**. Ji [arXiv:2607.22524v2](https://arxiv.org/abs/2607.22524v2),
+v2 **1 August 2026**, and author artifact
+[`3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179)
+retain nonsingular-square hypotheses and arithmetic-leaf costs excluding
+structural work. They do not prove our singular/rectangular encoded-machine
+target or this controller's global invariant. The
+[Kannan–Bachem publisher source](https://doi.org/10.1137/0208040) still had
+only abstract/subscription access in that review; full text was not audited.
+
+The review supersedes the older class-bridge assessment with Senellart's
+[v1.4.1 release](https://github.com/PierreSenellart/descriptive-complexity/releases/tag/v1.4.1),
+**12 November**, commit `18e9b92a2f4782ff5d2051935ca3adfb619030b8`; its paper
+[2609.18261](https://arxiv.org/abs/2609.18261) remains v1, **16 September**.
+The inspected interface concerns invariant finite-relational problems with
+capture hypotheses and a different codec. It supplies no Smith constructor,
+dense-codec simulation or minor invariant. These are recorded human-source
+results and inspected formal source, without independent external replay.
+No fresh external access, broad daily search, copied code or external theorem
+is claimed in this run; the new step depends only on local checked lemmas and
+pinned mathlib determinant identities. The saved review's access/coverage
+limitations remain. Read-only inspection of pinned `lean-np-hardness`
+`21e6eb462b14c0b612895b4ff03add15eea54e70` confirmed `FinEncoding`,
+`BinaryNatLists.frame`, `BinaryArithmetic.binaryAdd_outputsInTime` and
+`MachineComposition.compositionMachine_outputsInTime`. Their binary codecs and
+actual TM2 runtime boundary remain separate from local determinant arithmetic.
+No generic foundation, signed division/gcd machine or Complexitylib adapter
+was duplicated or changed.
+
+**Verification and stopping point.** Read AGENTS and saved shared START; the
+full startup and final gates passed using the existing published runtime. Verified the
+authorized origin, clean generated `work` and fetched ancestry, preserved
+`work`, and created tracking `main` at the same commit. Used absolute installed
+Lean/Lake **4.35.0**, `env_for('thesis')`, two threads, existing caches and the
+resource-guarded runner. No installation, pin/receipt change, configuration
+publication, sibling edit, schedule change, user-machine access or subagent.
+Targeted module build passed (**3,215** jobs); both complete libraries passed
+(**9,347** jobs). The new module is imported by the default library.
+An independent `#check`/`#print axioms` audit checked all **17** new public
+declarations, **two** reused declarations made public, and **ten** existing
+correctness/empty/growth/optimizer endpoints: **29** standard-only reports,
+including one axiom-free, no warnings. Full build: **1,523** standard-only
+reports, including **42** axiom-free, and **551** existing warnings; none in
+either changed module. All **217** project/adapter Lean sources pass the
+nested-comment/string-aware prohibited-token scan. Reviewed pins and all ten
+dependency HEADs/tracked sources remain clean and unchanged; diff checks pass.
+
+Initial scripts needed explicit matrix-update normalization, a correct pinned
+import, and typed power comparisons. A dense example's overly implicit proof
+term exceeded the default heartbeat limit; applying the theorem structurally
+and charging dimensions repaired it without changing limits. Failed scripts
+and error-recovery reports are excluded from proof evidence. Successful build,
+audit and validation logs, independent audit source and runner/verification
+scripts are retained in ignored `.research/smith-pivot-minor-transport-2026-11-16/`.
+Stop after this coherent audited local increment. The parent coordinates any
+Raksasa fast-forward in a separate connected-computer task, preserving unrelated
 work and its paused old thesis schedule.
