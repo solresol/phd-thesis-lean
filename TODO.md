@@ -356,6 +356,16 @@ source hash and separate semantic, size and machine milestones.
   `S`, via a proved full internal source bound `3S`. `check_correct` identifies
   the thesis decision test. The typed source has equal row/certificate lengths;
   original binary parsing, count checks and malformed-input rejection are open.
+- [x] Retain and validate original binary field prefixes on every raw input:
+  `RationalFractionPrefix.Machine.computableInPolyTime` takes at most `4L+10`
+  actual TM2 steps to split one signed/framed stored fraction from its suffix.
+  `parse_iff` and `parse_none_iff` give exact success/rejection; signs, zero,
+  canonical magnitudes and denominator positivity are checked, with unreduced
+  fractions retained literally. `naturalComputableInPolyTime` validates and
+  retains a canonical binary count prefix (zero included) in `4L+11` steps.
+  Every success emits the original bits plus one delimiter; all failure paths,
+  copying, cleanup and state reset are charged. Numeric count values stay
+  binary, so this is not yet their size bound or record compatibility check.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -368,8 +378,9 @@ Next obligation: implement uniform binary input/certificate parsing retaining
 all fields and producing `RationalRegressionInternal.encoding` (one certificate,
 all response/coefficient rows, and threshold). Compose the completed internal
 checker; do not rebuild its broadcast, residual loop, norms, sum or comparison.
-Reuse the completed fraction-string validator, retain decoded fields, check the
-`r*(d+1)` data count and `d` certificate count, and reject oversized/mismatched
+Reuse the completed retaining fraction/count-prefix machines; do not repeat
+field recognition or retention. Check numerical bounds, the `r*(d+1)` data
+count and `d` certificate count, and reject oversized/mismatched
 binary dimensions and counts within a polynomial bound in input bits. Do not
 expand oversized binary counts into unbounded unary loops. The semantic
 `Source` subtype and its decoder round trip are not a machine validation proof.

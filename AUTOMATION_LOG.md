@@ -9546,3 +9546,56 @@
   verify a controlled-growth replacement. Stop after this coherent increment;
   parent handles Raksasa separately.
 - Final unchanged shared gate passed all three exact-pin/artifact/import checks.
+
+
+### 2026-11-17 UTC — total retaining binary-field parsers
+
+- Closed field retention and canonical-prefix parsing, with actual total
+  machine bounds. Added default-imported `RationalFractionPrefix.lean` and
+  `RationalFractionPrefixMachine.lean`. `parse_iff`/`parse_none_iff` identify
+  exact stored-fraction prefixes and rejection on every raw Boolean word.
+  `computableInPolyTime` and `outputsInTime` execute the four-stack finite TM2
+  in `4L+10` transitions, including suffix retention, rejection, cleanup,
+  output reversal and reset. Success adds one delimiter and otherwise retains
+  all original bits; failure emits the empty word. Unreduced fractions remain
+  unreduced. `rationalOutputsInTime` matches original `encodeRat` inputs.
+- `naturalComputer` is a second entry into the same transition system.
+  `natural_iff`, `naturalOutputsInTime`, `naturalComputableInPolyTime` validate
+  and retain canonical natural prefixes, including zero, in `4L+11` actual
+  steps on every word. Count values remain binary; no unary expansion or
+  arithmetic-runtime premise is used. This does NOT reject numerically
+  oversized counts or validate record dimensions and data/certificate counts.
+- Started clean at `710341e`; fetched/fast-forwarded `3d2a2f3`, preserving
+  upstream Smith-minor work. Read automation memory, registry, AGENTS,
+  status/TODO/current declarations/changes, thesis specification and the latest
+  13 November human-literature checkpoint. Used installed macOS Lean 4.35.0.
+  No fresh external search, sibling/dependency/adapter/schedule edits or SAT
+  assumption. Thesis remains clean at
+  `3ed947f5c3f82710ab2e253d235e604e3a9e97de`, with unchanged agenda/addendum
+  hashes `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` /
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+  This is the retained-field parsing ingredient of
+  `prop:regression-np-complete`; no discrepancy or thesis claim change.
+- Validation: targeted/full `lake build PhdThesisLean DiscreteMetricRegression`
+  pass (9,353 jobs). Separate audit covers all 59 new public declarations plus
+  seven prior endpoints: 40 standard-only and 26 axiom-free. Full-build reports:
+  1,512 standard-only, 42 axiom-free, 551 existing warnings, none new. Four
+  kernel-checked actual-machine traces and 16,399 actual executions pass:
+  every Boolean word through length 12 for both entry points, seven named
+  fraction/suffix cases, five malformed words and five natural counts. Tests
+  check independent prefix-language expectations, exact output, runtime bound,
+  all scratch/input cleanup and state reset. Large fields include 129-bit
+  magnitudes, a 1,000-bit suffix and `2^128` retained as a binary count.
+  All 223 project/adapter sources scan clean; all ten dependencies match pins
+  and have clean tracked sources. Configuration/toolchain/adapters unchanged.
+  Failed intermediate proof/example diagnostics are excluded.
+- Evidence: `/Users/gregb/Documents/Codex/2026-11-18/advance-the-formal-proof-programme-for/work/`:
+  prefix-build.log, full-build.log, RationalPrefixAudit.lean,
+  final-axiom-audit.log, RationalPrefixExamples.lean, examples.log,
+  source-scan.log, dependency-audit.log, validation-summary.log and scripts.
+- Remaining: bounded numerical dimension/count validation, `r*(d+1)` data
+  length and `d` certificate length checks, record traversal/assembly into
+  `RationalRegressionInternal.encoding`, and composition with the completed
+  internal checker. Then NP membership and the binary-rational hardness
+  bridge. Counting circuits, conditional transfer, sampling and applications
+  remain pending. Do not repeat prefix recognition/retention next run.

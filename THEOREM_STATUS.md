@@ -1536,7 +1536,8 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Separate row/certificate column pairing | Complete (machine component) | `RationalColumnPairing.computableInPolyTime` consumes two separately serialized delimited fraction lists and produces the exact paired-column format in at most `3L+2` finite TM2 steps. `rejectsInTime` clears both source tails and any partial output on unequal list counts within `3L+5`; the rejection word cannot encode a paired fraction list. Empty lists, signs, unreduced fractions, order and multiplicity are retained. `rowComputableInPolyTime` composes pairing with the response-preserving residual evaluator; `boundedRowOutputsInTime` charges the complete per-row phase in original combined bits through source bound `8S²+12S+3`. The following increments close certificate reuse, row-source assembly and the outer arithmetic loop; extracting these lists from the original binary record remains open. |
 | Certificate reuse and observation source assembly | Complete (machine component) | `RationalCertificateBroadcast.computableInPolyTime` takes one certificate plus runtime-many internally serialized rows, restores the certificate after each copy, and outputs all separated row words in order. At most `3L²+8L+5` actual TM2 steps and `L²+L` output symbols. `source_length_le` gives `L≤2S` in original bits; `regressionOutputsInTime` proves bound `12S²+16S+5`, and `regression_output` matches the existing per-row evaluator input exactly. Empty shapes, signs, unreduced fields and multiplicities are covered. The following increment executes the row evaluator; original-record parsing remains open. |
 | Residual traversal and complete internal checker | Complete (machine components) | `RationalResidualList.computableInPolyTime` executes pairing and residual arithmetic over runtime-many framed rows in `(L+1)*(P(L)+2Q(L)+2L+6)` actual TM2 steps; `Q(L)=L+P(L)*machinePushBound` follows from the checked row machine. `RationalRegressionInternal.computableInPolyTime` composes single-certificate broadcast, traversal, exact norms/sum, threshold retention and comparison. `outputsInTime` charges a full internal source of at most `3S` symbols in original combined bits `S`; `check_correct` matches the thesis. Empty shapes, arbitrary rank, signs, unreduced fractions, order and multiplicity are covered. Equal column counts are a typed source contract, not a machine-checked binary-input premise. |
-| Polynomial-time verifier on binary rational data | Pending as a whole | The complete internal checker now has an actual polynomial-time finite machine. Still required: uniform parsing/validation of `RationalWitnessEncoding.encodeInput` and the certificate, retaining every field, bounded rejection of malformed/oversized/mismatched dimensions and counts, translation to `RationalRegressionInternal.encoding`, and composition with its checker. The source subtype and semantic decoder do not implement these operations. |
+| Retaining binary fraction and count prefixes | Complete (machine components) | `RationalFractionPrefix.Machine.computableInPolyTime` parses one original signed/framed fraction from every raw Boolean word in at most `4L+10` TM2 transitions. Success retains the exact fraction and untouched suffix with one delimiter; failure emits the empty word. `naturalComputableInPolyTime` handles canonical binary natural prefixes, including zero, in `4L+11`. Both bounds include malformed inputs, copying, cleanup and state reset. The natural value remains binary; its numerical bound and record-count compatibility are not checked here. |
+| Polynomial-time verifier on binary rational data | Pending as a whole | The complete internal checker and total retaining fraction/count-prefix parsers now have actual polynomial-time finite machines. Still required: uniform record traversal of `RationalWitnessEncoding.encodeInput` and the certificate, numerical dimension/count bounds, bounded rejection of oversized/mismatched counts, data/certificate compatibility checks, assembly of `RationalRegressionInternal.encoding`, and composition with its checker. Prefix validity does not establish those whole-record conditions. |
 | NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
@@ -2563,3 +2564,67 @@ transfers, sampling and the three applications remain pending. The 13 November
 human-literature checkpoint was read; no fresh external search or external
 artifact audit is claimed. Upstream Smith work was preserved; dependencies,
 adapters, siblings, thesis and automation schedules were unchanged.
+
+
+### Retaining binary-prefix parsers (18 November 2026 Sydney)
+
+`RationalFractionPrefix.lean` and `RationalFractionPrefixMachine.lean` close the
+field-retention part of binary parsing. `parse_iff` characterizes success on
+**every Boolean word** as an exact stored fraction prefix plus the unchanged
+suffix. `parse_none_iff` characterizes rejection as the absence of such a prefix.
+Signs, canonical magnitude bits, numerator zero and a strictly positive
+denominator are checked. Unreduced fractions are retained literally; there is
+no gcd normalization. The suffix may itself be malformed and is deliberately
+left uninterpreted for the subsequent record parser. `output_rational_append`
+and `rationalOutputsInTime` cover the original `encodeRat` serializer.
+
+The four-stack finite TM2 stores the unary **frame width**, never the binary
+numeric value, as marks on a stack. `step_cfg` proves each abstract transition
+is exactly one actual TM2 step. The potential
+`4*remainingInput.length + 2*frameCount + saved.length + phaseWeight`
+decreases on every nonhalting transition. `outputsInTime` and
+`computableInPolyTime` give `4L+10` actual steps on every input of length `L`,
+including early rejection, complete input/scratch cleanup, suffix copying,
+output reversal and finite-state reset. Success emits exactly `L+1` symbols:
+the original bits with one delimiter at the fraction boundary. Failure emits
+no symbols. No arithmetic-cost premise or unbounded control register is used.
+
+A second entry point, `naturalComputer`, reuses the transition system to parse
+canonical framed binary naturals, including zero. `natural_iff` identifies its
+prefix language; `naturalOutputsInTime` and `naturalComputableInPolyTime` give
+`4L+11` actual steps on every raw input, with output length at most `L+1`.
+Even an exponentially large declared count stays binary. **It is not yet
+rejected for being too large for the record.** Count-versus-payload bounds,
+`r*(d+1)` data count, `d` certificate count, record traversal, internal-source
+assembly and final checker composition remain open. This is a completed
+parser component, not whole-verifier runtime, NP membership or NP-completeness.
+
+Thesis comparison: this closes retained-field parsing in the binary-rational
+verification ingredient of `prop:regression-np-complete`, at thesis commit
+`3ed947f5c3f82710ab2e253d235e604e3a9e97de`. The agenda and addendum hashes remain
+`9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` and
+`25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+No mathematical discrepancy or thesis edit was needed; no SAT-counter
+hypothesis is used. The later counting, transfer and approximation milestones
+remain pending.
+
+Validation: targeted module build and full
+`lake build PhdThesisLean DiscreteMetricRegression` pass (9,353 jobs).
+Independent type/axiom audit covers all 59 new explicitly declared public
+names and seven earlier checker/certificate/hardness endpoints: 40 use only
+`propext`, `Classical.choice`, `Quot.sound` (or subsets), and 26 are axiom-free.
+Full-build reports are likewise standard-only; no new-module warnings.
+Four small actual-machine executions are kernel-checked. All 8,191 Boolean
+words of length at most 12 pass for each entry point (16,382 executions),
+against independently enumerated canonical prefix languages. Seven named
+fraction/suffix cases, five malformed words and five natural/count cases also
+pass, giving 16,399 actual executions in total. They include unreduced and
+negative fractions, 129-bit magnitudes, a 1,000-bit suffix, truncated frames,
+negative zero, zero denominator, noncanonical high bits, zero counts and a
+count of `2^128` retained in binary. Output, time, cleanup and reset are checked.
+All 223 project/adapter sources pass the prohibited-token scan; all ten
+pinned dependency revisions and tracked sources are clean. Toolchain,
+configuration and adapters are unchanged. Failed intermediate diagnostics are
+excluded. Evidence: the 18 November projectless `work/` directory, including
+`prefix-build.log`, `full-build.log`, `final-axiom-audit.log`, `examples.log`,
+`source-scan.log`, `dependency-audit.log` and `validation-summary.log`.
