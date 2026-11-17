@@ -17,7 +17,9 @@ open Matrix SmithTrace SmithReduction SmithSweep SmithColumn SmithSweepBounds
 
 variable {m n : ℕ} {α : Type*} [Fintype α] [DecidableEq α]
 
-private theorem rowAdd_minor (A : Matrix (Fin m) (Fin n) ℤ)
+/-- A row addition preserves a selected minor containing its source row.
+The destination may be selected or outside the minor. -/
+theorem rowAdd_minor (A : Matrix (Fin m) (Fin n) ℤ)
     (f : α → Fin m) (g : α → Fin n) (hf : Function.Injective f)
     (r s : Fin m) (hrs : r ≠ s) (c : ℤ) (a : α) (ha : f a = r) :
     ((SmithRowOperations.rowAdd A s r c).submatrix f g).det = (A.submatrix f g).det := by
@@ -601,6 +603,7 @@ example : stagesTrace (initial rectangle.toMatrix) 4 =
 
 end PhdThesisLean.SmithExactStages
 
+#print axioms PhdThesisLean.SmithExactStages.rowAdd_minor
 #print axioms PhdThesisLean.SmithExactStages.cross_minor
 #print axioms PhdThesisLean.SmithExactStages.stages
 #print axioms PhdThesisLean.SmithExactStages.stagesTrace

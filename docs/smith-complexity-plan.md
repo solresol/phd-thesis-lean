@@ -29,6 +29,9 @@ incoming minors. The unconditional computed-trace growth witness remains open.
 The [16 November transport increment](#selected-minor-transport-through-one-euclidean-reducer-16-november-2026-utc)
 bounds selected minors through a single pivot mixing in an outside row;
 it does not yet control successive mixtures or close the global witness.
+The [17 November minor-family increment](#all-minor-families-through-a-complete-sweep-17-november-2026-utc)
+closes all fixed-order minors through successive reducers within one sweep.
+It does not bound the incoming width of subsequent alternating sweeps.
 
 ## Output and input contracts
 
@@ -2155,3 +2158,131 @@ scripts are retained in ignored `.research/smith-pivot-minor-transport-2026-11-1
 Stop after this coherent audited local increment. The parent coordinates any
 Raksasa fast-forward in a separate connected-computer task, preserving unrelated
 work and its paused old thesis schedule.
+
+### All-minor families through a complete sweep (17 November 2026 UTC)
+
+**Question and exact open theorem.** Began from fetched clean main
+`710341eaa6713c9ba444d18377443a50fede4c02`, preserving the completed Smith and
+later regression work. The first unfinished global obligation is still
+
+```lean
+∃ P : Polynomial ℕ, ∀ A : Dense,
+  PrefixWidth (initial A.toMatrix) (decomposeTrace A)
+    (P.eval (SmithEncoding.encode A).length + 1)
+```
+
+No such witness is constructed. Input remains unary dimension headers and
+signed/framed binary row-major integers, of actual length
+`s=m+n+2+sum_entries(2*size(abs(z))+2)`. Output remains the five framed dense
+matrices `U,Uinv,V,Vinv,S`, including all identity entries for empty shapes.
+The unresolved invariant must bound growth from this original input through
+alternating pivot-changing sweeps and all diagonal stages. The bounded question
+here was whether changing the fixed rows between reducers could be handled
+by closing a family of minors through one entire sweep.
+
+**Checked increment.** `SmithMinorFamily.MinorBound A q H` bounds every
+order-`q` determinant selected from `A`. Repeated selections are included (zero
+determinant), as is order zero (determinant one). `MinorBound.rowMinor` shows
+that replacing one selected row stays in this family. A pair reduction has
+three cases: neither mixed row is selected, both are selected, or exactly one
+is selected. The first two preserve the determinant; the last uses the checked
+variable-row transport. The existing `SmithExactStages.rowAdd_minor` is exposed
+and reused instead of duplicating its determinant argument. The common family
+therefore survives every actual reducer prefix with exponent `d+9c`, including
+the exact-division shortcut and unfinished signed swaps.
+
+`sweepRowsTrace_prefix_minorBound` follows successive **updated** controller
+states and proves exponent `d+9*length(rows)*c`. The selected-column invariant
+keeps the same `c` through all targets; the charge is independent of minor
+order. Repeated targets and occurrences of the pivot itself are permitted.
+`columnTrace_prefix_minorBound` supplies the total wrapper; transposition and
+exact trace replay give `rowTrace_prefix_minorBound` for the mapped column
+operations actually used by a row sweep. No nonzero, rank, square or exact-arm
+premise is imposed.
+
+The original determinant estimate is charged once. For genuine minors,
+`q≤m≤s` (or `q≤n≤s` by transpose) comes from injectivity and the paid dimension
+header. Consequently `dense_columnTrace_prefix_minor_bits` and
+`dense_rowTrace_prefix_minor_bits` bound **every minor at every addition prefix
+of either sweep started from the original input by `11s²+1` magnitude bits**.
+Missing positions and both empty orientations are included. The family is a
+proof predicate, not a proposed algorithm that enumerates or serializes minors.
+These are integer determinant size bounds, not machine costs or a new bound
+on the complete decomposition output.
+
+**Obstacle and retired extension.** This closes reselection across successive
+pivot mixtures **within one sweep**, extending the prior one-reducer result.
+It does not control the selected row/column width entering the next alternating
+sweep, or its accumulation through isolation and later stages. Reapplying
+`d+9*length(rows)*c` with a growing `c` gives no fixed polynomial in original
+`s`; no claim that the actual execution attains that pessimistic recurrence
+is made. A further amortized invariant or a controlled-growth algorithm is
+still needed. Unchanged-minor propagation remains retired by the prior checked
+counterexample. Local family closure alone cannot replace that global argument.
+All five unimodularity/correctness statements, the weak rectangular contract
+and its empty cases remain unchanged. Global coefficients, operation count,
+complete output bounds, uniform arithmetic/control/serialization machines,
+actual binary runtime and final optimizer composition remain separate open
+claims. `thm:max-polytime` remains **Partial**; the completed CSP queue is closed.
+
+**Human sources and dependency reuse.** Before selecting work, read the latest
+[13 November weekly checkpoint](2026-11-06-literature-review.md#13-november-2026-checkpoint)
+on **17 November 2026 UTC**. Its primary-source access date is **13 November**,
+cutoff **23:43 UTC**; no fresh source access or broad daily search is claimed.
+Its actual-hypothesis comparison for Ji,
+[arXiv:2607.22524v2](https://arxiv.org/abs/2607.22524v2), **1 August 2026**, and
+[artifact `3f80f9524d88a124a49330eb36a2acb5ed41e179`](https://github.com/JJYYY-JJY/lean-normal-forms/tree/3f80f9524d88a124a49330eb36a2acb5ed41e179),
+is retained: nonsingular square input and arithmetic-leaf cost excluding
+structural operations do not establish this singular/rectangular encoded-machine
+target. The [Kannan–Bachem source](https://doi.org/10.1137/0208040) was still
+abstract/subscription-only in that review; no full-text audit is asserted.
+These are recorded human-source results and inspected formal source, without
+independent external replay. The review's newer
+[Senellart v1.4.1](https://github.com/PierreSenellart/descriptive-complexity/releases/tag/v1.4.1),
+**12 November**, commit `18e9b92a2f4782ff5d2051935ca3adfb619030b8`, supersedes
+the older class-interface assessment but requires finite relational problems,
+capture hypotheses and a different codec. It supplies no Smith growth invariant.
+The paper [2609.18261](https://arxiv.org/abs/2609.18261) remains v1,
+**16 September**, in that review. Its access/coverage limitations remain.
+
+The new proof uses local checked lemmas and the pinned mathlib determinant
+API, without a new external mathematical dependency. Read-only inspection of
+`lean-np-hardness` at `21e6eb462b14c0b612895b4ff03add15eea54e70` reconfirmed
+`FinEncoding`, `BinaryNatLists.frame`, `BinaryArithmetic.binaryAdd_outputsInTime`
+and `MachineComposition.compositionMachine_outputsInTime`. Their exact binary
+codecs and actual TM2 runtime theorems remain separate from minor arithmetic.
+No generic foundation, signed division/gcd machine or isolated adapter is
+reimplemented. No dependencies, setup sources, pins, receipts, schedules,
+sibling repositories or user machines are changed.
+
+**Validation and stopping point.** Shared startup passed on the selected
+published theorem-provers environment. Verified the authorized origin and clean
+ancestry, preserved generated `work`, and created tracking `main` at the same
+commit. Used absolute installed Lean/Lake **4.35.0**, `env_for('thesis')`, two
+threads, existing caches and the guarded runner. Targeted build passed
+(**3,223** jobs); both complete libraries passed (**9,351** jobs). The new module
+is included in the default library. Independent `#check`/`#print axioms` audit
+covers all **11** new public declarations, **one** existing lemma made public,
+and **ten** previous correctness/empty/count/growth/optimizer endpoints:
+**22** standard-only reports, no warnings. Full build: **1,508** standard-only
+axiom sets, **42** axiom-free reports and **555** existing warnings; neither
+changed proof module has warnings. All **221** project/adapter Lean sources
+pass the nested-comment/string-aware prohibited-token scan. All ten dependency
+HEADs/tracked sources and reviewed pins remain unchanged and clean.
+
+Six independent scope specializations check signed/nonunit rectangular data,
+repeated targets, both empty orientations, order-zero determinant one and
+repeated-row determinant zero. These are checked consequences of universal
+proofs, not executions of a uniform Smith machine. Initial elaboration failures
+involved explicit update unfolding, multiplication normalization, mapped-trace
+rewriting/formatting and dependent empty dimensions; explicit local rewrites
+and supplied dimensions repaired them without changed proof limits. Failed
+scripts and error-recovery axiom output are excluded from evidence.
+
+Successful build, audit, source/dependency verification and scope logs, along
+with their independent Lean sources and guarded runner, are retained in ignored
+`.research/smith-minor-family-2026-11-17/`. Stop after this coherent audited
+increment. Next: an original-input amortized bound across alternating sweeps
+and diagonal stages, or a verified controlled-growth replacement. The parent
+coordinates any Raksasa fast-forward separately.
+The final shared gate again passed all three exact-pin/artifact/import checks.

@@ -171,6 +171,15 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   through one reducer from dense input length `s`. A checked counterexample
   rules out unchanged-minor propagation through an outside row mixture.
   Repeated pivot/stage growth and uniform machine costs remain open.
+- [x] Close the family of all fixed-order minors through every target of one
+  actual column sweep (`SmithMinorFamily.lean`), and through the transposed row
+  sweep. The selected-column invariant gives exponent `d+9*length(rows)*c`,
+  independent of minor order, from incoming family exponent `d` and selected
+  width `c`. Every minor has at most `11s²+1` magnitude bits through either
+  sweep from original dense input length `s`; repeated selections, zero order,
+  missing positions and empty rectangles are covered. This permits changing
+  selected rows between reducers within one sweep. The width needed by the
+  next alternating sweep, global stage growth and machine costs remain open.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

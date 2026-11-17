@@ -211,6 +211,16 @@ A checked example rules out unchanged-minor propagation through outside row
 mixing. Global growth through successive pivots, uniform machine costs and
 optimizer composition remain open; `thm:max-polytime` stays Partial.
 
+[`SmithMinorFamily.lean`](PhdThesisLean/SmithMinorFamily.lean) closes the family
+of all minors of a fixed order through successive reducers in one complete
+column sweep, with a transposed result for row sweeps. The selected-column
+invariant gives the additive exponent `d+9*length(rows)*c`, independent of minor
+order. Every minor at every addition prefix of either sweep from dense input
+length `s` has at most `11s²+1` magnitude bits. Repeated selections, order zero,
+singular rectangles and empty inputs are included. Alternating sweeps still
+need a bound on their incoming selected widths; no global polynomial growth,
+encoded-machine runtime or final optimizer composition follows.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

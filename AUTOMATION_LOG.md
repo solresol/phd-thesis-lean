@@ -9501,3 +9501,48 @@
 - Updated the status table, dated proof record and TODO so the next run starts
   with original binary parsing and rejection bounds, without repeating the
   now-completed internal checker composition.
+
+### 2026-11-17 UTC — all-minor family through one complete Smith sweep
+
+- Question: can the one-reducer minor bound survive changing selected rows
+  across successive actual pivots? Added `SmithMinorFamily.lean`, default
+  imported. The family of all fixed-order minors is closed under reselection.
+  Existing determinant invariance and variable-row transport give exponent
+  `d+9*length(rows)*c` through every prefix of a complete sweep; the selected
+  column keeps `c` fixed. Transposition covers row sweeps. All incoming dense
+  minors have at most `11s²+1` magnitude bits, including order zero, repeated
+  selections, zero pivots, missing positions and empty rectangles.
+- The global `polynomial_growth_iff` witness remains unconstructed. The next
+  alternating sweep's incoming width can grow; family closure alone supplies
+  no amortized original-input bound through isolation/stages. Global operation/
+  output bounds, uniform machines and optimizer composition remain open.
+  `thm:max-polytime` stays Partial. No completed CSP work is reopened.
+- Read the latest 13 November human-literature checkpoint before choosing work;
+  retained its actual-hypothesis comparison, URLs/versions/access limitations.
+  Ji's nonsingular-square arithmetic model and the newer relational class
+  bridge do not close this target. No broad daily search, external replay or
+  new source access is claimed. Reused pinned determinant bounds and inspected
+  `lean-np-hardness` codecs/addition/composition APIs read-only.
+- Started clean at `710341e`, verified authorized origin and fetched ancestry,
+  preserved generated `work`, created tracking `main`. Read AGENTS and shared
+  START; startup gate passed. Used absolute Lean/Lake 4.35.0, `env_for('thesis')`,
+  existing caches, two threads and the guarded runner. No installations,
+  pin/setup/adapter/sibling/schedule edits, user-machine access or subagents.
+- Commands: `source /workspace/shared/theorem-provers/env.sh`; shared `check.py`;
+  guarded `lake build PhdThesisLean.SmithMinorFamily`; guarded `lake build
+  PhdThesisLean DiscreteMetricRegression`; independent Lean `Audit.lean` and
+  `ScopeChecks.lean`; `verify.py`; `git diff --check`. Targeted/full builds
+  passed (3,223 / 9,351 jobs). Audit: 11 new names, one reused exposed lemma,
+  ten previous endpoints; 22 standard-only reports, no warnings. Full build:
+  1,508 standard-only, 42 axiom-free reports, 555 existing warnings, none in
+  changed proof modules. Six checked scope specializations pass; these are
+  theorem applications/identities, not uniform-machine execution tests.
+  All 221 project/adapter Lean files scan clean. All ten dependency HEADs/
+  tracked sources and reviewed pins are unchanged. Evidence is in ignored
+  `.research/smith-minor-family-2026-11-17/`; failed intermediate diagnostics
+  (update/multiplication normalization, mapped trace and dependent indices)
+  are excluded from proof evidence. No proof limits were raised.
+- Next: amortize width across alternating pivot-changing sweeps and stages, or
+  verify a controlled-growth replacement. Stop after this coherent increment;
+  parent handles Raksasa separately.
+- Final unchanged shared gate passed all three exact-pin/artifact/import checks.

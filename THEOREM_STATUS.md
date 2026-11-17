@@ -410,6 +410,41 @@ and 551 existing warnings; neither changed module has warnings. All 217
 project/adapter Lean files pass the comment/string-aware prohibited-token scan.
 All ten dependency HEADs/tracked sources and reviewed pins remain unchanged.
 
+`SmithMinorFamily.lean` closes the family of **all minors of a fixed order**
+under row reselection through the actual successive reducers of one sweep.
+Neither/both selected mixed rows give unchanged determinants; exactly one
+selected row uses the existing variable-row transport; repeated selections
+give zero. `sweepRowsTrace_prefix_minorBound` gives exponent
+`d+9*length(rows)*c` from incoming family exponent `d` and a single selected
+column width `c`, independently of minor order. It follows the actual updated
+states, including pivot changes, repeated targets and unfinished signed swaps.
+The transposed `rowTrace_prefix_minorBound` covers the actual mapped row trace.
+
+`dense_columnTrace_prefix_minor_bits` and `dense_rowTrace_prefix_minor_bits`
+give **`11s²+1` magnitude bits** for every minor at every addition prefix of
+either sweep started from the original dense input. The determinant estimate
+is charged once; the dimension headers pay for the minor order and targets.
+Order zero, repeated selections, zero pivots, missing positions and singular/
+rectangular/empty inputs are retained. The predicate quantifies over minors;
+no algorithm enumerating or serializing this family is asserted.
+
+This extends local family control across all targets **within one sweep**.
+It supplies no original-input bound on the incoming width of the next
+alternating sweep or later stage. Iterating the new estimate using a growing
+entry width does not establish a fixed polynomial. All five integral
+equivalence/correctness proofs are unchanged; global coefficient and output
+bounds, actual uniform binary runtime and optimizer composition remain open.
+The thesis correspondence for `thm:max-polytime` remains **Partial**.
+
+Validation (17 November 2026 UTC): both complete libraries pass (9,351 jobs).
+An independent type/axiom audit covers all eleven new public declarations, one
+reused lemma made public and ten previous correctness/growth/optimizer endpoints:
+22 standard-only reports, no warnings. Six scope specializations pass, including
+both empty orientations and zero-order/repeated-row minors. All 221 project/
+adapter Lean sources pass the prohibited-token scan; reviewed pins and all ten
+dependency HEADs/tracked sources remain unchanged. These are checked proof and
+source validations, without a uniform-machine execution claim.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |
