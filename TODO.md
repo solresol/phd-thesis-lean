@@ -373,6 +373,15 @@ source hash and separate semantic, size and machine milestones.
   Every success emits the original bits plus one delimiter; all failure paths,
   copying, cleanup and state reset are charged. Numeric count values stay
   binary, so this is not yet their size bound or record compatibility check.
+- [x] Bound binary counts before unary use, on every raw Boolean input
+  (`BoundedBinaryCount`). The composed finite TM2 accepts exactly canonical
+  count prefixes `n` with `n≤remainingPayload.length`, retains that payload,
+  and emits `n` marks plus a delimiter. Its count phase takes at most
+  `10*(M+1)²` actual steps, including overflow cleanup; the complete composition
+  has proved polynomial time in original input bits and output length `2L+1`.
+  Valid row/column dimensions, data counts `r*(d+1)` and certificate counts `d`
+  pass; positive row count is required for the column-dimension result.
+  Matching independently supplied counts and traversing the record remain open.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -385,11 +394,14 @@ Next obligation: implement uniform binary input/certificate parsing retaining
 all fields and producing `RationalRegressionInternal.encoding` (one certificate,
 all response/coefficient rows, and threshold). Compose the completed internal
 checker; do not rebuild its broadcast, residual loop, norms, sum or comparison.
-Reuse the completed retaining fraction/count-prefix machines; do not repeat
-field recognition or retention. Check numerical bounds, the `r*(d+1)` data
-count and `d` certificate count, and reject oversized/mismatched
-binary dimensions and counts within a polynomial bound in input bits. Do not
-expand oversized binary counts into unbounded unary loops. The semantic
+Reuse the completed retaining fraction-prefix and payload-bounded count
+machines; do not repeat field recognition, retention or oversized-count
+rejection. `BoundedBinaryCount` safely supplies unary counters of length at
+most the remaining payload. Check agreement of the independently supplied
+`r`, `d`, `r*(d+1)` data count and `d` certificate count, then traverse and
+assemble the complete record. Charge these operations in original input bits;
+do not assume that valid-record preservation theorems validate malformed
+record shapes. The semantic
 `Source` subtype and its decoder round trip are not a machine validation proof.
 The source-size theorem does not charge original parsing or translation.
 Then connect the short-certificate theorem to NP membership and prove the

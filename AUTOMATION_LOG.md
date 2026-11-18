@@ -9632,3 +9632,59 @@
 - Stop after this coherent increment. Repeated-pair/stage amortization, uniform
   binary machine costs and optimizer composition remain open;
   `thm:max-polytime` remains **Partial**. Parent coordinates user-host sync.
+
+## 2026-11-18 20:30 UTC — bounded binary count parsing (19 November Sydney)
+
+- Started clean at `25f48d5`, fetched/fast-forwarded `d067799`, and preserved the
+  upstream Smith cross-minor work. Read automation memory, repository guidance,
+  current declarations/status/TODO/changes, the thesis specification and the
+  13 November literature checkpoint. Used installed macOS Lean/Lake 4.35.0.
+- Added default-imported `BoundedBinaryCountMachine.lean` and
+  `BoundedBinaryCount.lean`. Closed bounded numerical count handling on all raw
+  Boolean words: accept exactly a canonical framed count `n` with
+  `n≤remainingPayload.length`, emit `n` unary marks plus delimiter and unchanged
+  payload, otherwise reject with empty output. Output length is at most `2L+1`.
+- Concrete seven-stack finite TM2 reverses binary digits and uses Horner
+  evaluation with a payload-sized budget. It consumes budget before allocating
+  marks. Success/overflow, unread-digit disposal, all scratch cleanup and state
+  reset take at most `10*(M+1)^2` actual steps in validated intermediate length.
+  Checked composition with the earlier total prefix parser gives polynomial
+  time on every original raw binary word, without a runtime premise. No tight
+  degree for the generic composed polynomial is claimed.
+- Proved valid original regression row/column dimensions pass (positive rows
+  required for column dimensions), with exact unary outputs `r*(d+1)` for data
+  and `d` for certificates. These do not check arbitrary records' independent
+  header relationships. Record traversal, dimension/count compatibility,
+  internal-source assembly and whole-checker composition remain open; so do NP
+  membership and the binary-rational hardness bridge. Later counting circuits,
+  conditional transfers, sampling and applications remain pending.
+- Compared this component to `prop:regression-np-complete` at unchanged thesis
+  commit `3ed947f5c3f82710ab2e253d235e604e3a9e97de`. Agenda/addendum SHA-256 values:
+  `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` /
+  `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+  No discrepancy, thesis correction, external SAT hypothesis or fresh external
+  literature/artifact audit is claimed.
+- Warning-free targeted build; full `lake build PhdThesisLean DiscreteMetricRegression`
+  passes (9,356 jobs). Independent type/axiom audit of all 74 new explicit public
+  declarations and seven prior endpoints: 68 standard-only and 13 axiom-free
+  reports. Full build: 1,534 standard-only/42 axiom-free reports; 555 existing
+  warnings, none new. All 226 project/adapter sources scan clean; all ten
+  dependencies match pinned revisions with clean tracked sources. Toolchain,
+  configuration, adapters, siblings, thesis and schedules were unchanged.
+- Four paired traces are kernel-checked. All 8,191 raw words through length 12
+  pass both concrete machines against an independently enumerated oracle, with
+  5,697 accepted. Another 27 boundary/huge-count and five malformed cases pass:
+  8,223 input cases / 16,446 actual stage executions. Output, time, reset, empty
+  private stacks and peak unary storage bounded by payload length are checked.
+  Includes exact/one-past capacity, empty payload, zero, `2^128`, `2^1024`.
+  Generic composed transfers rely on the universal proof, not an executable
+  test of the noncomputable composition witness.
+- Successful evidence: dated projectless `work/count-build.log`, `full-build.log`,
+  `BoundedCountAudit.lean`, `final-axiom-audit.log`, `BoundedCountExamples.lean`,
+  `examples.log`, `source-scan.log`, `dependency-audit.log`, `validation-summary.log`.
+  Failed intermediate diagnostics are excluded. Updated THEOREM_STATUS and TODO
+  with exact boundaries. Remote CI is not checked by this run.
+- Next: use these bounded counters with the retaining fraction parser to check
+  complete record shape and count agreement, traverse and assemble
+  `RationalRegressionInternal.encoding`, then reuse the completed checker.
+  Do not repeat prefix validation, oversized-count rejection or checker arithmetic.

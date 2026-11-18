@@ -2662,3 +2662,71 @@ configuration and adapters are unchanged. Failed intermediate diagnostics are
 excluded. Evidence: the 18 November projectless `work/` directory, including
 `prefix-build.log`, `full-build.log`, `final-axiom-audit.log`, `examples.log`,
 `source-scan.log`, `dependency-audit.log` and `validation-summary.log`.
+
+
+### Payload-bounded binary count parsing (19 November 2026 Sydney)
+
+`BoundedBinaryCountMachine.lean` and `BoundedBinaryCount.lean` close the
+oversized-count obstacle for the original binary field format. On **every raw
+Boolean word**, `output_success_iff` and `output_nil_iff` characterize success
+exactly: a canonical framed natural `n`, followed by a payload of at least `n`
+bits. Success emits `n` unary marks, a delimiter, and the unchanged payload;
+malformed prefixes and numerically oversized counts emit the empty word.
+`output_length_le` bounds the complete result by `2L+1` in original input bits.
+The suffix is retained without interpreting it as a valid record.
+
+The seven-stack finite TM2 reads the validated count most-significant bit first
+and evaluates it by Horner steps. It builds a budget from the payload and
+consumes budget before allocating unary count marks. `loop_run` covers both
+success and overflow; `round_overflow` charges disposal of unread binary digits,
+the partial count, budget and temporary stacks. `Machine.outputsInTime` gives
+`10*(M+1)^2` actual transitions in the complete intermediate word length `M`,
+including frame disposal, reversal, budget construction, output and full
+cleanup/reset. `computableInPolyTime` and `outputsInTime` compose this machine
+with the existing total natural-prefix parser, proving polynomial time on
+**all original binary words**. The generic composition charges its transfers;
+no tight degree for that composed polynomial is claimed. There is no runtime
+premise, unbounded control register or expansion of an unchecked numeric value.
+
+`rowCount_accepted` and `columnCount_accepted` show that genuine regression
+dimensions pass this bound. Column dimensions require positive row count,
+matching the thesis; no convention for arbitrary zero-row column dimensions is
+claimed. `dataCount_output` yields exactly `r*(d+1)` marks for genuine encoded
+data, and `certificateCount_output` yields exactly `d` for a genuine certificate.
+These are preservation theorems for valid records, **not** checks of the
+relationships between independently supplied headers on arbitrary records.
+
+Thesis comparison: a completed bounded-count component of the binary-rational
+verifier in `prop:regression-np-complete`, at unchanged thesis commit
+`3ed947f5c3f82710ab2e253d235e604e3a9e97de`. Agenda/addendum SHA-256 values remain
+`9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` and
+`25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+No mathematical discrepancy or thesis edit was needed. No SAT-counter
+hypothesis is used. Full record traversal, dimensional/count compatibility,
+fraction-field assembly into `RationalRegressionInternal.encoding`, and final
+checker composition remain open. Whole-verifier runtime, NP membership and the
+binary-rational hardness bridge therefore remain open; the later counting,
+transfer, sampling and application milestones are unchanged.
+
+Validation: warning-free targeted module build; full
+`lake build PhdThesisLean DiscreteMetricRegression` passes (9,356 jobs).
+Independent type/axiom audit checks all 74 new explicit public declarations
+plus seven prior certificate/checker/hardness endpoints: 68 reports use only
+`propext`, `Classical.choice`, `Quot.sound` (or subsets), and 13 are axiom-free.
+The full build has 1,534 standard-only and 42 axiom-free reports. No new-module
+warnings. All 226 project/adapter Lean sources pass the prohibited-token scan;
+all ten pinned dependency revisions and tracked sources are clean. Toolchain,
+configuration and adapters are unchanged. Actual execution evidence and final
+validation details are recorded in `AUTOMATION_LOG.md` and the dated projectless
+`work/` directory; failed intermediate diagnostics are excluded.
+
+Execution validation: all 8,191 raw Boolean words through length 12 pass both
+actual machines against an independently enumerated prefix/count oracle;
+5,697 are accepted. Another 27 boundary/large-count and five malformed cases
+pass, for 8,223 input cases (16,446 concrete machine executions), plus four
+kernel-checked paired traces. Tests check output, step limits, control reset,
+all private-stack cleanup, and peak unary budget/count/temporary storage at
+most payload length. Cases include count zero, empty payload, exact and one-past
+capacity, powers of two and counts `2^128` and `2^1024`. The tests execute the
+two concrete stages; generic composed-machine transfers are covered by the
+universal composition proof, not an executable test of its noncomputable witness.
