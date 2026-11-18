@@ -32,6 +32,10 @@ it does not yet control successive mixtures or close the global witness.
 The [17 November minor-family increment](#all-minor-families-through-a-complete-sweep-17-november-2026-utc)
 closes all fixed-order minors through successive reducers within one sweep.
 It does not bound the incoming width of subsequent alternating sweeps.
+The [18 November pair increment](#all-minor-families-across-a-complete-pair-18-november-2026-utc)
+now propagates the updated midpoint width across both directions of one pair,
+with a cubic original-input minor-bit bound. Repeated pairs/stages and the
+uniform machine remain open.
 
 ## Output and input contracts
 
@@ -2286,3 +2290,123 @@ increment. Next: an original-input amortized bound across alternating sweeps
 and diagonal stages, or a verified controlled-growth replacement. The parent
 coordinates any Raksasa fast-forward separately.
 The final shared gate again passed all three exact-pin/artifact/import checks.
+
+### All-minor families across a complete pair (18 November 2026 UTC)
+
+**First unfinished obligation and bounded question.** Started from clean live
+main `25f48d548c3e7e290f41f03947e735e781c31a8d`, which contains Smith increment
+`3d2a2f3e66ac07151775b3e65bf18100ae7c8378` and the later regression parsers.
+The unresolved target remains a single fixed polynomial `P : Polynomial ℕ`
+with `PrefixWidth (initial A.toMatrix) (decomposeTrace A)
+(P.eval (SmithEncoding.encode A).length + 1)` for every dense input. No such
+witness is constructed here. This run asks whether the incoming width of the
+second direction can be established from the first direction's minor family,
+closing one actual column/row pair without assuming a common prefix width.
+
+The original input remains unary dimension headers and canonical signed/framed
+binary entries, of actual length
+`s=m+n+2+sum_entries(2*size(abs(z))+2)`. Output remains all five framed dense
+matrices `U,Uinv,V,Vinv,S`. Dimension and empty-identity costs are unchanged.
+
+**Checked invariant.** `SmithCrossMinorFamily.lean` imports the existing
+minor-family development without changing the controller or its foundations.
+`minorBound_one_iff` identifies order-one minors with entries, even for an
+empty dimension. Given a strict incoming entry width `c>0`, the first sweep's
+order-one family proves strict midpoint width `c+9mc+1`. The extra bit converts
+`≤2^(c+9mc)` to a strict power-of-two bound; the second sweep uses this actual
+updated midpoint, rather than incorrectly reusing `c`.
+
+For incoming order-`q` family exponent `d`, the universal theorem is
+
+```lean
+crossTrace_prefix_minorBound (Q : State m n) (k d c t : ℕ) (hc : 0 < c)
+  (hS : ∀ i j, (Q.S i j).natAbs < 2 ^ c)
+  (hM : MinorBound Q.S q (2 ^ d)) :
+  MinorBound (run Q ((crossTrace Q k).take t)).S q
+    (2 ^ (d + m * (9 * c) + n * (9 * (c + m * (9 * c) + 1))))
+```
+
+It splits prefixes at the actual first-trace length, then reuses the existing
+mapped row trace and exact five-matrix replay. The exponent charge is
+independent of minor order. There is no nonzero-pivot, exact-arm, square,
+nonsingularity or rank premise. Missing positions, unfinished signed swaps,
+repeated selections and order zero retain their existing meanings.
+
+`dense_crossTrace_prefix_minor_bits` pays for the incoming determinant once,
+using exponent `q(s+q)`. Injectivity gives `q≤m≤s`; repeated rows instead give
+zero determinant. The two paid dimensions give the checked common budget
+
+```
+q(s+q)+9ms+9n(s+9ms+1) ≤ 81s³+20s²+9s.
+```
+
+Thus every minor at every actual addition prefix has at most
+**`81s³+20s²+9s+1` magnitude bits**. The order-one specialization
+`dense_crossTrace_prefixWidth` supplies a common transformed-entry prefix
+width of that value for **one pair**. All integral equivalence/inverse theorems
+are unchanged; no algorithm enumerating all minors is claimed.
+
+**Rejected extension and exact remaining obstacle.** A kernel-checked example,
+`cross_entries_can_grow`, starts from `[[2,1],[1,7]]`; all incoming entries have
+magnitude at most 7. Its computed pair has pivot 1 and trailing entry 13
+(the independent packed-output check gives `diag(1,13)`). The pivot shrinks
+`2→1` while the entry budget grows. Reusing an unchanged incoming entry width
+because of pivot descent is therefore invalid.
+
+With order-one incoming exponent `c`, direct iteration of the new estimate
+only gives the majorant recurrence
+`c'=(1+9m)(1+9n)c+9n+1`. Iterating this estimate over a variable number of pairs
+compounds the width exponentially in that number. This is a limitation of the
+bound, **not** a demonstrated superpolynomial lower bound on the algorithm.
+No original-input amortization across pivot-changing pairs or diagonal stages
+has been proved. The earlier exact-stage bounds retain their separate exactness
+premises. Uniform binary gcd/division, control/copying/serialization costs,
+complete output bounds for the full algorithm and optimizer composition remain
+open; `thm:max-polytime` is **Partial**.
+
+**Literature and reuse.** Read the latest
+[13 November human-literature checkpoint](2026-11-06-literature-review.md#13-november-2026-checkpoint),
+with its source versions/access dates and bounded search coverage. Ji's
+[2607.22524v2](https://arxiv.org/abs/2607.22524v2) remains limited in that review
+to nonsingular square inputs and arithmetic-leaf costs; it supplies no verified
+rectangular prefix invariant here. The Senellart v1.4.1 binary-language bridge
+is also not a Smith function or a conversion from this codec. No fresh search,
+external access, artifact replay or absence-of-other-progress claim is made.
+Read-only inspection of pinned `lean-np-hardness`
+`21e6eb462b14c0b612895b4ff03add15eea54e70` reconfirmed `FinEncoding`,
+`BinaryNatLists.frame`, `BinaryArithmetic.binaryAdd_outputsInTime` and
+`MachineComposition.compositionMachine_outputsInTime`. Their actual machine
+costs do not supply a matrix-controller or signed binary gcd machine. No generic
+foundation, adapter, dependency, pin or user-machine change was made.
+
+**Validation.** Read `AGENTS.md` and the published `START.md`; shared startup
+passed all three projects' exact-pin/dependency/readiness/import checks before
+Lean work. Used absolute installed Lean/Lake **4.35.0**, `env_for('thesis')`,
+`LEAN_NUM_THREADS=2`, existing caches and the unchanged guarded runner (2 GiB
+reserve, 12 GiB process-group RSS, 30-minute command timeout). No installation
+or environment repair was needed. Target module build passed (**3,224** jobs);
+both complete libraries passed (**9,354** jobs). Independent `#check`/`#print
+axioms` audit of all **six** new public declarations and **nine** existing
+correctness/empty/growth/optimizer endpoints gives **15** standard-only reports,
+with no warnings. Full build reports **1,518** standard-only axiom sets,
+**42** axiom-free reports and **551** existing warnings; the new module has none.
+All **224** project/adapter Lean sources pass the nested-comment/string-aware
+prohibited-token scan. All ten dependency HEADs/tracked sources and all reviewed
+configuration hashes remain clean and unchanged.
+
+Eight independent scope specializations pass: the actual growing pair,
+nonunit signed rectangular minors at every prefix, all-five integral identities,
+order-zero determinant one, repeated-row determinant zero, both empty
+orientations and a missing diagonal position. Initial scope elaboration needed
+explicit finite-list/recursive-controller unfolding and a correctly typed
+column selection; these diagnostics are excluded from the successful evidence.
+No proof/resource limit was raised.
+
+Successful sources, commands and logs are retained in ignored
+`.research/smith-cross-minors-2026-11-18/`: `guarded.py`, `target-build.log`,
+`full-build.log`, `Audit.lean`, `axiom-audit.log`, `Scope.lean`, `scope.log`,
+`validate_sources.py` and `source-dependency-audit.log`. The final shared gate
+is rerun in `final-preflight.log`. Stop at this coherent local increment.
+Next: obtain an amortized original-input invariant across repeated pairs/stages,
+or verify a controlled-growth replacement, before claiming a polynomial Smith
+algorithm. The parent coordinates Raksasa synchronization separately.

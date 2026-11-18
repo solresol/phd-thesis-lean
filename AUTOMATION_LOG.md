@@ -9599,3 +9599,36 @@
   internal checker. Then NP membership and the binary-rational hardness
   bridge. Counting circuits, conditional transfer, sampling and applications
   remain pending. Do not repeat prefix recognition/retention next run.
+
+## 2026-11-18 UTC — Smith minors across both phases of one pair
+
+- Clean starting checkout and live main agreed at
+  `25f48d548c3e7e290f41f03947e735e781c31a8d`; prior Smith commit `3d2a2f3` is
+  preserved. Read repository/START instructions, TODO, status, plan and latest
+  13 November literature checkpoint. Shared pinned preflight passed.
+- Added `SmithCrossMinorFamily.lean`, imported by the default library. Order-one
+  minor control supplies the actual midpoint width, closing the family through
+  every addition prefix of one full column/row pair. The minor exponent is
+  `d+9mc+9n(c+9mc+1)`; every minor uses at most `81s³+20s²+9s+1` magnitude bits
+  in original dense input length `s`. Empty/rectangular/singular cases and both
+  transformation inverses retain the unchanged integral trace semantics.
+- The same cubic value gives a common transformed-entry prefix width for this
+  one pair. Checked example `[[2,1],[1,7]] → diag(1,13)` refutes nonincreasing
+  entry height despite pivot descent. Directly iterating the new width estimate
+  still compounds; it is not a global polynomial witness or a runtime theorem.
+- Target build: 3,224 jobs; both complete libraries: 9,354 jobs. Independent
+  audit: all six new public declarations plus nine earlier endpoints, 15
+  standard-only axiom reports. Eight independent scope specializations pass.
+  Full build: 1,518 standard-only/42 axiom-free reports, 551 existing warnings,
+  none in the new module. All 224 project/adapter sources pass the nested
+  comment/string-aware prohibited-token scan; ten dependency checkouts and
+  reviewed pins remain unchanged and clean. No installation, shared-state,
+  schedule, credential or sibling-repository change was made.
+- Exact invariant, original binary codec, literature limitations, failed
+  unchanged-width argument, commands and next obstacle are recorded in the
+  Smith plan. Successful audit/build/scope evidence and guarded runner are in
+  ignored `.research/smith-cross-minors-2026-11-18/`; failed diagnostics are
+  excluded. No proof/resource limit was raised.
+- Stop after this coherent increment. Repeated-pair/stage amortization, uniform
+  binary machine costs and optimizer composition remain open;
+  `thm:max-polytime` remains **Partial**. Parent coordinates user-host sync.

@@ -221,6 +221,17 @@ singular rectangles and empty inputs are included. Alternating sweeps still
 need a bound on their incoming selected widths; no global polynomial growth,
 encoded-machine runtime or final optimizer composition follows.
 
+[`SmithCrossMinorFamily.lean`](PhdThesisLean/SmithCrossMinorFamily.lean) carries
+that family through **both phases of one computed column/row pair**. Its
+order-one minors bound the actual midpoint before the second phase. Every
+fixed-order minor at every addition prefix has at most
+`81s³+20s²+9s+1` magnitude bits in original dense input length `s`; order one
+also supplies a common transformed-entry prefix width. No divisibility, rank,
+nonzero-pivot or square-input premise is added. A checked example shrinks a
+pivot from 2 to 1 while increasing another entry from 7 to 13. Repeating the
+local estimate compounds its width budget; a global amortized invariant,
+uniform binary machine and final optimizer composition remain open.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every

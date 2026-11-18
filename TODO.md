@@ -180,6 +180,13 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   missing positions and empty rectangles are covered. This permits changing
   selected rows between reducers within one sweep. The width needed by the
   next alternating sweep, global stage growth and machine costs remain open.
+- [x] Transport the all-minor family through both phases of one actual
+  column/row pair (`SmithCrossMinorFamily.lean`). Order-one control proves the
+  second phase's incoming width at the updated midpoint. Every minor at every
+  addition prefix has at most `81s³+20s²+9s+1` magnitude bits in original dense
+  input length `s`, including rectangular/empty cases. A checked pair shrinks
+  its pivot while growing another entry. Iteration still compounds the width
+  estimate; global polynomial growth and encoded-machine costs remain open.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

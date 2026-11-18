@@ -445,6 +445,40 @@ adapter Lean sources pass the prohibited-token scan; reviewed pins and all ten
 dependency HEADs/tracked sources remain unchanged. These are checked proof and
 source validations, without a uniform-machine execution claim.
 
+`SmithCrossMinorFamily.lean` extends the all-minor bound across **both phases
+of one actual column/row pair**. `columnTrace_prefix_entries_lt` extracts
+order-one control at the actual midpoint. Given incoming entry width `c` and
+order-`q` minor exponent `d`, `crossTrace_prefix_minorBound` gives exponent
+`d+9mc+9n(c+9mc+1)` at every addition prefix, independently of minor order.
+It reuses the actual updated controller and the transposed row trace; it adds
+no nonzero, divisibility, square or rank hypothesis.
+
+`dense_crossTrace_prefix_minor_bits` bounds every selected minor by
+**`81s³+20s²+9s+1` magnitude bits** in the original dense encoding length `s`.
+The initial determinant estimate is paid once, while dimension headers pay
+for the order and both target lists. Repeated selections, order zero, singular
+rectangles, missing positions and both empty orientations remain covered.
+`dense_crossTrace_prefixWidth` specializes order one to a common transformed
+entry width for this one pair. All five integral transformation identities
+continue to follow from the unchanged trace invariant.
+
+`cross_entries_can_grow` checks that `[[2,1],[1,7]]` has a pair with pivot
+`2→1` and trailing entry `7→13`. Pivot descent therefore does not justify a
+nonincreasing entry budget. Directly iterating the new estimate yields the
+majorant recurrence `c'=(1+9m)(1+9n)c+9n+1`; this is not a fixed polynomial
+bound over arbitrary many pairs or stages, and is not a lower bound on actual
+growth. The global coefficient/output bound, actual uniform binary machine
+and final optimizer composition remain open. `thm:max-polytime` is **Partial**.
+
+Validation (18 November 2026 UTC): target build passes (3,224 jobs); both
+complete libraries pass (9,354 jobs). All six new public declarations and nine
+previous correctness/empty/growth/optimizer endpoints pass independent type and
+axiom audit (15 standard-only reports, no warnings). Eight independent scope
+specializations pass. All 224 project/adapter Lean sources pass the nested
+comment/string-aware prohibited-token scan; all ten dependency HEADs/tracked
+sources and reviewed pins remain unchanged. No uniform-machine execution or
+global polynomial growth is inferred from these checks.
+
 ## Headline statement catalogue
 
 | Thesis label | Status | Lean declaration or remaining work |
