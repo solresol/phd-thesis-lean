@@ -385,6 +385,15 @@ source hash and separate semantic, size and machine milestones.
   Valid row/column dimensions, data counts `r*(d+1)` and certificate counts `d`
   pass; positive row count is required for the column-dimension result.
   Matching independently supplied counts and traversing the record remain open.
+- [x] Traverse original binary-counted rational data/certificate lists on every
+  raw word (`RationalCountedList`). Compose the bounded count parser with a
+  five-stack finite TM2 validating exactly the declared number of fractions.
+  Exact success/rejection, original field bits, ordering, multiplicities and
+  suffix preservation are proved; the traversal takes at most `13M+6` actual
+  transitions including all failure cleanup. Composition has polynomial time
+  in original bits with output length at most `2L+1`. Empty lists, signs,
+  unreduced fractions, malformed/truncated fields and oversized counts are
+  covered. Whole-record shape and final input exhaustion remain open.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -393,24 +402,21 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: implement uniform binary input/certificate parsing retaining
-all fields and producing `RationalRegressionInternal.encoding` (one certificate,
-all response/coefficient rows, and threshold). Compose the completed internal
-checker; do not rebuild its broadcast, residual loop, norms, sum or comparison.
-Reuse the completed retaining fraction-prefix and payload-bounded count
-machines; do not repeat field recognition, retention or oversized-count
-rejection. `BoundedBinaryCount` safely supplies unary counters of length at
-most the remaining payload. Check agreement of the independently supplied
-`r`, `d`, `r*(d+1)` data count and `d` certificate count, then traverse and
-assemble the complete record. Charge these operations in original input bits;
-do not assume that valid-record preservation theorems validate malformed
-record shapes. The semantic
-`Source` subtype and its decoder round trip are not a machine validation proof.
-The source-size theorem does not charge original parsing or translation.
-Then connect the short-certificate theorem to NP membership and prove the
-binary-rational encoding bridge from existing hardness before concluding
-NP-completeness. The external SAT counter remains an explicit hypothesis for
-later conditional results; none is used by this increment.
+Next obligation: validate and assemble the whole original binary record into
+`RationalRegressionInternal.encoding` (one certificate, response/coefficient
+rows, and threshold). Reuse `RationalCountedList` for data and certificate
+lists: field validation, exact counted traversal, retention, oversized-count
+rejection and their machine runtime are complete. Check agreement of the
+independently supplied `r`, `d`, data count `r*(d+1)` and certificate count `d`;
+partition the data into rows; retain the threshold; enforce complete input
+consumption. Charge all routing and compatibility checks in original bits.
+A retained suffix is not a validated next section or an exhaustion check.
+Compose the completed internal checker; do not rebuild its broadcast, residual
+loop, norms, sum or comparison. The semantic `Source` subtype and decoder
+round trip do not implement validation. Then connect the short-certificate
+theorem to NP membership and prove the binary-rational encoding bridge from
+existing hardness before concluding NP-completeness. The external SAT counter
+remains an explicit hypothesis for later conditional results; none is used here.
 
 ## Precision-indexed p-adic prediction growth
 

@@ -9709,3 +9709,37 @@
 - Next investigate higher-order incoming minors as an original-input budget:
   the amplified entry here is an original 2-by-2 minor. See the dated Smith
   plan entry for the exact family and the weekly literature checkpoint.
+
+
+## 20 November 2026 Sydney — total counted rational-list traversal
+
+- Started clean at `23a9952`; fetched/fast-forwarded `c60b62d`, preserving the
+  repeated Smith-pair growth work. Read automation memory, registry, AGENTS,
+  current status/declarations/TODO/changes, the thesis specification and the
+  13 November literature checkpoint. Thesis remains clean at `3ed947f5`;
+  agenda/addendum hashes and mathematical claims are unchanged.
+- Added `RationalCountedFields`, `RationalCountedFieldsMachine` and
+  `RationalCountedList`, imported by the default library. Exact arbitrary-word
+  language/rejection and literal fraction/suffix retention are proved. The
+  five-stack finite traversal takes at most `13M+6` actual transitions,
+  including loading, failures, reversal and complete cleanup/reset. Composition
+  with bounded binary-count parsing gives polynomial time on every original
+  binary word and output length `2L+1`, without a runtime premise.
+- Compared this completed parser ingredient with `prop:regression-np-complete`.
+  Whole-record count compatibility, row/threshold assembly, exhaustion and
+  final checker composition remain open; no whole-verifier, NP membership,
+  NP-completeness, SAT-counter audit or ETH-refutation claim is made.
+- Targeted and full `lake build PhdThesisLean DiscreteMetricRegression` pass
+  (9,360 jobs). Independent 82-name audit: 75 new declarations + seven prior
+  endpoints; 49 standard-only and 33 axiom-free. Full build: 1,544 standard-only,
+  42 axiom-free, 555 existing warnings, none new. Four kernel three-stage
+  traces and 33,814 input cases pass (101,442 actual stage executions), checking
+  exact output, time, reset and every private stack. Includes exhaustive raw
+  words through length 14, 1,047 constructed/boundary cases and malformed fields
+  after valid prefixes. Generic composed transfers rely on the universal proof.
+- All 230 project/adapter sources scan clean; all ten dependency pins/tracked
+  sources clean. No toolchain/configuration/adapter/sibling/thesis/schedule
+  edits. Successful evidence: `/Users/gregb/Documents/Codex/2026-11-20/advance-the-formal-proof-programme-for/work/`
+  (`list-build.log`, `full-build.log`, `CountedListAudit.lean`,
+  `final-axiom-audit.log`, `CountedListExamples.lean`, `examples.log`, source and
+  dependency audits, validation summary). Failed diagnostic logs are excluded.

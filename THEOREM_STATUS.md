@@ -2737,3 +2737,83 @@ most payload length. Cases include count zero, empty payload, exact and one-past
 capacity, powers of two and counts `2^128` and `2^1024`. The tests execute the
 two concrete stages; generic composed-machine transfers are covered by the
 universal composition proof, not an executable test of its noncomputable witness.
+
+
+### Total counted rational-list parser (20 November 2026 Sydney)
+
+`RationalCountedFields.lean`, `RationalCountedFieldsMachine.lean` and
+`RationalCountedList.lean` close counted fraction traversal in the original
+binary format. `parseFields_iff` characterizes success on arbitrary payloads:
+exactly the declared number of valid stored-fraction prefixes, with their
+original bits and untouched suffix. Signs, canonical magnitude frames, positive
+denominators, zero numerators, unreduced fractions, repeated fields and empty
+lists are covered. The output delimits each fraction and the end of the list.
+A suffix is deliberately retained; its validity or emptiness is not asserted.
+
+The concrete five-stack finite TM2 loads the already bounded unary count,
+consumes one mark per fraction, validates every field, retains all fraction bits,
+and copies the suffix. `step_cfg` identifies each abstract transition with one
+actual machine step. The decreasing potential is
+`12*remaining + 4*input.length + 2*frameWidth + saved.length + phaseWeight`.
+`run` includes early failure, disposal of the remaining count, frame counter,
+input and partial output, and full state reset. `Machine.outputsInTime` bounds
+the complete traversal by `13M+6` actual transitions in intermediate word
+length `M`, including loading, delimiters and final reversal. The empty failure
+marker from the count stage is also handled with complete cleanup.
+
+`RationalCountedList.computableInPolyTime` composes this machine with the
+completed bounded binary-count parser and charges the generic machine
+transfers. `outputsInTime` evaluates the resulting polynomial at original raw
+input length `L`; no arithmetic-cost premise or tight polynomial degree is
+claimed. `output_success_iff` and `output_nil_iff` characterize the accepted
+language on **every raw Boolean word** as
+`encodeNat xs.length ++ xs.flatMap Fraction.encode ++ suffix`.
+Malformed or oversized counts and malformed/truncated required fields reject.
+No capacity premise remains: every valid fraction contributes a payload bit.
+`output_length_le` gives `2L+1`. `output_encodeRats_append` identifies the exact
+original rational data/certificate serialization, retaining every bit, field
+order, multiplicity and subsequent section.
+
+Thesis comparison: this closes counted-list traversal in the binary-rational
+verifier ingredient of `complexity-regimes/eth-addendum.tex`,
+`prop:regression-np-complete`, at unchanged thesis commit
+`3ed947f5c3f82710ab2e253d235e604e3a9e97de`. Agenda/addendum SHA-256 values remain
+`9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` and
+`25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+There is no discrepancy or thesis correction. Semantic attainment and
+polynomial witness size remain complete. Whole-record dimension/count
+compatibility, row assembly, final input exhaustion and composition with
+`RationalRegressionInternal` remain open. Thus whole-verifier runtime, NP
+membership and the binary-rational hardness bridge remain pending. Later
+counting circuits, conditional transfers, sampling and applications remain
+pending; no external SAT-counter hypothesis was used.
+
+Validation: targeted build has no new-module warnings; full
+`lake build PhdThesisLean DiscreteMetricRegression` passes (9,360 jobs).
+Independent type/axiom audit covers all 75 new explicit public declarations
+plus seven existing certificate/checker/hardness endpoints: 49 use only
+`propext`, `Classical.choice`, `Quot.sound` or subsets, and 33 are axiom-free.
+Full-build reports: 1,544 standard-only and 42 axiom-free; 555 existing warnings,
+none in these new modules. Four small complete three-stage executions are
+kernel-checked. An independent bit-splitting decoder checks all 32,767 raw
+binary words through length 14 (16,750 accepted), plus 1,047 constructed and
+boundary cases: 33,814 cases and 101,442 concrete machine executions in total.
+Every execution checks the step limit, exact output, reset and all private
+stacks. Cases include zero/multiple fields, arbitrary suffixes, signs,
+unreduced and repeated fractions, 129-bit numerators, 1,000-bit suffixes,
+100-field lists, truncated frames/fields, negative zero, zero denominator and
+oversized binary counts. The tests execute the three concrete stages; the
+noncomputable composed witness's transfer costs follow from the universal
+composition proof. All 230 project/adapter Lean files pass the prohibited-token
+scan; all ten dependency pins and tracked sources are clean. Successful logs,
+audit/example sources and validation scripts are retained in the 20 November
+projectless `work/` directory. Failed diagnostics are excluded.
+
+Next: validate the relationships among `r`, `d`, the actual data-list count
+`r*(d+1)` and certificate count `d`; partition data into response/coefficient
+rows, retain the threshold, enforce complete input consumption, and produce the
+existing internal checker encoding. Reuse the completed counted-list parser
+and internal arithmetic checker. Upstream Smith growth work was preserved;
+no dependency, adapter, toolchain, sibling, thesis or schedule changes.
+The 13 November human-literature checkpoint was read; no fresh external search
+or external artifact audit is claimed.
