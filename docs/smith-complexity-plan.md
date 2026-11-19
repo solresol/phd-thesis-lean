@@ -2410,3 +2410,50 @@ is rerun in `final-preflight.log`. Stop at this coherent local increment.
 Next: obtain an amortized original-input invariant across repeated pairs/stages,
 or verify a controlled-growth replacement, before claiming a polynomial Smith
 algorithm. The parent coordinates Raksasa synchronization separately.
+
+### Fixed pivot loss on a reachable second pair (19 November 2026 UTC)
+
+Starting from live main `23a9952e3d8ede8f515bd47c28afa4b846ca9c48`,
+the first open growth obligation is still to exhibit one fixed
+`P : Polynomial ℕ` such that every dense input A satisfies
+`PrefixWidth (initial A.toMatrix) (decomposeTrace A)
+(P.eval (SmithEncoding.encode A).length + 1)`. The codec charges unary row and
+column dimensions and framed signed binary magnitudes. Its input length is
+`s=m+n+2+Σ(2*size(abs(z))+2)`; the decomposition output contains all five
+framed dense matrices. We tested whether, within a stage, an additive width
+allowance depending only on dimensions and the change in pivot could pay for
+the next pair. A bounded ratio of magnitudes would be necessary.
+
+For integer z≥1 start from rows (4,2,0), (0,1,z), (0,2z,0). The first
+pair produces rows (2,0,0), (1,2,z), (2z,4z,0). Its largest entry is 4z
+and the 1 below its pivot requires another pair. In the next column clearing,
+the reducer promotes the row starting with 1, then subtracts 2z copies of
+that row from the last row. The bottom-right entry becomes −2z². It survives
+the following row clearing, and the pivot finishes at 1. Take z=2K+1 for any
+natural K to exceed K times every incoming magnitude. In particular K=2^b
+defeats every constant b-bit allowance for this fixed dimension and pivot
+drop (allowing one extra bit for rounding gives the same conclusion).
+
+The Lean theorem `SmithRepeatedPairGrowth.second_pair_unbounded_amplification`
+quantifies over K and evaluates the existing integral controller symbolically,
+carrying the first pair's actual state into the second. It neither changes the
+algorithm nor narrows its rectangular and empty-input correctness statements.
+This obstruction is compatible with polynomial bit complexity: doubling the
+bit width once is affordable. Next investigate paying for the large entry from
+the incoming higher-order minors: −2z² is already the determinant of the
+original submatrix with rows 1,2 and columns 1,2 (zero-based). An invariant
+must still account for mixtures of minors at later stages and trace prefixes.
+
+Consulted the latest weekly review in this checkout, the
+[13 November checkpoint](2026-11-06-literature-review.md#13-november-2026-checkpoint),
+on 19 November. Its 13 November source checks classify
+[Ji v2](https://arxiv.org/abs/2607.22524v2) as a nonsingular square result
+charging arithmetic leaves, and the
+[Senellart v1.4.1 bridge](https://github.com/PierreSenellart/descriptive-complexity/releases/tag/v1.4.1)
+as class-level machinery. Neither supplies the rectangular encoded function
+or the prefix invariant. The counterexample uses only the checked project
+controller. No external computation or fresh literature search is required.
+Read-only inspection of the pinned dependency's
+`MachineComposition.compositionMachine_outputsInTime` confirms that
+composition requires time-bounded component machines. The Smith machine,
+full output/runtime bounds and optimizer composition remain open.

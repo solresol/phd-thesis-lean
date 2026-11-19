@@ -462,6 +462,13 @@ rectangles, missing positions and both empty orientations remain covered.
 entry width for this one pair. All five integral transformation identities
 continue to follow from the unchanged trace invariant.
 
+`SmithRepeatedPairGrowth.second_pair_unbounded_amplification` proves a stronger
+obstruction for a second pair actually needed at the same stage. In dimension
+three the pivot falls from 2 to 1 while one outgoing magnitude exceeds any
+prescribed multiple of the maximum incoming magnitude. Consequently a global
+width proof must account for more than dimension and pivot loss to pay for
+this pair. The constructed outgoing entry is quadratic in the family parameter.
+
 `cross_entries_can_grow` checks that `[[2,1],[1,7]]` has a pair with pivot
 `2→1` and trailing entry `7→13`. Pivot descent therefore does not justify a
 nonincreasing entry budget. Directly iterating the new estimate yields the

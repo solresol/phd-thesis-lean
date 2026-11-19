@@ -187,6 +187,9 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   input length `s`, including rectangular/empty cases. A checked pair shrinks
   its pivot while growing another entry. Iteration still compounds the width
   estimate; global polynomial growth and encoded-machine costs remain open.
+- [x] Rule out an additive bit allowance depending only on dimensions and the
+  current pivot decrease. A reachable second pair in dimension three takes
+  pivot 2 to 1 with unbounded entry-height amplification.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

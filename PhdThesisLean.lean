@@ -23,6 +23,7 @@ import PhdThesisLean.SmithExactStages
 import PhdThesisLean.SmithPivotMinorTransport
 import PhdThesisLean.SmithMinorFamily
 import PhdThesisLean.SmithCrossMinorFamily
+import PhdThesisLean.SmithRepeatedPairGrowth
 import PhdThesisLean.SmithPivotMinors
 import PhdThesisLean.AllDifferent
 import PhdThesisLean.AllDifferentCSP

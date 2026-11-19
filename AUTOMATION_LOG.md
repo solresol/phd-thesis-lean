@@ -9688,3 +9688,24 @@
   complete record shape and count agreement, traverse and assemble
   `RationalRegressionInternal.encoding`, then reuse the completed checker.
   Do not repeat prefix validation, oversized-count rejection or checker arithmetic.
+
+### 2026-11-19 — Smith growth through a reachable second pair
+
+- Question: can a fixed decrease in pivot magnitude pay a fixed additive bit
+  allowance? Derived the two-pair family in the Smith plan and proved
+  `SmithRepeatedPairGrowth.second_pair_unbounded_amplification` for every
+  natural amplification factor. Symbolic matrix literals and a separate
+  midpoint identity let Lean reduce both computed pairs without enumerating
+  parameters. The result rules out this allowance. The global target is open.
+- Sourced the saved environment and ran the shared `check.py`; all three exact
+  toolchain/import checks passed. Used the guarded runner with the installed
+  4.35 binaries and thesis environment for `lake build
+  PhdThesisLean.SmithRepeatedPairGrowth` (3,225 jobs) and `lake build
+  DiscreteMetricRegression PhdThesisLean` (9,357 jobs). Both passed. Independent
+  `lake env lean Audit.lean` checked the new theorem, the one-pair prefix bound,
+  cross invariance, empty decomposition, and the rational Smith optimizer
+  formula. Each reported only propext, Classical.choice and Quot.sound.
+  All 227 tracked/new Lean sources passed the prohibited-token scan.
+- Next investigate higher-order incoming minors as an original-input budget:
+  the amplified entry here is an original 2-by-2 minor. See the dated Smith
+  plan entry for the exact family and the weekly literature checkpoint.

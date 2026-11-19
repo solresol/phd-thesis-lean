@@ -232,6 +232,11 @@ pivot from 2 to 1 while increasing another entry from 7 to 13. Repeating the
 local estimate compounds its width budget; a global amortized invariant,
 uniform binary machine and final optimizer composition remain open.
 
+[SmithRepeatedPairGrowth.lean](PhdThesisLean/SmithRepeatedPairGrowth.lean)
+proves that even a reachable second pair with a fixed pivot drop from 2 to 1
+can amplify entry magnitudes by an arbitrarily large factor in dimension three.
+This rules out a fixed extra bit allowance for that drop.
+
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):
 when the predictor reductions are exactly equidistributed modulo `p`, every
