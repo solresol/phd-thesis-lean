@@ -9761,3 +9761,47 @@
   Quot.sound. Scanned project Lean sources for prohibited proof shortcuts.
 - Next bound the coefficients mixing original minors across pairs and later
   stages. Uniform binary-machine costs and optimizer composition remain open.
+
+
+### 2026-11-20 UTC — Rectangular rational-data validation and row partitioning
+
+- Started clean at `acb8dd7`, fetched and fast-forwarded `4324819`, preserving
+  the upstream Smith original-minor obstruction. Read automation memory,
+  registry, AGENTS, theorem status, TODO, current declarations/working tree,
+  thesis agenda/addendum and the 13 November literature checkpoint.
+- Added default-imported `RationalRectangularFields`,
+  `RationalRectangularFieldsMachine` and `RationalRectangular`. Exact accepted
+  language, actual count identity `r*(d+1)`, response/coefficient separation,
+  retained field bits/suffix and output-length preservation are proved.
+- Concrete six-stack finite TM2 consumes runtime unary dimensions and parsed
+  field words. Column marks move to a restoration stack and are reused on each
+  row. `step_cfg`, decreasing-potential `run` and `outputsInTime` charge all
+  transitions, cleanup and reset: `4rd+21r+3d+4M+10`, hence `32(L+1)²` in complete
+  stage input length. `originalDataOutputsInTime` gives `4S²+32S+14` in original
+  combined bits, with positive row count. No unbounded arithmetic register,
+  supplied runtime premise, or assumption of the rectangular count identity.
+- `output_original_data` connects the exact counted-list output to the internal
+  observation encoding under a fixed alphabet renaming. The stage requires
+  already bounded unary dimensions and parsed fields. Original header routing,
+  stage-input assembly/transfers, certificate-count agreement, threshold/final
+  exhaustion and final checker composition remain open. Whole-verifier runtime,
+  NP membership/completeness, hardness encoding bridge and later counting,
+  transfer, sampling and applications remain pending. No SAT-counter hypothesis.
+- Thesis comparison: partial machine ingredient of `prop:regression-np-complete`
+  at unchanged thesis commit `3ed947f5c3f82710ab2e253d235e604e3a9e97de`;
+  agenda/addendum hashes unchanged (`9a1de32f...b3768` / `25fa65a1...6c6`).
+  No discrepancy, thesis correction, fresh external search or artifact audit.
+- Targeted/full builds pass (9,364 jobs), with no new-module warnings.
+  Independent 109-name audit: 101 new declarations plus eight old endpoints,
+  67 standard-only and 42 axiom-free. Full-build reports: 1,557 standard-only,
+  42 axiom-free, 551 existing warnings. Five kernel traces and 18,393 concrete
+  stage executions pass, with independent split/count/group expectations and
+  exact new-stage output/time/reset/private-stack checks. Detailed scope and
+  cases are in THEOREM_STATUS; staged tests are not the missing routing machine.
+- All 234 project/adapter sources scan clean, all ten pinned dependencies and
+  tracked sources are clean, and diff checks pass. Updated THEOREM_STATUS/TODO.
+  Evidence: `/Users/gregb/Documents/Codex/2026-11-21/advance-the-formal-proof-programme-for/work/`
+  (`rectangle-build.log`, `full-build.log`, `RectangularAudit.lean`,
+  `final-axiom-audit.log`, `RectangularExamples.lean`, `examples.log`, source and
+  dependency audits and validation summary). Failed diagnostics excluded.
+  No sibling/thesis/dependency/adapter/toolchain/schedule changes.

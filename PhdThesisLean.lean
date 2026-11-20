@@ -193,3 +193,4 @@ import PhdThesisLean.RationalRegressionInternal
 import PhdThesisLean.RationalFractionPrefixMachine
 import PhdThesisLean.BoundedBinaryCount
 import PhdThesisLean.RationalCountedList
+import PhdThesisLean.RationalRectangular
