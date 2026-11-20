@@ -11,6 +11,8 @@ that no statement-faithful Lean theorem is currently present.
 
 ## Next algorithmic ingredient
 
+The checked rectangular counterexample in `SmithOriginalMinorObstruction` has every original minor bounded in magnitude by 10 and a completed-pair entry of magnitude 20. A polynomial bound on the binary widths of all trace prefixes remains open.
+
 `thm:max-polytime` remains **Partial**: the optimizer formula still receives an
 integer decomposition and inverse identities as hypotheses. The active plan is
 [polynomial-bit-complexity Smith decomposition](docs/smith-complexity-plan.md).

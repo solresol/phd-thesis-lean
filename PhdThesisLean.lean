@@ -24,6 +24,7 @@ import PhdThesisLean.SmithPivotMinorTransport
 import PhdThesisLean.SmithMinorFamily
 import PhdThesisLean.SmithCrossMinorFamily
 import PhdThesisLean.SmithRepeatedPairGrowth
+import PhdThesisLean.SmithOriginalMinorObstruction
 import PhdThesisLean.SmithPivotMinors
 import PhdThesisLean.AllDifferent
 import PhdThesisLean.AllDifferentCSP

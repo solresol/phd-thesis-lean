@@ -9743,3 +9743,21 @@
   (`list-build.log`, `full-build.log`, `CountedListAudit.lean`,
   `final-axiom-audit.log`, `CountedListExamples.lean`, `examples.log`, source and
   dependency audits, validation summary). Failed diagnostic logs are excluded.
+
+### 2026-11-20 UTC — Original-minor obstruction for Smith pair boundaries
+
+- On clean main `acb8dd7`, asked whether the largest original minor pays for
+  every boundary entry. A small integer search guided the witness selection.
+  The kernel-checked `pair_boundary_exceeds_all_original_minors` proves a
+  bound of 10 at every minor order and a boundary entry of magnitude 20.
+- Read repository instructions and the shared START.md. A separate Start skill
+  was absent from the checkout and exposed skill locations. Sourced env.sh and
+  ran the published check.py successfully. Used its pinned Lean/Lake 4.35.0
+  and guarded runner for `lake build PhdThesisLean.SmithOriginalMinorObstruction`
+  and `lake build PhdThesisLean DiscreteMetricRegression` (9,361 jobs).
+- Independent `#print axioms` on the new theorem, `decompose_valid`,
+  `decompose_of_empty`, `polynomial_growth_iff`, `decompose_output_length_le`
+  and `rhoMax_rational_smith` returned only propext, Classical.choice and
+  Quot.sound. Scanned project Lean sources for prohibited proof shortcuts.
+- Next bound the coefficients mixing original minors across pairs and later
+  stages. Uniform binary-machine costs and optimizer composition remain open.

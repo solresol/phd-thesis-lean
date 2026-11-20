@@ -236,6 +236,8 @@ uniform binary machine and final optimizer composition remain open.
 proves that even a reachable second pair with a fixed pivot drop from 2 to 1
 can amplify entry magnitudes by an arbitrarily large factor in dimension three.
 This rules out a fixed extra bit allowance for that drop.
+A separate two-row example exceeds the largest original minor after one complete
+pair. [Checked original-minor counterexample](PhdThesisLean/SmithOriginalMinorObstruction.lean).
 
 The equidistributed sum-refines-max theorem is formalised in
 [`PhdThesisLean/EquidistributedSumRefinesMax.lean`](PhdThesisLean/EquidistributedSumRefinesMax.lean):

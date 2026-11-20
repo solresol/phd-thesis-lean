@@ -2457,3 +2457,42 @@ Read-only inspection of the pinned dependency's
 `MachineComposition.compositionMachine_outputsInTime` confirms that
 composition requires time-bounded component machines. The Smith machine,
 full output/runtime bounds and optimizer composition remain open.
+
+### Original minor heights at a pair boundary (20 November 2026 UTC)
+
+The first open bound asks for one fixed polynomial `P : Polynomial ℕ` such
+that every dense A satisfies `PrefixWidth (initial A.toMatrix) (decomposeTrace A)
+(P.eval (SmithEncoding.encode A).length + 1)`. The input length is
+`m+n+2+Σ(2*size(abs(z))+2)` with unary dimensions and framed signed binary
+entries. Serialization must pay for U, Uinv, V, Vinv and S, including identity
+outputs in empty dimensions.
+
+Can the largest absolute original minor bound each transformed entry at each
+completed pair? A small exhaustive search suggested testing the first pair on
+rows (2,5,5), (0,5,5). The input entries are at most 5. In increasing column
+order the two-row determinants are 10, 10 and 0. Order zero gives 1, and
+every order above two repeats a row. Lean quantifies over all orders and all
+row and column selectors, including repetitions. Running the existing integer
+controller on this matrix gives magnitude 20 at row 1, column 2 (zero-based)
+after the first complete pair. The Euclidean exchange produces pivot column
+(−1,−5); clearing the last top entry adds five copies of this column, taking
+the bottom entry from 5 to −20. The theorem
+`SmithOriginalMinorObstruction.pair_boundary_exceeds_all_original_minors`
+checks the all-orders bound and the boundary computation together.
+
+Retire the proposed maximum-minor bound with coefficient one. This example
+has fixed dimensions and fixed entries. A larger factor, a polynomial width
+bound or a bound that accounts for coefficients in combinations of minors all
+remain possible. Next seek an original-input budget for these coefficients
+through successive pairs, later diagonal stages and injections. Correctness
+of the integer decomposition, local arithmetic bounds, the global bit bound
+and the polynomial uniform-machine implementation are distinct obligations.
+
+Consulted the checkout's [13 November review](2026-11-06-literature-review.md#13-november-2026-checkpoint)
+on 20 November. Its source check on 13 November records Ji's nonsingular square
+hypothesis and arithmetic-leaf cost model. The theorem does not yield this
+rectangular controller's coefficient or binary-machine bound. The source of the
+counterexample here is the checked controller. [Ji, arXiv:2607.22524v2](https://arxiv.org/abs/2607.22524v2).
+The pinned dependency already implements binary framing in
+`LeanNPHardness/FramingMachine.lean`. This increment uses existing matrix
+and trace definitions.

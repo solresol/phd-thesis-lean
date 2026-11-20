@@ -190,6 +190,9 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
 - [x] Rule out an additive bit allowance depending only on dimensions and the
   current pivot decrease. A reachable second pair in dimension three takes
   pivot 2 to 1 with unbounded entry-height amplification.
+- [x] Test the maximum absolute original minor as a pair-boundary entry bound.
+  A checked two-row witness exceeds it. A weighted combination of original
+  minors would still need a bound on its coefficients.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines
