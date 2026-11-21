@@ -406,6 +406,16 @@ source hash and separate semantic, size and machine milestones.
   clears partial output and all private stacks. `originalDataOutputsInTime`
   charges this stage by `4S²+32S+14` in original combined bits; constructing
   its combined unary-dimension/parsed-data input is still to be composed.
+- [x] Validate the original binary threshold/certificate suffix
+  (`RationalCertificateTail`). Compose fraction-prefix parsing, delimiter
+  routing and counted-list parsing with a five-stack finite machine checking
+  exactly `d` coefficients and complete exhaustion. The threshold and every
+  certificate bit are retained and reordered into the existing internal pair.
+  The new routing and assembly bounds are `2L+2` and `5M+13`; the full suffix
+  composition includes all transfers and is polynomial in unary `d` plus raw
+  suffix bits. Output is at most twice the raw suffix length; original inputs
+  charge the full suffix pipeline at `P(2S)`. Malformed/oversized/mismatched
+  counts, invalid fields and any trailing data reject with complete cleanup.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -415,20 +425,19 @@ source hash and separate semantic, size and machine milestones.
   applications, retaining multiplicities and the distinct counting notions.
 
 Next obligation: route and assemble the whole original binary record into
-`RationalRegressionInternal.encoding` (one certificate, response/coefficient
-rows, and threshold). Reuse `RationalCountedList` for data/certificate lists
-and `RationalRectangularFields` for the proved `r*(d+1)` check and row partition.
-Read/retain the original binary dimensions and sections, supply the combined
-stage input, check certificate count `d`, parse/retain the threshold and enforce
-complete input consumption. Charge every routing, alphabet conversion and
-transfer. A retained suffix is not a validated threshold/certificate section or
-an exhaustion check; a bound on the intermediate encoding length does not
-execute its construction. Compose the completed internal checker without
-rebuilding broadcast, residuals, norms, sum or comparison. Then join the
-short-certificate theorem to NP membership and prove the binary-rational
-encoding bridge from existing hardness before concluding NP-completeness.
-The external SAT counter remains an explicit hypothesis for later conditional
-results; none is used here.
+`RationalRegressionInternal.encoding`. Read the bounded binary row/column
+headers, retain `d`, and construct the combined input for `RationalCountedList`
+and `RationalRectangularFields`. Preserve the validated rows and expected column
+count while the completed `RationalCertificateTail` processes the raw threshold
+and certificate suffix. Attach its certificate/threshold pair to the rows,
+propagate every rejection, and charge all routing, alphabet conversion and
+transfer steps. The suffix pipeline already checks its fractions, the exact
+certificate count and final exhaustion; reuse it wholesale. Its original-bit
+bound does not construct its input from the enclosing record. Then compose the
+internal arithmetic checker, join short witnesses to NP membership, and prove
+the binary-rational encoding bridge from existing hardness before concluding
+NP-completeness. The external SAT counter remains an explicit hypothesis for
+later conditional results; none is used here.
 
 ## Precision-indexed p-adic prediction growth
 

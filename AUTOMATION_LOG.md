@@ -9805,3 +9805,91 @@
   `final-axiom-audit.log`, `RectangularExamples.lean`, `examples.log`, source and
   dependency audits and validation summary). Failed diagnostics excluded.
   No sibling/thesis/dependency/adapter/toolchain/schedule changes.
+
+
+### 2026-11-21 UTC — original threshold/certificate suffix validation
+
+`RationalPrefixRouting.lean`, `RationalTailAssembly.lean` and
+`RationalCertificateTail.lean` close the certificate-dimension, threshold and
+final-exhaustion obligations for the original binary suffix. The suffix begins
+at the threshold and includes the original binary-counted certificate; the
+expected column count is supplied in bounded unary form. For every such count
+and every raw Boolean suffix, `output_success_iff` and `output_nil_iff` accept
+exactly one valid stored threshold followed by exactly `d` valid stored
+fractions with the canonical binary count header and no trailing symbols.
+Signs, zero numerators, positive denominators, unreduced fields, ordering and
+multiplicity are preserved. Malformed, oversized, truncated and mismatched
+counts/fields reject. Empty certificates are supported.
+
+The concrete three-stack prefix router changes the existing prefix delimiter
+into pair tags in at most `2L+2` actual TM2 transitions. The five-stack assembly
+machine loads the expected count, retains the threshold, consumes one mark per
+certificate field, checks the final marker and exhaustion, and reorders the
+output. `step_cfg` identifies every abstract step with one actual transition.
+The decreasing potential is `4*count + 4*input.length + threshold.length +
+saved.length + phaseWeight`. `Machine.outputsInTime` bounds all paths by
+`5M+13`, including partial-output rejection, complete private-stack cleanup
+and control reset. These are concrete finite-stack machines, not arithmetic
+operation estimates or unbounded control registers.
+
+`RationalCertificateTail.computableInPolyTime` composes the existing fraction
+prefix and bounded counted-list parsers with the new routing and assembly
+machines. All paired-machine preservation, copying and transfer costs are
+included. The polynomial measures `d + rawSuffix.length`; no tight degree is
+claimed for generic composition. `output_length_le` bounds output by twice
+the raw suffix length, including rejection. `output_original` identifies the
+exact existing internal certificate/threshold pair. `originalOutputsInTime`
+charges this entire suffix pipeline by its proved polynomial evaluated at
+`2S`, where `S` is the original combined input/certificate bit length, without
+a positive-row premise.
+
+Boundary: extracting both dimensions and routing the original data section
+into `RationalRectangularFields`, retaining `d` and the rows while the suffix
+machine runs, attaching the resulting certificate/threshold to those rows,
+propagating rejection and composing `RationalRegressionInternal` remain open.
+The `2S` bound does not execute construction of this suffix/dimension input.
+Do not repeat suffix fraction parsing, certificate-count agreement or final
+exhaustion in the next run. Whole-verifier runtime, NP membership and the
+checked binary-rational hardness bridge remain pending. Semantic attainment
+and polynomial certificate size remain complete. Counting circuits, conditional
+algorithm transfers, sampling and the three applications remain pending.
+No external SAT-counter hypothesis is used.
+
+Thesis correspondence: a completed machine component of the binary-verifier
+sentence in `complexity-regimes/eth-addendum.tex`, `prop:regression-np-complete`,
+at unchanged thesis commit `3ed947f5c3f82710ab2e253d235e604e3a9e97de`.
+Agenda/addendum SHA-256 values remain
+`9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` and
+`25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+The parser is prime-independent and admits zero columns; the enclosing thesis
+statement has positive dimensions. No discrepancy or mathematical correction
+was required. The latest recorded human-literature checkpoint (13 November,
+nine days old) was read; no fresh literature search or external artifact audit
+is claimed.
+
+Validation: targeted build and full `lake build PhdThesisLean
+DiscreteMetricRegression` pass (9367 jobs). Independent type/axiom audit
+covers all 116 new explicit public declarations plus eight prior parser,
+checker, certificate and hardness endpoints: 86 standard-only and 38
+axiom-free reports. Full build: 1570 standard-only, 42 axiom-free reports,
+551 existing warnings and no new-module warnings. Five complete staged
+traces are kernel-checked. All 8,191 binary suffixes through length 12 are
+checked at four expected dimensions against an independent bit-splitting oracle
+(73,719 concrete stage executions). Another 517 constructed/malformed/boundary
+suffixes pass six concrete stages (3,102 executions), and 13,116 arbitrary
+three-symbol assembly inputs pass an independent delimiter-splitting oracle.
+Total: 89,937 concrete executions, checking exact output, transition bounds,
+reset and every private stack. Cases include signed/unreduced/repeated values,
+129-bit numerators, counts `2^128` and `2^1024`, partial fields, zero dimensions,
+and 1,000-bit trailing data. Generic noncomputable composition transfers rely
+on the universal proof, not an execution test of that composed witness.
+
+All 237 project/adapter Lean sources pass the prohibited-token scan; all ten
+dependency pins and tracked sources are clean. Successful evidence is retained
+in the 22 November projectless `work/` directory: `tail-build.log`,
+`full-build.log`, `CertificateTailAudit.lean`, `final-axiom-audit.log`,
+`CertificateTailExamples.lean`, `examples.log`, source/dependency audits and
+`validation-summary.log`. Failed intermediate diagnostics are excluded.
+Started clean at `101460f`; fetched origin without incoming changes and
+preserved existing Smith work. No sibling, thesis, dependency, adapter,
+toolchain or automation-schedule changes. Remote CI is not claimed.
