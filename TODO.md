@@ -417,6 +417,15 @@ source hash and separate semantic, size and machine milestones.
   suffix bits. Output is at most twice the raw suffix length; original inputs
   charge the full suffix pipeline at `P(2S)`. Malformed/oversized/mismatched
   counts, invalid fields and any trailing data reject with complete cleanup.
+- [x] Read both original binary dimension headers and the counted rational data
+  in a single polynomial-time finite-machine pipeline (`RationalRecordPrefix`).
+  A new three-stack router retains each unary terminator, distinguishing a
+  valid zero dimension from failure, in at most `2L+2` transitions. Composition
+  preserves both dimensions during all three parser calls and charges every
+  transfer in the original binary length. `complete_iff` characterizes the
+  successful stage markers; `output_original` identifies the exact dimensions
+  and existing parsed-data word. Output length is at most `8L+7`. The raw
+  threshold/certificate suffix is preserved; it has not been parsed here.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -425,20 +434,22 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: route and assemble the whole original binary record into
-`RationalRegressionInternal.encoding`. Read the bounded binary row/column
-headers, retain `d`, and construct the combined input for `RationalCountedList`
-and `RationalRectangularFields`. Preserve the validated rows and expected column
-count while the completed `RationalCertificateTail` processes the raw threshold
-and certificate suffix. Attach its certificate/threshold pair to the rows,
-propagate every rejection, and charge all routing, alphabet conversion and
-transfer steps. The suffix pipeline already checks its fractions, the exact
-certificate count and final exhaustion; reuse it wholesale. Its original-bit
-bound does not construct its input from the enclosing record. Then compose the
-internal arithmetic checker, join short witnesses to NP membership, and prove
-the binary-rational encoding bridge from existing hardness before concluding
-NP-completeness. The external SAT counter remains an explicit hypothesis for
-later conditional results; none is used here.
+Next obligation: connect `RationalRecordPrefix` to the completed rectangle and
+suffix machines. Its output is a disjointly tagged triple of terminated unary
+row/column words and parsed data, including an empty component on failure.
+Implement the conversion to `RationalRectangularFields.Machine.input`, retaining
+`d` for the suffix call and propagating any empty failure component. Preserve
+validated rows while `RationalCertificateTail` processes the retained raw suffix,
+then attach its certificate/threshold pair to the rows in
+`RationalRegressionInternal.encoding`. Charge the conversion, copying,
+reordering and all transfers. Binary dimension decoding and counted-list
+parsing are now executed in `RationalRecordPrefix.originalOutputsInTime`;
+do not rebuild them or re-count them as open. The rectangle and suffix stages
+already establish shape, certificate count and exhaustion when given their
+stage inputs. Then compose the internal arithmetic checker, join short witnesses
+to NP membership, and prove the binary-rational encoding bridge from existing
+hardness before concluding NP-completeness. The external SAT counter remains
+an explicit hypothesis for later conditional results; none is used here.
 
 ## Precision-indexed p-adic prediction growth
 

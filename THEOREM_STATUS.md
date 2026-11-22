@@ -2994,3 +2994,81 @@ in the 22 November projectless `work/` directory: `tail-build.log`,
 Started clean at `101460f`; fetched origin without incoming changes and
 preserved existing Smith work. No sibling, thesis, dependency, adapter,
 toolchain or automation-schedule changes. Remote CI is not claimed.
+
+### 23 November 2026: original binary dimension and data-parser composition
+
+`RationalDimensionRouting.lean` and `RationalRecordPrefix.lean` close the
+original binary header-reading and counted-data parsing obligation. The input
+is an arbitrary Boolean word, with no typed dimensions or prepared suffix.
+The new router retains the bounded count's terminating delimiter: zero has
+`[none]`, while a failed header has an empty component. A concrete three-stack
+finite TM2 computes this split in at most `2L+2` transitions, including reversal,
+reset and private-stack cleanup. `splitCount_eq_iff` checks canonical binary
+count decoding and the payload-capacity bound. The capacity check happens
+before unary expansion, including for enormous malformed dimensions.
+
+`RationalRecordPrefix.computableInPolyTime` composes both bounded dimension
+parsers, both delimiter routers, counted rational-list validation and the
+pair-preserving machines. The complete machine time is polynomial in original
+binary length and includes all composition transfers; no arithmetic-cost
+hypothesis is supplied. `outputsInTime` covers every raw word.
+`complete_iff` states exactly when all three stage outputs carry success
+markers: two canonical payload-bounded dimensions followed by the declared
+number of valid stored fractions, with an arbitrary retained raw suffix.
+This is a characterization of parsing markers, not a final acceptance bit.
+Unreduced fractions, signs, zeros, order, multiplicity and suffix bits are
+preserved. Zero dimensions remain distinguishable from failure.
+
+`output_length_le` bounds the entire tagged output by `8L+7`.
+`output_original_append` identifies original rational data with an arbitrary
+suffix following the threshold, for positive row count. `output_original`
+identifies the result exactly as `(countWord r,countWord d,parsedData A y B β)`.
+`originalOutputsInTime` executes that entire prefix pipeline in `P(S)`, where
+`S` is the actual combined original input/certificate bit length. The positive
+row premise only ensures valid column dimensions pass the payload bound; it
+matches the thesis and still permits zero columns, arbitrary rank, repeated
+rows and conflicting responses. The total raw-word runtime has no such premise.
+
+The remaining assembly must convert this tagged triple into the rectangular
+stage's physical input while retaining `d`, preserve rows during the completed
+suffix call, attach the resulting certificate/threshold pair and propagate
+failure markers. These conversion/copying/reordering costs are not covered by
+this prefix endpoint. The prefix does not check `r*(d+1)` agreement, validate
+its retained threshold/certificate suffix, or enforce exhaustion. Those checks
+already have separate machines, but their composition with this prefix and the
+internal arithmetic checker remains open. Whole-verifier runtime, NP membership,
+the checked binary-rational hardness bridge and NP-completeness remain open.
+The later counting circuits, conditional transfers, sampling and applications
+are also pending; no external SAT-counter hypothesis is used.
+
+Compared with the binary-verifier ingredient of `prop:regression-np-complete`
+in the thesis at `3ed947f5c3f82710ab2e253d235e604e3a9e97de`. Agenda/addendum
+SHA-256 remain `9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`
+and `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+No discrepancy or mathematical correction was needed. The latest recorded
+human-literature checkpoint is 13 November (ten days old); it was read, but no
+fresh literature search or external artifact audit is claimed.
+
+Validation: targeted and full `lake build PhdThesisLean DiscreteMetricRegression`
+pass (9,370 full-build jobs). Independent type/axiom audit covers all 47 new
+explicit declarations plus nine earlier parser/checker/certificate/hardness
+endpoints: 41 standard-only and 15 axiom-free reports. Full-build reports are
+1,581 standard-only and 42 axiom-free, with 551 existing warnings and none in
+the new modules. Four complete staged traces are kernel-checked. Independent
+binary/delimiter oracles agree on 8,191 raw words through length 12 (73,719
+actual stage executions, 1,949 complete prefixes), 684 constructed/boundary
+records (6,156 executions), and 3,280 arbitrary tagged router words: 83,155
+concrete executions in total. Exact output, transition bounds, state reset and
+all private stacks are checked. Cases include zero dimensions, dimensions
+`2^128` and `2^1024`, truncated/noncanonical fields, signed/unreduced/repeated
+fractions, 129-bit numerators, 100 fields and 1,000-bit retained suffixes.
+These staged tests do not execute the generic noncomputable composition
+transfers; those are covered by the universal machine-composition proof.
+All 240 project/adapter sources scan clean for prohibited tokens, all ten
+pinned dependency checkouts have clean tracked sources, and diff checks pass.
+Successful evidence is in the 23 November projectless `work/` directory:
+`prefix-build.log`, `full-build.log`, `RecordPrefixAudit.lean`,
+`final-axiom-audit.log`, `RecordPrefixExamples.lean`, `examples.log`,
+source/dependency audit logs and `validation-summary.log`. Failed intermediate
+diagnostics are excluded. Upstream Smith work is preserved; no thesis,
+sibling, dependency, adapter, toolchain or automation-schedule changes.

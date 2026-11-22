@@ -196,3 +196,4 @@ import PhdThesisLean.BoundedBinaryCount
 import PhdThesisLean.RationalCountedList
 import PhdThesisLean.RationalRectangular
 import PhdThesisLean.RationalCertificateTail
+import PhdThesisLean.RationalRecordPrefix

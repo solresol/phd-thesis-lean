@@ -9919,3 +9919,63 @@ Next bound the total multiplier charge in original input length by paying for
 successive pairs and transferring the remaining budget between diagonal
 stages. See the dated Smith plan entry for the exact equivalence and source.
 The uniform machine and final optimizer composition remain open.
+
+## 23 November 2026 — original binary dimensions and rational data pipeline
+
+Started clean at `bfa692f`; fetched/fast-forwarded `0e4f82f`, preserving the
+Smith multiplier-budget increment. Read AGENTS, current theorem status/TODO,
+actual parser/checker declarations, working-tree changes, automation memory
+and thesis specification. The latest recorded human-literature checkpoint is
+13 November (ten days old); read it without claiming a fresh search or external
+artifact audit. Thesis remains clean at
+`3ed947f5c3f82710ab2e253d235e604e3a9e97de`, with the unchanged agenda/addendum
+hashes recorded in THEOREM_STATUS. No mathematical correction is needed.
+
+Added default-imported `RationalDimensionRouting` and `RationalRecordPrefix`.
+A concrete three-stack router keeps the unary count terminator so zero and
+failure remain distinct; it runs in `2L+2` transitions with reset and cleanup.
+`splitCount_eq_iff` checks the bounded canonical count language. The composed
+`computableInPolyTime` starts from EVERY original Boolean word and executes
+both bounded dimension parsers, both routers and counted rational-list parsing,
+including all pair preservation and transfer costs. `complete_iff` identifies
+exactly the successful stage markers, and `output_original` identifies both
+dimensions and the existing `parsedData` word without altering any fraction
+or suffix bit. The complete output has at most `8L+7` cells;
+`originalOutputsInTime` charges the whole prefix machine in `P(S)` for original
+combined input/certificate bits. Positive row count is needed only for the
+original valid-input column capacity argument; zero columns are allowed.
+
+This completes binary header reading and data-parser composition, not the
+whole verifier. The remaining finite-machine conversion must turn the tagged
+triple into the rectangle input while retaining `d`, carry validated rows
+through the existing suffix machine, attach its certificate/threshold pair,
+and propagate empty failure markers. Rectangular agreement, suffix validity
+and exhaustion are not checked by this prefix, although their separate machines
+are already proved. Original-format whole-verifier runtime, NP membership,
+the checked binary-rational hardness bridge and NP-completeness remain open.
+Later circuit/transfer/sampling/application milestones are pending. No external
+SAT-counter assumption was introduced. Updated TODO with this exact next step.
+
+Validation: targeted and full `lake build PhdThesisLean DiscreteMetricRegression`
+pass (9,370 full-build jobs). Independent type/axiom audit covers all 47 new
+explicit declarations plus nine earlier parser/checker/certificate/hardness
+endpoints: 41 standard-only and 15 axiom-free reports. Full-build reports are
+1,581 standard-only and 42 axiom-free, with 551 existing warnings and none in
+the new modules. Four complete staged traces are kernel-checked. Independent
+binary/delimiter oracles agree on 8,191 raw words through length 12 (73,719
+actual stage executions, 1,949 complete prefixes), 684 constructed/boundary
+records (6,156 executions), and 3,280 arbitrary tagged router words: 83,155
+concrete executions in total. Exact output, transition bounds, state reset and
+all private stacks are checked. Cases include zero dimensions, dimensions
+`2^128` and `2^1024`, truncated/noncanonical fields, signed/unreduced/repeated
+fractions, 129-bit numerators, 100 fields and 1,000-bit retained suffixes.
+These staged tests do not execute the generic noncomputable composition
+transfers; those are covered by the universal machine-composition proof.
+All 240 project/adapter sources scan clean for prohibited tokens, all ten
+pinned dependency checkouts have clean tracked sources, and diff checks pass.
+Successful evidence is in the 23 November projectless `work/` directory:
+`prefix-build.log`, `full-build.log`, `RecordPrefixAudit.lean`,
+`final-axiom-audit.log`, `RecordPrefixExamples.lean`, `examples.log`,
+source/dependency audit logs and `validation-summary.log`. Failed intermediate
+diagnostics are excluded. Upstream Smith work is preserved; no thesis,
+sibling, dependency, adapter, toolchain or automation-schedule changes.
