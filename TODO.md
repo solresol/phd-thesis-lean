@@ -193,6 +193,7 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
 - [x] Test the maximum absolute original minor as a pair-boundary entry bound.
   A checked two-row witness exceeds it. A weighted combination of original
   minors would still need a bound on its coefficients.
+- [x] Prove the equivalence of global prefix growth and polynomial total multiplier width across the computed trace (`SmithMultiplierBudget.polynomial_budget_iff`). A polynomial bound on that sum remains open.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

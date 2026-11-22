@@ -9893,3 +9893,29 @@ in the 22 November projectless `work/` directory: `tail-build.log`,
 Started clean at `101460f`; fetched origin without incoming changes and
 preserved existing Smith work. No sibling, thesis, dependency, adapter,
 toolchain or automation-schedule changes. Remote CI is not claimed.
+
+## 22 November 2026 UTC — additive multiplier widths for Smith growth
+
+Started from a clean generated work branch. Verified the authorized GitHub
+origin, fetched main and checked ancestry before creating local main tracking
+`bfa692fd1ed4d8fbdc458369d14f07926e057a7b`. Preserved the work branch.
+The saved Start checks (`source /workspace/shared/theorem-provers/env.sh`,
+`python3 /workspace/shared/theorem-provers/check.py`) verified Lean 4.35.0,
+the recorded artifacts and representative imports. The refresh had no pin or
+Lake configuration changes.
+
+Used the guarded runner with the thesis environment and absolute pinned Lake
+for `lake build PhdThesisLean.SmithMultiplierBudget` and `lake build PhdThesisLean`.
+The module checks `budget_append`, `run_budget_bound` and
+`polynomial_budget_iff`. Their `#print axioms` reports list only
+`propext`, `Classical.choice` and `Quot.sound` or a subset. The library
+audit also reports the same standard axioms for `decompose_valid`,
+`decompose_of_empty` and `rhoMax_rational_smith`. Scanned 238 project and
+adapter Lean sources for proof placeholders, unsafe code and axiom
+declarations. The universal proofs cover rectangular and empty inputs.
+No numerical experiment was needed.
+
+Next bound the total multiplier charge in original input length by paying for
+successive pairs and transferring the remaining budget between diagonal
+stages. See the dated Smith plan entry for the exact equivalence and source.
+The uniform machine and final optimizer composition remain open.

@@ -17,6 +17,7 @@ import PhdThesisLean.SmithIsolationCount
 import PhdThesisLean.SmithDiagonalization
 import PhdThesisLean.SmithTraceCount
 import PhdThesisLean.SmithComputedBounds
+import PhdThesisLean.SmithMultiplierBudget
 import PhdThesisLean.SmithExactDivision
 import PhdThesisLean.SmithExactMinors
 import PhdThesisLean.SmithExactStages

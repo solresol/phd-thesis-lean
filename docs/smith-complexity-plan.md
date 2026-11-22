@@ -2496,3 +2496,44 @@ counterexample here is the checked controller. [Ji, arXiv:2607.22524v2](https://
 The pinned dependency already implements binary framing in
 `LeanNPHardness/FramingMachine.lean`. This increment uses existing matrix
 and trace definitions.
+
+### An additive target across all sweep pairs and stages (22 November 2026 UTC)
+
+The first open growth theorem asks for a single natural-coefficient polynomial
+`P` bounding `PrefixWidth (initial A.toMatrix) (decomposeTrace A) (P.eval s + 1)`
+for every dense integer matrix. Here `s = (SmithEncoding.encode A).length`
+is the two unary dimensions with terminators plus the framed signed binary
+entries, or `m+n+2+Σ(2*size(abs(z))+2)`. The previous pair-boundary examples
+motivate charging the multipliers used to combine entries.
+
+For a trace segment define its budget as the sum of `1 + size(abs(c))` over
+its actual row and column additions. The unit charge includes zero multipliers.
+`SmithMultiplierBudget.budget_append` lets consecutive phases add their
+budgets. `run_budget_bound` gives magnitude at most `2^(a+budget ops)` in all
+five matrices if they start bounded by `2^a`. Induction uses the actual
+multiplier of each step, including the opposite-signed inverse update.
+
+`polynomial_budget_iff` shows that polynomially bounding this *total* budget
+in `s` is equivalent to the first open theorem. In one direction, each prefix
+costs at most the full trace and the initial state costs at most `s` bits in
+the exponent. Conversely, a common positive transformed width `b` bounds the
+operation count by `8*s²*b*(b+1)` and each charge by `b+2` for this controller.
+The two estimates include both empty orientations. No summation charges
+index access, scanning, arithmetic evaluation, or serialization. Total
+correctness of the existing integral diagonalizer is separate from this growth
+equivalence and from a uniform machine implementing it.
+
+Next seek a potential on the active block whose decrease pays the sum of
+actual quotient widths through isolation, with a bounded transfer to the next
+diagonal stage. A fixed polynomial bounding those payments is still required.
+
+Used the supplied 21 November Sydney review findings alongside the checkout's
+13 November checkpoint. On 22 November verified Ji v2's Theorem 2.1 and
+execution-aligned trace formulation. In §7.4 the recursive call on the lower
+block retains the same work width because the current determinant bounds
+both the stabilized entries and the lower-block determinant. This is the
+transfer lemma that an additive recurrence needs there. Its nonsingular square algorithm and
+arithmetic cost model do not supply the required budget or machine for this
+controller. [Ji, arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2).
+Read-only inspection of the pinned `MachineCompositionRuntime.lean` confirms
+that composition takes time-bounded component runs as premises.
