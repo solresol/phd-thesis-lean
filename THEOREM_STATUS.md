@@ -3074,3 +3074,94 @@ Successful evidence is in the 23 November projectless `work/` directory:
 source/dependency audit logs and `validation-summary.log`. Failed intermediate
 diagnostics are excluded. Upstream Smith work is preserved; no thesis,
 sibling, dependency, adapter, toolchain or automation-schedule changes.
+
+
+### 24 November 2026: original binary data validation with retained dimension
+
+`RationalRectangleAssembly.lean` and `RationalRecordData.lean` connect the original
+binary record to the rectangular validator. The composed machine reads both
+binary dimensions, validates the counted rational list, checks the actual field
+count against `r*(d+1)`, and partitions responses and coefficients into the
+existing internal row encoding. It preserves the column count for subsequent
+certificate validation and retains every raw suffix bit.
+
+`output_success_iff` and `output_nil_iff` characterize success and rejection on
+all raw binary words: both canonical dimensions satisfy their payload bounds,
+every declared fraction is valid, and the actual data count equals `r*(d+1)`.
+`output_of_incomplete` proves that any failed prefix component rejects. A valid
+zero dimension retains its terminator; it cannot be confused with an absent
+header. The raw threshold/certificate suffix is not validated by this endpoint.
+
+The new four-stack finite TM2 checks the retained row and column delimiters,
+copies column marks onto a separate stack, and assembles the physical rectangular
+input. Its potential is `4*input.length + saved.length + count + phaseWeight`.
+`Machine.step_cfg` checks each abstract transition against the actual machine;
+`Machine.outputsInTime` bounds every path by `4L+10`, including failed partial
+headers, full cleanup, reversal and state reset. Failure assembles two empty
+unary headers with an invalid empty data payload; the rectangular stage rejects
+that payload. Runtime counters are stacks; the control and register types are
+finite.
+
+`RationalRecordData.computableInPolyTime` includes the original binary parsers,
+new assembly, dimension copying/preservation, rectangular validation, and all
+machine transfers. `outputsInTime` covers every raw word. `output_length_le`
+bounds the entire result, including retained unary `d`, by `8L+7`.
+`output_original_append` and `output_original` identify the exact original
+rational record's observation rows, dimension and suffix. `originalOutputsInTime`
+executes the complete pipeline within its proved polynomial evaluated at the
+original combined input/certificate bit length. Positive row count is needed
+only for this original-record correspondence, matching the thesis; zero columns,
+rank deficiency, repeated/conflicting rows, signs and unreduced stored fractions
+remain supported. No arithmetic-operation cost hypothesis is introduced.
+
+Next: split the row/data-end/suffix output into physical inputs for the completed
+`RationalCertificateTail` machine, retaining the rows and expected `d`; guard the
+empty rectangular failure case; attach the validated certificate/threshold pair
+to the rows; compose `RationalRegressionInternal`. These suffix routing,
+preservation, assembly and checker transfers remain unproved. The individual
+suffix parser already checks certificate count and final exhaustion. Do not
+repeat original dimension decoding, counted-data parsing, rectangle assembly,
+column-count copying or rectangular validation. Whole-verifier runtime, NP
+membership, the checked binary-rational hardness bridge and NP-completeness
+remain open. Semantic attainment and polynomial witness size are complete.
+Later linear counting circuits, conditional transfers, sampling and applications
+remain pending. No external SAT-counter hypothesis is used.
+
+Thesis comparison: this is a completed machine component of the binary-verifier
+sentence in `complexity-regimes/eth-addendum.tex`, `prop:regression-np-complete`,
+at unchanged thesis commit `3ed947f5c3f82710ab2e253d235e604e3a9e97de`.
+Agenda/addendum SHA-256 remain
+`9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` and
+`25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+No discrepancy or mathematical correction is required. The latest recorded
+human-literature checkpoint is 13 November (eleven days old); it was read, and
+no fresh external search or external artifact audit is claimed.
+
+Validation: targeted build and full `lake build PhdThesisLean DiscreteMetricRegression`
+pass (9,372 full-build jobs). Independent type/axiom audit covers all 61 new
+explicit public declarations and nine prior parser, checker, certificate and
+hardness endpoints: 50 standard-only and 20 axiom-free reports. Full-build
+reports are 1,593 standard-only and 42 axiom-free, with 551 existing warnings
+and none in the new modules. Five complete staged traces are kernel-checked.
+Independent binary and delimiter oracles agree on 8,191 raw records through
+length 12 (90,101 actual stage executions; 1,409 accepted rectangles),
+684 constructed/boundary records (7,524 executions), and all 66,430 words over
+the nine-symbol assembly alphabet through length five. Total: 164,055 actual
+concrete stage executions, checking exact outputs, transition budgets, reset
+and private-stack cleanup. Cases include missing/partial headers, zero
+dimensions, counts `2^128` and `2^1024`, rectangular mismatches, signed and
+unreduced fractions, repeated values, 129-bit numerators, 100 fields and a
+1,000-bit retained suffix. These staged executions do not simulate the generic
+noncomputable composition transfers; those are covered by the universal
+machine-composition proof.
+
+All 242 project/adapter Lean sources pass the prohibited-token scan; all ten
+pinned dependency checkouts have clean tracked sources. Diff checks pass.
+Successful evidence is retained in the 24 November projectless `work/`
+directory: `data-build.log`, `full-build.log`, `RecordDataAudit.lean`,
+`final-axiom-audit.log`, `RecordDataExamples.lean`, `examples.log`,
+`RectangleAssemblyExamples.lean`, `assembly-examples.log`, source/dependency
+audits and `validation-summary.log`. Failed intermediate diagnostics are
+excluded. Started clean at `5c7afe4`, fast-forwarded upstream `5b45cd6` and
+preserved its Smith sweep multiplier-width results. No sibling, thesis,
+dependency, adapter, toolchain or automation-schedule changes.

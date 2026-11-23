@@ -427,6 +427,17 @@ source hash and separate semantic, size and machine milestones.
   successful stage markers; `output_original` identifies the exact dimensions
   and existing parsed-data word. Output length is at most `8L+7`. The raw
   threshold/certificate suffix is preserved; it has not been parsed here.
+- [x] Execute original binary input through rectangular validation
+  (`RationalRectangleAssembly`, `RationalRecordData`). The new four-stack
+  machine checks both retained header delimiters, copies `d` and constructs
+  the rectangular stage's physical input in at most `4L+10` transitions,
+  including all failure cleanup. The complete pipeline accepts exactly valid
+  payload-bounded dimensions and rational fields with count `r*(d+1)`;
+  missing headers/data and mismatched rectangles reject. It preserves `d`,
+  the exact internal observation rows and every raw suffix bit. Total machine
+  time includes all original parsers, assembly, row validation and transfers;
+  encoded output is at most `8L+7`. Original rational-record correspondence
+  assumes positive row count, matching the thesis, and permits zero columns.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -435,22 +446,22 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: connect `RationalRecordPrefix` to the completed rectangle and
-suffix machines. Its output is a disjointly tagged triple of terminated unary
-row/column words and parsed data, including an empty component on failure.
-Implement the conversion to `RationalRectangularFields.Machine.input`, retaining
-`d` for the suffix call and propagating any empty failure component. Preserve
-validated rows while `RationalCertificateTail` processes the retained raw suffix,
-then attach its certificate/threshold pair to the rows in
-`RationalRegressionInternal.encoding`. Charge the conversion, copying,
-reordering and all transfers. Binary dimension decoding and counted-list
-parsing are now executed in `RationalRecordPrefix.originalOutputsInTime`;
-do not rebuild them or re-count them as open. The rectangle and suffix stages
-already establish shape, certificate count and exhaustion when given their
-stage inputs. Then compose the internal arithmetic checker, join short witnesses
-to NP membership, and prove the binary-rational encoding bridge from existing
-hardness before concluding NP-completeness. The external SAT counter remains
-an explicit hypothesis for later conditional results; none is used here.
+Next obligation: route `RationalRecordData`'s output into the completed suffix
+machine and internal checker. Its output is a unary `d` paired with validated
+row cells, a `dataEnd` marker and a raw Boolean suffix; an empty second component
+indicates failure. Split and tag those sections, preserving the rows while
+`RationalCertificateTail` receives `d` and the suffix, guard both failure cases,
+and attach the validated certificate/threshold pair in
+`RationalRegressionInternal.encoding`. Charge all splitting, preservation,
+reordering and checker transfers. Original binary dimension decoding,
+counted-list parsing, header conversion, copying `d` and rectangular validation
+now compose in `RationalRecordData.originalOutputsInTime`; do not rebuild them
+or re-count them as open. The suffix stage already establishes certificate count
+and final exhaustion on its prepared input. Then join the whole verifier and
+short witnesses to NP membership and prove the binary-rational encoding bridge
+from existing hardness before concluding NP-completeness. The external SAT
+counter remains an explicit hypothesis for later conditional results; none is
+used here.
 
 ## Precision-indexed p-adic prediction growth
 

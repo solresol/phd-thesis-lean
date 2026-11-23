@@ -9995,3 +9995,44 @@ Based on verified origin/main 5c7afe4. Used the pinned runtime check, targeted
 `lake build PhdThesisLean`, prohibited-token scan and declaration axiom audit.
 Read the existing composition-time API in the pinned dependency read-only.
 The plan records the human-review evidence and its scope.
+
+
+## 24 November 2026: original binary data-to-rectangle composition
+
+- Started clean at `5c7afe4`; fetched and fast-forwarded `5b45cd6`, preserving
+  upstream Smith work. Read automation memory, current declarations/status,
+  repository guidance, working changes, thesis specification and the recorded
+  13 November literature checkpoint. That checkpoint is eleven days old;
+  no fresh external search or external artifact verification is claimed.
+- Added default-imported `RationalRectangleAssembly` and `RationalRecordData`.
+  A concrete four-stack TM2 checks terminated dimension words, duplicates the
+  column count and constructs the rectangular input in at most `4L+10` steps,
+  including all rejection cleanup and reset. Complete original binary parsing,
+  assembly, copying, rectangular validation and transfers now compose in
+  polynomial time. Exact raw acceptance is characterized by canonical bounded
+  dimensions, valid counted fraction fields and count `r*(d+1)`.
+- The result retains unary `d`, exact internal observation rows and the raw
+  threshold/certificate suffix; output length is at most `8L+7`.
+  `output_original` and `originalOutputsInTime` identify and execute the full
+  pipeline from original input/certificate bits, requiring positive row count
+  only for the original-record correspondence. Zero columns, arbitrary rank,
+  repeated/conflicting observations and unreduced stored fractions are allowed.
+- Compared with the binary-verifier component of `prop:regression-np-complete`
+  at thesis `3ed947f5c3f82710ab2e253d235e604e3a9e97de`; agenda/addendum hashes
+  unchanged. No discrepancy or mathematical correction. Semantic attainment and
+  witness size remain complete; whole-verifier runtime, NP membership and the
+  binary-rational hardness bridge remain open. No external SAT hypothesis.
+- Validation: full 9,372-job build; independent audit of 61 new explicit names
+  plus nine prior endpoints (50 standard-only/20 axiom-free); five kernel traces;
+  164,055 concrete stage executions against independent oracles. All 242 project
+  and adapter sources scan clean; all ten dependency pins/tracked sources clean.
+  Full build has 1,593 standard-only/42 axiom-free reports and 551 existing
+  warnings, none new. Successful evidence is in the 24 November projectless
+  `work/` directory; failed diagnostics are excluded.
+- Next: split the retained row/data-end/suffix stream, preserve rows during
+  `RationalCertificateTail`, guard failures, attach certificate/threshold to the
+  rows and compose `RationalRegressionInternal`. The original data routing and
+  rectangular stages are no longer open; suffix count/exhaustion already have
+  their own machine. Later counting circuits, conditional transfers, sampling
+  and applications remain pending. No sibling, thesis, dependency, adapter,
+  toolchain or schedule changes.
