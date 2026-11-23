@@ -9979,3 +9979,19 @@ Successful evidence is in the 23 November projectless `work/` directory:
 source/dependency audit logs and `validation-summary.log`. Failed intermediate
 diagnostics are excluded. Upstream Smith work is preserved; no thesis,
 sibling, dependency, adapter, toolchain or automation-schedule changes.
+
+### 24 November 2026 Sydney — Smith multiplier widths over one sweep
+
+Can the sum of quotient widths be paid once from the selected column?
+Proved the division width inequality, telescoped it through Euclidean
+remainders, then retained the gcd width between successive row reductions.
+Checked `SmithMultiplierBudget.gcdTrace_budget_credit`, `gcdTrace_budget_le`
+and `sweepRows_budget`. The last also covers exact division and repeated targets.
+The earlier global equivalence still needs an original-input bound across
+perpendicular sweeps and stages. Next bound their combined incoming arm widths.
+
+Based on verified origin/main 5c7afe4. Used the pinned runtime check, targeted
+`lake build PhdThesisLean.SmithMultiplierBudget`, library build
+`lake build PhdThesisLean`, prohibited-token scan and declaration axiom audit.
+Read the existing composition-time API in the pinned dependency read-only.
+The plan records the human-review evidence and its scope.

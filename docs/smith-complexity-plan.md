@@ -2537,3 +2537,40 @@ arithmetic cost model do not supply the required budget or machine for this
 controller. [Ji, arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2).
 Read-only inspection of the pinned `MachineCompositionRuntime.lean` confirms
 that composition takes time-bounded component runs as premises.
+
+### Charging a sweep to its incoming column (24 November 2026 Sydney)
+
+The open theorem is `∃ P : Polynomial ℕ, ∀ A : Dense, budget (decomposeTrace A) ≤ P.eval (SmithEncoding.encode A).length`.
+The encoded input length is the two terminated unary dimensions plus the framed
+signed binary entries. The earlier equivalence transfers a polynomial budget
+to prefix growth and then to the encoded output bound for all five matrices.
+
+Write w(x) for the binary length of |x|. When b is nonzero,
+w(trunc(a/b)) + w(b) ≤ max(w(a), w(b)) + 1. Multiplying the
+lower powers of two for a nonzero quotient and divisor proves this inequality.
+The next Euclidean pair has maximum width w(b). Telescoping pays the quotient
+widths, retaining w(gcd(a,b)) at the end. The three unit additions in each
+signed swap and the quotient addition's unit charge cost seven more per round.
+The existing operation-count theorem then gives a bound in the two incoming
+widths alone. The divisible branch uses its actual one-addition trace.
+
+Across a sweep the output pivot of one reduction is the next reduction's input
+pivot. Every other listed target retains its incoming entry or was cleared
+on a previous visit. Thus the multiplier budget plus final pivot width is at
+most the initial pivot width plus the sum of 17w(target)+1 over listed
+nonpivot rows. This applies also to zero entries, repeated visits and the empty
+list. Indexing needs an existing pivot row and column. The unmodified total
+controller handles missing dimensions. No hypothesis on determinants or
+ranks enters the proof. The integer operations and inverse maps are unchanged.
+
+The proof controls one selected column. Its perpendicular arm can change during
+this sweep. To extend the bound, control the total incoming widths of those
+successive arms and the transfer to the next active block in original bits.
+Scanning, integer arithmetic, serialization and a uniform machine for the
+whole algorithm remain separate obligations.
+
+Consulted the 22 November plan record of the 21 November Sydney human review
+on 24 November Sydney. The standalone checkpoint in this checkout ends on
+13 November. The recorded 22 November verification of Ji v2 concerns
+nonsingular square input and arithmetic costs. This proof uses the local
+controller only. [Ji, arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2).
