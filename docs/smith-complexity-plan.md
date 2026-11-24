@@ -2574,3 +2574,36 @@ on 24 November Sydney. The standalone checkpoint in this checkout ends on
 13 November. The recorded 22 November verification of Ji v2 concerns
 nonsingular square input and arithmetic costs. This proof uses the local
 controller only. [Ji, arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2).
+
+### Total width at the first turn (25 November 2026 Sydney)
+
+For the open existential polynomial in `polynomial_budget_iff`, the argument is
+the length L of the original two dimension headers and signed, framed binary
+fields. At a fixed input column j, row i selects position i·cols+j. This is
+injective even when several entries have equal values. The filtered active-row
+list visits each position at most once. Its total target charge is at most
+17 times the length of the entire encoding. The pivot adds at most L. Thus
+`initial_column_budget` bounds the first column trace budget by 18L for any
+stage index applied to the initial state, including an absent pivot.
+
+Applying the existing bound on all five state matrices puts the transformed
+entries below or equal to 2^(19L). The endpoint can need 19L+1 magnitude bits.
+For any existing row, `initial_turn_width` sums that bound over exactly the
+targets the transposed column controller will visit. There are at most cols ≤ L
+targets, so their total width is at most L(19L+1). Zero-column inputs have an
+empty sum. A zero-row input has no row to query and its column trace is empty.
+
+At a later turn the row-major positions being charged contain transformed
+integers. Injectivity still holds, but the sum of their field lengths no longer
+comes from disjoint fields of the original encoding. Applying the first-turn
+estimate repeatedly would charge the increased widths again. Seek an amortized
+bound on the successive exposed arms within one isolation before attempting
+transfer to the next diagonal stage. Machine scanning, arithmetic and output
+serialization have separate costs.
+
+Consulted the supplied 21 November Sydney human review and its 22 November
+source check in this plan on 25 November Sydney. The review reported no new
+result for the exact target. Ji v2 uses nonsingular square inputs and a
+different controller and cost model. This increment uses the existing
+rectangular integer controller and the pinned binary-length bridge. The source
+access date for Ji remains 22 November Sydney. [Ji v2](https://arxiv.org/html/2607.22524v2).

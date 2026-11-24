@@ -15,7 +15,7 @@ The checked rectangular counterexample in `SmithOriginalMinorObstruction` has ev
 
 `SmithMultiplierBudget.polynomial_budget_iff` proves that the open prefix bound is equivalent to a polynomial bound on the sum of one plus the binary magnitude length of each multiplier in the computed trace. A witness polynomial for either side is still missing.
 
-For one sweep down a column, `SmithMultiplierBudget.sweepRows_budget` bounds the actual multiplier charges plus the final pivot width by the starting pivot width plus the sum of 17 times each listed incoming target width plus one per visit. Carrying this estimate into the next sweep requires a bound on its newly exposed entries.
+For one sweep down a column, `SmithMultiplierBudget.sweepRows_budget` bounds the actual multiplier charges plus the final pivot width by the starting pivot width plus the sum of 17 times each listed incoming target width plus one per visit. For a column sweep from the original dense matrix, `initial_column_budget` charges at most 18L for L input bits. At the turn, `initial_turn_width` bounds the sum of the active target widths in any row by the number of targets times (19L+1). Repeated turns and transfers between diagonal stages remain open.
 
 `thm:max-polytime` remains **Partial**: the optimizer formula still receives an
 integer decomposition and inverse identities as hypotheses. The active plan is

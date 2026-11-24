@@ -10036,3 +10036,22 @@ The plan records the human-review evidence and its scope.
   their own machine. Later counting circuits, conditional transfers, sampling
   and applications remain pending. No sibling, thesis, dependency, adapter,
   toolchain or schedule changes.
+
+### 25 November 2026 Sydney — Smith first-turn bit widths
+
+- Question: can the first perpendicular arm be charged to the original dense
+  bit string? Proved injectivity of the row-major field positions in the
+  selected column, summed their framed costs, and carried the actual multiplier
+  budget through the existing five-matrix state bound.
+- Checked `SmithMultiplierBudget.initial_column_budget` (≤18L) and
+  `SmithMultiplierBudget.initial_turn_width` (≤number of targets · (19L+1)).
+  Commands: sourced the published env, ran its `check.py`, then used the
+  guarded pinned Lake for `build PhdThesisLean.SmithMultiplierBudget` and
+  `build PhdThesisLean`. The module's two new `#print axioms` reports list
+  propext, Classical.choice and Quot.sound. The changed Lean file passed the
+  prohibited-token scan. No computational examples are used as proof.
+- Latest human review consulted via the 21 November handoff and the plan's
+  22 November verification. Next: pay for repeated changes to the same fields
+  during isolation without applying the first-turn growth factor at each turn.
+  Global output bits, uniform machine running time and optimizer composition
+  remain open.

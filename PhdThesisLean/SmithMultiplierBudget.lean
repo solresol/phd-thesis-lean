@@ -173,6 +173,84 @@ theorem sweepRows_budget (Q : State m n) (r : Fin m) (j : Fin n) (rows : List (F
       dsimp [T] at *
       omega
 
+open SmithColumn
+
+private theorem active_charge (A : Dense) (j : Fin A.cols) (k : ℕ) :
+    ((activeRows A.rows k).map fun i => 17 * (A.toMatrix i j).natAbs.size + 1).sum ≤
+      17 * (SmithEncoding.encode A).length := by
+  let charge (i : Fin A.rows) := 17 * (A.toMatrix i j).natAbs.size + 1
+  let wire (z : ℤ) := 2 * (Computability.encodeNat z.natAbs).length + 2
+  let pos (i : Fin A.rows) : Fin A.entries.length :=
+    ⟨i.val * A.cols + j.val, by
+      rw [A.entryCount]
+      calc
+        _ < i.val * A.cols + A.cols := Nat.add_lt_add_left j.isLt _
+        _ = (i.val + 1) * A.cols := by rw [Nat.add_mul, Nat.one_mul]
+        _ ≤ _ := Nat.mul_le_mul_right _ i.isLt⟩
+  have hinj : Function.Injective pos := by
+    intro x y he
+    have heq := congrArg Fin.val he
+    change x.val * A.cols + j.val = y.val * A.cols + j.val at heq
+    exact Fin.ext (Nat.eq_of_mul_eq_mul_right (by omega : 0 < A.cols)
+      (Nat.add_right_cancel heq))
+  have hs : (∑ i, charge i) ≤ ∑ t : Fin A.entries.length, 17 * wire A.entries[t.val] := by
+    apply Finset.sum_le_sum_of_injOn pos hinj.injOn (Finset.subset_univ _)
+    · intro i _
+      dsimp [charge, pos, wire, Dense.toMatrix]
+      rw [LeanNPHardness.BinaryNatLists.encodeNat_length_eq_size]
+      omega
+    · intros
+      omega
+  rw [← Finset.mul_sum, ← List.sum_ofFn (f := fun t : Fin A.entries.length => wire A.entries[t.val]), List.ofFn_getElem_eq_map] at hs
+  have hsub := ((List.filter_sublist (l := List.finRange A.rows)
+    (p := fun i => decide (k < i.val))).map charge).sum_le_sum (fun _ _ => Nat.zero_le _)
+  rw [← Fin.sum_univ_def] at hsub
+  change _ ≤ 17 * (SmithEncoding.encode A).length
+  rw [encode_length]
+  dsimp [wire] at hs
+  exact (hsub.trans hs).trans (Nat.mul_le_mul_left _ (by omega))
+
+/-- The first column sweep reads distinct fields in the original dense wire format. -/
+theorem initial_column_budget (A : Dense) (k : ℕ) :
+    budget (columnTrace (initial A.toMatrix) k) ≤ 18 * (SmithEncoding.encode A).length := by
+  unfold columnTrace
+  split_ifs with hr hc
+  · let r : Fin A.rows := ⟨k, hr⟩
+    let j : Fin A.cols := ⟨k, hc⟩
+    have h := sweepRows_budget (initial A.toMatrix) r j (activeRows A.rows k)
+      (by simp [mem_activeRows, r])
+    have ha := active_charge A j k
+    have hp := SmithIsolationCount.entry_size_le_input_length A r j
+    change _ + _ ≤ (A.toMatrix r j).natAbs.size +
+      ((activeRows A.rows k).map fun i => 17 * (A.toMatrix i j).natAbs.size + 1).sum at h
+    change budget (sweepRowsTrace _ r j _) ≤ _
+    omega
+  all_goals simp [budget]
+
+/-- Total binary magnitude width exposed to the perpendicular sweep at the first turn. -/
+theorem initial_turn_width (A : Dense) (k : ℕ) (r : Fin A.rows) :
+    let L := (SmithEncoding.encode A).length
+    ((activeRows A.cols k).map fun j =>
+      ((clearActiveColumn (initial A.toMatrix) k).S r j).natAbs.size).sum ≤
+        (activeRows A.cols k).length * (19 * L + 1) := by
+  dsimp only
+  let L := (SmithEncoding.encode A).length
+  have hA := initial_pow_bound A.toMatrix L (fun i j =>
+    (Nat.size_le.mp (SmithIsolationCount.entry_size_le_input_length A i j)).le)
+  have h := run_budget_bound _ (columnTrace (initial A.toMatrix) k) L hA
+  rw [columnTrace_run] at h
+  have hb := initial_column_budget A k
+  apply (List.sum_le_length_nsmul _ (19 * L + 1) ?_).trans_eq
+  · simp [L]
+  · intro x hx
+    obtain ⟨j, _, rfl⟩ := List.mem_map.mp hx
+    have hw := Nat.size_le_size (h.S r j)
+    rw [Nat.size_pow] at hw
+    dsimp [L] at *
+    omega
+
+#print axioms initial_column_budget
+#print axioms initial_turn_width
 #print axioms sweepRows_budget
 #print axioms gcdTrace_budget_credit
 #print axioms gcdTrace_budget_le
