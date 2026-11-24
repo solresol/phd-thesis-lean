@@ -439,6 +439,15 @@ source hash and separate semantic, size and machine milestones.
   time includes all original parsers, assembly, row validation and transfers;
   encoded output is at most `8L+7`. Original rational-record correspondence
   assumes positive row count, matching the thesis, and permits zero columns.
+- [x] Compose all original binary parsing and validation while retaining the
+  arithmetic inputs (`RationalRecordRouting`, `RationalRecordValidation`,
+  `RationalRecordParser`). The four-stack router takes `2L+3` transitions;
+  the three-stack joint failure guard takes `2M+2`. The complete machine
+  includes every parser, rectangle check, row preservation during suffix
+  validation, exact certificate count, exhaustion and transfer. Every raw
+  input either yields the exact retained rows/certificate/threshold or the
+  empty failure word; output length is at most `16L+14`. Original rational
+  correspondence requires positive rows and allows zero columns.
 - [ ] Construct and bound the actual binary rational-loss verifier, then
   compose NP membership with a checked encoding bridge from existing hardness.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
@@ -447,22 +456,18 @@ source hash and separate semantic, size and machine milestones.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: route `RationalRecordData`'s output into the completed suffix
-machine and internal checker. Its output is a unary `d` paired with validated
-row cells, a `dataEnd` marker and a raw Boolean suffix; an empty second component
-indicates failure. Split and tag those sections, preserving the rows while
-`RationalCertificateTail` receives `d` and the suffix, guard both failure cases,
-and attach the validated certificate/threshold pair in
-`RationalRegressionInternal.encoding`. Charge all splitting, preservation,
-reordering and checker transfers. Original binary dimension decoding,
-counted-list parsing, header conversion, copying `d` and rectangular validation
-now compose in `RationalRecordData.originalOutputsInTime`; do not rebuild them
-or re-count them as open. The suffix stage already establishes certificate count
-and final exhaustion on its prepared input. Then join the whole verifier and
-short witnesses to NP membership and prove the binary-rational encoding bridge
-from existing hardness before concluding NP-completeness. The external SAT
-counter remains an explicit hypothesis for later conditional results; none is
-used here.
+Next obligation: connect `RationalRecordParser` to the internal arithmetic
+checker. Prove that every successful raw-word parse supplies a compatible
+row/certificate source; reorder and relabel its retained rows and
+certificate/threshold pair into `RationalRegressionInternal.encoding`, branch
+empty parser output to false, and compose the checker with all transfers
+charged. The parser already performs all original binary dimension/data reads,
+rectangular checks, row preservation during suffix validation, certificate-count
+agreement, complete exhaustion and joint rejection. Do not rebuild those stages.
+Then join the short-witness theorem to NP membership and prove the
+binary-rational encoding bridge from existing hardness before concluding
+NP-completeness. The external SAT counter remains an explicit hypothesis for
+later conditional results; none is used here.
 
 ## Precision-indexed p-adic prediction growth
 

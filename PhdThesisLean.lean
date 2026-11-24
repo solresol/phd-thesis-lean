@@ -198,3 +198,4 @@ import PhdThesisLean.RationalRectangular
 import PhdThesisLean.RationalCertificateTail
 import PhdThesisLean.RationalRecordPrefix
 import PhdThesisLean.RationalRecordData
+import PhdThesisLean.RationalRecordParser

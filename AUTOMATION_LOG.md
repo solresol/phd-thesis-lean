@@ -10055,3 +10055,44 @@ The plan records the human-review evidence and its scope.
   during isolation without applying the first-turn growth factor at each turn.
   Global output bits, uniform machine running time and optimizer composition
   remain open.
+
+## 25 November 2026: total original binary regression-record parser
+
+- Started clean at `5787ca2`; fetched and fast-forwarded `3564e07`, preserving
+  Smith first-turn bit bounds. Read current guidance, status, changes, declarations,
+  automation memory, thesis specification and the 13 November literature review.
+  That recorded review is twelve days old; no fresh external search or artifact
+  replay is claimed.
+- Added default-imported `RationalRecordRouting`, `RationalRecordValidation`
+  and `RationalRecordParser`. The new four-stack partition takes `2L+3`
+  transitions, preserving the data-end marker with the rows and routing retained
+  unary `d` with the raw suffix. Actual suffix validation runs while rows are
+  preserved. A three-stack joint rejection guard takes `2M+2` transitions and
+  clears either failure. All copying, transfers, reversals and reset/cleanup
+  are included in the complete original-bit polynomial.
+- `validated_iff` and final parser success/nil theorems characterize every raw
+  word: canonical bounded dimensions, valid rectangular data count `r*(d+1)`,
+  valid threshold, exactly `d` certificate fractions and complete exhaustion.
+  The parser returns exact retained rows/certificate/threshold or empty failure;
+  output is at most `16L+14`. `originalOutputsInTime` consumes only the original
+  input/certificate bits and requires positive rows for correspondence, allowing
+  zero columns, rank deficiency, repeats, conflicting responses and unreduced
+  stored fractions. No arithmetic-cost assumption or external SAT hypothesis.
+- Thesis correspondence: binary-verifier ingredient of
+  `prop:regression-np-complete` at unchanged thesis `3ed947f5c3f82710ab2e253d235e604e3a9e97de`;
+  agenda/addendum hashes unchanged. No discrepancy or mathematical correction.
+  This closes parsing/validation, not loss evaluation or NP membership.
+- Full 9,375-job build passes; independent audit of 79 new explicit names and
+  nine prior endpoints gives 67 standard-only/21 axiom-free reports. Full build
+  has 1,608 standard-only/42 axiom-free reports and 555 existing warnings, none
+  new. Six kernel traces and 224,698 concrete executions pass independent oracles,
+  exact output/time and full cleanup/reset. All 245 source files scan clean;
+  all ten pins/tracked dependencies clean. Successful evidence is in the dated
+  projectless `work/` directory; failed intermediate diagnostics are excluded.
+- Next: prove every successful parse supplies a compatible typed internal source;
+  relabel/reorder retained words, branch empty rejection to false, and compose
+  `RationalRegressionInternal` with charged transfers. Then NP membership and
+  the binary-rational hardness encoding bridge. Do not repeat original parsing,
+  row preservation, suffix count/exhaustion or joint rejection. Later circuits,
+  conditional transfers, sampling and applications remain pending. No sibling,
+  thesis, dependency, adapter, toolchain or schedule changes.
