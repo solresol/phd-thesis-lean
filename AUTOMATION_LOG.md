@@ -10096,3 +10096,21 @@ The plan records the human-review evidence and its scope.
   row preservation, suffix count/exhaustion or joint rejection. Later circuits,
   conditional transfers, sampling and applications remain pending. No sibling,
   thesis, dependency, adapter, toolchain or schedule changes.
+
+### 2026-11-25 UTC — Pivot credit across later Smith turns
+
+Can each later arm inherit the preceding pivot credit? Applied the sweep
+bound to the actual transposed midpoint, proved budget invariance under
+instruction transposition, then telescoped over consecutive pairs and
+specialized to the computed isolation pass count. Checked declarations:
+`SmithMultiplierBudget.crosses_budget_credit` and `isolate_budget_credit`.
+The missing-pivot case already has an empty trace. Next bound the accumulated
+nonpivot target charges in original framed binary input bits. This supplies
+neither a stage-transfer bound nor a machine runtime.
+
+Saved runtime check passed. Guarded pinned Lake ran
+`build PhdThesisLean.SmithMultiplierBudget` and `build PhdThesisLean`.
+Both builds passed. Both headline axiom prints list only propext,
+Classical.choice and Quot.sound. The changed Lean source passed the
+prohibited-token scan and `git diff --check`. Consulted the recorded
+21 November Sydney human review and its 22 November Ji v2 source check.

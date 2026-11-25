@@ -195,7 +195,9 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
   minors would still need a bound on its coefficients.
 - [x] Prove the equivalence of global prefix growth and polynomial total multiplier width across the computed trace (`SmithMultiplierBudget.polynomial_budget_iff`). A polynomial bound on that sum remains open.
 - [x] Charge the computed multipliers of one row sweep to the incoming selected column, retaining the final pivot width as credit (`SmithMultiplierBudget.sweepRows_budget`). The following result covers the first turn.
-- [x] Bound the first turn from a dense input using each distinct incoming column field once (`SmithMultiplierBudget.initial_column_budget`, `initial_turn_width`). Bound cumulative charges through later turns and diagonal stages in the same original bit length.
+- [x] Bound the first turn from a dense input using each distinct incoming column field once (`SmithMultiplierBudget.initial_column_budget`, `initial_turn_width`).
+- [x] Telescope the pivot-width credit through all passes of one isolation (`SmithMultiplierBudget.isolate_budget_credit`).
+- [ ] Bound the cumulative exposed target charges in original input bits, then control transfer between diagonal stages.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded
   output by polynomials in actual input bit length; implement uniform machines

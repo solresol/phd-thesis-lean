@@ -249,6 +249,55 @@ theorem initial_turn_width (A : Dense) (k : ℕ) (r : Fin A.rows) :
     dsimp [L] at *
     omega
 
+/-- Target charges at their actual time of exposure in one column sweep. -/
+def columnCharge (Q : State m n) (k : ℕ) (j : Fin n) : ℕ :=
+  ((activeRows m k).map fun i => 17 * (Q.S i j).natAbs.size + 1).sum
+
+private theorem column_credit (Q : State m n) (k : ℕ) (hr : k < m) (hc : k < n) :
+    budget (columnTrace Q k) + ((clearActiveColumn Q k).S ⟨k, hr⟩ ⟨k, hc⟩).natAbs.size ≤
+      (Q.S ⟨k, hr⟩ ⟨k, hc⟩).natAbs.size + columnCharge Q k ⟨k, hc⟩ := by
+  simpa [columnTrace, clearActiveColumn, hr, hc, columnCharge] using
+    sweepRows_budget Q ⟨k, hr⟩ ⟨k, hc⟩ (activeRows m k) (by simp [mem_activeRows])
+
+private theorem transpose_budget (ops : List (Op m n)) :
+    budget (ops.map transposeOp) = budget ops := by
+  induction ops with
+  | nil => rfl
+  | cons op ops ih => cases op <;> simpa [budget, transposeOp, coefficient] using ih
+
+/-- Sum both actual arms at each successive pass, excluding the pivot. -/
+def exposedCharge (Q : State m n) (k : ℕ) (hr : k < m) (hc : k < n) : ℕ → ℕ
+  | 0 => 0
+  | t + 1 => columnCharge Q k ⟨k, hc⟩ +
+      columnCharge (transposeState (clearActiveColumn Q k)) k ⟨k, hr⟩ +
+      exposedCharge (cross Q k) k hr hc t
+
+open SmithIsolationCount in
+/-- The initial pivot is charged once over any number of turns. -/
+theorem crosses_budget_credit (Q : State m n) (k : ℕ) (hr : k < m) (hc : k < n) (t : ℕ) :
+    budget (crossesTrace Q k t) + ((crosses Q k t).S ⟨k, hr⟩ ⟨k, hc⟩).natAbs.size ≤
+      (Q.S ⟨k, hr⟩ ⟨k, hc⟩).natAbs.size + exposedCharge Q k hr hc t := by
+  induction t generalizing Q with
+  | zero => simp [crossesTrace, crosses, budget, exposedCharge]
+  | succ t ih =>
+    have hcol := column_credit Q k hr hc
+    have hrow := column_credit (transposeState (clearActiveColumn Q k)) k hc hr
+    change _ + ((cross Q k).S ⟨k, hr⟩ ⟨k, hc⟩).natAbs.size ≤
+      ((clearActiveColumn Q k).S ⟨k, hr⟩ ⟨k, hc⟩).natAbs.size + _ at hrow
+    have htail := ih (cross Q k)
+    simp only [crossesTrace, crossTrace, budget_append, transpose_budget, crosses, exposedCharge]
+    omega
+
+open SmithIsolation SmithIsolationCount in
+/-- Specialize the pivot credit to the controller's computed stopping time. -/
+theorem isolate_budget_credit (Q : State m n) (k : ℕ) (hr : k < m) (hc : k < n) :
+    budget (isolateTrace Q k) + ((isolate Q k).S ⟨k, hr⟩ ⟨k, hc⟩).natAbs.size ≤
+      (Q.S ⟨k, hr⟩ ⟨k, hc⟩).natAbs.size + exposedCharge Q k hr hc (isolationPasses Q k) := by
+  simpa only [isolateTrace, isolationPasses_replay] using
+    crosses_budget_credit Q k hr hc (isolationPasses Q k)
+
+#print axioms isolate_budget_credit
+#print axioms crosses_budget_credit
 #print axioms initial_column_budget
 #print axioms initial_turn_width
 #print axioms sweepRows_budget

@@ -2607,3 +2607,26 @@ result for the exact target. Ji v2 uses nonsingular square inputs and a
 different controller and cost model. This increment uses the existing
 rectangular integer controller and the pinned binary-length bridge. The source
 access date for Ji remains 22 November Sydney. [Ji v2](https://arxiv.org/html/2607.22524v2).
+
+### Pivot credit over one isolation (25 November 2026 UTC)
+
+Let w be binary magnitude length. For each column sweep, charge 17w(x)+1
+for each nonpivot target x in its incoming state. For its perpendicular sweep,
+use the row of the actual midpoint. Sum these charges over the computed
+number of passes to obtain E. For every existing pivot, including an initially
+zero pivot, `isolate_budget_credit` proves
+
+    budget(isolateTrace) + w(final pivot) ≤ w(initial pivot) + E.
+
+Transposition preserves each multiplier. Adding the two sweep inequalities
+cancels the midpoint width, and induction cancels every intermediate pivot
+between passes. The existing missing-dimension theorem gives an empty trace.
+This is a sufficient reduction to a sum over transformed targets. It supplies
+no independent upper bound on E. Seek an original-input potential that pays
+for target exposure after pivot-changing transformations. Stage transfer and
+a uniform machine for the five encoded output matrices remain open.
+
+Consulted the 21 November Sydney human review recorded above. Its 22 November
+source check of Ji v2 concerns a nonsingular square algorithm and arithmetic
+costs. This argument uses the rectangular controller's checked sweep theorem.
+[Ji v2](https://arxiv.org/html/2607.22524v2)
