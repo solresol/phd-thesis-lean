@@ -1556,7 +1556,7 @@ entropy formulas can be derived later if useful.
 Specification: `../phd-thesis/complexity-regimes/eth-addendum.tex`, at thesis
 commit `3ed947f5c3f82710ab2e253d235e604e3a9e97de`, SHA-256
 `25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
-Audited on 17 November 2026 (Sydney). These additions are separate from the
+Audited on 26 November 2026 (Sydney). These additions are separate from the
 earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 
 | Obligation | Status | Checked declaration or remaining work |
@@ -1582,13 +1582,13 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Runtime-length dot products and one complete residual | Complete (machine components) | `RationalDotProduct.computableInPolyTime` traverses an internal delimited list of fraction pairs, computes every product, and emits the summation format in `(L+1)*(P(L)+4L+6)` steps; output length is at most `L+6`. `sumComputableInPolyTime` includes actual accumulation. `RationalRowResidual.computableInPolyTime` retains the response while evaluating that dot product, removes pair tags in `2T+2` steps, and subtracts. `evaluate_row` proves equality of the exact unreduced fraction with the original left-subtraction residual; `boundedRowOutputsInTime` charges this complete arithmetic phase polynomially in original combined bits `S`, using a source bound `8S²+11S+3`. The source response and paired columns must already be serialized; pairing and the loop over all observations are supplied below; original parsing remains open. |
 | Separate row/certificate column pairing | Complete (machine component) | `RationalColumnPairing.computableInPolyTime` consumes two separately serialized delimited fraction lists and produces the exact paired-column format in at most `3L+2` finite TM2 steps. `rejectsInTime` clears both source tails and any partial output on unequal list counts within `3L+5`; the rejection word cannot encode a paired fraction list. Empty lists, signs, unreduced fractions, order and multiplicity are retained. `rowComputableInPolyTime` composes pairing with the response-preserving residual evaluator; `boundedRowOutputsInTime` charges the complete per-row phase in original combined bits through source bound `8S²+12S+3`. The following increments close certificate reuse, row-source assembly and the outer arithmetic loop; extracting these lists from the original binary record remains open. |
 | Certificate reuse and observation source assembly | Complete (machine component) | `RationalCertificateBroadcast.computableInPolyTime` takes one certificate plus runtime-many internally serialized rows, restores the certificate after each copy, and outputs all separated row words in order. At most `3L²+8L+5` actual TM2 steps and `L²+L` output symbols. `source_length_le` gives `L≤2S` in original bits; `regressionOutputsInTime` proves bound `12S²+16S+5`, and `regression_output` matches the existing per-row evaluator input exactly. Empty shapes, signs, unreduced fields and multiplicities are covered. The following increment executes the row evaluator; original-record parsing remains open. |
-| Residual traversal and complete internal checker | Complete (machine components) | `RationalResidualList.computableInPolyTime` executes pairing and residual arithmetic over runtime-many framed rows in `(L+1)*(P(L)+2Q(L)+2L+6)` actual TM2 steps; `Q(L)=L+P(L)*machinePushBound` follows from the checked row machine. `RationalRegressionInternal.computableInPolyTime` composes single-certificate broadcast, traversal, exact norms/sum, threshold retention and comparison. `outputsInTime` charges a full internal source of at most `3S` symbols in original combined bits `S`; `check_correct` matches the thesis. Empty shapes, arbitrary rank, signs, unreduced fractions, order and multiplicity are covered. Equal column counts are a typed source contract, not a machine-checked binary-input premise. |
+| Residual traversal and complete internal checker | Complete (machine components) | `RationalResidualList.computableInPolyTime` executes pairing and residual arithmetic over runtime-many framed rows in `(L+1)*(P(L)+2Q(L)+2L+6)` actual TM2 steps; `Q(L)=L+P(L)*machinePushBound` follows from the checked row machine. `RationalRegressionInternal.computableInPolyTime` composes single-certificate broadcast, traversal, exact norms/sum, threshold retention and comparison. `outputsInTime` charges a full internal source of at most `3S` symbols in original combined bits `S`; `check_correct` matches the thesis. Empty shapes, arbitrary rank, signs, unreduced fractions, order and multiplicity are covered. Equal column counts are a typed source contract; the whole binary verifier below now supplies it from actual successful parsing. |
 | Retaining binary fraction and count prefixes | Complete (machine components) | `RationalFractionPrefix.Machine.computableInPolyTime` parses one original signed/framed fraction from every raw Boolean word in at most `4L+10` TM2 transitions. Success retains the exact fraction and untouched suffix with one delimiter; failure emits the empty word. `naturalComputableInPolyTime` handles canonical binary natural prefixes, including zero, in `4L+11`. Both bounds include malformed inputs, copying, cleanup and state reset. The natural value remains binary; its numerical bound and record-count compatibility are not checked here. |
 | Bounded count and counted-list parsing | Complete (machine components) | `BoundedBinaryCount` rejects malformed/oversized binary counts before unary allocation and preserves the payload. `RationalCountedList.computableInPolyTime` validates exactly the declared number of fractions on every raw binary word, retaining their bits, order and suffix. See the 19/20 November increments below. |
-| Rectangular data validation and row partitioning | Complete (machine component) | `RationalRectangularFields.output_fields_success_iff` and `output_fields_nil_iff` prove acceptance/rejection exactly by the actual field count `r*(d+1)`. The six-stack finite TM2 takes at most `4rd+21r+3d+4M+10` transitions in parsed payload length `M`, with header loading, column-counter restoration, suffix retention and complete failure cleanup. `computableInPolyTime` gives `32(L+1)²` in the complete unary-header/stage input length; output length is at most `M`. `output_original_data` matches the preceding counted-list output to the existing internal observation encoding, up to a fixed alphabet renaming. `originalDataOutputsInTime` charges this stage by `4S²+32S+14` in original combined bits. Routing the original binary record into this stage, certificate-count agreement and the final checker composition remain open. |
+| Rectangular data validation and row partitioning | Complete (machine component) | `RationalRectangularFields.output_fields_success_iff` and `output_fields_nil_iff` prove acceptance/rejection exactly by the actual field count `r*(d+1)`. The six-stack finite TM2 takes at most `4rd+21r+3d+4M+10` transitions in parsed payload length `M`, with header loading, column-counter restoration, suffix retention and complete failure cleanup. `computableInPolyTime` gives `32(L+1)²` in the complete unary-header/stage input length; output length is at most `M`. `output_original_data` matches the preceding counted-list output to the existing internal observation encoding, up to a fixed alphabet renaming. `originalDataOutputsInTime` charges this stage by `4S²+32S+14` in original combined bits. The subsequent record-parser and whole-verifier entries close original routing, certificate-count agreement and checker composition. |
 | Total original binary record parser | Complete (machine component) | `RationalRecordParser.computableInPolyTime` executes all dimension/data parsing, rectangular validation, row preservation during threshold/certificate validation, exact certificate count, final exhaustion and joint rejection. `output_success_iff` with `RationalRecordValidation.validated_iff` characterizes success on every raw word. Failure emits the empty word; success retains exact internal rows and certificate/threshold fields. Output is at most `16L+14`; `originalOutputsInTime` charges the complete parser to original combined bits. |
-| Polynomial-time verifier on binary rational data | Pending as a whole | Original-record parsing and all internal arithmetic have finite-machine bounds. Still required: prove every successful parser payload supplies a compatible typed source, reorder/relabel it into `RationalRegressionInternal.encoding`, branch empty rejection to false, and compose the checker with all transfers charged. |
-| NP membership and NP-completeness | Pending | Compose the certificate-size theorem and verifier, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
+| Polynomial-time verifier on binary rational data | Complete (whole machine) | `RationalRecordSource.exists_source` supplies a compatible typed source for every successful raw parse. `RationalRecordAssembly.Machine.outputsInTime` reorders retained fields in at most `2L+5` actual TM2 steps, including rejection output and cleanup. `RationalBinaryVerifier.computableInPolyTime` composes the complete original binary parser, assembly and internal arithmetic. `check_invalid` rejects malformed records; `check_stored_values` covers unreduced fractions; `check_correct` and `originalOutputsInTime` match the thesis in `P(totalBits)`. `shortOriginalOutputsInTime` gives `P(12L³+10L+1)` in original instance bits for short witnesses; `threshold_iff_short_verifier` joins the semantic and size results. No external runtime hypothesis. |
+| NP membership and NP-completeness | Pending | Package the proved short-witness verifier into the library NP language/encoding definition, then connect the existing integral-row/natural-bound hardness language to the new binary rational language with a checked encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
 Correspondence: `RationalWitnesses.loss_eq_thesis` identifies the Lean objective
@@ -3263,3 +3263,93 @@ Successful evidence is retained at
 `examples.log`, source/dependency audits and `validation-summary.log`). Failed
 intermediate diagnostics are excluded. The full build is repeated from the
 clean committed checkout before publication.
+
+
+### 26 November 2026: complete polynomial-time binary rational-loss verifier
+
+`RationalRecordSource`, `RationalRecordAssembly` and `RationalBinaryVerifier`
+close the whole original-bit verifier obligation. The prime is fixed; row and
+column counts, every rational field, and the certificate are runtime data.
+No preparsed source, evaluated loss, or arithmetic-cost hypothesis is supplied.
+
+`RationalRecordSource.exists_rows` groups stored fractions into rectangular
+rows without normalization. `exists_source` proves that **every successful raw
+parse** supplies a `RationalRegressionInternal.Compatible` source and preserves
+its exact fraction encodings. It is not restricted to serializations obtained
+from a typed rational matrix. `exists_source_iff` also proves the converse.
+
+The five-stack `RationalRecordAssembly.Machine` physically relabels and reorders
+certificate, observation rows and threshold. It removes the data-end marker,
+clears all private stacks, and resets finite control in at most `2L+5` actual
+TM2 transitions. Empty parser output produces the seven-symbol encoding of an
+empty source with threshold -1. `check_rejected` proves that the existing
+arithmetic checker returns false on this source. `assemble_wire` identifies
+the successful output exactly with `RationalRegressionInternal.encoding`;
+`source_encode` covers success and rejection. The semantic decoder in `source`
+is only an identification of the machine output: it is not an uncharged
+executable preprocessing step.
+
+`RationalBinaryVerifier.computableInPolyTime` and `outputsInTime` give one
+finite machine with polynomial clock `P` for **every raw Boolean word**, from
+original binary parsing through residual arithmetic, fixed-prime norms,
+summation and comparison. Every generic composition transfer is included.
+`source_length_le` bounds the intermediate arithmetic source by `16L+21`.
+`check_invalid` returns false on every record rejected by the exact parser
+language. `check_true_iff` permits acceptance only through a compatible parsed
+source whose exact arithmetic check succeeds. `check_stored_values` identifies
+that check with the sum of rational p-adic residual norms even for unreduced
+stored fractions and empty shapes.
+
+For the thesis's original rational record, `check_correct` proves the exact
+threshold equivalence and `originalOutputsInTime` gives `P(totalBits A y B β)`.
+Positive row count is required only for original-record correspondence, matching
+the thesis; zero columns are also supported. Rank deficiency, repeated or
+conflicting observations, signs and zero residuals are retained. The polynomial
+`shortTime` and `shortOriginalOutputsInTime` substitute the proved certificate
+bound to give `P(12L³+10L+1)` in original **instance** bits. The existing size
+bound and complete verifier are joined by `threshold_iff_short_verifier`.
+No tight degree or practical runtime claim is made.
+
+Correspondence: the actual binary-verifier sentence of
+`complexity-regimes/eth-addendum.tex`, `prop:regression-np-complete`, at thesis
+commit `3ed947f5c3f82710ab2e253d235e604e3a9e97de`. The agenda/addendum hashes remain
+`9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768` /
+`25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+No discrepancy or thesis correction. Semantic existence, certificate size and
+whole-verifier runtime are now separately complete. **NP membership and
+NP-completeness remain open**: instantiate the library's NP language/encoding,
+prove soundness for arbitrary certificate words attached to a fixed valid
+instance (including unreduced fractions), charge pair packing, and prove the
+reduction from the existing integral-row/natural-threshold hardness language,
+including the affine case. Counting circuits, conditional transfers, sampling
+and applications remain pending. No external SAT-counter hypothesis is used.
+
+Validation: full `lake build PhdThesisLean DiscreteMetricRegression` passes
+(9,378 jobs), with a clean-commit rebuild required before final handoff.
+Independent type/axiom audit checks all 66 new public declarations and nine
+prior certificate/machine/hardness endpoints: 65 standard-only reports and ten
+axiom-free. Full-build reports are 1,627 standard-only and 42 axiom-free, with
+555 existing warnings and none in these three modules. All 248 project/adapter
+sources pass the prohibited-token scan; all ten dependency pins and tracked
+sources are clean. Toolchain, manifest and Lake configuration are unchanged.
+
+Fifteen kernel-checked examples cover six actual staged executions, three
+malformed-word rejection contracts, and six semantic checks at primes 2 and 3
+with inconsistent repeated zero-design rows, positive/zero/negative thresholds,
+unreduced fractions and zero columns. Independent oracle checks pass 222,651
+concrete stage executions: 8,191 raw words through length 12 over 20 stages
+(163,820 executions), 873 constructed/malformed/boundary records (17,460), and
+41,371 arbitrary fourteen-symbol assembly inputs. Tests check output, time,
+control reset and every private stack; boundaries include huge binary counts,
+129-bit numerators, 100 certificate entries and trailing data. These tests run
+the concrete parsing/assembly stages; the full composed arithmetic verifier and
+generic transfers are justified by the universal proofs, not a simulation claim.
+Failed intermediate diagnostics are excluded from validation evidence.
+
+Started clean at `18eb3ce`, fetched and fast-forwarded `5754c52`, preserving the
+Smith pivot-credit result. Read the 13 November literature checkpoint and the
+Smith plan's record of the supplied 21 November review / 22 November Ji v2
+source check. Those are reused dated records, not a fresh external search or
+artifact replay. No sibling repository, thesis, dependency, adapter, toolchain
+or automation schedule changed. Successful evidence is retained under the
+26 November projectless `work/` directory.

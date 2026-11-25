@@ -450,25 +450,35 @@ source hash and separate semantic, size and machine milestones.
   input either yields the exact retained rows/certificate/threshold or the
   empty failure word; output length is at most `16L+14`. Original rational
   correspondence requires positive rows and allows zero columns.
-- [ ] Construct and bound the actual binary rational-loss verifier, then
-  compose NP membership with a checked encoding bridge from existing hardness.
+- [x] Construct and bound the complete binary rational-loss verifier
+  (`RationalRecordSource`, `RationalRecordAssembly`, `RationalBinaryVerifier`).
+  Every accepted raw parse supplies compatible rows and certificate. Actual
+  five-stack reordering takes at most `2L+5` transitions and maps empty rejection
+  to an empty source with threshold -1. Full composition includes every parser,
+  structural pass, arithmetic operation and transfer in `P(totalBits)`; malformed
+  records return false. The short-certificate clock is `P(12L³+10L+1)` in original
+  instance bits, with a proved threshold/short-verifier equivalence.
+- [ ] Package this short-witness verifier into NP membership and connect the
+  existing hardness language by a checked binary-rational encoding reduction;
+  include the affine model before concluding the full NP-completeness claim.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
   population-count circuit; transfer an explicit fixed-width counting
   hypothesis to optimisation/counting/recovery, with time and space bounds.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: connect `RationalRecordParser` to the internal arithmetic
-checker. Prove that every successful raw-word parse supplies a compatible
-row/certificate source; reorder and relabel its retained rows and
-certificate/threshold pair into `RationalRegressionInternal.encoding`, branch
-empty parser output to false, and compose the checker with all transfers
-charged. The parser already performs all original binary dimension/data reads,
-rectangular checks, row preservation during suffix validation, certificate-count
-agreement, complete exhaustion and joint rejection. Do not rebuild those stages.
-Then join the short-witness theorem to NP membership and prove the
-binary-rational encoding bridge from existing hardness before concluding
-NP-completeness. The external SAT counter remains an explicit hypothesis for
+Next obligation: define the binary rational decision language and instantiate
+its NP verifier with `RationalBinaryVerifier.computableInPolyTime`,
+`shortOriginalOutputsInTime` and `threshold_iff_short_verifier`. Establish
+soundness for arbitrary certificate words attached to a valid original instance,
+including unreduced certificate fractions; use the parser's exact language and
+`check_stored_values`. Charge any pair-language packing/translation in the
+library's NP encoding. Prove the binary-rational encoding reduction from the
+existing integral-row/natural-bound hardness language, including the affine
+case. The whole original-bit verifier is complete: do not repeat parsing,
+compatibility, field reordering, rejection dispatch, or loss-checker composition.
+Later linear counting circuits, conditional transfers, sampling and applications
+remain open. The external SAT counter remains an explicit hypothesis for those
 later conditional results; none is used here.
 
 ## Precision-indexed p-adic prediction growth

@@ -10114,3 +10114,44 @@ Both builds passed. Both headline axiom prints list only propext,
 Classical.choice and Quot.sound. The changed Lean source passed the
 prohibited-token scan and `git diff --check`. Consulted the recorded
 21 November Sydney human review and its 22 November Ji v2 source check.
+
+
+## 26 November 2026: complete original-bit rational-loss verifier
+
+- Started clean at `18eb3ce`; fetched/fast-forwarded `5754c52`, retaining Smith
+  pivot-credit work. Read guidance, current status/declarations/changes, thesis,
+  automation memory, the 13 November literature checkpoint and the Smith plan's
+  record of the 21 November review / 22 November Ji check. No fresh external
+  search or independent artifact replay; no schedule changes.
+- Added default-imported `RationalRecordSource`, `RationalRecordAssembly`, and
+  `RationalBinaryVerifier`. Every successful raw parse supplies compatible typed
+  rows/certificate with literal fraction preservation. A five-stack machine
+  reorders the source in at most `2L+5` transitions, including reset/cleanup and
+  fixed rejection output. Empty failure maps to an empty source with threshold
+  -1, whose arithmetic check is proved false.
+- `computableInPolyTime` executes the whole original binary verifier, including
+  parsing, shape/count/exhaustion checks, arithmetic and all transfers.
+  `check_invalid`, `check_true_iff`, `check_stored_values`, `check_correct` and
+  `originalOutputsInTime` prove total rejection, exact arithmetic on unreduced
+  fields and thesis correspondence at `P(totalBits)`. Intermediate source length
+  is at most `16L+21`. `shortOriginalOutputsInTime` charges short witnesses to
+  `P(12L³+10L+1)` in instance bits; `threshold_iff_short_verifier` joins the size
+  and semantic milestones. No runtime assumption or external SAT hypothesis.
+- Thesis `prop:regression-np-complete` at unchanged commit
+  `3ed947f5c3f82710ab2e253d235e604e3a9e97de`; agenda/addendum hashes unchanged.
+  No mathematical discrepancy. Whole-verifier runtime is complete; formal NP
+  membership, the binary-rational hardness bridge and affine composition remain
+  open, as do the later counting, transfer, sampling and application milestones.
+- Full 9,378-job build passes; independent audit covers 66 new declarations plus
+  nine prior endpoints (65 standard-only, ten axiom-free). Full build has 1,627
+  standard-only/42 axiom-free reports and 555 existing warnings, none new. Fifteen
+  kernel examples and 222,651 concrete parsing/assembly executions pass output,
+  time and cleanup/reset checks. Generic transfers and the complete arithmetic
+  composition rely on universal proofs, not simulation. All 248 project/adapter
+  sources scan clean; all ten pinned dependencies/tracked sources are clean.
+  Failed intermediate diagnostics are excluded. No sibling, thesis, dependency,
+  adapter, toolchain or configuration changes. Evidence: dated projectless work.
+- Next: instantiate a binary rational NP language and its verifier, including
+  arbitrary-certificate soundness and library pair packing; prove the checked
+  hardness-encoding bridge and affine result. Do not repeat the completed
+  original parser, compatibility, assembly, rejection or checker composition.

@@ -199,3 +199,6 @@ import PhdThesisLean.RationalCertificateTail
 import PhdThesisLean.RationalRecordPrefix
 import PhdThesisLean.RationalRecordData
 import PhdThesisLean.RationalRecordParser
+import PhdThesisLean.RationalRecordSource
+import PhdThesisLean.RationalRecordAssembly
+import PhdThesisLean.RationalBinaryVerifier
