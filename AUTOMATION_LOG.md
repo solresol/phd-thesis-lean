@@ -10174,3 +10174,36 @@ prohibited-token scan and `git diff --check`. Consulted the recorded
 - Next investigate how often a long quotient is copied into later arms
   and whether the cumulative charge admits a fixed polynomial. The
   all-stage budget, uniform machine and optimizer composition remain open.
+
+### 27 November 2026 Sydney — ordinary rational regression NP membership
+
+- Started clean at `62cbb42`; fetched/fast-forwarded `7b29c1e` and preserved
+  the concurrent Smith target-exposure work. Read guidance, status, changes,
+  theorem declarations, thesis specification and dated literature findings.
+- Added default-imported `RationalCertificateSoundness` and `RationalRegressionNP`.
+  Proved fixed-instance soundness for every binary certificate word, retaining
+  unreduced fractions and requiring the exact count and complete exhaustion.
+  The actual two-pass pair-tag remover takes `2S+2` transitions; its composition
+  with the whole verifier charges all transfers. The short certificate bound
+  is `12L³+9L+1` in original instance bits.
+- `RationalRegressionNP.inNP` closes ordinary membership in the pinned library
+  NP class. `accepts_original_iff` proves the thesis correspondence for positive
+  rows and any number of columns. Instances are canonical binary-word subtypes;
+  their semantic decoder is not a machine-cost premise. All certificate words
+  are legitimate verifier inputs. No external SAT-counter assumption.
+- Targeted/full `lake build PhdThesisLean DiscreteMetricRegression` passed
+  (9,381 jobs); independent audit checked all 29 new public declarations plus
+  nine prior endpoints/classes, all standard axioms only. Full build: 1,644
+  standard-only and 42 axiom-free reports, 555 existing warnings, none new.
+  Fourteen kernel examples passed, including two concrete tag-removal traces.
+  All 251 project/adapter sources scan clean; all ten dependency pins/tracked
+  sources are clean. Successful evidence is in dated projectless `work/`.
+- Thesis `3ed947f5` and agenda/addendum hashes are unchanged; no discrepancy or
+  mathematical correction. Reused the 13 November review (fourteen days old)
+  and recorded 21/22 November findings, without a fresh search/artifact replay.
+  Previous verifier CI `45696012803` and Smith CI `45877451559` passed.
+- Next: actual dense binary-rational encoding reduction and affine membership.
+  Binary variable labels need compaction before dense expansion, or use the
+  already hard unary-index language with a polynomial conversion; handle empty
+  rows. NP-completeness and later conditional milestones remain open. No
+  sibling, thesis, dependency, adapter, toolchain or schedule changes.

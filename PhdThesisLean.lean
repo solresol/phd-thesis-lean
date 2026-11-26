@@ -203,3 +203,5 @@ import PhdThesisLean.RationalRecordParser
 import PhdThesisLean.RationalRecordSource
 import PhdThesisLean.RationalRecordAssembly
 import PhdThesisLean.RationalBinaryVerifier
+import PhdThesisLean.RationalCertificateSoundness
+import PhdThesisLean.RationalRegressionNP

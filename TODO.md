@@ -459,25 +459,32 @@ source hash and separate semantic, size and machine milestones.
   structural pass, arithmetic operation and transfer in `P(totalBits)`; malformed
   records return false. The short-certificate clock is `P(12L³+10L+1)` in original
   instance bits, with a proved threshold/short-verifier equivalence.
-- [ ] Package this short-witness verifier into NP membership and connect the
+- [x] Package the ordinary short-witness verifier into the library NP class
+  (`RationalRegressionNP.inNP`). `RationalCertificateSoundness.sound` handles
+  every certificate word on a fixed original instance, including unreduced
+  fractions. Physical pair-tag removal and composition transfers are charged;
+  `accepts_original_iff` establishes the exact thesis correspondence.
+- [ ] Prove affine NP membership in original input bits and connect the
   existing hardness language by a checked binary-rational encoding reduction;
-  include the affine model before concluding the full NP-completeness claim.
+  include both models before concluding the full NP-completeness claim.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
   population-count circuit; transfer an explicit fixed-width counting
   hypothesis to optimisation/counting/recovery, with time and space bounds.
 - [ ] Prove the uniform-sampling approximation theorem and all three compiler
   applications, retaining multiplicities and the distinct counting notions.
 
-Next obligation: define the binary rational decision language and instantiate
-its NP verifier with `RationalBinaryVerifier.computableInPolyTime`,
-`shortOriginalOutputsInTime` and `threshold_iff_short_verifier`. Establish
-soundness for arbitrary certificate words attached to a valid original instance,
-including unreduced certificate fractions; use the parser's exact language and
-`check_stored_values`. Charge any pair-language packing/translation in the
-library's NP encoding. Prove the binary-rational encoding reduction from the
-existing integral-row/natural-bound hardness language, including the affine
-case. The whole original-bit verifier is complete: do not repeat parsing,
-compatibility, field reordering, rejection dispatch, or loss-checker composition.
+Next obligation: prove the checked binary-rational encoding reduction from the
+existing integral-row/natural-bound hardness language to `RationalRegressionNP.problem`,
+including positive-row handling and actual finite-machine serialization cost.
+Binary variable labels cannot be expanded directly to a dense matrix of width
+one plus their maximum: this can be exponential in the source bits. Compact
+the occurring labels, or start from the already hard unary-index language and
+prove its polynomial dense conversion. Handle an empty row list explicitly.
+For the affine version, execute the column-of-ones transformation in polynomial
+original input bits and compose its NP verifier, or construct and audit the
+equivalent direct verifier. The ordinary NP theorem is complete: do not repeat
+arbitrary-certificate soundness, pair packing, the original parser, compatibility,
+field reordering, rejection dispatch, or whole loss-checker composition.
 Later linear counting circuits, conditional transfers, sampling and applications
 remain open. The external SAT counter remains an explicit hypothesis for those
 later conditional results; none is used here.
