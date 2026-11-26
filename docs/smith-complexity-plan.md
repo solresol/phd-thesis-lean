@@ -2630,3 +2630,39 @@ Consulted the 21 November Sydney human review recorded above. Its 22 November
 source check of Ji v2 concerns a nonsingular square algorithm and arithmetic
 costs. This argument uses the rectangular controller's checked sweep theorem.
 [Ji v2](https://arxiv.org/html/2607.22524v2)
+
+### A quadratic lower bound at the first turn (27 November 2026 Sydney)
+
+Question: can a linear allowance in the original encoded bits pay for all
+transformed target widths in one isolation? The local target is a fixed
+polynomial P such that, for every dense A and valid k, the quantity
+`exposedCharge (initial A.toMatrix) k hr hc (isolationPasses (initial A.toMatrix) k)`
+is at most P evaluated at the length of `SmithEncoding.encode A`. Later
+stages also need a transfer invariant. The global target is a fixed polynomial
+bounding the multiplier budget of `decomposeTrace A` in that same length.
+
+Take two rows and n+1 columns. The first column is (2K+1,2) and each
+remaining column is (0,1). For positive K the pivot cannot divide 2.
+The first signed Euclidean step uses quotient K and maps each (0,1)
+to (1,K). The next step promotes K to the pivot row. With K=2^n,
+the perpendicular sweep thus reads n copies of an (n+1)-bit target.
+The input costs exactly 9n+17 bits: n+5 dimension/header bits,
+2n+6 for the leading odd entry, 6 for the entry 2, and 6n for the
+n pairs of zero and one. These counts include signed field framing.
+
+`SmithExposureLower.no_linear_turn_bound` proves that the exposed magnitude
+width exceeds any fixed multiple of input length. This makes the existing
+quadratic first-turn upper bound sharp in order. It also rules out paying
+for every transformed exposure with a bounded number of copies of each
+original bit. A polynomial allowance for repeated uses of a quotient is
+still possible. Next seek a bound on the number and widths of such repeated
+uses across successive pivot changes. This example has only two rows and
+does not establish any superpolynomial growth, later-stage bound or machine
+time. The controller and its inverse matrices are unchanged.
+
+Literature consulted: the repository's record above of the 21 November
+Sydney human review and its targeted 22 November source verification.
+Ji v2 proves results for a nonsingular square controller in an arithmetic
+model. Those hypotheses omit this rectangular family and its binary wire
+cost. The lower bound is derived from the project's own controller.
+[Ji, arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2).

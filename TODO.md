@@ -197,6 +197,7 @@ exact interface, encoding obligations, daily prompt and stopping criteria.
 - [x] Charge the computed multipliers of one row sweep to the incoming selected column, retaining the final pivot width as credit (`SmithMultiplierBudget.sweepRows_budget`). The following result covers the first turn.
 - [x] Bound the first turn from a dense input using each distinct incoming column field once (`SmithMultiplierBudget.initial_column_budget`, `initial_turn_width`).
 - [x] Telescope the pivot-width credit through all passes of one isolation (`SmithMultiplierBudget.isolate_budget_credit`).
+- [x] Show that even the first perpendicular arm can expose quadratically many magnitude bits in the original wire length (`SmithExposureLower.no_linear_turn_bound`).
 - [ ] Bound the cumulative exposed target charges in original input bits, then control transfer between diagonal stages.
 - [ ] Prove correctness and termination of the chosen controlled-growth algorithm.
 - [ ] Bound all intermediate coefficients, operation count and complete encoded

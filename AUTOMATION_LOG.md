@@ -10155,3 +10155,22 @@ prohibited-token scan and `git diff --check`. Consulted the recorded
   arbitrary-certificate soundness and library pair packing; prove the checked
   hardness-encoding bridge and affine result. Do not repeat the completed
   original parser, compatibility, assembly, rejection or checker composition.
+
+### 27 November 2026 Sydney — Smith target exposure
+
+- From main `62cbb426f191ac5fa6872c72b49c837110ae517e`, tested whether a
+  linear allowance in the original wire length suffices after turning from
+  column to row. Chose a two-row input where one Euclidean quotient enters
+  every remaining column. Symbolic reduction of the actual controller and
+  an exact count using the dependency's binary-length lemma give n(n+1)
+  exposed magnitude bits for 9n+17 input bits.
+- Checked `SmithExposureLower.turn_entry`, `turn_width`, `input_length`
+  and `no_linear_turn_bound` with `lake build PhdThesisLean.SmithExposureLower`
+  and `#print axioms`. The audit reports only propext, Quot.sound and, for
+  the finite sums, Classical.choice. The project source scan found no
+  prohibited declarations or placeholders across 249 Lean files. The full
+  `lake build PhdThesisLean` succeeded (9,377 jobs). The shared runtime passed
+  `python3 /workspace/shared/theorem-provers/check.py` after fetching main.
+- Next investigate how often a long quotient is copied into later arms
+  and whether the cumulative charge admits a fixed polynomial. The
+  all-stage budget, uniform machine and optimizer composition remain open.
