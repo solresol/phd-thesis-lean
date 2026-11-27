@@ -10227,3 +10227,36 @@ prohibited-token scan and `git diff --check`. Consulted the recorded
 - Next seek an original-input bound across successive pivot changes and
   stage transfer. This example now accounts for its own multiplier costs.
   The uniform decomposition machine and optimizer composition remain open.
+
+### 28 November 2026 — affine binary rational regression is in NP
+
+- Started clean at `a54acd9`; fetched/fast-forwarded `411b408`, preserving the
+  Smith first-cross multiplier result. Read repository guidance, current
+  declarations and changes, thesis specification and dated literature findings.
+- Added default-imported `RationalAffineData` and `RationalAffineNP`. The
+  three-stack insertion machine adds the unit column and retained count mark
+  in at most 10M+4 stage transitions with complete cleanup. Its original-word
+  correspondence retains every threshold/certificate suffix verbatim.
+- `RationalAffineNP.inNP` packages the full original-bit machine and existing
+  affine minimizer-size bound, `28(L+1)³+9(L+1)+1`, in the pinned NP class.
+  Soundness covers all certificate words, including unreduced fractions;
+  `accepts_original_iff` matches the affine thesis objective. Whole-machine
+  runtime, including all parsing, arithmetic and transfers, is polynomial in
+  original combined bits; the short clock is P(28(L+1)³+10(L+1)).
+- Targeted/full `lake build PhdThesisLean DiscreteMetricRegression` passed
+  (9,383 jobs). Independent audit of 72 new public declarations plus nine prior
+  endpoints/classes: 72 standard-only and nine axiom-free. Full build: 1,661
+  standard-only and 42 axiom-free reports, 555 existing warnings, none new.
+  Thirteen kernel examples and 11,231 actual insertion-machine executions passed
+  with independent output/time/reset/private-stack checks. All 253 project/adapter
+  sources scan clean; all ten dependency pins/tracked sources are clean.
+- Thesis `3ed947f5` and agenda/addendum hashes unchanged; no discrepancy or
+  mathematical correction. Reused the 13 November review (fifteen days old)
+  and recorded 21/22 November findings, without fresh search/artifact replay.
+  Prior NP CI `45891437579` and Smith CI `46054670303` passed.
+- Next: checked dense binary-rational hardness reductions for both models,
+  using compact labels or the already hard unary-index source, handling empty
+  rows and preserving affine intercept pinning. Both NP memberships are now
+  complete; NP-completeness and later conditional milestones remain open.
+  No external SAT-counter assumption, sibling, thesis, dependency, adapter,
+  toolchain or schedule changes. Evidence is in dated projectless `work/`.

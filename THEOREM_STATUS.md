@@ -1589,7 +1589,8 @@ earlier headline catalogue. `prop:regression-np-complete` is **Partial**.
 | Total original binary record parser | Complete (machine component) | `RationalRecordParser.computableInPolyTime` executes all dimension/data parsing, rectangular validation, row preservation during threshold/certificate validation, exact certificate count, final exhaustion and joint rejection. `output_success_iff` with `RationalRecordValidation.validated_iff` characterizes success on every raw word. Failure emits the empty word; success retains exact internal rows and certificate/threshold fields. Output is at most `16L+14`; `originalOutputsInTime` charges the complete parser to original combined bits. |
 | Polynomial-time verifier on binary rational data | Complete (whole machine) | `RationalRecordSource.exists_source` supplies a compatible typed source for every successful raw parse. `RationalRecordAssembly.Machine.outputsInTime` reorders retained fields in at most `2L+5` actual TM2 steps, including rejection output and cleanup. `RationalBinaryVerifier.computableInPolyTime` composes the complete original binary parser, assembly and internal arithmetic. `check_invalid` rejects malformed records; `check_stored_values` covers unreduced fractions; `check_correct` and `originalOutputsInTime` match the thesis in `P(totalBits)`. `shortOriginalOutputsInTime` gives `P(12L³+10L+1)` in original instance bits for short witnesses; `threshold_iff_short_verifier` joins the semantic and size results. No external runtime hypothesis. |
 | Ordinary binary rational NP membership | Complete | `RationalRegressionNP.inNP` instantiates the pinned library NP class with arbitrary Boolean certificates, soundness for every word, the bound `12L³+9L+1`, and the complete polynomial-time machine. Pair tags are physically removed in `2S+2` transitions; composition transfers are charged. `accepts_original_iff` matches the rational threshold problem for every positive-row instance, including zero columns. |
-| Affine NP membership and NP-completeness | Pending | Prove affine membership in original instance bits and connect the existing integral-row/natural-bound hardness language to the new binary rational language by a checked polynomial-time encoding reduction. Existing NP-hardness does not by itself supply this bridge. |
+| Affine binary rational NP membership | Complete | `RationalAffineNP.inNP` uses original instance bits and arbitrary Boolean certificates, with bound `28(L+1)³+9(L+1)+1`. `RationalAffineData` physically inserts the unit column and increments the retained count in at most `10M+4` stage transitions. The complete parser, certificate validation, arithmetic and transfers have a polynomial clock in original combined bits; `accepts_original_iff` gives the affine objective exactly. |
+| Ordinary and affine binary rational NP-completeness | Pending | Connect the existing integral-row/natural-bound hardness languages to the two binary rational languages by checked polynomial-time encoding reductions. Both NP memberships are complete; existing NP-hardness does not by itself supply these encoding bridges. |
 | `prop:sparse-compiled-subexp` | Pending | Counting-preserving 3-CNF with unique gate extensions and a linear balanced population-count circuit; conditional exact optimisation, optimum counting and recovery with time/space bounds. |
 | `cor:compiled-subexp-approx` and applications | Pending | Uniform sampling with multiplicities, error/failure bounds and bounded sampling runtime; signed clauses, list-colouring and positive Max-Cut instantiations, with floor counts distinguished from nonzero-conflict optima. |
 Correspondence: `RationalWitnesses.loss_eq_thesis` identifies the Lean objective
@@ -3444,3 +3445,88 @@ retained in the 27 November projectless `work/` directory (`full-build.log`,
 `RegressionNPAudit.lean`, `final-axiom-audit.log`, `CertificateExamples.lean`,
 `examples.log`, source/dependency audits). Failed intermediate diagnostics
 are excluded from verification evidence.
+
+### 28 November 2026 — affine NP membership in original binary input bits
+
+`RationalAffineNP.inNP` closes affine membership in the pinned
+`EncodedLanguage.InNP` class. The input is the original canonical binary
+matrix/response/threshold word, with positive row count; zero columns are
+allowed. Certificates are arbitrary Boolean words. `accepts_original_iff`
+identifies acceptance with the existence of a rational intercept c and vector β
+such that `∑ i, padicNorm p (y i - ((A *ᵥ β) i + c)) ≤ B`. This is the affine
+NP-membership clause of `complexity-regimes/eth-addendum.tex`,
+`prop:regression-np-complete`, at each fixed prime. The subtype represents valid
+instances; no separate malformed-standalone-instance language is claimed.
+
+`RationalAffineData.Machine.outputsInTime` proves an actual three-stack finite
+TM2 pass. It adds one retained column-count mark, and emits the literal binary
+fraction one after each response, before the original coefficients. On every
+stage word of length M its output has at most 9M+1 symbols and execution takes
+at most 10M+4 transitions, including reversal, state reset and private-stack
+cleanup. `original_append` proves exact equality with the ordinary parser's
+data output on the unit-column design, for every original instance and every
+suffix. Threshold and certificate bits survive unchanged. The unit column is
+first, with the intercept first in the certificate; this ordering is equivalent
+to the thesis's appended column of ones.
+
+`sourceComputableInPolyTime` composes physical pair-tag removal, all original
+binary dimension/data parsing, insertion, suffix routing, count/exhaustion
+validation, failure guarding and source assembly. `computableInPolyTime` then
+executes the whole residual/norm/sum/comparison machine. The classical matrix
+presentation in `data` only identifies the semantic function. `source_encode`
+and `verify_original` prove its agreement with the executed original-bit
+pipeline; that choice is not an executed decoder or a runtime premise.
+Arbitrary-certificate soundness follows through the existing ordinary verifier,
+including unreduced fractions. No syntax or certificate-length hypothesis is
+required by `sound_original` or `sound`.
+
+`complete` supplies a certificate of at most `28(L+1)³+9(L+1)+1` bits in the
+original instance length L, using the existing affine minimizer theorem.
+`outputsInTime` gives the whole machine's polynomial clock in instance plus
+certificate length. `shortOutputsInTime` substitutes the certificate bound,
+equivalently giving `P(28(L+1)³+10(L+1))` in original instance bits. No tight
+polynomial degree or practical-runtime assertion is made. Semantic attainment,
+certificate size, whole machine runtime, ordinary NP membership and affine NP
+membership are separately complete. Both dense binary-rational hardness
+bridges and hence NP-completeness remain open. Start from the already hard
+unary-index languages or prove compact relabeling before dense expansion;
+handle empty row lists and preserve the affine intercept-pinning rows. The
+linear counting circuit, conditional transfers, sampling and applications
+remain pending. This increment uses no external SAT-counter hypothesis.
+
+Thesis comparison: unchanged clean commit
+`3ed947f5c3f82710ab2e253d235e604e3a9e97de`; agenda SHA-256
+`9a1de32f9ee6c359fd92447f4492671f8a7dbbaac90b665b611223408a3b3768`,
+addendum SHA-256
+`25fa65a1b097da0b35a83074b9d4515d9a84aac7d4ea74dd45f267edee77b3c6`.
+The thesis assumes r,d≥1; the new theorem allows d=0 and specializes to it.
+No mathematical discrepancy or thesis edit was needed.
+
+Validation: targeted build and `lake build PhdThesisLean DiscreteMetricRegression`
+pass (9,383 jobs). Independent import/type/axiom audit covers all 72 new explicit
+public declarations plus nine prior endpoints/classes: 72 reports use only
+`propext`, `Classical.choice`, `Quot.sound`, and nine are axiom-free. Full build:
+1,661 standard-only and 42 axiom-free reports; 555 existing warnings, none in
+the new modules. All 253 project/adapter Lean sources pass the comment/string-aware
+prohibited-token scan; all ten dependency pins and tracked sources are clean.
+Thirteen kernel examples pass: unreduced intercepts at primes 2 and 3,
+missing/wrong counts, trailing bits, zero denominator, negative zero, class
+correspondence, all-certificate rejection at negative thresholds, and three
+actual machine traces. A further 11,231 concrete insertion-machine executions
+pass independent output oracles, runtime, reset and all private-stack checks:
+11,111 arbitrary ten-symbol stage words through length four and 120 original
+records with zero columns, signed rational data, repeated/conflicting rows and
+arbitrary suffixes including 1,000 trailing bits. The complete composed machine
+and generic transfers rely on their universal proofs, not these simulations.
+
+Started clean at `a54acd9`, fetched/fast-forwarded `411b408`, and preserved its
+Smith first-cross multiplier result. Reused the 13 November literature review
+(now fifteen days old) and the Smith plan's dated record of the 21 November
+review/22 November source check. No fresh literature search or external artifact
+replay is asserted. Previous NP CI `45891437579` and Smith CI `46054670303` are
+confirmed successful. No sibling, thesis, dependency, adapter, toolchain or
+schedule changes. Successful evidence is retained in the 28 November projectless
+`work/` directory: `full-build.log`, `AffineNPAudit.lean`,
+`final-axiom-audit.log`, `AffineExamples.lean`, `examples-final2.log`,
+`machine-examples.log`, and source/dependency audits. Failed intermediate
+diagnostics are excluded from verification evidence.

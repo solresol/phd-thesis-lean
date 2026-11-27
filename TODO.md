@@ -465,9 +465,12 @@ source hash and separate semantic, size and machine milestones.
   every certificate word on a fixed original instance, including unreduced
   fractions. Physical pair-tag removal and composition transfers are charged;
   `accepts_original_iff` establishes the exact thesis correspondence.
-- [ ] Prove affine NP membership in original input bits and connect the
-  existing hardness language by a checked binary-rational encoding reduction;
-  include both models before concluding the full NP-completeness claim.
+- [x] Prove affine NP membership in original input bits (`RationalAffineNP.inNP`).
+  The actual unit-column insertion pass, original parsing, arbitrary-certificate
+  validation, arithmetic and transfers have checked polynomial machine time.
+  The certificate bound is `28(L+1)³+9(L+1)+1` in original instance bits.
+- [ ] Connect both existing hardness languages by checked binary-rational
+  encoding reductions before concluding the full NP-completeness claim.
 - [ ] Prove unique-extension threshold 3-CNF with a linear balanced
   population-count circuit; transfer an explicit fixed-width counting
   hypothesis to optimisation/counting/recovery, with time and space bounds.
@@ -481,11 +484,11 @@ Binary variable labels cannot be expanded directly to a dense matrix of width
 one plus their maximum: this can be exponential in the source bits. Compact
 the occurring labels, or start from the already hard unary-index language and
 prove its polynomial dense conversion. Handle an empty row list explicitly.
-For the affine version, execute the column-of-ones transformation in polynomial
-original input bits and compose its NP verifier, or construct and audit the
-equivalent direct verifier. The ordinary NP theorem is complete: do not repeat
-arbitrary-certificate soundness, pair packing, the original parser, compatibility,
-field reordering, rejection dispatch, or whole loss-checker composition.
+Carry the same dense conversion through the affine hardness theorem, retaining
+its intercept-pinning zero rows. Ordinary and affine NP memberships are complete:
+do not repeat unit-column insertion, arbitrary-certificate soundness, pair packing,
+the original parser, compatibility, field reordering, rejection dispatch, or
+whole loss-checker composition.
 Later linear counting circuits, conditional transfers, sampling and applications
 remain open. The external SAT counter remains an explicit hypothesis for those
 later conditional results; none is used here.
