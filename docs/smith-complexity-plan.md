@@ -2666,3 +2666,29 @@ Ji v2 proves results for a nonsingular square controller in an arithmetic
 model. Those hypotheses omit this rectangular family and its binary wire
 cost. The lower bound is derived from the project's own controller.
 [Ji, arXiv:2607.22524v2](https://arxiv.org/html/2607.22524v2).
+
+### Exact multiplier cost of the first turn (27 November 2026 UTC)
+
+The first open obligation is a fixed polynomial P bounding
+`exposedCharge (initial A.toMatrix) k hr hc (isolationPasses (initial A.toMatrix) k)`
+by `P.eval (SmithEncoding.encode A).length` for every dense A and valid k.
+The encoding counts both dimension headers and all framed signed binary
+entries. A bound transferable to subsequent diagonal stages is also needed.
+
+For the two-row family above, the signed quotients K and -2 generate two
+four-addition Euclidean steps. Each step with quotient q costs
+size(|q|)+7. With K=2^n the column therefore costs n+17. Its final pivot
+is -1. Induction on the remaining distinct targets shows that an exact
+division touches only the current target row (column after transposition).
+Consequently all n divisions use the incoming K and each emits one addition
+with multiplier +K. The perpendicular budget is n(n+2), and the first cross
+costs n²+3n+17 on 9n+17 input bits, including n=0. This proves a quadratic
+charge for the actual emitted multipliers. The formula does not charge
+machine steps or the full encoded output.
+
+For subsequent work, use the exact quotient sum on divisible arms; the
+unresolved case is the total cost of copies across successive pivot changes
+and the transfer to later stages. The 21 November Sydney review recorded
+above and its source check on 22 November concern a nonsingular square
+algorithm with arithmetic costs. This rectangular trace calculation uses
+the project's own definitions. [Ji v2](https://arxiv.org/html/2607.22524v2)

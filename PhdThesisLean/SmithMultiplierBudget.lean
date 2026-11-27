@@ -173,6 +173,37 @@ theorem sweepRows_budget (Q : State m n) (r : Fin m) (j : Fin n) (rows : List (F
       dsimp [T] at *
       omega
 
+/-- For distinct nonpivot targets divisible by the pivot, the budget is
+exactly the sum of the incoming quotient widths plus one per target. -/
+theorem divisible_sweep_budget {m n : ℕ} (Q : State m n) (r : Fin m) (j : Fin n)
+    (rows : List (Fin m)) (hn : rows.Nodup) (hr : r ∉ rows)
+    (hd : ∀ s ∈ rows, Q.S r j ∣ Q.S s j) :
+    budget (sweepRowsTrace Q r j rows) =
+      (rows.map fun s => ((Q.S s j).tdiv (Q.S r j)).natAbs.size + 1).sum := by
+  induction rows generalizing Q with
+  | nil => rfl
+  | cons s rows ih =>
+    obtain ⟨hs, hn⟩ := List.nodup_cons.mp hn
+    have hrs : r ≠ s := fun h => hr (by simp [h])
+    have htail : r ∉ rows := fun h => hr (List.mem_cons_of_mem _ h)
+    have hdiv := hd s (by simp)
+    let T := reduceRows Q r s hrs j
+    have keep (i : Fin m) (hi : i ≠ s) : T.S i j = Q.S i j := by
+      simp [T, reduceRows, hdiv, step, SmithRowOperations.rowAdd, hi]
+    have ht (i) (hi : i ∈ rows) : i ≠ s := fun h => hs (h ▸ hi)
+    have hrec := ih T hn htail (fun i hi => by
+      rw [keep r hrs, keep i (ht i hi)]
+      exact hd i (List.mem_cons_of_mem _ hi))
+    rw [sweepRowsTrace, dite_eq_right hrs, budget_append]
+    change _ + budget (sweepRowsTrace T r j rows) = _
+    rw [hrec, List.map_cons, List.sum_cons]
+    congr 1
+    · simp [reduceRowsTrace, hdiv, budget, coefficient]
+    · congr 1
+      apply List.map_congr_left
+      intro i hi
+      rw [keep r hrs, keep i (ht i hi)]
+
 open SmithColumn
 
 private theorem active_charge (A : Dense) (j : Fin A.cols) (k : ℕ) :
@@ -259,7 +290,7 @@ private theorem column_credit (Q : State m n) (k : ℕ) (hr : k < m) (hc : k < n
   simpa [columnTrace, clearActiveColumn, hr, hc, columnCharge] using
     sweepRows_budget Q ⟨k, hr⟩ ⟨k, hc⟩ (activeRows m k) (by simp [mem_activeRows])
 
-private theorem transpose_budget (ops : List (Op m n)) :
+theorem transpose_budget (ops : List (Op m n)) :
     budget (ops.map transposeOp) = budget ops := by
   induction ops with
   | nil => rfl
@@ -305,6 +336,7 @@ theorem isolate_budget_credit (Q : State m n) (k : ℕ) (hr : k < m) (hc : k < n
 #print axioms gcdTrace_budget_le
 #print axioms budget_append
 #print axioms run_budget_bound
+#print axioms divisible_sweep_budget
 #print axioms polynomial_budget_iff
 
 end PhdThesisLean.SmithMultiplierBudget

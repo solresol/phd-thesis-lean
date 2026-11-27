@@ -10207,3 +10207,23 @@ prohibited-token scan and `git diff --check`. Consulted the recorded
   already hard unary-index language with a polynomial conversion; handle empty
   rows. NP-completeness and later conditional milestones remain open. No
   sibling, thesis, dependency, adapter, toolchain or schedule changes.
+
+### 27 November 2026 UTC — actual Smith first-cross multiplier bits
+
+- Refreshed clean main to `a54acd9` and checked the shared pinned runtime with
+  `python3 /workspace/shared/theorem-provers/check.py`. Consulted the 21
+  November Sydney review and its 22 November source check recorded in the
+  Smith plan. The pinned binary-list API supplies the magnitude-length lemma.
+- Asked whether the 9n+17-bit family's quadratic exposure persists in the
+  emitted trace. Expanded the two signed Euclidean steps, then proved by
+  induction that distinct divisible targets retain their incoming quotients.
+  The perpendicular sweep costs n(n+2) and the whole first cross n²+3n+17.
+- Checked `divisible_sweep_budget`, `turn_row`, `perpendicular_budget` and
+  `first_cross_budget` with `lake build PhdThesisLean.SmithExposureLower`
+  and `#print axioms`. Only propext, Quot.sound and Classical.choice occur.
+  The complete `lake build PhdThesisLean` passed (9,379 jobs).
+  Scanned 251 Lean sources for prohibited tokens; the sole lexical hit
+  is the word “axiom” in an existing documentation comment.
+- Next seek an original-input bound across successive pivot changes and
+  stage transfer. This example now accounts for its own multiplier costs.
+  The uniform decomposition machine and optimizer composition remain open.
